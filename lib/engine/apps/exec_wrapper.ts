@@ -23,9 +23,9 @@ import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Runtime } from 'thingtalk';
-import TriggerRunner from './trigger_runner';
+import MonitorRunner from './monitor_runner';
 
-import { Timer, AtTimer } from './timers';
+import { Timer, AtTimer, OnTimer } from './timers';
 import DeviceView from '../devices/device_view';
 import NotificationFormatter from '../../dialogue-agent/notifications/formatter';
 import RestartableAsyncIterable from '../util/restartable_async_iterable';
@@ -42,10 +42,10 @@ function extendParams(output : Record<string, unknown>,
     }
 }
 
-interface OutputDelegate {
+export interface OutputDelegate {
     done() : void;
     output(outputType : string, outputValue : Record<string, unknown>) : void;
-    notifyError(error : Error) : void;
+    error(error : Error) : void;
 }
 
 type MaybePromise<T> = T|Promise<T>;
@@ -53,11 +53,6 @@ type ActionFunction = (params : Record<string, unknown>, env : ExecWrapper) => M
 
 type QueryFunctionResult = AsyncIterable<Record<string, unknown>>;
 type QueryFunction = (params : Record<string, unknown>, hints : Runtime.CompiledQueryHints, env : ExecWrapper) => MaybePromise<QueryFunctionResult>;
-
-interface TriggerLike {
-    end() : void;
-    stop() : void;
-}
 
 function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : string {
     if (expr instanceof Ast.InvocationExpression)
@@ -72,11 +67,20 @@ function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : st
     throw new TypeError('Invalid query expression ' + expr);
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+function isPlainObject(x : unknown) : x is object {
+    return typeof x === 'object' && x !== null &&
+        typeof (x as any).then !== 'function' &&
+        typeof (x as any).next !== 'function' &&
+        (Object.getPrototypeOf(x) === Object.prototype ||
+        Object.getPrototypeOf(x) === null);
+}
+
 /**
  * Wrap a ThingTalk statement and provide access to the Engine.
  *
  * This is an implementation of {@link external:thingtalk.ExecEnvironment}
- * suitable for running with the Almond engine.
+ * suitable for running with the Genie engine.
  *
  * @package
  */
@@ -87,7 +91,7 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
 
     private _programId : ThingTalk.Builtin.Entity;
     private _outputDelegate : OutputDelegate;
-    private _trigger : TriggerLike|null;
+    private _trigger : MonitorRunner|Timer|AtTimer|OnTimer|null;
 
     private _execCache : Array<[string, string, Record<string, unknown>, Array<Promise<QueryFunctionResult>>]>;
     private _hooks : Array<() => void|Promise<void>>;
@@ -143,7 +147,7 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
     }
 
     invokeTimer(base : Date, interval : number, frequency : number) : AsyncIterator<{ __timestamp : number }> {
-        const trigger = new Timer(base, interval, frequency);
+        const trigger = new Timer(base.getTime(), interval, frequency);
         this._trigger = trigger;
         trigger.start();
         return this._wrapClearCache(trigger);
@@ -156,12 +160,19 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
         return this._wrapClearCache(trigger);
     }
 
+    invokeOnTimer(date : Date[]) : AsyncIterator<{ __timestamp : number}> {
+        const trigger = new OnTimer(date);
+        this._trigger = trigger;
+        trigger.start();
+        return this._wrapClearCache(trigger);
+    }
+
     invokeMonitor(kind : string,
                   attrs : Record<string, string>,
                   fname : string,
                   params : Record<string, unknown>,
                   hints : Runtime.CompiledQueryHints) : AsyncIterator<[string, Record<string, unknown> & { __timestamp : number }]> {
-        const trigger = new TriggerRunner(this, new DeviceView(this.engine.devices, kind, attrs), fname, params, hints);
+        const trigger = new MonitorRunner(this, new DeviceView(this.engine.devices, kind, attrs), fname, params, hints);
         this._trigger = trigger;
         trigger.start();
         return this._wrapClearCache(trigger);
@@ -248,8 +259,8 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
     readState(stateId : number) {
         return this.app.readState(stateId);
     }
-    writeState(stateId : number, state : unknown) {
-        return this.app.writeState(stateId, state);
+    async writeState(stateId : number, state : unknown) {
+        await this.app.writeState(stateId, state);
     }
 
     async *invokeAction(kind : string,
@@ -263,12 +274,13 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
             const outputType = d.kind + ':action/' + fname;
 
             let result = await (d as unknown as Record<string, ActionFunction>)[js_function_name](params, this);
-            if (typeof result === 'object' && result !== null) {
-                extendParams(result as Record<string, unknown>, params);
-            } else if (typeof result !== 'undefined') {
-                console.error(`${outputType} returned a value that is not an object and not undefined; this is deprecated and might break`);
+            if (typeof result !== 'undefined' && !isPlainObject(result)) {
+                console.error(`${outputType} returned a value that is not an object and not undefined; this is deprecated and might break in the future`);
                 result = undefined;
             }
+            if (result === undefined)
+                result = {};
+            extendParams(result as Record<string, unknown>, params);
 
             if (result) {
                 if (d.uniqueId !== d.kind)
@@ -296,7 +308,7 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
 
         console.error(message, error);
         this.app.setError(error);
-        await this._outputDelegate.notifyError(error);
+        await this._outputDelegate.error(error);
     }
 
     async output(outputType : string, outputValues : Record<string, unknown>) : Promise<void> {

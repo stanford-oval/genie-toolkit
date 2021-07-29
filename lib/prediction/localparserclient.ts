@@ -177,9 +177,12 @@ export default class LocalParserClient {
         } else if (options.expect === 'MultipleChoice') {
             const choices = await Promise.all((options.choices || []).map((choice) => this._tokenizer.tokenize(choice)));
             result = choices.map((choice, i) => {
+                const distance = editDistance(tokens, choice.tokens);
                 return {
                     code: ['$choice', '(', String(i), ')', ';'],
-                    score: -editDistance(tokens, choice.tokens)
+                    // distance is between 0 (exact match) and the maximum of the two lengths
+                    // adjust distance to be between 0 and 1, higher is better
+                    score: 1 - distance / Math.max(tokens.length, choice.tokens.length)
                 };
             });
             result.sort(compareScore);
@@ -197,26 +200,15 @@ export default class LocalParserClient {
             assert(candidates.length > 0);
 
             result = candidates.map((c) => {
-                // convert is_correct and is_probably_correct scores into
-                // a single scale such that >0.5 is correct and >0.25 is
-                // probably correct
-                const score = (c.score.is_correct ?? 1) >= 0.5 ? 1 :
-                    (c.score.is_probably_correct ?? 1) >= 0.5 ? 0.35 : 0.15;
+                const score = c.score.is_correct ?? 1;
                 return {
                     code: c.answer.split(' '),
                     score: score
                 };
             });
 
-            if (candidates[0].score.is_junk >= 0.5)
-                intent.ignore = 1;
-            else
-                intent.ignore = 0;
-            if (intent.ignore < 0.5 && candidates[0].score.is_ood >= 0.5)
-                intent.other = 1;
-            else
-                intent.other = 0;
-            intent.command = 1 - intent.ignore - intent.other;
+            intent.other = candidates[0].score.is_ood ?? 0;
+            intent.command = 1 - intent.other;
         }
 
         let result2 = result!; // guaranteed not null

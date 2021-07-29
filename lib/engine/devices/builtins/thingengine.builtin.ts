@@ -148,7 +148,7 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         return [{
             help: manifest.getNaturalLanguageAnnotation('help'),
             description: manifest.getNaturalLanguageAnnotation('thingpedia_description'),
-            thingpedia_url: manifest.getImplementationAnnotation('thingpedia_url') || `https://dev.almond.stanford.edu/thingpedia/devices/by-id/${id}`,
+            thingpedia_url: manifest.getImplementationAnnotation('thingpedia_url') || `https://almond.stanford.edu/thingpedia/devices/by-id/${id}`,
             website:  manifest.getImplementationAnnotation('website'),
             category:  manifest.getImplementationAnnotation('subcategory'),
             issue_tracker:  manifest.getImplementationAnnotation('issue_tracker'),
@@ -224,6 +224,18 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         if (!cap)
             throw new CustomError('unsupported_platform', `open_url is not supported in ${this.platform.type} platform`);
         return cap.launchURL(String(url));
+    }
+
+    do_alert() {
+        const now = new Date;
+        return { time: new Tp.Value.Time(now.getHours(), now.getMinutes()) };
+    }
+
+    do_timer_expire(env : ExecWrapper) {
+        const now = new Date;
+        const duration = now.getTime() - env.app.metadata.startTime;
+
+        return { duration : duration };
     }
 
     async do_configure({ device } : { device : unknown }) : Promise<never> {

@@ -131,7 +131,15 @@ export function computePrediction(oldState : Ast.DialogueState|null, newState : 
     // check that the results is null for everything in the prediction
     // and reset confirm to false (the default) for everything autoconfirmable
     for (let i = 0; i < deltaState.history.length; i++) {
-        assert(deltaState.history[i].results === null);
+        if (deltaState.history[i].results !== null) {
+            console.log('----');
+            console.log(oldState ? oldState.prettyprint() : 'null');
+            console.log(newState.prettyprint());
+            console.log('----');
+            console.log(deltaState.history[i].prettyprint());
+            console.log('----');
+            throw new Error(`Item unexpectedly has results in prediction`);
+        }
 
         if (forTarget === 'user' && shouldAutoConfirmStatement(deltaState.history[i].stmt))
             deltaState.history[i].confirm = 'accepted';
@@ -157,6 +165,15 @@ export function computeNewState(state : Ast.DialogueState|null, prediction : Ast
     return clone;
 }
 
+/**
+ * Maximum number of history items with results to include in the
+ * context passed to the neural model.
+ *
+ * This controls how much information is carried from the context
+ * and also the maximum length of the sequence.
+ */
+const MAX_CONTEXT_ITEMS = 2;
+
 export function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget : 'user'|'agent') : Ast.DialogueState|null {
     if (context === null)
         return null;
@@ -175,19 +192,34 @@ export function prepareContextForPrediction(context : Ast.DialogueState|null, fo
             lastItems.push(item);
     }
 
-    // include at most the last 3 last items, or we'll run out of context length
-    if (lastItems.length > 3)
-        lastItems = lastItems.slice(lastItems.length-3, lastItems.length);
+    // include at most the last {MAX_CONTEXT_ITEMS} items, or we'll run out of context length
+    if (lastItems.length > MAX_CONTEXT_ITEMS)
+        lastItems = lastItems.slice(lastItems.length-MAX_CONTEXT_ITEMS, lastItems.length);
 
-    // add a copy of the last items with results, and trim the result list to 1 or 3
+    // add a copy of the last items with results
+    // trim the result list to 1 or 3
+    // trim arrays in each result so they have at most 3 items
     for (const lastItem of lastItems) {
-        // semi-shallow clone
-        const cloneItem = new Ast.DialogueHistoryItem(null, lastItem.stmt, new Ast.DialogueHistoryResultList(null, lastItem.results!.results.slice(),
-            lastItem.results!.count, lastItem.results!.more, lastItem.results!.error), lastItem.confirm);
+        // clone
+        const cloneItem = lastItem.clone();
         if (forTarget === 'user' && cloneItem.results!.results.length > 1)
             cloneItem.results!.results.length = 1;
         else if (cloneItem.results!.results.length > 3)
             cloneItem.results!.results.length = 3;
+
+        for (const result of cloneItem.results!.results) {
+            for (const key in result.value) {
+                const value = result.value[key];
+                if (value instanceof Ast.ArrayValue && value.value.length > 3) {
+                    // FIXME workaround a bug in the implementation of Ast.DialogueHistoryResultItem.clone
+                    // https://github.com/stanford-oval/thingtalk/issues/364
+                    const clone = value.clone();
+                    clone.value.length = 3;
+                    result.value[key] = clone;
+                }
+            }
+        }
+
         clone.history.push(cloneItem);
     }
 

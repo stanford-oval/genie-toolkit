@@ -101,7 +101,11 @@ class SimplePlatform extends Tp.BasePlatform {
 
 
 async function loadClassDef(args : any, classCode : string, datasetCode : string) : Promise<[ThingTalk.Ast.ClassDef, ThingTalk.Ast.Dataset]> {
-    const tpClient = new Tp.HttpClient(new SimplePlatform(args.developer_key), args.thingpedia_url);
+    const platform = new SimplePlatform(args.developer_key);
+    const prefs = platform.getSharedPreferences();
+    if (args.thingpedia_dir && args.thingpedia_dir.length)
+        prefs.set('developer-dir', args.thingpedia_dir);
+    const tpClient = new Tp.HttpClient(platform, args.thingpedia_url);
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
     let parsed;
@@ -313,6 +317,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--dataset', {
         required: true,
         help: "ThingTalk dataset file with the class's primitive templates."
+    });
+    parser.add_argument('--thingpedia-dir', {
+        required: false,
+        nargs: '+',
+        help: 'Path to a directory containing Thingpedia device definitions (overrides --thingpedia-url).'
     });
 }
 

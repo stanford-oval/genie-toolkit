@@ -111,9 +111,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 export async function execute(args : any) {
-    let tpClient : FileThingpediaClient|null = null;
-    if (args.thingpedia)
-        tpClient = new FileThingpediaClient(args);
+    const tpClient = new FileThingpediaClient(args);
     const parser = ParserClient.get(args.url, args.locale);
     await parser.start();
 

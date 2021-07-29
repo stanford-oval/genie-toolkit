@@ -1,0 +1,45 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+import { Ast, } from 'thingtalk';
+import ThingpediaLoader from './load-thingpedia';
+import * as C from './ast_manip';
+
+// TODO rewrite using FunctionCallExpression directly instead of using toExpression()
+timer : Ast.FunctionCallExpression = {
+    // daily repeating timers
+    ["{every day|each day|daily|once a day} ${time}"]: (time:at_time) => C.makeRepeatingTimeTimer($loader, [time]);
+    ["{every day|each day|daily|twice a day} at ${time1} and ${time2}"]:
+      (time1:constant_Time, time2:constant_Time) => C.makeRepeatingTimeTimer($loader, [time1, time2]);
+
+    // one-off timers
+    time:at_time => C.makeDateTimer($loader, C.makeDateWithDateTime(null, time));
+    ["on ${date}"]: (date:constant_Date) => C.makeDateTimer($loader, date);
+
+    !turking {
+        // interval repeating timers
+        ["{once {each|every|per|a}|each|every} ${unit}"]:
+          (unit:unit_Measure_ms) => C.makeIntervalTimer($loader, unit);
+
+        // FREQ times per minute
+        ["${freq} times {each|every|per|a} ${unit}"]:
+          (freq:constant_Number, unit:unit_Measure_ms) => C.makeFrequencyTimer($loader, freq, unit);
+    }
+}

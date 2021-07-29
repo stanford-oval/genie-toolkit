@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
+import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 
 import Engine from '../../engine';
@@ -27,9 +28,8 @@ import * as I18n from '../../i18n';
 import StatementExecutor from '../statement_executor';
 import DialoguePolicy from '../dialogue_policy';
 
-import CardFormatter, { FormattedObject } from '../card-output/card-formatter';
+import CardFormatter from '../card-output/card-formatter';
 import { FORMAT_TYPES } from '../card-output/format_objects';
-export { FormattedObject };
 
 /**
  * An object that is able to convert structured ThingTalk results
@@ -71,7 +71,11 @@ export default class NotificationFormatter {
         });
     }
 
-    async formatNotification(appName : string|null, program : ThingTalk.Ast.Program, outputType : string, outputValue : Record<string, unknown>) : Promise<FormattedObject[]> {
+    async initialize() {
+        await this._policy.initialize();
+    }
+
+    async formatNotification(appName : string|null, program : ThingTalk.Ast.Program, outputType : string, outputValue : Record<string, unknown>) : Promise<Tp.FormatObjects.FormattedObject[]> {
         assert(program.statements.length === 1);
         const stmt = program.statements[0];
         assert(stmt instanceof ThingTalk.Ast.ExpressionStatement);
@@ -95,7 +99,7 @@ export default class NotificationFormatter {
             }
         });
 
-        const output : FormattedObject[] = [
+        const output : Tp.FormatObjects.FormattedObject[] = [
             new FORMAT_TYPES.text({ type: 'text', text: postprocessed })
         ];
         const formatted = await this._cardFormatter.formatForType(outputType, outputValue);

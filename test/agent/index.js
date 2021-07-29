@@ -103,9 +103,6 @@ class TestDelegate {
         case 'text':
             checkIcon(msg);
             this._testRunner.writeLine(msg.text);
-            // die horribly if something does not work (and it's not a test error)
-            if (msg.text.indexOf('that did not work') >= 0 && msg.text.indexOf('I do not like that location') < 0)
-                setImmediate(() => process.exit(1));
             break;
 
         case 'result':
@@ -183,7 +180,7 @@ async function mockNLU(conversation) {
                     err.code = command.error.code;
                     throw err;
                 }
-                return { tokens, entities, candidates: command.candidates, intent: { ignore: 0, command: 1, other: 0 } };
+                return { tokens, entities, candidates: command.candidates, intent: command.intent || { ignore: 0, command: 1, other: 0 } };
             }
         }
 
@@ -232,6 +229,7 @@ async function test(testRunner, dlg, i) {
     console.log(`Test Case #${i+1}: ${dlg.id}`);
 
     testRunner.conversation._options.anonymous = dlg.id.indexOf('-anon-') >= 0;
+    testRunner.conversation.dialogueFlags.faqs = dlg.id.indexOf('-faqs-') >= 0;
     testRunner.reset();
 
     // reset the conversation
@@ -240,6 +238,16 @@ async function test(testRunner, dlg, i) {
 
     for (let turn of dlg)
         await roundtrip(testRunner, turn.user, turn.agent);
+}
+
+async function readLog(conversation) {
+    const logstream = conversation.readLog();
+    let log = '';
+    logstream.on('data', (data) => {
+        log += data;
+    });
+    await StreamUtils.waitFinish(logstream);
+    return log;
 }
 
 async function main(onlyIds) {
@@ -265,6 +273,12 @@ async function main(onlyIds) {
         showWelcome: true,
         anonymous: false,
         rng: rng,
+
+        faqModels: {
+            'covid-faq': {
+                url: 'http://covid-faq.staging.almond.stanford.edu/v1/models/covid-faq:predict'
+            }
+        }
     });
     conversation.startRecording();
     testRunner.conversation = conversation;
@@ -275,8 +289,8 @@ async function main(onlyIds) {
     // test the welcome message (and the context at the start)
     expect(testRunner, `
 Hello! How can I help you?
->> context = null // {}
->> expecting = null
+>> context = $dialogue @org.thingpedia.dialogue.transaction . sys_greet ; // {}
+>> expecting = generic
 `);
 
     const TEST_CASES = await loadTestCases();
@@ -288,12 +302,12 @@ Hello! How can I help you?
         conversation.commentLast('test comment for dialogue turns\nadditional\nlines');
     }
 
-    await conversation.saveLog();
-    conversation.endRecording();
+    await conversation.endRecording();
 
-    const log = fs.readFileSync(conversation.log).toString()
+    const log = (await readLog(conversation))
         .replace(/^#! timestamp: 202[1-9]-[01][0-9]-[0123][0-9]T[012][0-9]:[0-5][0-9]:[0-5][0-9](\.[0-9]+)Z$/gm,
-                 '#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ');
+                 '#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ')
+        .replace(/^# test\/[0-9a-f-]{36}$/gm, '# test');
     //fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
     const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
     assert(log === expectedLog);

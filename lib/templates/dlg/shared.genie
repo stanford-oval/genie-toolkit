@@ -1,0 +1,128 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+// Shared templates and utilities, mostly collecting actual phrases or groups of phrases
+// rather than complex logic
+
+import { Ast, } from 'thingtalk';
+
+import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
+
+counterproposal_preamble : string = {
+    ["{i was thinking more of|i would like|i am looking for|do you have|can you find|is there [plural=one]|are there [plural=other]|that does not sound great , do you have}"]: () => '',
+}
+
+the_base_noun_phrase : Ast.FunctionDef = {
+    ["{the|that} ${noun} [plural=noun[plural]]"]: (noun : base_noun_phrase)
+        => noun,
+}
+
+generic_excitement_phrase : string = {
+    ['', priority=0.1]: () => '',
+
+    ["{alright,| great!|awesome !|sounds good !|sounds good ,|perfect !}"]: () => '',
+}
+
+generic_excitement2_phrase : string = {
+    ["{alright,| great!|awesome !|sounds good !|sounds good ,|perfect !}"]: () => '',
+}
+
+greeting : string = {
+    ["{hello !|hi !}"]: () => '',
+}
+
+generic_negative_proposal_reply : string = {
+    ["{i do not like that|i do not like that , do you have any other option ?}"]: () => '',
+}
+
+accept_phrase : string = {
+    ["{i like that|yes i like that|sure i like that|sounds good}"]: () => '',
+}
+
+reject_phrase : string = {
+    ["{no|actually , no|that will not work|no , thank you|not yet|actually , not yet}"]: () => '',
+}
+
+tell_me_more_phrase : string = {
+    ["{can you tell me more ?|can you tell me more about it ?|can you give me more info ?|give me more info !|give me more information .|tell me more .}"]: () => '',
+}
+
+learn_more_offer : string = {
+    // give a small boost to anything with a learn more
+    ["{would you like to {learn more|{know|hear} more about it}|are you interested to hear more about it}", priority=0.1]: () => '',
+}
+
+yes_please_phrase : string = {
+    ["{yes|yes , please|yeah}"]: () => '',
+}
+
+ok_thanks_phrase : string = {
+    ["{ok {thank you|thanks} that is all i need.}"]: () => '',
+}
+thanks_phrase : string = {
+    ["{{thank you|thanks} {,|} {that will be all|that will be all for now|this is good for now|this is what i need} .|thank your for your help{!|, this is what i needed.}}"]: () => '',
+}
+no_thanks_phrase : string = {
+    ["{no thanks|no, thanks|no i am good thanks|no need thanks|no {thank you|thanks} {,|} {this is good for now|this is all i need|that will be it|this will do|that will be it for now|this will do for now|that will be all}.}"]: () => '',
+}
+
+anything_else_phrase : string = {
+    ["{is there anything else i can help you with|can i help you with anything else|do you need anything else|anything else for you today}?"]: () => '',
+}
+
+sorry_preamble : string = {
+    ["{sorry,|i am sorry,|}"]: () => '',
+}
+
+nevermind_phrase : string = {
+    ["{ok, never mind|never mind then|alright, never mind|too bad, alright}"]: () => '',
+}
+
+ask_recommend_phrase : string = {
+    ["{which {one|1} would you recommend?|what is your favorite?|surprise me! just pick one please.}"]: () => '',
+}
+
+generic_dontcare_phrase : string = {
+    ["{it does not matter. {|can you suggest one?}|i {do not have a|have no} preference. {|what do you recommend?}|i have no preference. {please make a recommendation|which {one|1} is best?}}"]: () => '',
+}
+
+no_dontcare_phrase : string = {
+    ["{no {.|,} {can you suggest one|please make a recommendation|which {one|1} is best?|you choose for me!|surprise me!}|i have no preference. please make a recommendation.}"]: () => '',
+}
+
+prefer_question_phrase : string = {
+    ["{do you want|would you prefer|would you like|are you interested in|are you looking for}"]: () => '',
+}
+
+system_learn_more : string = {
+    ["what would you like to {know|hear}?"]: () => '',
+}
+
+repeat_command_phrase : string = {
+    ["{again !|another one|do this again|do it again|do the last command}"]: () => '',
+}
+repeat_command_on_error_phrase : string = {
+    ["{please|} {try again|try this again|do the last command|do it again}"]: () => '',
+}
+
+make_monitor_phrase : string = {
+    ['{ok|great|i like that|yes i like that|sure i like that|sounds good} {,|} {notify me when it changes|notify me when it changes|subscribe to changes|let me know of changes|notify me of this|subscribe to this}']: () => '',
+}

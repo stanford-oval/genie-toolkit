@@ -25,6 +25,7 @@ import * as I18n from '../../i18n';
 import { clean, cleanKind, tokenizeExample } from '../misc-utils';
 import { AnyEntity } from '../entity-utils';
 import {
+    Phrase,
     Replaceable,
     Choice,
     Placeholder,
@@ -46,6 +47,8 @@ export class Describer {
     private _direction : 'user'|'agent';
 
     private _datasets : Map<string, Ast.Dataset> = new Map;
+    private _preprocessedArgumentCanonicals : WeakMap<Ast.ArgumentDef, I18n.NormalizedParameterCanonical>;
+    private _preprocessedFunctionCanonicals : WeakMap<Ast.FunctionDef, Phrase[]>;
 
     constructor(locale : string,
                 timezone : string|undefined,
@@ -58,6 +61,9 @@ export class Describer {
         this.timezone = timezone;
 
         this._direction = direction;
+
+        this._preprocessedArgumentCanonicals = new WeakMap;
+        this._preprocessedFunctionCanonicals = new WeakMap;
     }
 
     private _interp(x : string, args : Record<string, string|number|ReplacedResult|null>) : ReplacedResult|null {
@@ -288,6 +294,8 @@ export class Describer {
                 return this._interp(this._("the total ${arg}"), { arg: operands[0] });
             case 'count':
                 return this._interp(this._("the number of ${arg}"), { arg: operands[0] });
+            case 'set_time':
+                return this._interp(this._("set time ${time} on date ${date}"), { date : operands[0], time: operands[1] });
             default:
                 throw new TypeError(`Unexpected computation operator ${arg.op}`);
             }
@@ -478,7 +486,7 @@ export class Describer {
             lhs = this._interp(this._("the ${name} [plural=name[plural]]"), { name: lhs });
             rhs = this.describeArg(expr.value, scope);
             if (schema)
-                ptype = schema.out[argname] || schema.inReq[argname] || schema.inOpt[argname];
+                ptype = schema.getArgType(argname)!;
             else
                 ptype = Type.Any;
         } else {
@@ -551,7 +559,7 @@ export class Describer {
                                                   expr.filter.operator,
                                                   this.describeArg(expr.filter.value, scope),
                                                   false,
-                                                  expr.schema!.out[expr.filter.name]);
+                                                  expr.schema!.getArgType(expr.filter.name)!);
                 } else if (expr.filter instanceof Ast.NotBooleanExpression &&
                            expr.filter.expr instanceof Ast.AtomBooleanExpression) {
                     // common case 2
@@ -564,7 +572,7 @@ export class Describer {
                                                   expr.filter.expr.operator,
                                                   this.describeArg(expr.filter.expr.value, scope),
                                                   true,
-                                                  expr.schema!.out[expr.filter.expr.name]);
+                                                  expr.schema!.getArgType(expr.filter.expr.name)!);
                 } else {
                     // general case
                     return this._interp(this._("for the ${expr} , ${filter}"), {
@@ -593,7 +601,7 @@ export class Describer {
 
     private _computeParamMatchingScore(exampleInParams : Ast.InputParam[],
                                        programInParams : Ast.InputParam[],
-                                       exampleArgs : Record<string, Type>) {
+                                       exampleArgs : Record<string, Type>) : [number, string[]]|null {
         let score = 0;
         const missing = new Set<string>();
         for (const in_param2 of programInParams) {
@@ -601,11 +609,14 @@ export class Describer {
                 continue;
             missing.add(in_param2.name);
         }
+
+        const names : string[] = [];
         for (const in_param of exampleInParams) {
             if (in_param.value instanceof Ast.UndefinedValue)
                 continue;
 
             let found = false;
+            names.push(in_param.name);
             for (const in_param2 of programInParams) {
                 if (in_param2.name === in_param.name) {
                     // found it!
@@ -645,7 +656,7 @@ export class Describer {
             score -= 0.1;
         }
 
-        return score;
+        return [score, names];
     }
 
     private _exampleToTemplate(invocation : Ast.Invocation,
@@ -693,11 +704,32 @@ export class Describer {
         }
     }
 
+    private _preprocessFunctionCanonical(fndef : Ast.FunctionDef) {
+        const cached = this._preprocessedFunctionCanonicals.get(fndef);
+        if (cached !== undefined)
+            return cached;
+
+        const computed = this._langPack.preprocessFunctionCanonical(fndef.metadata.canonical || clean(fndef.name),
+            fndef.functionType, this._direction, fndef.is_list);
+        this._preprocessedFunctionCanonicals.set(fndef, computed);
+        return computed;
+    }
+
+    private _preprocessParameterCanonical(arg : Ast.ArgumentDef) {
+        const cached = this._preprocessedArgumentCanonicals.get(arg);
+        if (cached !== undefined)
+            return cached;
+
+        const computed = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(arg.name), this._direction);
+        this._preprocessedArgumentCanonicals.set(arg, computed);
+        return computed;
+    }
+
     private _findBestExampleUtterance(kind : string,
                                       functionName : string,
                                       forSelector : Ast.DeviceSelector|null,
                                       forInParams : Ast.InputParam[],
-                                      forSchema : Ast.FunctionDef) : [Replaceable, string[]] {
+                                      forSchema : Ast.FunctionDef) : [Replaceable, string[], string[]] {
         const dataset = this._datasets.get(kind);
 
         let relevantExamples : Ast.Example[] = [];
@@ -711,7 +743,7 @@ export class Describer {
             });
         }
 
-        const templates : Array<{ utterance : Replaceable, names : string[], score : number }> = [];
+        const templates : Array<{ utterance : Replaceable, replaceablenames : string[], othernames : string[], score : number }> = [];
 
         // map each example from a form with p_ parameters into a "confirmation"-like form
         for (const ex of relevantExamples) {
@@ -733,11 +765,13 @@ export class Describer {
             if (forSelector && forSelector.all && !invocation.selector.all)
                 continue;
 
-            let score = this._computeParamMatchingScore(invocation.in_params,
-                                                        forInParams,
-                                                        ex.args);
-            if (score === null)
+            const scoreAndNames = this._computeParamMatchingScore(invocation.in_params,
+                                                                forInParams,
+                                                                ex.args);
+            if (scoreAndNames === null)
                 continue;
+            let score = scoreAndNames[0];
+            const names = scoreAndNames[1];
 
             let deviceNameParam = null;
             if (invocation.selector.attributes.length > 0 &&
@@ -769,26 +803,26 @@ export class Describer {
                 if (mapped === null)
                     continue;
 
-                const [utterance, names] = mapped;
-                templates.push({ utterance, names, score });
+                const [utterance, replaceablenames] = mapped;
+                templates.push({ utterance, replaceablenames, othernames: names.filter((n) => !replaceablenames.includes(n)), score });
             }
         }
 
         // add the fallback example, with the score it would have as a score
-        const canonical = this._langPack.preprocessFunctionCanonical(forSchema.metadata.canonical || clean(forSchema.name),
-            forSchema.functionType, this._direction, forSchema.is_list);
+        const canonical = this._preprocessFunctionCanonical(forSchema);
         // put the canonical form first in the order
         // so all things equal, we'll pick the canonical form (which is, well, canonical)
+        const [canonicalscore,] = this._computeParamMatchingScore([], forInParams, {})!;
         templates.unshift({
             utterance: new Choice(canonical),
-            names: [],
-            score: this._computeParamMatchingScore([], forInParams, {})!
-                + (forSelector && forSelector.id ? -1 : 0)
+            replaceablenames: [],
+            othernames: [],
+            score: canonicalscore + (forSelector && forSelector.id ? -1 : 0)
         });
 
         // sort the templates by score, pick the highest one
         templates.sort((one, two) => two.score - one.score);
-        return [templates[0].utterance, templates[0].names];
+        return [templates[0].utterance, templates[0].replaceablenames, templates[0].othernames];
     }
 
     describePrimitive(obj : Ast.Invocation|Ast.ExternalBooleanExpression|Ast.FunctionCallExpression,
@@ -797,12 +831,13 @@ export class Describer {
         assert(schema instanceof Ast.FunctionDef);
 
         const argMap = new Map<string, [ReplacedResult, Ast.Value|null]>();
-        let template : Replaceable, names : string[];
+        let template : Replaceable, replaceablenames : string[], othernames : string[];
         if (obj instanceof Ast.FunctionCallExpression) {
             template = Replaceable.parse(schema.canonical!).preprocess(this._langPack, []);
-            names = [];
+            replaceablenames = [];
+            othernames = [];
         } else {
-            [template, names] = this._findBestExampleUtterance(obj.selector.kind, obj.channel, obj.selector, obj.in_params, obj.schema!);
+            [template, replaceablenames, othernames] = this._findBestExampleUtterance(obj.selector.kind, obj.channel, obj.selector, obj.in_params, obj.schema!);
         }
 
         if (obj instanceof Ast.Invocation ||
@@ -821,7 +856,7 @@ export class Describer {
         }
 
         const replacements = [];
-        for (const name of names) {
+        for (const name of replaceablenames) {
             const [text, value] = argMap.get(name)!;
             replacements.push({ text, value });
         }
@@ -832,7 +867,7 @@ export class Describer {
         let firstExtra = true;
         for (const inParam of obj.in_params) {
             const argname = inParam.name;
-            if (names.includes(argname))
+            if (replaceablenames.includes(argname) || othernames.includes(argname))
                 continue;
             if (argname.startsWith('__'))
                 continue;
@@ -840,7 +875,7 @@ export class Describer {
             if (inParam.value.isUndefined && arg.required)
                 continue;
 
-            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(argname), this._direction);
+            const canonical = this._preprocessParameterCanonical(arg);
             const text = this.describeArg(inParam.value, scope)!;
             const ctx = {
                 replacements: [{ text, value: inParam.value }],
@@ -955,7 +990,7 @@ export class Describer {
                 continue;
             }
 
-            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(arg.name), this._direction);
+            const canonical = this._preprocessParameterCanonical(arg);
             // TODO handle boolean/enum filters correctly
 
             let text : ReplacedResult|null = this.describeArg(clause.value, {});
@@ -1191,11 +1226,11 @@ export class Describer {
 
     private _getArgCanonical(schema : Ast.FunctionDef, argname : string) : ReplacedResult|null {
         const arg = schema.getArgument(argname)!;
-        const normalized = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(argname), this._direction);
+        const normalized = this._preprocessParameterCanonical(arg);
 
         const phrases : ReplacedResult[] = normalized.base.map((phrase) => phrase.toReplaced());
         if (phrases.length === 0)
-            return null;
+            return this._const(clean(argname));
         if (phrases.length === 1)
             return phrases[0];
         return new ReplacedChoice(phrases);
@@ -1251,12 +1286,22 @@ export class Describer {
         }
     }
 
+    private _describeOnTimer(stream : Ast.FunctionCallExpression) {
+        const date = stream.in_params.find((ip) => ip.name === 'date');
+
+        return this._interp(this._("at ${date}"), {
+            date: this.describeArg(date ? date.value : new Ast.Value.Undefined())
+        });
+    }
+
     describeStream(stream : Ast.Expression) : ReplacedResult|null {
         if (stream instanceof Ast.FunctionCallExpression) {
             if (stream.name === 'timer')
                 return this._describeTimer(stream);
             else if (stream.name === 'attimer')
                 return this._describeAtTimer(stream);
+            else if (stream.name === 'ontimer')
+                return this._describeOnTimer(stream);
             else
                 return this.describePrimitive(stream);
         } else if (stream instanceof Ast.MonitorExpression) {
@@ -1399,6 +1444,14 @@ export class Describer {
         }
     }
 
+    describeDialogueState(state : Ast.DialogueState) : ReplacedResult|null {
+        // TODO account for the dialogue act here
+        const desc = this._makeList(state.history.map((item) => {
+            return this.describeExpressionStatement(item.stmt);
+        }), ' ; ');
+        return desc;
+    }
+
     describePermissionFunction(permissionFunction : Ast.PermissionFunction,
                                functionType : 'query'|'action',
                                scope : ScopeMap) : ReplacedResult|null {
@@ -1448,10 +1501,12 @@ export class Describer {
                 });
             }
 
-            for (const argname in schema.out) {
-                const canonical = this._getArgCanonical(schema, argname);
+            for (const arg of schema.iterateArguments()) {
+                if (arg.is_input)
+                    continue;
+                const canonical = this._getArgCanonical(schema, arg.name);
                 if (canonical !== null)
-                    scope[argname] = canonical;
+                    scope[arg.name] = canonical;
             }
 
             return replaced;
@@ -1624,14 +1679,16 @@ export class Describer {
     }
 
     describe(input : Ast.Input) : ReplacedResult|null {
-        if (input instanceof Ast.Program)
+        if (input instanceof Ast.DialogueState)
+            return this.describeDialogueState(input);
+        else if (input instanceof Ast.Program)
             return this.describeProgram(input);
         else if (input instanceof Ast.PermissionRule)
             return this.describePermissionRule(input);
         else if (input instanceof Ast.ControlCommand)
             return this._describeControlCommand(input);
         else
-            throw new TypeError(`Unrecognized input type ${input}`);
+            throw new TypeError(`Unrecognized input type ${input.constructor.name}`);
     }
 }
 
@@ -1661,7 +1718,7 @@ export function getProgramName(program : Ast.Program) : string {
         if (prim instanceof Ast.ExternalBooleanExpression)
             continue;
         if (prim instanceof Ast.FunctionCallExpression &&
-            (prim.name === 'timer' || prim.name === 'attimer'))
+            (prim.name === 'timer' || prim.name === 'attimer' || prim.name === 'ontimer'))
             continue;
         descriptions.push(capitalizeSelector(prim));
     }

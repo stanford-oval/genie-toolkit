@@ -49,6 +49,8 @@ function clean(name : string) : string {
 }
 
 export function cleanKind(kind : string) : string {
+    if (kind === 'org.thingpedia.covid-vaccine')
+        return "Stanford Covid Genie";
     // thingengine.phone -> phone
     if (kind.startsWith('org.thingpedia.builtin.thingengine.'))
         kind = kind.substr('org.thingpedia.builtin.thingengine.'.length);

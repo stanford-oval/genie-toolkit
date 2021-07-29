@@ -25,11 +25,10 @@ import * as ts from 'typescript';
 import * as metagrammar from './grammar';
 import * as metaast from './meta_ast';
 
-import type * as ThingTalkUtils from '../../utils/thingtalk';
-import type * as SentenceGeneratorRuntime from '../runtime';
 import type { GrammarOptions } from '../types';
 import type * as I18n from '../../i18n';
 import type SentenceGenerator from '../generator';
+import ThingpediaLoader from '../../templates/load-thingpedia';
 
 const COMPILER_OPTIONS : ts.CompilerOptions = {
     module: ts.ModuleKind.CommonJS,
@@ -50,6 +49,9 @@ export class Compiler {
     private _nonTerm = new Set<string>();
     // map a non-terminal to its type declaration, if any
     private _typeMap = new Map<string, string>();
+    // map a non-terminal to the first filename that declared it,
+    // in import order
+    private _filenameMap = new Map<string, string>();
 
     // map a type to its key function, if any
     private _keyFnMap = new Map<string, string>();
@@ -62,6 +64,7 @@ export class Compiler {
         if (this._files.has(filename))
             return;
 
+        filename = path.resolve(filename);
         const dirname = path.dirname(filename);
         const input = await pfs.readFile(filename, { encoding: 'utf8' });
         let parsed;
@@ -95,6 +98,9 @@ export class Compiler {
                 const symbol = stmt.name;
                 self._nonTerm.add(symbol);
 
+                if (!self._filenameMap.has(symbol))
+                    self._filenameMap.set(symbol, filename);
+
                 if (stmt.type === undefined || stmt.type === 'any')
                     return;
 
@@ -125,6 +131,21 @@ export class Compiler {
 
         for (const import_ of allImports)
             await this._loadFile(import_);
+    }
+
+    private _assignAllImportNames() {
+        const filenameMap = this._filenameMap;
+        for (const [filename, parsed] of this._files) {
+            parsed.visit(new class extends metaast.NodeVisitor {
+                visitImport(node : metaast.Import) {
+                    const importedfile = path.resolve(path.dirname(filename), node.what);
+                    for (const [name, definedinfile] of filenameMap) {
+                        if (importedfile === definedinfile)
+                            node.names.push(name);
+                    }
+                }
+            });
+        }
     }
 
     private _assignAllTypes() {
@@ -169,11 +190,18 @@ export class Compiler {
     }
 
     async parse(filename : string) {
+        // load the common file first
+        await this._loadFile(path.resolve(path.dirname(module.filename), '../../templates/common.genie'));
+
         // load all template files and extract all the type annotations
         await this._loadFile(filename);
 
         // assign the type annotations to all the uses of the non-terminals
         this._assignAllTypes();
+
+        // resolve the names imported from all import statements, for the
+        // purposes of documentation
+        this._assignAllImportNames();
     }
 
     async process(filename : string) : Promise<void> {
@@ -188,8 +216,8 @@ export class Compiler {
 
     private async _outputFile(filename : string,
                               parsed : metaast.Grammar) {
-        const outputFile = filename + '.' + this._target;
-        let output = parsed.codegen();
+        const outputFile = filename + '.out.' + this._target;
+        let output = parsed.codegen(filename);
 
         if (this._target === 'js') {
             const result = ts.transpileModule(output, {
@@ -222,24 +250,22 @@ export function compile(filename : string) : Promise<void> {
     return new Compiler('ts').process(filename);
 }
 
-type CompiledTemplate = (runtime : typeof SentenceGeneratorRuntime,
-                         ttUtils : typeof ThingTalkUtils,
-                         options : GrammarOptions,
+type CompiledTemplate = (options : GrammarOptions,
                          langPack : I18n.LanguagePack,
-                         grammar : SentenceGenerator<any, any, any>,
-                         loader ?: any) => Promise<void>;
+                         grammar : SentenceGenerator,
+                         loader : ThingpediaLoader) => Promise<void>;
 
 export async function importGenie(filename : string,
-                                  searchPath = '.') : Promise<CompiledTemplate> {
+                                  searchPath = path.resolve(path.dirname(module.filename), '../../templates')) : Promise<CompiledTemplate> {
     filename = path.resolve(searchPath, filename);
 
     // try loading compiled js first
     let target : 'js'|'ts' = 'js';
     try {
         if (filename.endsWith('.js'))
-            return (await import(filename)).default;
+            return (await import(filename)).$load;
         else
-            return (await import(filename + '.' + target)).default;
+            return (await import(filename + '.out.' + target)).$load;
     } catch(e) {
         if (e.code !== 'MODULE_NOT_FOUND')
             throw e;
@@ -253,12 +279,28 @@ export async function importGenie(filename : string,
 
     target = require.extensions['.ts'] ? 'ts' : 'js';
     try {
-        await pfs.access(filename + '.' + target);
+        await pfs.access(filename + '.out.' + target);
     } catch(e) {
         if (e.code !== 'ENOENT')
             throw e;
         await new Compiler(target).process(filename);
     }
 
-    return (await import(filename + '.' + target)).default;
+    return (await import(filename + '.out.' + target)).$load;
 }
+
+async function main() {
+    try {
+        await compile(process.argv[2]);
+    } catch(e) {
+        if (e.name === 'SyntaxError') {
+            console.error(`Syntax error in ${e.fileName} at line ${e.location.start.line}: ${e.message}`);
+        } else {
+            console.error(e.message);
+            console.error(e.stack);
+        }
+        process.exit(1);
+    }
+}
+if (!module.parent)
+    main();

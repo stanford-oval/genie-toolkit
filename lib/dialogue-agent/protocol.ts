@@ -79,21 +79,21 @@ export enum MessageType {
     VIDEO = 'video'
 }
 
-interface TextMessage {
+export interface TextMessage {
     id ?: number;
     type : MessageType.TEXT;
     text : string;
     icon : string|null;
 }
 
-interface CommandMessage {
+export interface CommandMessage {
     id ?: number;
     type : MessageType.COMMAND;
     command : string;
     json ?: any;
 }
 
-interface MediaMessage {
+export interface MediaMessage {
     id ?: number;
     type : MessageType.PICTURE|MessageType.AUDIO|MessageType.VIDEO;
     url : string;
@@ -106,16 +106,17 @@ export interface RDL {
     displayText ?: string;
     webCallback : string;
     callback ?: string;
+    pictureUrl ?: string;
 }
 
-interface RDLMessage {
+export interface RDLMessage {
     id ?: number;
     type : MessageType.RDL;
     rdl : RDL;
     icon : string|null;
 }
 
-interface SoundEffectMessage {
+export interface SoundEffectMessage {
     id ?: number;
     type : MessageType.SOUND_EFFECT;
     name : string;
@@ -123,14 +124,14 @@ interface SoundEffectMessage {
     icon : string|null;
 }
 
-interface ChoiceMessage {
+export interface ChoiceMessage {
     id ?: number;
     type : MessageType.CHOICE;
     idx : number;
     title : string;
 }
 
-interface LinkMessage {
+export interface LinkMessage {
     id ?: number;
     type : MessageType.LINK;
     url : string;
@@ -146,14 +147,14 @@ interface LinkMessage {
     state : ConversationState;
 }
 
-interface ButtonMessage {
+export interface ButtonMessage {
     id ?: number;
     type : MessageType.BUTTON;
     json : string;
     title : string;
 }
 
-interface NewProgramMessage {
+export interface NewProgramMessage {
     id ?: number;
     type : MessageType.NEW_PROGRAM;
     uniqueId : string;

@@ -24,7 +24,8 @@ import AsyncQueue from 'consumer-queue';
 
 import { Syntax, Compiler as AppCompiler, Ast } from 'thingtalk';
 import RuleExecutor from './rule_executor';
-import { ChannelState } from '../db/channel';
+import type ExecWrapper from './exec_wrapper';
+import { ChannelState } from './channel_state_binder';
 
 import type Engine from '../index';
 
@@ -53,7 +54,7 @@ class QueueOutputDelegate {
     output(outputType : string, outputValue : Record<string, unknown>) {
         this._queue.push({ done: false, value: { outputType, outputValue } });
     }
-    notifyError(error : Error) {
+    error(error : Error) {
         this._queue.push({ done: false, value: error });
     }
 }
@@ -74,7 +75,7 @@ class NotificationOutputDelegate {
      * @param {Error} error - the error that occurred.
      * @package
      */
-    notifyError(error : Error) {
+    error(error : Error) {
         this._app.setError(error);
         return this._engine.assistant.notifyError(this._app, error);
     }
@@ -100,6 +101,7 @@ export interface AppMeta {
     conversation ?: string;
     description ?: string;
     notifications ?: NotificationConfig;
+    startTime : number;
 }
 
 /**
@@ -132,6 +134,8 @@ export default class AppExecutor extends events.EventEmitter {
     mainOutput : QueueOutputDelegate;
     private _notificationOutput : NotificationOutputDelegate;
     notifications : NotificationConfig|undefined;
+
+    startTime : number;
 
     /**
      * Whether this app is running.
@@ -206,6 +210,8 @@ export default class AppExecutor extends events.EventEmitter {
         this.mainOutput = new QueueOutputDelegate();
         this._notificationOutput = new NotificationOutputDelegate(this);
         this.notifications = meta.notifications;
+
+        this.startTime = meta.startTime;
     }
 
     get metadata() : AppMeta {
@@ -236,7 +242,7 @@ export default class AppExecutor extends events.EventEmitter {
         this._error = e;
     }
     reportError(error : Error) {
-        this._notificationOutput.notifyError(error);
+        this._notificationOutput.error(error);
     }
 
     get hasRule() {
@@ -269,19 +275,19 @@ export default class AppExecutor extends events.EventEmitter {
     /**
      * Attempt compilation of this app.
      *
-     * This method must be called before running the app through {@link AppExecutor#runCommand}
-     * or {@link AppExecutor#start}.
+     * This method must be called before running the app through {@link AppExecutor.runCommand}
+     * or {@link AppExecutor.start}.
      *
-     * On failure, this method will set {@link AppExecutor#error}.
+     * On failure, this method will set {@link AppExecutor.error}.
      */
     async compile() : Promise<void> {
         const compiled = await this.compiler.compileProgram(this.program);
 
         if (compiled.command)
-            this.command = new RuleExecutor(this.engine, this, compiled.command, this.mainOutput);
+            this.command = new RuleExecutor(this.engine, this, compiled.command as (env : ExecWrapper) => Promise<unknown>, this.mainOutput);
 
         for (const rule of compiled.rules) {
-            const executor = new RuleExecutor(this.engine, this, rule, this._notificationOutput);
+            const executor = new RuleExecutor(this.engine, this, rule as (env : ExecWrapper) => Promise<unknown>, this._notificationOutput);
             this.rules.push(executor);
             executor.on('finish', () => {
                 this._finishedRules.add(executor);
@@ -301,8 +307,8 @@ export default class AppExecutor extends events.EventEmitter {
      * It should be called only for a newly created app, not for an app that was loaded from
      * disk after a restart.
      *
-     * This method must not be called on an app returned by {@link Engine#createApp} or
-     * {@link AppDatabase#createApp}, as those methods will already call this one.
+     * This method must not be called on an app returned by {@link AssistantEngine.createApp} or
+     * {@link AppDatabase.createApp}, as those methods will already call this one.
      */
     async runCommand() {
         if (this.command) {
@@ -329,7 +335,7 @@ export default class AppExecutor extends events.EventEmitter {
 
     private _getState(stateId : number) {
         if (!this._states[stateId])
-            this._states[stateId] = new ChannelState(this.engine.platform, 'app:' + this.uniqueId + ':' + stateId);
+            this._states[stateId] = new ChannelState(this.engine.db, 'app:' + this.uniqueId + ':' + stateId);
         return this._states[stateId];
     }
 
@@ -352,7 +358,7 @@ export default class AppExecutor extends events.EventEmitter {
      *
      * This method pauses the app temporarily, and is called when the engine is terminating.
      * The app will be restarted the next time the engine is restarted. To stop the app
-     * permanently, use {@link AppDatabase#removeApp} or {@link AppExecutor#removeSelf}.
+     * permanently, use {@link AppDatabase.removeApp} or {@link AppExecutor.removeSelf}.
      */
     async stop() {
         await Promise.all(this.rules.map((r) => r.stop()));

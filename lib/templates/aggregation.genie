@@ -1,0 +1,110 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
+
+import * as C from './ast_manip';
+import ThingpediaLoader from './load-thingpedia';
+
+projection_Number : Ast.Expression = {
+    ?aggregation 'the' ('number' | 'total number' | 'count') 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { is_list = true } => {
+        assert(t.schema!.is_list);
+        const newSchema = t.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT)
+            .addArguments([new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'count', Type.Number)]);
+        newSchema.is_list = false;
+        const agg = new Ast.AggregationExpression(null, t, '*', 'count', newSchema);
+        return new Ast.ProjectionExpression(null, agg, ['count'], [], [], newSchema);
+    };
+}
+
+projection_Any : Ast.Expression = {
+    ?aggregation {
+    q:thingpedia_complete_query => {
+        if (!(q instanceof Ast.AggregationExpression))
+            return null;
+        return q;
+    };
+
+    !schema_org 'the' 'total' p:out_param_Any with { is_numeric = true } 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
+        const arg = t.schema!.getArgument(p.name);
+        if (!arg || arg.is_input || !arg.type.isNumeric())
+            return null;
+        if (!t.schema!.is_list)
+            return null;
+
+        const newSchema = t.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.is_list = false;
+        const agg = new Ast.AggregationExpression(null, t, p.name, 'sum', newSchema);
+        return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
+    };
+
+    !turking 'the' ('average' | 'mean') p:out_param_Any with { is_numeric = true } 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
+        const arg = t.schema!.getArgument(p.name);
+        if (!arg || arg.is_input || !arg.type.isNumeric())
+            return null;
+        if (!t.schema!.is_list)
+            return null;
+
+        const newSchema = t.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.is_list = false;
+        const agg = new Ast.AggregationExpression(null, t, p.name, 'avg', newSchema);
+        return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
+    };
+    ?turking 'the' 'average' p:out_param_Any with { is_numeric = true } 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
+        const arg = t.schema!.getArgument(p.name);
+        if (!arg || arg.is_input || !arg.type.isNumeric())
+            return null;
+        if (!t.schema!.is_list)
+            return null;
+
+        const newSchema = t.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.is_list = false;
+        const agg = new Ast.AggregationExpression(null, t, p.name, 'avg', newSchema);
+        return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
+    };
+
+    'the' ('minimum' | 'lowest') p:out_param_Any with { is_numeric = true } 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
+        const arg = t.schema!.getArgument(p.name);
+        if (!arg || arg.is_input || !arg.type.isNumeric())
+            return null;
+        if (!t.schema!.is_list)
+            return null;
+
+        const newSchema = t.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.is_list = false;
+        const agg = new Ast.AggregationExpression(null, t, p.name, 'min', newSchema);
+        return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
+    };
+
+    'the' ('maximum' | 'highest') p:out_param_Any with { is_numeric = true } 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
+        const arg = t.schema!.getArgument(p.name);
+        if (!arg || arg.is_input || !arg.type.isNumeric())
+            return null;
+        if (!t.schema!.is_list)
+            return null;
+
+        const newSchema = t.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.is_list = false;
+        const agg = new Ast.AggregationExpression(null, t, p.name, 'max', newSchema);
+        return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
+    };
+    }
+}

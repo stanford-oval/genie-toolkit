@@ -1,0 +1,80 @@
+[
+    {
+        "id": {
+            "value": "114",
+            "display": "Adrien Silva"
+        },
+        "goals": 0,
+        "assists": 0,
+        "red_cards": 0,
+        "yellow_cards": 0,
+        "appearances": 0,
+        "minutes": 0,
+        "shots": 0,
+        "shots_on_target": 0,
+        "passes": 0,
+        "key_passes": 0,
+        "pass_accuracy": 0,
+        "dribble_attempts": 0,
+        "successful_dribbles": 0,
+        "tackles": 0,
+        "blocks": 0,
+        "interceptions": 0,
+        "league_id": {
+            "value": "39",
+            "display": "premier league"
+        }
+    },
+    {
+       "id": {
+           "value": "518",
+           "display": "M. Shabani"
+        },
+        "goals": 0,
+        "assists": 0,
+        "red_cards": 0,
+        "yellow_cards": 0,
+        "appearances": 0,
+        "minutes": 0,
+        "shots": 0,
+        "shots_on_target": 0,
+        "passes": 0,
+        "key_passes": 0,
+        "pass_accuracy": 0,
+        "dribble_attempts": 0,
+        "successful_dribbles": 0,
+        "tackles": 0,
+        "blocks": 0,
+        "interceptions": 0,
+        "league_id": {
+            "value": "39",
+            "display": "premier league"
+        }
+    },
+    {
+        "id": {
+            "value": "18813",
+            "display": "A. Cresswell"
+        },
+        "goals": 0,
+        "assists": 8,
+        "red_cards": 0,
+        "yellow_cards": 3,
+        "appearances": 35,
+        "minutes": 0,
+        "shots": 16,
+        "shots_on_target": 4,
+        "passes": 1613,
+        "key_passes": 58,
+        "pass_accuracy": 36,
+        "dribble_attempts": 9,
+        "successful_dribbles": 3,
+        "tackles": 31,
+        "blocks": 13,
+        "interceptions": 32,
+        "league_id": {
+            "value": "39",
+            "display": "premier league"
+        }
+    }
+]

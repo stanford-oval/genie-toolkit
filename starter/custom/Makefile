@@ -11,7 +11,6 @@ devices ?= $(foreach d,$(wildcard */manifest.tt),$(patsubst %/manifest.tt,%,$(d)
 pkgfiles = $(wildcard */package.json)
 
 # hyperparameters that can be overridden on the cmdline
-template_file ?= thingtalk/en/dialogue.genie
 dataset_file ?= everything/dataset.tt
 schema_file ?= everything/schema.tt
 paraphrases_user ?= $(wildcard everything/paraphrase.tsv $(foreach d,$(devices),$(d)/eval/paraphrase.tsv))
@@ -48,12 +47,6 @@ quoted_fraction ?= 0.05
 generate_flags ?= $(foreach v,$(synthetic_flags),--set-flag $(v)) --target-pruning-size $(target_pruning_size) --max-turns $(max_turns) --maxdepth $(max_depth)
 custom_gen_flags ?=
 
-template_deps = \
-	$(geniedir)/languages-dist/thingtalk/*.js \
-	$(geniedir)/languages-dist/thingtalk/en/*.js \
-	$(geniedir)/languages-dist/thingtalk/en/dlg/*.js \
-	$(geniedir)/languages-dist/thingtalk/dialogue_acts/*.js
-
 train_iterations ?= 50000
 train_save_every ?= 2000
 train_log_every ?= 100
@@ -75,7 +68,7 @@ memsize ?= 8500
 parallel ?= 7
 genie ?= node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
 
-thingpedia_url ?= https://dev.almond.stanford.edu/thingpedia
+thingpedia_url ?= https://thingpedia.stanford.edu/thingpedia
 developer_key ?= invalid
 
 .PRECIOUS: %/node_modules
@@ -127,7 +120,7 @@ parameter-datasets.tsv:
 	wget -c --no-verbose https://almond-static.stanford.edu/test-data/paraphraser-bart.tar.xz
 	tar -C .embeddings -xvf paraphraser-bart.tar.xz
 
-everything/synthetic-%.txt : $(schema_file) $(dataset_file) $(template_deps) entities.json
+everything/synthetic-%.txt : $(schema_file) $(dataset_file) entities.json
 	if test $(subsample_thingpedia) = 1 ; then \
 	  cp $(schema_file) everything/schema-$*.tt ; \
 	else \
@@ -139,9 +132,8 @@ everything/synthetic-%.txt : $(schema_file) $(dataset_file) $(template_deps) ent
 	fi
 	$(genie) generate-dialogs \
 	  --locale en-US --target-language thingtalk \
-	  --template $(geniedir)/languages-dist/$(template_file) \
 	  --thingpedia everything/schema-$*.tt --entities entities.json --dataset $(dataset_file) \
-	  -o $@.tmp -f txt $(generate_flags) --debug $(debug_level) $(custom_gen_flags) --random-seed $@ \
+	  -o $@.tmp -f txt $(generate_flags) --debug $(debug_level) --log-prefix "$(notdir $@): " $(custom_gen_flags) --random-seed $@ \
 	  -n $(target_size) -B $(minibatch_size)
 	mv $@.tmp $@
 

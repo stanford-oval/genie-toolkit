@@ -694,6 +694,38 @@ class @com.yelp
   #[confirm=false];
 }
 
+// Copyright 2018 Gabby Wright, Hemanth Kini
+//           2018-2020 The Board of Trustees of the Leland Stanford Junior University
+//           2020 Ryan Cheng
+//           2021 Aydan Pirani
+//
+// Redistribution and use in source and binary forms, with or
+// without modification, are permitted provided that the following
+// conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above
+//    copyright notice, this list of conditions and the following
+//    disclaimer in the documentation and/or other materials
+//    provided with the distribution.
+// 3. Neither the name of the copyright holder nor the names of its
+//    contributors may be used to endorse or promote products derived
+//    from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+// OF THE POSSIBILITY OF SUCH DAMAGE.
+
 class @com.spotify
 #_[thingpedia_name="Spotify"]
 #_[thingpedia_description="Play music on Spotify"]
@@ -701,10 +733,9 @@ class @com.spotify
 #[license="BSD-3-Clause"]
 #[license_gplcompatible=true]
 #[subcategory="media"]
-#_[name="Spotify Account of ${profile.display_name}"]
+#_[name="Spotify Account of ${display_name}"]
 #_[description="This is your Spotify Account"]
 {
-
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.oauth2(
     client_id=$?, client_secret=$?,
@@ -712,152 +743,46 @@ class @com.spotify
     get_access_token="https://accounts.spotify.com/api/token"^^tt:url,
     scope=["streaming", "playlist-read-collaborative", "playlist-modify-private", "playlist-read-private", "playlist-modify-public", "user-read-email", "user-read-private", "user-read-playback-state", "user-read-currently-playing", "user-modify-playback-state", "user-read-recently-played", "user-top-read", "user-follow-read", "user-follow-modify", "user-library-read", "user-library-modify"],
     get_profile="https://api.spotify.com/v1/me"^^tt:url,
-    profile=["id", "display_name"]
+    profile=["id", "display_name", "product"]
   );
 
-  entity song #_[description="Songs on Spotify"];
+  entity playable #_[description="Playable content on Spotify"];
   entity artist #_[description="Artists on Spotify"];
-  entity album #_[description="Albums on Spotify"];
+  entity song extends playable #[has_ner=true] #_[description="Songs on Spotify"];
+  entity album extends playable #[has_ner=true] #_[description="Albums on Spotify"];
+  entity playlist extends playable #[has_ner=true] #_[description="Playlists on Spotify"];
+  entity show extends playable #[has_ner=true] #_[description="Shows on Spotify"];
   entity device #_[description="Spotify Connect device ID"];
 
-  list query song(out id: Entity(com.spotify:song)
-                    #[string_values="tt:song_name"]
-                    #[unique=true]
-                    #_[canonical={
-                      default="base",
-                      base=["name", "title", "track name"],
-                      passive_verb=["named #", "called #", "titled #"],
-                      property=["name #", "title #"]
-                    }],
-                    out artists: Array(Entity(com.spotify:artist))
-                    #[string_values="tt:song_artist"]
-                    #_[canonical={
-                      default="preposition",
-                      base=["artist", "author", "song writer", "band", "artist name",
-                            "singer", "composer"],
-                      property=["artist #", "song writer #"],
-                      preposition=["by #", "from #"],
-                      adjective=["#"],
-                      passive_verb=["written by #", "released by #", "produced by #",
-                                    "composed by #", "recorded by #"],
-                      verb = ["# wrote", "# released", "# produced", "# composed",
-                              "# did", "# recorded", "# sang", "# made"]
-                    }],
-                    out album: Entity(com.spotify:album)
-                    #[string_values="tt:song_album"]
-                    #_[canonical={
-                      default="preposition",
-                      base=["album"],
-                      property=["album #"],
-                      preposition=["in the album #",
-                                   "in #", "part of #", "from the album #",
-                                   "from #"],
-                    }],
-                    out genres: Array(String)
-                    #[string_values="com.spotify:genre"]
-                    #_[canonical={
-                      default="adjective",
-                      base=["genres", "type of genre", "type of music", "category"],
-                      property=["# songs", "# music"],
-                      adjective=["#"],
-                      preposition=["in the # genre", "in #", "of the # genre",
-                                   "in the # style", "in the # category"],
-                    }],
-                    out release_date : Date
-                    #_[canonical={
-                      default="passive_verb",
-                      base=["date", "release date", "release year", "release day"],
-                      property=["release date #"],
-                      adjective=["#"],
-                      preposition=["from #", "in #"],
-                      passive_verb=["released on #", "released #", "published in #"],
-                      adjective_argmin=["least recent", "oldest", "first"],
-                      adjective_argmax=["most recent", "newest", "latest"],
-                      passive_verb_argmax=["released most recently"],
-                    }],
-                    out popularity: Number
-                    #[min_number=0]
-                    #[max_number=100]
-                    #_[canonical={
-                      default="base",
-                      base=["popularity", "average popularity"],
-                      passive_verb=["rated # popularity"],
-                      property=["# popularity"],
-                      adjective_argmin=["least popular", "most niche"],
-                      adjective_argmax=["most popular", "most well-known", "best", "greatest", "top"],
-                    }],
-                    out energy : Number
-                    #[min_number=0]
-                    #[max_number=100]
-                    #[filterable=false]
-                    #_[canonical={
-                      default="base",
-                      base=["energy"],
-                      adjective_argmin=["least energetic"],
-                      adjective_argmax=["most energetic"],
-                    }],
-                    out danceability : Number
-                    #[min_number=0]
-                    #[max_number=100]
-                    #[filterable=false]
-                    #_[canonical={
-                      default="base",
-                      base=["danceability"],
-                      adjective_argmin=["least danceable"],
-                      adjective_argmax=["most danceable"],
-                    }])
-    #_[canonical=["song", "music", "track"]]
-    #_[confirmation="songs on Spotify"]
-    #[minimal_projection=["id"]]
-    #[doc="search for songs on Spotify"];
-
-    action play_song (in req song: Entity(com.spotify:song)
+  list query playable(out id: Entity(com.spotify:playable)
+                      // use song names to fill ambiguous parameters
+                      // the model doesn't see the different between songs and
+                      // albums anyway, and when we in doubt we should assume song
                       #[string_values="tt:song_name"]
-                      #_[prompt=["what song do you want to play"]]
-                      #_[canonical={
-                        default="base",
-                        base=["name"],
-                        // FIXME: actions must use "preposition" not "passive_verb"
-                        preposition=["named #", "called #", "titled #"],
-                        property=["name #", "title #"]
-                      }],
-                      out device : Entity(com.spotify:device)
+                     #_[canonical={
+                       default="base",
+                       base=["name", "title", "track name"],
+                       passive_verb=["named #", "called #", "titled #"],
+                       property=["name #", "title #"]
+                     }],
+                      out artists: Array(Entity(com.spotify:artist))
+                      #[string_values="tt:song_artist"]
                       #_[canonical={
                         default="preposition",
-                        base=["device", "player", "app"], // "can you tell me the app"?
-                        preposition=["on"]
-                      }])
-    #_[canonical=["play a song", "play the song", "play a track", "play music",
-                  // i would like to...
-                  "listen to a song", "hear a song"]]
-    #_[confirmation="play the song $song"]
-    #_[on_error={
-      no_active_device=["you must open the spotify app first", "no spotify player is active"]
-    }]
-    #[confirm=enum(auto)];
-
-    list query artist(out id: Entity(com.spotify:artist)
-                      #[string_values="tt:song_artist"]
-                      #[unique=true]
-                      #_[canonical={
-                        default="base",
-                        base=["name"],
-                        passive_verb=["named #", "called #"],
-                        property=["name #"]
-                      }],
-                      out genres: Array(String)
-                      #[string_values="com.spotify:genre"]
-                      #_[canonical={
-                        default="adjective",
-                        base=["genres", "type of genre", "type of music", "category"],
-                        property=["# songs", "# music"],
-                        adjective=["#"],
-                        preposition=["in the # genre", "in #", "of the # genre",
-                                     "in the # style", "in the # category"],
-                        verb=["plays # music", "plays the # genre", "does # music",
-                              "plays # songs", "does the # genre",
-                              "plays the # style", "belongs to the genre #",
-                              "belongs to the # genre", "plays #"]
+                        base=["artist", "author", "song writer", "band", "artist name",
+                              "singer", "composer"],
+                        property=["artist #", "song writer #"],
+                        preposition=["by #", "from #"],
+                        adjective=["#", "# 's"],
+                        passive_verb=["written by #", "released by #", "produced by #",
+                                      "composed by #", "recorded by #"],
+                        verb = ["# wrote", "# released", "# produced", "# composed",
+                                "# did", "# recorded", "# sang", "# made"],
+                        base_projection=['artist', 'singer', 'band', 'composer'],
+                        passive_verb_projection=['created | by', 'sang | by', 'performed | by',
+                                                 'composed | by', 'recorded | by'],
+                        reverse_verb_projection=['sing', 'sang', 'wrote', 'composed',
+                                                 'recorded']
                       }],
                       out popularity: Number
                       #[min_number=0]
@@ -869,45 +794,252 @@ class @com.spotify
                         property=["# popularity"],
                         adjective_argmin=["least popular", "most niche"],
                         adjective_argmax=["most popular", "most well-known", "best", "greatest", "top"],
+                      }],
+                      out release_date : Date
+                      #_[canonical={
+                        default="passive_verb",
+                        base=["date", "release date", "release year", "release day"],
+                        property=["release date #"],
+                        preposition=["from #"],
+                        passive_verb=["released in #", "released #", "published in #"],
+                        adjective_argmin=["least recent", "oldest", "first"],
+                        adjective_argmax=["most recent", "newest", "latest"],
+                        passive_verb_argmax=["released most recently"],
+                        passive_verb_projection=['published | on', 'released | on', 'written | on'],
+                      }],
+                      out genres: Array(String)
+                      #[string_values="com.spotify:genre"]
+                      #_[canonical={
+                        default="adjective",
+                        base=["genres", "type of genre", "type of music", "category"],
+                        adjective=["#"],
+                        preposition=["in the # genre", "in #", "of the # genre",
+                                     "in the # style", "in the # category"],
                       }])
-    #_[canonical=["artist", "composer", "musician", "singer"]]
-    #_[confirmation="artists on Spotify"]
-    #[minimal_projection=["id"]]
-    #[doc="search for artists on Spotify"];
+  #_[canonical=["music", "good music"]]
+  #_[canonical_short=["music"]]
+  #_[confirmation="playable content on Spotify"]
+  #_[on_error={
+    dailymix_error=["spotify doesn't support daily mix playlists at this time"],
+    rate_limit_error=["spotify is temporarily unavailable"]
+  }]
+  #[minimal_projection=["id"]]
+  #_[formatted=[{type="text",text="${id} by ${artists}"}]]
+  #[doc="search for content on Spotify"];
 
-    list query album(out id: Entity(com.spotify:album) #[string_values="tt:song_album"]
+
+  list query song extends playable(out id: Entity(com.spotify:song)
+                                  #[string_values="tt:song_name"]
+                                  #[unique=true]
+                                  #_[canonical={
+                                    default="base",
+                                    base=["name", "title", "track name"],
+                                    passive_verb=["named #", "called #", "titled #"],
+                                    property=["name #", "title #"]
+                                  }],
+                                  out album: Entity(com.spotify:album)
+                                  #[string_values="tt:song_album"]
+                                  #_[canonical={
+                                    default="preposition",
+                                    base=["album"],
+                                    property=["album #"],
+                                    preposition=["in the album #",
+                                                 "in #", "part of #", "from the album #",
+                                                 "from #"],
+                                    base_projection=['album'],
+                                    verb_projection=['appear | in', 'appear | on'],
+                                    reverse_verb_projection=['have', 'has', 'contain', 'contains', 'includes'],
+                                    passive_verb_projection=['included | in', 'included | on'],
+                                    preposition_projection=['in', 'on']
+                                  }],
+                                  out energy : Number
+                                  #[min_number=0]
+                                  #[max_number=100]
+                                  #[filterable=false]
+                                  #_[canonical={
+                                    default="base",
+                                    base=["energy"],
+                                    adjective_argmin=["least energetic"],
+                                    adjective_argmax=["most energetic"],
+                                  }],
+                                  out danceability : Number
+                                  #[min_number=0]
+                                  #[max_number=100]
+                                  #[filterable=false]
+                                  #_[canonical={
+                                    default="base",
+                                    base=["danceability"],
+                                    adjective_argmin=["least danceable"],
+                                    adjective_argmax=["most danceable"],
+                                  }])
+  #_[canonical=["song", "track", "sound track", "tune"]]
+  #_[canonical_short=["song", "track"]]
+  #_[confirmation="songs on Spotify"]
+  #_[on_error={
+    rate_limit_error=["spotify is temporarily unavailable"]
+  }]
+  #[minimal_projection=["id"]]
+  #_[formatted=[{type="text",text="${id} by ${artists}"}]]
+  #[doc="search for songs on Spotify"];
+
+  list query album extends playable (out id: Entity(com.spotify:album)
+                                      #[string_values="tt:song_album"]
+                                      #[unique=true]
+                                      #_[canonical={
+                                        default="base",
+                                        base=["name", "title"],
+                                        passive_verb=["named #", "called #", "titled #"],
+                                        property=["name #", "title #"]
+                                      }])
+  #_[canonical=["album", "good album", "music collection"]]
+  #_[confirmation="album on Spotify"]
+  #_[on_error={
+    rate_limit_error=["spotify is temporarily unavailable"]
+  }]
+  #[minimal_projection=["id"]]
+  #_[formatted=[{type="text",text="${id} by ${artists}"}]]
+  #[doc="search for albums on Spotify"];
+
+  list query playlist extends playable (out id: Entity(com.spotify:playlist)
+                                         #[string_values="tt:song_name"]
+                                         #[unique=true]
+                                         #_[canonical={
+                                           default="base",
+                                           base=["name"],
+                                           passive_verb=["named #", "called #", "titled #"],
+                                           property=["name #", "title"]
+                                         }])
+  #_[canonical=["playlist"]]
+  #_[confirmation="playlists on Spotify"]
+  #_[on_error={
+    dailymix_error=["spotify doesn't support daily mix playlists at this time"],
+    rate_limit_error=["spotify is temporarily unavailable"]
+  }]
+  #[minimal_projection=["id"]]
+  #_[formatted=[{type="text",text="${id}"}]]
+  #[doc="search for playlists on Spotify"];
+
+  list query show extends playable(out id: Entity(com.spotify:show)
+                                        //#[string_values="tt:show"]
+                                        #[unique=true]
+                                        #_[canonical={
+                                          default="base",
+                                          base=["name", "title"],
+                                          passive_verb=["named #", "called #", "titled #"],
+                                          property=["name #", "title #"]
+                                        }])
+  #_[canonical=["show", "podcast", "audio podcast", "episodes"]]
+  #_[confirmation="show on Spotify"]
+  #_[on_error={
+    rate_limit_error=["spotify is temporarily unavailable"]
+  }]
+  #[minimal_projection=["id"]]
+  #_[formatted=[{type="text",text="${id}"}]]
+  #[doc="search for shows on Spotify"];
+
+  action play (in req playable: Entity(com.spotify:playable)
+                #[string_values="tt:song_name"]
+                #_[prompt=["what song do you want to play"]]
+                #_[canonical={
+                  default="base",
+                  base=["name"],
+                  // FIXME: actions must use "preposition" not "passive_verb"
+                  preposition=["named #", "called #", "titled #"],
+                  property=["name #", "title #"]
+                }],
+                out device : Entity(com.spotify:device)
+                #_[canonical={
+                  default="preposition",
+                  base=["device", "player", "app"], // "can you tell me the app"?
+                  preposition=["on"]
+                }])
+  #_[canonical=["play a song", "play the song", "play a track", "play music",
+                // i would like to...
+                "listen to a song", "hear a song"]]
+  #_[confirmation="play the song $song"]
+  #_[on_error={
+    no_active_device=["you must open the spotify app first", "no spotify player is active"],
+    disallowed_action=["failed to play: you must first click play from inside the spotify app , and then i will play songs for you"],
+    player_error=["failed to play: you must first click play from inside the spotify app , and then i will play songs for you"],
+    dailymix_error=["spotify doesn't support daily mix playlists at this time"],
+    non_premium_account=["you need a spotify premium account to play music"],
+    rate_limit_error=["spotify is temporarily unavailable"]
+  }]
+  #[confirm=enum(auto)];
+
+  action add_song_to_playlist(in req song : Entity(com.spotify:song)
+                                #[string_values="tt:song_name"]
+                                #_[prompt=["what song do you want to add"]]
+                                #_[canonical={
+                                  default="base",
+                                  base=["name"],
+                                  preposition=["named #", "called #", "titled #"],
+                                  property=["name #", "title #"]
+                                }],
+                              in req playlist: String
+                                #[string_values="com.spotify:playlist"]
+                                #_[prompt=["what playlist do you want to add to"]]
+                                #_[canonical={
+                                  default="base",
+                                  base=["name"],
+                                  preposition=["named #", "called #", "titled #"],
+                                  property=["name #", "title #"]
+                                }])
+  #_[canonical=["add a song to a playlist", "add a track to a playlist"]]
+  #_[confirmation="add the song $song to the playlist $playlist"]
+  #_[on_error={
+    disallowed_action=["you cannot add songs to this playlist"],
+    no_playlist=["could not find this playlist"],
+    rate_limit_error=["spotify is temporarily unavailable"]
+  }]
+  #[confirm=enum auto]
+  #[minimal_projection=[]];
+
+  action create_playlist(in req name : String
+                          #[string_values="com.spotify:playlist"]
+                          #_[prompt=["what do you want to name your playlist"]]
+                          #_[canonical={
+                            default="base",
+                            base=["name"],
+                            preposition=["named #", "called #", "titled #"],
+                            property=["name #", "title #"]
+                          }])
+  #_[canonical=["create a new playlist", "create playlist"]]
+  #_[confirmation="create a playlist named $playlistName"]
+  #_[on_error={
+    disallowed_action=["failed to create a playlist"],
+    rate_limit_error=["spotify is temporarily unavailable"]
+  }]
+  #[confirm=enum auto]
+  #[minimal_projection=[]];
+
+  list query artist(out id: Entity(com.spotify:artist)
+                    #[string_values="tt:song_artist"]
                     #[unique=true]
                     #_[canonical={
                       default="base",
                       base=["name"],
-                      passive_verb=["named #", "called #", "titled #"],
-                      property=["name #", "title"]
+                      passive_verb=["named #", "called #"],
+                      property=["name #"]
                     }],
-                    out artists: Array(Entity(com.spotify:artist))
-                    #[string_values="tt:song_artist"]
+                    out genres: Array(String)
+                    #[string_values="com.spotify:genre"]
                     #_[canonical={
-                      default="preposition",
-                      base=["artist", "author", "song writer", "band", "artist name",
-                            "singer", "composer"],
-                      property=["artist #", "song writer #"],
-                      preposition=["by #", "from #"],
+                      default="adjective",
+                      base=["genres", "type of genre", "type of music", "category"],
+                      property=["# songs", "# music"],
                       adjective=["#"],
-                      passive_verb=["written by #", "released by #", "produced by #",
-                                    "composed by #", "recorded by #"],
-                      verb = ["# wrote", "# released", "# produced", "# composed",
-                              "# did", "# recorded", "# sang", "# made"]
-                    }],
-                    out release_date : Date
-                    #_[canonical={
-                      default="preposition",
-                      base=["date", "release date", "release year", "release day"],
-                      property=["release date #"],
-                      adjective=["#"],
-                      preposition=["from #", "in #"],
-                      passive_verb=["released in #", "released #", "published in #"],
-                      adjective_argmin=["least recent", "oldest", "first"],
-                      adjective_argmax=["most recent", "newest", "latest"],
-                      passive_verb_argmax=["released most recently"],
+                      preposition=["in the # genre", "in #", "of the # genre",
+                                   "in the # style", "in the # category"],
+                      verb=["plays # music", "plays the # genre", "does # music",
+                            "plays # songs", "does the # genre",
+                            "plays the # style", "belongs to the genre #",
+                            "belongs to the # genre", "plays #"],
+                      base_projection=['artist', 'singer', 'band', 'composer'],
+                      passive_verb_projection=['created | by', 'sang | by', 'performed | by',
+                                             'composed | by', 'recorded | by'],
+                      reverse_verb_projection=['sing', 'sang', 'wrote', 'composed',
+                                             'recorded'],
                     }],
                     out popularity: Number
                     #[min_number=0]
@@ -920,21 +1052,26 @@ class @com.spotify
                       adjective_argmin=["least popular", "most niche"],
                       adjective_argmax=["most popular", "most well-known", "best", "greatest", "top"],
                     }])
-    #_[canonical=["album", "music collection"]]
-    #_[confirmation="album on Spotify"]
+    #_[canonical=["artist", "composer", "musician", "singer"]]
+    #_[confirmation="artists on Spotify"]
+    #_[on_error={
+      rate_limit_error=["spotify is temporarily unavailable"]
+    }]
     #[minimal_projection=["id"]]
-    #[doc="search for albums on Spotify"];
+    #_[formatted=[{type="text",text="${id}"}]]
+    #[doc="search for artists on Spotify"];
 
     monitorable query get_currently_playing(out song: Entity(com.spotify:song)
                                             #[string_values="tt:song_name"])
-    #_[canonical=["the currently playing track name", "the currently playing song",
-                  "the song currently playing"]]
+    #_[canonical=["currently playing track name", "currently playing song",
+                  "song currently playing", "current song", "current track"]]
     #_[confirmation="the currently playing track name"]
     #_[result=["currently playing ${song}", "the currently playing track is ${song}"]]
     #_[on_error={
-      no_song_playing=["no song is currently playing", "nothing is currently playing"]
+      no_song_playing=["no song is currently playing", "nothing is currently playing"],
+      rate_limit_error=["spotify is temporarily unavailable"]
     }]
-    #_[result=["The current playing song is ${song}."]]
+    #_[formatted=[{type="text",text="The current playing song is ${song}."}]]
     #[poll_interval=60000ms]
     #[doc="retrieve the currently playing track name"];
 
@@ -943,12 +1080,21 @@ class @com.spotify
     #_[canonical=["spotify top tracks", "my favorite songs",
                   "my top tracks"]]
     #_[confirmation="my top tracks in Spotify"]
+    #_[on_error={
+      rate_limit_error=["spotify is temporarily unavailable"]
+    }]
+    #_[formatted=[{type="text",text="${song}"}]]
     #[poll_interval=3600000ms]
     #[doc="get user's top tracks in the last 4 weeks"];
 
     action player_next()
     #_[canonical=["play the next song", "go to the next song", "skip this song"]]
     #_[confirmation="go to the next song"]
+    #_[on_error={no_active_device=["you must open the spotify app first", "no spotify player is active"],
+    disallowed_action=["there's no next song"],
+    non_premium_account=["you need a spotify premium account to do this"],
+    rate_limit_error=["spotify is temporarily unavailable"]
+    }]
     #[doc="go to the next song"]
     #[confirm=false];
 
@@ -958,12 +1104,23 @@ class @com.spotify
                   "go back to the last song",
                   "go to the previous song"]]
     #_[confirmation="go to the previous song"]
+    #_[on_error={no_active_device=["you must open the spotify app first", "no spotify player is active"],
+    disallowed_action=["there's no previous song"],
+    non_premium_account=["you need a spotify premium account to do this"],
+    rate_limit_error=["spotify is temporarily unavailable"]
+    }]
     #[doc="go to the previous song"]
     #[confirm=false];
 
     action player_play()
     #_[canonical=["resume playing", "start playing again", "resume playback"]]
     #_[confirmation="resume playing"]
+    #_[on_error={no_active_device=["you must open the spotify app first", "no spotify player is active"],
+    disallowed_action=["music is already playing"],
+    player_error=["failed to play: try manually resuming"],
+    non_premium_account=["you need a spotify premium account to do this"],
+    rate_limit_error=["spotify is temporarily unavailable"]
+    }]
     #[doc="resume playback"]
     #[confirm=false];
 
@@ -971,6 +1128,11 @@ class @com.spotify
     #_[canonical=["pause playback", "pause my spotify"]]
     #_[confirmation="pause playback"]
     #_[confirmation_remote="pause $_person's playback"]
+    #_[on_error={no_active_device=["you must open the spotify app first", "no spotify player is active"],
+    disallowed_action=["music is already paused"],
+    non_premium_account=["you need a spotify premium account to do this"],
+    rate_limit_error=["spotify is temporarily unavailable"]
+    }]
     #[doc="pause playback"]
     #[confirm=false];
 
@@ -983,6 +1145,11 @@ class @com.spotify
     #_[canonical="set the shuffle state"]
     #_[confirmation="set the shuffle state"]
     #_[confirmation_remote="set the shuffle state"]
+    #_[on_error={no_active_device=["you must open the spotify app first", "no spotify player is active"],
+    disallowed_action=["failed to change shuffle state: try playing from the spotify app"],
+    non_premium_account=["you need a spotify premium account to do this"],
+    rate_limit_error=["spotify is temporarily unavailable"]
+    }]
     #[doc="set the shuffle state"]
     #[confirm=false];
 
@@ -995,9 +1162,15 @@ class @com.spotify
     #_[canonical="set the repeat state"]
     #_[confirmation="set the repeat state"]
     #_[confirmation_remote="set the repeat state"]
+    #_[on_error={no_active_device=["you must open the spotify app first", "no spotify player is active"],
+    disallowed_action=["failed to change repeat state: try playing from the spotify app"],
+    non_premium_account=["you need a spotify premium account to do this"],
+    rate_limit_error=["spotify is temporarily unavailable"]
+    }]
     #[doc="set the repeat state"]
     #[confirm=false];
 }
+
 class @com.icanhazdadjoke
 #_[thingpedia_name="Dad Jokes"]
 #_[thingpedia_description="Ask for a joke"]
@@ -1213,4 +1386,290 @@ abstract class @org.thingpedia.iot.door
   #_[confirmation_remote="the state of $__device"]
   #[minimal_projection=[]]
   #[confirm=false];
+}
+class @org.thingpedia.covid-vaccine
+#_[thingpedia_name="COVID Vaccine"]
+#_[thingpedia_description="COVID Vaccine Finder"]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="service"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  entity vaccine_appointment #_[description="Vaccine appointment ID"] #[has_ner=false];
+
+  monitorable list query appointment(in req location: Location
+                                     #_[prompt="what is your address"]
+                                     #_[canonical={
+                                       default="preposition",
+                                       base=["location", "position", "place"],
+                                       property=[],
+                                       preposition=["in #", "at #", "around #", "for location #", "for #"]
+                                     }],
+                                     in req dose: Enum(first, second)
+                                     #_[prompt="is this your first or second dose"]
+                                     #_[canonical={
+                                       base=["dose"],
+                                       preposition=["for my # dose"],
+                                     }],
+                                     in opt vaccine_type: Enum(moderna, pfizer, johnson_and_johnson, astra_zeneca)
+                                     #[required_if=["dose=second"]]
+                                     #_[prompt="what type of vaccine did you receive at the first dose"]
+                                     #_[canonical={
+                                       base=["vaccine type"],
+                                     }],
+                                     out id: Entity(org.thingpedia.covid-vaccine:vaccine_appointment)
+                                     #[unique=true]
+                                     #[filterable=false]
+                                     #_[canonical={
+                                        base=["id"],
+                                     }],
+                                     out geo: Location
+                                     #_[canonical={
+                                       default="preposition",
+                                       base=["address", "location"],
+                                       preposition=["near #", "in #", "around #"]
+                                     }],
+                                     out link: Entity(tt:url) #_[canonical="link"]
+                                    )
+  #[canonical=["appointment", "vaccine appointment", "vaccination slot",
+               "appointment to get a vaccine"]]
+  #_[result={
+    list_concat=["${select:__index:=0 {Here are the earliest appointments, starting with the closest ones: }}${id} at ${geo}"]
+  }]
+  #[minimal_projection=["id"]]
+  #[initial=true]
+  #[poll_interval=86400000ms]
+  #[doc="Information about COVID vaccine appointments"];
+
+  action mark_valid(in req appointment : Entity(org.thingpedia.covid-vaccine:vaccine_appointment),
+                    in req validity : Boolean
+                    #_[prompt="please try this and let me know if it works."]
+                    #_[canonical={
+                      base=["validity", "existence"],
+                      preposition_true=["as valid", "as existent", "as real"],
+                      preposition_false=["as invalid", "as non-existent", "as not real"]
+                    }])
+  #[canonical=["mark an appointment", "record an appointment"]]
+  #_[result=["${validity:select:true{Great, congratulations on getting your appointment! Please tell your friends about us.} false{Sorry that did not work out.}}"]]
+  #[follow_up="org.thingpedia.covid-vaccine.appointment(zip_code,dose,vaccine_type) if validity=false"]
+  #[confirm=false];
+}
+
+// Copyright 2021 Arth Bohra <arthbohra@gmail.com>
+//
+// Redistribution and use in source and binary forms, with or
+// without modification, are permitted provided that the following
+// conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+// 2. Redistributions in binary form must reproduce the above
+//    copyright notice, this list of conditions and the following
+//    disclaimer in the documentation and/or other materials
+//    provided with the distribution.
+// 3. Neither the name of the copyright holder nor the names of its
+//    contributors may be used to endorse or promote products derived
+//    from this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+// FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+// COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+// INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+// (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+// HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+// STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+// OF THE POSSIBILITY OF SUCH DAMAGE.
+
+class @com.goal_smart
+  #_[thingpedia_name="GoalSmart"]
+  #_[thingpedia_description="Keep up with the latest in soccer."]
+  #_[description="Keep up with the latest in soccer."]
+  #[license="MIT"]
+  #[license_gplcompatible=true]
+  #[subcategory="media"]
+
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none(api_key=$?);
+
+  entity soccer_team #_[description="Soccer Teams in the World"];
+  entity soccer_league #_[description="Soccer Leagues in the World"];
+  entity soccer_player #_[description="Soccer Players in the World"];
+
+  monitorable list query standings(in req league_id: Entity(com.goal_smart:soccer_league) #_[prompt="what league standings do you want out check out"],
+                        out team : Entity(com.goal_smart:soccer_team)
+                        #_[canonical={
+                          base=["team", "side", "group"],
+                          reverse_verb_projection=['played', 'participated', 'competed', 'competing', 'playing', 'participating']
+                        }],
+                        out rank: Number
+                        #_[canonical = {
+                          base = ["rank", "placement"],
+                          property = ["rankings of #", "# placement", "placement of #"],
+                        }],
+                        out form: Array(String)
+                        #_[canonical = {
+                          base = ["form", "momentum"],
+                          property = ["form of #"]
+                        }],
+                        out points: Number
+                        #_[canonical = {
+                          base = ["results", "points"],
+                        }])
+  #_[canonical=["team standings", "team rankings", "team rankings", "team table", "team table"]]
+  #_[confirmation="league standings of $league"]
+  #_[result = ["${rank} . ${team} Form: ${form} Points: ${points}"]]
+  #[poll_interval=3600000ms]
+  #[doc="Get the standings of a league"];
+
+
+  monitorable list query fixtures(in req team_id: Entity(com.goal_smart:soccer_team) #_[prompt="what team do you want out check out"],
+                        out league : Entity(com.goal_smart:soccer_league)
+                        #_[canonical = {
+                          base = ["league", "division"]
+                        }],
+                        out our_team: Entity(com.goal_smart:soccer_team)
+                        #_[canonical = {
+                          base = ["team one", "side one", "group one"]
+                        }],
+                        out opposition_team: Entity(com.goal_smart:soccer_team)
+                        #_[canonical = {
+                          base = ["team two", "side two", "group two"],
+                          verb = ["plays against #", "faces #", "faces against # ", "play # next", "played", "play against # next"]
+                        }],
+                        out score: String
+                        #_[canonical = {
+                          base = ["score", "result", "outcome"]
+                        }],
+                        out result: Enum(tied, won, lost, play)
+                        #_[canonical = {
+                          base = ["result", "final", "outcome"]
+                        }],
+                        out date: Date
+                        #_[canonical = {
+                          base = ["date", "time", "duration"]
+                        }],
+                        out venue: String
+                        #_[canonical = {
+                          base = ["location", "place", "venue"]
+                        }])
+  #_[canonical=["soccer fixture", "soccer match", "soccer game", "upcoming soccer game"]]
+  #_[confirmation="fixtures of $team_id"]
+  #_[result=["${our_team} ${result} against ${opposition_team} on ${date} at ${venue} for the ${league}. The score ${score}"]]
+  #[poll_interval=3600000ms]
+  #[doc="Get the fixtures of the team"];
+
+
+  monitorable list query player(in req league_id: Entity(com.goal_smart:soccer_league) #_[prompt="what league do you want out check out"],
+                        out id: Entity(com.goal_smart:soccer_player)
+                        #_[canonical = {
+                          base = ["person", "athlete", "teammate", "player"]
+                        }],
+                        out goals: Number
+                        #_[canonical = {
+                          base = ["goal", "point", "score", "conversion"]
+                        }],
+                        out assists: Number
+                        #_[canonical = {
+                          base = ["assist"]
+                        }],
+                        out red_cards: Number
+                        #_[canonical = {
+                          base = ["red card", "send off", "ejection"]
+                        }],
+                        out yellow_cards: Number
+                        #_[canonical = {
+                          base = ["yellow card", "caution", "warning"]
+                        }],
+                        out appearances: Number
+                        #_[canonical = {
+                          base = ["app", "appearance", "game played", "game", "match played", "match"]
+                        }],
+                        out minutes: Number
+                        #_[canonical = {
+                          base = ["minute", "time played", "time"]
+                        }],
+                        out shots: Number
+                        #_[canonical = {
+                          base = ["shot", "goal attempt", "attempts"]
+                        }],
+                        out shots_on_target: Number
+                        #_[canonical = {
+                          base = ["accurate shot", "shot on target", "targetted shot"]
+                        }],
+                        out passes: Number
+                        #_[canonical = {
+                          base = ["pass"]
+                        }],
+                        out key_passes: Number
+                        #_[canonical = {
+                          base = ["key pass", "crucial pass", "important pass", "goal oppurtunity"]
+                        }],
+                        out pass_accuracy: Number
+                        #_[canonical = {
+                          base = ["pass accuracy", "accuracy percentage", "pass accuracy percentage"]
+                        }],
+                        out dribble_attempts: Number
+                        #_[canonical = {
+                          base = ["dribble", "dribble attempt", "run"]
+                        }],
+                        out successful_dribbles: Number
+                        #_[canonical = {
+                          base = ["successful dribble", "completed dribble", "successful run", "completed run"]
+                        }],
+                        out tackles: Number
+                        #_[canonical = {
+                          base = ["tackle", "forced turnover", "steal"]
+                        }],
+                        out blocks: Number
+                        #_[canonical = {
+                          base = ["block", "rejection"]
+                        }],
+                        out interceptions: Number
+                        #_[canonical = {
+                          base = ["interception", "collection", "ball won"]
+                        }])
+  #_[canonical=["player stats", "player list", "league player stats", "individual stats", "player statistics", "player analysis"]]
+  #_[confirmation="top players of $league_id"]
+  #_[result={
+    top="${id} has scored ${goals} goals this season. They have had ${assists} assists. After playing ${minutes} minutes in ${appearances} appearances in the league, they had ${yellow_cards} yellow cards and ${red_cards} red cards. ${id} took ${shots} shots, ${shots_on_target} of which were on target. They made a total of ${passes} passes, ${key_passes} key passes, with a passing accuracy of ${pass_accuracy} percent. ${id} took ${dribble_attempts} dribble attempts, and ${successful_dribbles} of them were successful. They made ${tackles} tackles, ${interceptions} interceptions, and ${blocks} blocks.",
+    list="${id} has scored ${goals} goals this season. They have had ${assists} assists. After playing ${minutes} minutes in ${appearances} appearances in the league, they had ${yellow_cards} yellow cards and ${red_cards} red cards. ${id} took ${shots} shots, ${shots_on_target} of which were on target. They made a total of ${passes} passes, ${key_passes} key passes, with a passing accuracy of ${pass_accuracy} percent. ${id} took ${dribble_attempts} dribble attempts, and ${successful_dribbles} of them were successful. They made ${tackles} tackles, ${interceptions} interceptions, and ${blocks} blocks."
+  }]
+  #[poll_interval=3600000ms]
+  #[doc="Get the top scorers of the league"];
+
+
+  monitorable query teamUpdate(in req team_id: Entity(com.goal_smart:soccer_team) #_[prompt="what team do you want out check out "],
+                        out team : Entity(com.goal_smart:soccer_team)
+                        #_[canonical = {
+                          base = ["team", "side", "group"]
+                        }],
+                        out last_opponent: Entity(com.goal_smart:soccer_team)
+                        #_[canonical = {
+                          base = ["last opponent", "previous opponent", "last opponent", "last matchup", "opposition team", "opposition side", "opposition group"]
+                        }],
+                        out score_of_last_match: String
+                        #_[canonical = {
+                          base = ["score of last match", "result", "final", "outcome", "score"]
+                        }],
+                        out league: Entity(com.goal_smart:soccer_league)
+                        #_[canonical = {
+                          base = ["league", "division"]
+                        }],
+                        out league_ranking: Number
+                        #_[canonical = {
+                          base = ["placement", "rank", "position", "place", "league ranking"]
+                        }])
+  #_[canonical=["team updates", "team information", "team info", "team overview", "team summary"]]
+  #_[confirmation="overall summary of $team_id"]
+  #_[result=["${team} is currently number ${league_ranking} in the ${league}. Their last match was against ${last_opponent} and the score was ${score_of_last_match}"]]
+  #[poll_interval=3600000ms]
+  #[doc="Get the overall summary on the performance of the team"];
+
 }

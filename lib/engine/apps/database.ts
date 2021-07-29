@@ -27,18 +27,10 @@ import { getProgramIcon } from '../../utils/icons';
 import { Describer, getProgramName } from '../../utils/thingtalk/describe';
 import * as I18n from '../../i18n';
 
-import AppSql from '../db/app';
 import AppExecutor, { AppMeta } from './app_executor';
 
 import type Engine from '../index';
-
-interface AppRow {
-    uniqueId : string;
-    code : string;
-    name : string;
-    description : string;
-    state : string;
-}
+import { LocalTable, AppRow } from '../db';
 
 /**
  * The collection of all running and configured ThingTalk programs.
@@ -47,13 +39,13 @@ export default class AppDatabase extends events.EventEmitter {
     private _apps : Record<string, AppExecutor>;
     private _engine : Engine;
     private _platform : Tp.BasePlatform;
-    private _db : AppSql;
+    private _db : LocalTable<AppRow>;
 
     /**
      * Construct the app database for this engine.
      *
      * There is only one app database instance per engine,
-     * and it is accessible as {@link Engine#apps}.
+     * and it is accessible as {@link AssistantEngine.apps}.
      * @package
      */
     constructor(engine : Engine) {
@@ -63,7 +55,7 @@ export default class AppDatabase extends events.EventEmitter {
 
         this._engine = engine;
         this._platform = engine.platform;
-        this._db = new AppSql(engine.platform);
+        this._db = engine.db.getLocalTable('app');
     }
 
     private _getAll() : Promise<AppRow[]> {
@@ -86,7 +78,7 @@ export default class AppDatabase extends events.EventEmitter {
             if (app.hasRule) {
                 this._enableApp(app);
                 if (isNewApp)
-                    await this._saveApp(app);
+                    await this.saveApp(app);
             } else {
                 await this._removeAppInternal(app.uniqueId!);
             }
@@ -150,8 +142,9 @@ export default class AppDatabase extends events.EventEmitter {
         const icon = options.icon || getProgramIcon(program);
         const conversation = options.conversation;
         const notifications = options.notifications;
+        const startTime = (new Date()).getTime();
 
-        return this._loadOneApp(program.prettyprint(), { icon, conversation, notifications }, uniqueId, name, description, true);
+        return this._loadOneApp(program.prettyprint(), { icon, conversation, notifications, startTime }, uniqueId, name, description, true);
     }
 
     private async _loadOneApp(code : string,
@@ -222,7 +215,7 @@ export default class AppDatabase extends events.EventEmitter {
         this.emit('app-added', app);
     }
 
-    private _saveApp(app : AppExecutor) {
+    saveApp(app : AppExecutor) {
         return this._insertOne({
             uniqueId: app.uniqueId!,
             state: JSON.stringify(app.metadata),

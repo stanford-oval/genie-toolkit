@@ -1,0 +1,76 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+// Refinement templates: the search is NOT complete (0, or more than 1 result), and the
+// agent doesn't want to show results
+//
+// These include proposals, and empty search errors.
+// A proposal is when the agent proposed a refined search; the user answers:
+// - some form of "yes"
+// - some form of "no" followed by another search refinement
+
+import { Ast, } from 'thingtalk';
+
+import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
+import { SlotBag } from '../slot_bag';
+
+empty_search_error : [Ast.InvocationExpression|null, C.ParamSlot|null, boolean] = {
+    ["${sorry_preamble} {there are no ${base[plural=other]}|i cannot find any ${base[plural=one]}} {matching your request|with those characteristics|like that}."]:
+        (sorry_preamble, base:base_table) => [base, null, false],
+
+    ["${sorry_preamble} {there are no ${base[plural=other]}|i cannot find any ${base[plural=one]}} at the moment {matching your request|with those characteristics|like that}. would you like to be notified when {there are|i have|you have} new ${base[plural=other]}?", priority=1]:
+        (sorry_preamble, base:base_table<is_monitorable=true>) => [base, null, true],
+
+    !inference {
+        ["${sorry_preamble} {there are no ${base[plural=other]}|i cannot find any ${base[plural=one]}} {matching your request|with those characteristics|like that}. would you like {a different|another} ${p}?", priority=1]: (sorry_preamble, base:base_table, p:out_param_Any) => {
+            if (!C.isSameFunction(base.schema!, p.schema))
+                return null;
+            if (p.name === 'id')
+                return null;
+            return [base, p, false];
+        },
+
+        ["${sorry_preamble} i cannot find any result for your search . would you like {a different|another} ${p}?"]: (sorry_preamble, p:out_param_Any) => {
+            if (p.name === 'id')
+                return null;
+            return [null, p, false];
+        },
+    }
+
+    ?inference {
+        ["${sorry_preamble} i cannot find any result for your search. ", priority=-1]: (sorry_preamble) => [null, null, false];
+    }
+
+    ["${sorry_preamble} ${message}.", priority=5]: (sorry_preamble, message: ctx_thingpedia_empty_result)
+        => [null, null, false],
+
+    ["${sorry_preamble} ${ctx}. would you like to be notified when {there are|i have|you have} new ${base[plural=other]}?", priority=6]: (sorry_preamble, ctx: ctx_thingpedia_empty_result, base:base_table<functionName=ctx.functionName>)
+        => (base.schema!.is_monitorable ? [base, null, true] : null),
+}
+
+precise_empty_search_change_request : Ast.Expression = {
+    ?multiwoz ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') 'a' phrase:answer_noun_phrase '?' => phrase;
+    ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') phrase:anything_phrase '?' => phrase;
+}
+imprecise_empty_search_change_request : Ast.Value|C.FilterSlot = {
+    ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') answer:imprecise_search_answer_phrase '?'
+        => answer;
+}

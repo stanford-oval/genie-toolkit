@@ -229,7 +229,7 @@ class Annotator extends events.EventEmitter {
             getState() {
                 return {
                     history: [],
-                    dialogueState: 'null',
+                    dialogueState: {},
                     expected: null
                 };
             }
@@ -299,6 +299,7 @@ class Annotator extends events.EventEmitter {
         if (this._engine)
             await this._engine.open();
         await this._parser.start();
+        await this._dialoguePolicy.initialize();
     }
     async stop() {
         await this._parser.stop();
@@ -512,8 +513,8 @@ class Annotator extends events.EventEmitter {
     }
 }
 
-const THINGPEDIA_URL = 'https://dev.almond.stanford.edu/thingpedia';
-const NL_SERVER_URL = 'https://nlp-staging.almond.stanford.edu';
+const THINGPEDIA_URL = 'https://almond.stanford.edu/thingpedia';
+const NL_SERVER_URL = 'https://nlp.almond.stanford.edu';
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('interactive-annotate', {

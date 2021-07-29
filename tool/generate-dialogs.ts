@@ -71,7 +71,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('--max-turns', {
         required: false,
-        default: 7,
+        default: 6,
         type: Number,
         help: `Maximum number of turns per dialog`
     });
@@ -93,10 +93,9 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: true,
         help: 'Path to file containing primitive templates, in ThingTalk syntax.'
     });
-    parser.add_argument('--template', {
-        required: true,
-        nargs: '+',
-        help: 'Path to file containing construct templates, in Genie syntax.'
+    parser.add_argument('--policy', {
+        required: false,
+        help: 'Path to JS/TS module defining the dialogue policy.'
     });
     parser.add_argument('--set-flag', {
         required: false,
@@ -117,13 +116,13 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--maxdepth', {
         required: false,
         type: Number,
-        default: 4,
+        default: 8,
         help: 'Maximum depth of sentence generation',
     });
     parser.add_argument('--target-pruning-size', {
         required: false,
         type: Number,
-        default: 100,
+        default: 250,
         help: 'Pruning target for each non-terminal',
     });
     parser.add_argument('-B', '--minibatch-size', {
@@ -151,6 +150,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         dest: 'debug',
         help: 'Disable debugging.',
     });
+    parser.add_argument('--log-prefix', {
+        required: false,
+        default: '',
+        help: 'Additional prefix to debugging messages'
+    });
     parser.add_argument('--random-seed', {
         default: 'almond is awesome',
         help: 'Random seed'
@@ -164,7 +168,7 @@ export async function execute(args : any) {
         locale: args.locale,
         timezone: args.timezone,
         flags: args.flags || {},
-        templateFiles: args.template,
+        policy: args.policy,
         targetLanguage: args.target_language,
         thingpediaClient: tpClient,
         maxDepth: args.maxdepth,
@@ -172,6 +176,7 @@ export async function execute(args : any) {
         maxTurns: args.max_turns,
         minibatchSize: args.minibatch_size,
         numMinibatches: args.num_minibatches,
+        logPrefix: args.log_prefix,
 
         debug: args.debug,
     };

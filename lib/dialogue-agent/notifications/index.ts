@@ -19,46 +19,10 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 import * as Tp from 'thingpedia';
 
-import { FormattedObject } from './formatter';
-
 import TwilioNotificationBackend from './twilio';
 import EmailNotificationBackend from './email';
 
-export interface NotificationDelegate {
-    notify(data : {
-        appId : string;
-        icon : string|null;
-        raw : Record<string, unknown>;
-        type : string;
-        formatted : FormattedObject[]
-    }) : Promise<void>;
-
-    notifyError(data : {
-        appId : string;
-        icon : string|null;
-        error : Error
-    }) : Promise<void>;
-}
-
-export interface NotificationBackend {
-    readonly name : string;
-    readonly uniqueId : string;
-    readonly requiredSettings : Record<string, string>;
-
-    notify(data : {
-        appId : string;
-        icon : string|null;
-        raw : Record<string, unknown>;
-        type : string;
-        formatted : FormattedObject[]
-    }, config ?: Record<string, string>) : Promise<void>;
-
-    notifyError(data : {
-        appId : string;
-        icon : string|null;
-        error : Error
-    }, config ?: Record<string, string>) : Promise<void>;
-}
+export type NotificationDelegate = Tp.BaseDevice.NotificationInterface;
 
 export const StaticNotificationBackends = {
     'twilio': TwilioNotificationBackend,
@@ -72,15 +36,15 @@ export type NotificationConfig = {
 /**
  * Helper class to adapt a Thingpedia device into a notification backend.
  */
-export class ThingpediaNotificationBackend implements NotificationBackend {
-    private _iface : NotificationDelegate;
+export class ThingpediaNotificationBackend implements Tp.Capabilities.NotificationBackend {
+    private _iface : Tp.BaseDevice.NotificationInterface;
     name : string;
     uniqueId : string;
 
     constructor(device : Tp.BaseDevice) {
         this.name = device.name;
         this.uniqueId = 'thingpedia/' + device.uniqueId;
-        this._iface = device.queryInterface('notifications') as NotificationDelegate;
+        this._iface = device.queryInterface('notifications')!;
     }
 
     get requiredSettings() {
@@ -92,7 +56,7 @@ export class ThingpediaNotificationBackend implements NotificationBackend {
         icon : string|null;
         raw : Record<string, unknown>;
         type : string;
-        formatted : FormattedObject[]
+        formatted : Tp.FormatObjects.FormattedObject[]
     }) {
         return this._iface.notify(data);
     }

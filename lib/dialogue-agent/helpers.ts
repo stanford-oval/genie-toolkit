@@ -23,43 +23,6 @@ import * as ThingTalk from 'thingtalk';
 
 import * as ThingTalkUtils from '../utils/thingtalk';
 
-import type DialogueLoop from './dialogue-loop';
-
-
-const SLOT_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
-function normalizeSlot(t : string) : string {
-    const res = SLOT_REGEX.exec(t);
-    if (!res)
-        return t;
-    const [match, param1, param2,] = res;
-    if (match === '$$')
-        return '$';
-    return '$' + (param1 || param2);
-}
-
-export function formatError(dlg : DialogueLoop, error : Error|string) {
-    if (typeof error === 'string')
-        return error;
-    else if (error.name === 'SyntaxError')
-        return dlg.interpolate(dlg._("Syntax error {at ${error.fileName}|} {line ${error.lineNumber}|}: ${error.message}"), { error });
-    else if (error.message)
-        return error.message;
-    else
-        return String(error);
-}
-
-export function presentExample(dlg : DialogueLoop, utterance : string) {
-    // on Android, we have app-level slot filling which is more powerful, so we don't
-    // want to lose the argument name information
-    if (dlg.engine.platform.type === 'android' || dlg.engine.platform.type === 'test')
-        utterance = utterance.split(' ').map((t) => t.startsWith('$') ? normalizeSlot(t) : t).join(' ');
-    else
-        utterance = utterance.split(' ').map((t) => t.startsWith('$') ? '____' : t).join(' ');
-    if (utterance.startsWith(', '))
-        utterance = utterance.substring(2);
-    return utterance;
-}
-
 export function loadOneExample(ex : ThingTalk.Ast.Example) {
     // refuse to slot fill pictures
     for (const name in ex.args) {
@@ -117,9 +80,4 @@ export async function loadExamples(dataset : string,
             output.push(loaded);
     }
     return output;
-}
-
-export function presentExampleList(dlg : DialogueLoop,
-                                   examples : Array<{ utterance : string, target : string }>) {
-
 }

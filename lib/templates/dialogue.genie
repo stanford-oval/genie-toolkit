@@ -1,0 +1,451 @@
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+import { Ast, } from 'thingtalk';
+
+import * as C from './ast_manip';
+import * as S from './state_manip';
+import * as D from './dialogue_acts';
+import ThingpediaLoader from './load-thingpedia';
+
+// Declare key functions for contextual stuff
+keyfn = {
+    S.ContextInfo : S.contextKeyFn,
+    S.NameList : S.nameListKeyFn,
+    S.ContextName : S.contextNameKeyFn,
+    D.ActionSuccessPhraseWithResult : D.actionSuccessPhraseWithResultKeyFn,
+    D.Recommendation : D.recommendationKeyFn,
+    D.ListProposal : D.listProposalKeyFn,
+    D.ResultPhrase : D.resultPhraseKeyFn,
+    D.DirectAnswerPhrase : D.directAnswerPhraseKeyFn,
+    D.UserSearchQuestionForList : D.userSearchQuestionForListKeyFn,
+    D.PreciseSearchQuestionAnswer : D.preciseSearchQuestionAnswerKeyFn,
+    D.NegativeProposalReply : D.negativeProposalReplyKeyFn,
+}
+
+// basic ThingTalk functionality
+import './shared.genie';
+import './constants.genie';
+import './timers.genie';
+import './filters.genie';
+import './projections.genie';
+import './aggregation.genie';
+import './computation.genie';
+import './who_questions.genie';
+import './stream_tables.genie';
+import './commands.genie';
+
+// common dialogue elements
+import './dlg/shared.genie';
+import './dlg/results.genie';
+import './dlg/coref-actions.genie';
+
+// specific interactions
+// keep this in alphabetical order
+import './dlg/action-confirm.genie';
+import './dlg/action-results.genie';
+import './dlg/aggregation-results.genie';
+import './dlg/coref-questions.genie';
+import './dlg/empty-search.genie';
+import './dlg/initial-request.genie';
+import './dlg/list-proposal.genie';
+import './dlg/recommendation.genie';
+import './dlg/refinement.genie';
+import './dlg/related-questions.genie';
+import './dlg/search-questions.genie';
+import './dlg/slot-fill.genie';
+import './dlg/streams.genie';
+
+// declare contexts
+context : S.ContextInfo = {
+    // context tags applied to both agent and user contexts
+    // these should be returned by S.getContextTags()
+    ctx_init,
+    ctx_multidomain,
+    ctx_with_result,
+    ctx_with_table_result,
+    ctx_with_aggregation_result,
+    ctx_with_action,
+    ctx_without_action,
+    ctx_with_result_and_action,
+    ctx_with_result_question,
+    ctx_with_result_noquestion,
+    ctx_with_result_argminmax,
+    ctx_without_projection,
+    ctx_with_notification,
+    ctx_for_related_question,
+
+    // phrases that describe the current context
+    // (some are later because they use a different type)
+    ctx_next_statement,
+    ctx_current_statement,
+
+    // abstract result states (used to interpret user utterances)
+    // these should be returned by S.tagContextForAgent()
+    ctx_greet,
+    ctx_reinit,
+    ctx_cancel,
+    ctx_end,
+    ctx_search_command,
+    ctx_aggregation_question,
+    ctx_distance_argminmax_question,
+    ctx_argminmax_question,
+    ctx_one_result_question,
+    ctx_empty_direct_question,
+    ctx_empty_search_command,
+    ctx_large_search_command,
+    ctx_single_result_search_command,
+    ctx_complete_search_command,
+    ctx_completed_action_success,
+    ctx_completed_action_error,
+    ctx_confirm_action,
+    ctx_incomplete_action,
+    ctx_incomplete_action_after_search,
+    ctx_learn_more,
+    ctx_display_nonlist_result,
+    ctx_rule_enable_success,
+    ctx_action_notification,
+    ctx_list_notification,
+    ctx_nonlist_notification,
+    ctx_notification_error,
+
+    // agent states (used to continue the conversation with more user utterances)
+    // these more or less map to the agent dialogue acts, except we don't distinguish
+    // acts with questions and acts without questions (the distinction is there only
+    // for the purposes of type-checking)
+    ctx_sys_any,
+
+    ctx_sys_action_success,
+    ctx_sys_action_error,
+    ctx_sys_anything_else,
+    ctx_sys_confirm_action,
+    ctx_sys_display_result,
+    ctx_sys_empty_search,
+    ctx_sys_end,
+    ctx_sys_greet,
+    ctx_sys_learn_more_what,
+    ctx_sys_propose_refined_query,
+    ctx_sys_recommend_many,
+    ctx_sys_recommend_one,
+    ctx_sys_search_question,
+    ctx_sys_slot_fill
+};
+context : Ast.Expression = {
+    ctx_current_query
+};
+context : SlotBag = {
+    ctx_thingpedia_result,
+    ctx_thingpedia_empty_result
+};
+context : D.ThingpediaListProposal = {
+    ctx_thingpedia_list_result
+};
+context : C.ErrorMessage = {
+    ctx_thingpedia_error_message
+};
+context : S.NameList = {
+    ctx_result_name_list
+};
+context : S.ContextName = {
+    ctx_result_name
+};
+context : Ast.Value = {
+    ctx_notification_app_name
+};
+
+initial_request_preamble : S.ContextInfo = {
+    ["{hello|hi}! i can help you {find a ${table[plural=one]}|{find|search for} ${table[plural=other]}}.", priority=10]: (ctx : ctx_init, table : base_table<functionName = ctx.nextFunction>) => ctx,
+
+    ["{hello|hi}! i can help you ${action}.", priority=10]: (ctx : ctx_init, action : complete_action<functionName = ctx.nextFunction>) => {
+        const invocation = C.getInvocation(action);
+        if (invocation.in_params.length > 0)
+            return null;
+        return ctx;
+    },
+}
+
+/**
+ * The root of the agent generation.
+ *
+ * This non-terminal contains the entire reply of the agent.
+ */
+$agent : S.AgentReplyRecord = {
+    ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null), null, null, { end: false }),
+
+    ?anything_else {
+        ctx:ctx_cancel anything_else_phrase
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null), null, null, { end: false }),
+
+        ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
+    }
+    !anything_else {
+        ctx:ctx_cancel 'alright, let me know if I can help you with anything else!'
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
+    }
+
+    // action results
+    action_success_phrase;
+    ?anything_else action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
+    ctx:ctx_completed_action_error sorry_preamble phrase:action_error_phrase => phrase;
+
+    // query results
+    ctx:ctx_display_nonlist_result proposal:system_nonlist_result
+        => D.makeDisplayResultReply(ctx, proposal);
+    ctx:ctx_display_nonlist_result proposal:system_list_proposal
+        => D.makeDisplayResultReplyFromList(ctx, proposal);
+
+    // aggregation results
+    ( ctx:ctx_aggregation_question reply:count_aggregation_reply
+    | ctx:ctx_aggregation_question reply:other_aggregation_reply
+    ) => reply;
+
+    // confirming an action
+    ctx:ctx_confirm_action reply:action_confirm_phrase => reply;
+
+    // empty search error
+    ctx:ctx_empty_search_command error:empty_search_error
+        => D.makeEmptySearchError(ctx, error);
+
+    // query refinement (through proposal or search question)
+    ?multiwoz prop:system_generic_proposal => prop;
+    !inference ctx:ctx_search_command questions:search_question
+        => D.makeSearchQuestion(ctx, questions);
+
+    // slot filling of actions
+    ctx:ctx_incomplete_action_after_search questions:slot_fill_question
+        => D.makeSlotFillQuestion(ctx, questions);
+
+    ctx:ctx_incomplete_action_after_search initial_request_preamble questions:slot_fill_question
+        => D.makeSlotFillQuestion(ctx, questions);
+
+    // action recommendation (through one or a list)
+
+    ctx:ctx_complete_search_command proposal:system_recommendation
+        => D.makeRecommendationReply(ctx, proposal);
+
+    ctx:ctx_complete_search_command proposal:system_list_proposal [weight=10]
+        => D.makeListProposalReply(ctx, proposal);
+
+    // learn more
+    ctx:ctx_learn_more system_learn_more
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null), null, null, { end: false });
+
+    ["${preamble} I {will|am going to} ${stmt}"]: (ctx : ctx_rule_enable_success, preamble : generic_excitement2_phrase, stmt : ctx_current_statement)
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_rule_enable_success', null));
+
+    // notification
+    ctx:ctx_list_notification notification_preamble proposal:system_recommendation
+        => D.makeRecommendationReply(ctx, proposal);
+    ctx:ctx_nonlist_notification notification_preamble proposal:system_nonlist_result
+        => D.makeDisplayResultReply(ctx, proposal);
+    action_notification_phrase;
+    ctx:ctx_notification_error notification_error_preamble phrase:action_error_phrase => phrase;
+}
+
+/**
+ * The root of the user generation.
+ *
+ * This non-terminal contains a single user turn in its entirety.
+ */
+$user : Ast.DialogueState = {
+    ctx:ctx_init greeting [weight=0.01, expandchoice=false]
+        => S.makeSimpleState(ctx, 'greet', null);
+    ( ctx:ctx_init stmt:initial_command [weight=0.5]
+    | ctx:ctx_init greeting stmt:initial_command [weight=0.5]
+    | ctx:ctx_sys_greet stmt:initial_command
+    ) => D.startNewRequest($loader, ctx, stmt);
+
+    // do you need anything else?
+    ( ctx:ctx_sys_anything_else no_thanks_phrase ('goodbye !' | '') [weight=0.01]
+    | ctx:ctx_sys_anything_else thanks_phrase ('goodbye !' | '') [weight=0.01]
+    ) => S.makeSimpleState(ctx, 'end', null);
+
+    ( ctx:ctx_sys_anything_else stmt:initial_command
+    | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
+    ) => D.startNewRequest($loader, ctx, stmt);
+
+    ctx:ctx_sys_anything_else yes_please_phrase
+        => S.makeSimpleState(ctx, 'reinit', null);
+
+    // action confirmations
+    ctx:ctx_sys_confirm_action accept_phrase [weight=0.9]
+        => D.actionConfirmAcceptPhrase(ctx);
+    ctx:ctx_sys_confirm_action reject_phrase [weight=0.1]
+        => D.actionConfirmRejectPhrase(ctx);
+    ctx:ctx_sys_confirm_action reject_phrase ('can you try' | 'how about') answer:imprecise_slot_fill_answer_phrase ('instead ?' | '') [weight=0.1]
+        => D.actionConfirmChangeParam(ctx, answer);
+
+    // action and non-list query results
+    ( ctx:ctx_sys_action_success thanks_phrase ('goodbye !' | '')
+    | ctx:ctx_sys_display_result thanks_phrase ('goodbye !' | '')
+    ) => S.makeSimpleState(ctx, 'cancel', null);
+    ctx:ctx_sys_action_success questions:simple_user_search_question
+        => D.actionSuccessQuestion(ctx, questions);
+
+    ( ctx:ctx_sys_display_result repeat_command_phrase
+    | ctx:ctx_sys_action_error repeat_command_on_error_phrase
+    ) => D.repeatCommandReply(ctx);
+
+    // restarting
+
+    ( ctx:ctx_sys_action_success stmt:initial_command
+    | ctx:ctx_sys_action_success yes_please_phrase stmt:initial_command
+    | ctx:ctx_sys_display_result stmt:initial_command
+    | ctx:ctx_sys_display_result yes_please_phrase stmt:initial_command
+    ) => D.startNewRequest($loader, ctx, stmt);
+
+    !multiwoz {
+        ( ctx:ctx_sys_recommend_one stmt:initial_command
+        | ctx:ctx_sys_action_error stmt:initial_command
+        | ctx:ctx_sys_recommend_many stmt:initial_command
+        ) => D.startNewRequest($loader, ctx, stmt);
+    }
+
+    // cancelling
+
+    ( ctx:ctx_sys_action_error no_thanks_phrase
+    | ctx:ctx_sys_action_error nevermind_phrase
+    ) => S.makeSimpleState(ctx, 'cancel', null);
+
+    /*
+    FIXME this template is too slow, so it is temporarily commented out
+    ctx:ctx_sys_action_error ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('can you try' | 'how about') answer:imprecise_slot_fill_answer_phrase '?'
+        => D.actionErrorChangeParam(ctx, answer);
+    */
+
+    // empty search errors
+    ctx:ctx_sys_empty_search req:precise_empty_search_change_request with { functionName = ctx.currentTableFunction }
+        => D.preciseEmptySearchChangeRequest(ctx, req);
+    ctx:ctx_sys_empty_search req:imprecise_empty_search_change_request
+        => D.impreciseEmptySearchChangeRequest(ctx, req);
+    ctx:ctx_sys_empty_search accept_phrase
+        => D.acceptEmptySearchOffer(ctx);
+
+    // search questions
+    ctx:ctx_sys_search_question answer:precise_search_question_answer with { functionName = ctx.currentFunction }
+        => D.preciseSearchQuestionAnswer(ctx, answer);
+    ctx:ctx_sys_search_question answer:imprecise_search_question_answer [weight=0.2]
+        => D.impreciseSearchQuestionAnswer(ctx, answer);
+
+    // slot fill questions
+    ctx:ctx_sys_slot_fill answer:precise_slot_fill_answer with { functionName = ctx.nextFunction }
+        => D.preciseSlotFillAnswer(ctx, answer);
+    ctx:ctx_sys_slot_fill answer:imprecise_slot_fill_answer
+        => D.impreciseSlotFillAnswer(ctx, answer);
+
+    // asking for a recommendation
+    ?multiwoz {
+        ctx:ctx_sys_recommend_many ask_recommend_phrase
+            => S.makeSimpleState(ctx, 'ask_recommend', null);
+        ctx:ctx_sys_search_question ask_recommend_phrase
+            => S.makeSimpleState(ctx, 'ask_recommend', null);
+    }
+
+    // refinement from a query proposal
+    ctx:ctx_sys_propose_refined_query accept_phrase [weight=0.5]
+        => D.positiveProposalReply(ctx); // ctx.aux contains the proposal from the agent
+    ctx:ctx_sys_propose_refined_query reply:negative_proposal_reply with { functionName = ctx.currentFunction } [weight=0.5]
+        => D.negativeProposalReply(ctx, reply);
+
+    // accepting recommendations
+    ctx:ctx_sys_recommend_one accept_phrase [weight=0.7]
+        => D.positiveRecommendationReply($loader, ctx, null, null);
+    ctx:ctx_sys_recommend_one acceptedAction:recommendation_accept_phrase_with_action [weight=0.7]
+        => D.positiveRecommendationReply($loader, ctx, acceptedAction, null);
+    ?multiwoz ctx:ctx_sys_recommend_one name:recommendation_accept_phrase_by_name [weight=0.7]
+        => D.positiveRecommendationReply($loader, ctx, name[1], name[0]);
+
+    // accepting recommendation to learn more
+    ( ctx:ctx_sys_recommend_one tell_me_more_phrase [weight=0.5]
+    | ctx:ctx_sys_recommend_one accept_phrase tell_me_more_phrase [weight=0.5]
+    ) => D.recommendationLearnMoreReply(ctx, null);
+    ctx:ctx_sys_recommend_one name:list_proposal_tell_me_more
+        => D.recommendationLearnMoreReply(ctx, name);
+
+    // refinement from a recommendation
+    ctx:ctx_sys_recommend_one reply:negative_proposal_reply with { functionName = ctx.currentFunction } [weight=0.6]
+        => D.negativeRecommendationReply(ctx, reply);
+
+    // cancelling the transaction from a recommendation
+    // "thanks" without "yes" or "no" is always good
+    ctx:ctx_sys_recommend_one thanks_phrase ('goodbye !' | '')
+        => D.recommendationCancelReply(ctx, true);
+    // "ok thanks" is good if there was no question
+    ctx:ctx_sys_recommend_one ok_thanks_phrase ('goodbye !' | '')
+        => D.recommendationCancelReply(ctx, !ctx.aux.action && !ctx.aux.hasLearnMore);
+    // "no thanks" is good if there was a question
+    ctx:ctx_sys_recommend_one no_thanks_phrase ('goodbye !' | '')
+        => D.recommendationCancelReply(ctx, ctx.aux.action || ctx.aux.hasLearnMore);
+
+    // continuing with a question
+    // a "related question" is one that uses a different Thingpedia primitive (connected
+    // by the #[related_question] annotation)
+    ctx:ctx_sys_recommend_one question:related_question => question;
+    // a "user search question" is one that uses the same Thingpedia primitive, and adds
+    // a filter on ID
+    ctx:ctx_sys_recommend_one questions:user_search_question with { functionName = ctx.currentFunction }
+        => D.recommendationSearchQuestionReply(ctx, questions);
+    ctx:ctx_sys_learn_more_what questions:user_search_question with { functionName = ctx.currentFunction }
+        => D.learnMoreSearchQuestionReply(ctx, questions);
+    ctx:ctx_sys_display_result questions:user_search_question with { functionName = ctx.currentFunction }
+        => D.displayResultSearchQuestionReply(ctx, questions);
+
+    // accepting list proposals
+    ctx:ctx_sys_recommend_many reply:positive_list_proposal_reply [weight=10 * 0.7]
+        => D.positiveListProposalReply($loader, ctx, reply);
+    ?multiwoz ctx:ctx_sys_recommend_many action:list_proposal_accept_phrase_with_action_by_name [weight=10 * 0.7]
+        => D.positiveListProposalReplyActionByName($loader, ctx, action);
+
+    // accepting list proposal to learn more
+    ctx:ctx_sys_recommend_many name:list_proposal_tell_me_more
+        => D.listProposalLearnMoreReply(ctx, name);
+
+    // refinement from a list proposal
+    ctx:ctx_sys_recommend_many reply:negative_proposal_reply with { functionName = ctx.currentFunction } [weight=0.6]
+        => D.negativeListProposalReply(ctx, reply);
+
+    // continuing with a question
+    ctx:ctx_sys_recommend_many question:related_question => question;
+    ctx:ctx_sys_recommend_many questions:user_search_question_for_list with { functionName = ctx.currentFunction }
+        => D.listProposalSearchQuestionReply(ctx, questions);
+
+    // streams
+    !nostream {
+        ctx:ctx_sys_action_success stream:add_separate_stream
+            => D.addStream(ctx, stream);
+        ctx:ctx_sys_recommend_one stream:add_separate_stream_to_query
+            => D.addStream(ctx, stream);
+        ctx:ctx_sys_recommend_many stream:add_separate_stream_to_query
+            => D.addStream(ctx, stream);
+        ctx:ctx_sys_display_result stream:add_separate_stream_to_query
+            => D.addStream(ctx, stream);
+
+        ctx:ctx_sys_recommend_one with { is_monitorable = true } make_monitor_phrase
+            => D.makeMonitor(ctx);
+        ctx:ctx_sys_recommend_many with { is_monitorable = true } make_monitor_phrase
+            => D.makeMonitor(ctx);
+        ctx:ctx_sys_display_result with { is_monitorable = true } make_monitor_phrase
+            => D.makeMonitor(ctx);
+    }
+}

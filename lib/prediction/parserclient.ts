@@ -27,6 +27,8 @@ export * from './types';
 
 const URL = 'https://almond-nl.stanford.edu';
 
+// export for documentation
+export { RemoteParserClient, LocalParserClient };
 export type ParserClient = RemoteParserClient | LocalParserClient;
 
 export function get(url = URL,

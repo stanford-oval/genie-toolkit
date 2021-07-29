@@ -21,7 +21,6 @@
 
 process.on('unhandledRejection', (up) => { throw up; });
 
-import * as path from 'path';
 import * as stream from 'stream';
 import * as seedrandom from 'seedrandom';
 
@@ -134,12 +133,10 @@ async function processDialogue(dlg) {
 }
 
 
-async function doTestDialogue(filename, onlyDevices = null) {
+async function doTestDialogue(onlyDevices = null) {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
         locale: 'en-US',
-        policyFile: path.resolve(path.dirname(module.filename), '../../languages/thingtalk/policy.yaml'),
-        templateFiles: [filename],
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
         flags: {
@@ -191,12 +188,11 @@ async function doTestDialogue(filename, onlyDevices = null) {
 }
 
 async function main() {
-    await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/basic.genie'));
-    await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/thingtalk.genie'));
-    await doTestDialogue(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/dialogue.genie'));
+    await doTestBasic('basic.genie');
+    await doTestBasic('single-command.genie');
+    await doTestDialogue();
     // run again with just yelp weather and spotify, as way to check certain paths that don't come up otherwise
-    await doTestDialogue(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/dialogue.genie'),
-    ['com.yelp', 'org.thingpedia.weather', 'com.spotify2']);
+    await doTestDialogue(['com.yelp', 'org.thingpedia.weather', 'com.spotify2']);
 }
 export default main;
 if (!module.parent)

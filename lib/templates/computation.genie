@@ -1,0 +1,312 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
+
+import * as C from './ast_manip';
+import ThingpediaLoader from './load-thingpedia';
+
+{
+    const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'));
+
+    function hasGeoLocationOutput(schema : Ast.FunctionDef) {
+        const arg = schema.getArgument('geo');
+        return arg && !arg.is_input && arg.type === Type.Location;
+    }
+}
+
+
+projection_Measure_m = {}
+compute_question = {}
+with_arg_min_max_table = {}
+
+projection_Measure_m : Ast.Expression = {
+    !turking {
+        ( 'the distance' ('of' | 'to') table:with_filtered_table with { has_geo = true } ('from here' | '')
+        | 'the distance' ('of' | 'to') 'the' table:with_arg_min_max_table with { has_geo = true } ('from here' | ''))=> {
+            assert (hasGeoLocationOutput(table.schema!));
+            return C.makeComputeExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], new Type.Measure('m'));
+        };
+
+        // these form sentences like "tell me how far X is", which is grammatical but
+        // clunky, so we !turking them
+        ( 'how' ('far' | 'near' | 'close') table:with_filtered_table with { has_geo = true } 'is' ('from here' | '')
+        | 'how' ('far' | 'near' | 'close') 'the' table:with_arg_min_max_table with { has_geo = true } 'is' ('from here' | '')
+        ) => {
+            assert (hasGeoLocationOutput(table.schema!));
+            return C.makeComputeExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], new Type.Measure('m'));
+        };
+
+        ( 'the distance' ('of' | 'to') table:with_filtered_table with { has_geo = true } 'from' place:constant_Location
+        | 'the distance from' place:constant_Location ('of' | 'to') table:with_filtered_table with { has_geo = true }
+        | 'the distance' ('of' | 'to') 'the' table:with_arg_min_max_table with { has_geo = true } 'from' place:constant_Location
+        | 'the distance from' place:constant_Location ('of' | 'to') 'the' table:with_arg_min_max_table with { has_geo = true }
+        ) => {
+            assert (hasGeoLocationOutput(table.schema!));
+            return C.makeComputeExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], new Type.Measure('m'));
+        };
+
+        ( 'how' ('far' | 'near' | 'close') 'from' place:constant_Location table:with_filtered_table with { has_geo = true } 'is'
+        | 'how' ('far' | 'near' | 'close') table:with_filtered_table  with { has_geo = true } 'is from' place:constant_Location
+        | 'how' ('far' | 'near' | 'close') 'from' place:constant_Location 'the' table:with_arg_min_max_table with { has_geo = true } 'is'
+        | 'how' ('far' | 'near' | 'close') 'the' table:with_arg_min_max_table with { has_geo = true } 'is from' place:constant_Location
+        ) => {
+            assert (hasGeoLocationOutput(table.schema!));
+            return C.makeComputeExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], new Type.Measure('m'));
+        };
+    }
+}
+
+projection_Number : Ast.Expression = {
+    !turking {
+        ( 'the number of' p:out_param_Array__Any ('of' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName }
+        | 'the number of' p:out_param_Array__Any ('of' | 'in') 'the' table:with_arg_min_max_table with { functionName = p.functionName }
+        ) => {
+            const arg = table.schema!.getArgument(p.name);
+            if (!arg || arg.is_input || !arg.type.isArray)
+                return null;
+            const conflictParam = C.hasConflictParam(table, p.name, 'count');
+            if (conflictParam)
+                return C.makeProjection(table, conflictParam);
+            return C.makeAggComputeExpression(table, 'count', null, p, Type.Number);
+        };
+
+        ( 'the number of' p:out_param_Array__Any 'with' filter:with_filter with { functionName = p.functionName } ('of' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName }
+        | 'the number of' p:out_param_Array__Any 'with' filter:with_filter with { functionName = p.functionName } ('of' | 'in') 'the' table:with_arg_min_max_table with { functionName = p.functionName }
+        ) => {
+            const ptype = table.schema!.getArgType(p.name);
+            if (!ptype || !(ptype instanceof Type.Array) || !(filter instanceof Ast.AtomBooleanExpression))
+                return null;
+            const elementType = ptype.elem as Type;
+            if (!(elementType instanceof Type.Compound) || !elementType.fields[filter.name])
+                return null;
+            const list = C.makeListExpression(p, filter);
+            if (!list)
+                return null;
+            return C.makeAggComputeExpression(table, 'count', null, list, Type.Number);
+        };
+
+        ( 'the number of' p:out_param_ArrayCount ('of' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName }
+        | 'the number of' p:out_param_ArrayCount ('of' | 'in') 'the' table:with_arg_min_max_table with { functionName = p.functionName }
+        ) => {
+            const arg = table.schema!.getArgument(p.name);
+            if (!arg || arg.is_input || !arg.type.isNumber)
+                return null;
+            return C.makeProjection(table, p.name);
+        };
+    }
+}
+
+compute_question : Ast.Expression = {
+    !turking {
+        ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table with { has_geo = true } ('from here' | '') ('?'|'')
+        | 'how' ('far' | 'near' | 'close') ('is' | 'are') 'the' table:with_arg_min_max_table with { has_geo = true } ('from here' | '') ('?'|'')
+        )=> {
+            assert (hasGeoLocationOutput(table.schema!));
+            return C.makeComputeExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], new Type.Measure('m'));
+        };
+
+        ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table with { has_geo = true } ('from' | 'to') place:constant_Location ('?'|'')
+        | 'how' ('far' | 'near' | 'close') ('is' | 'are') 'the' table:with_arg_min_max_table with { has_geo = true } ('from' | 'to') place:constant_Location ('?'|'')
+        ) => {
+            assert (hasGeoLocationOutput(table.schema!));
+            return C.makeComputeExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], new Type.Measure('m'));
+        };
+
+        ( 'how many' p:out_param_ArrayCount ('does' | 'do') table:with_filtered_table with { functionName = p.functionName } 'have ?'
+        | 'how many' p:out_param_ArrayCount ('in a' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
+        | 'how many' p:out_param_ArrayCount 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
+
+        | 'how many' p:out_param_ArrayCount ('does' | 'do') 'the' table:with_arg_min_max_table with { functionName = p.functionName } 'have ?'
+        | 'how many' p:out_param_ArrayCount 'in the' table:with_arg_min_max_table with { functionName = p.functionName } '?'
+        | 'how many' p:out_param_ArrayCount 'are there in the' table:with_arg_min_max_table with { functionName = p.functionName } '?'
+        ) => {
+            assert (table.schema!.getArgType(p.name)!.isNumber);
+            return C.makeProjection(table, p.name);
+        };
+
+        ( 'how many' p:out_param_Array__Any ('does' | 'do') table:with_filtered_table with { functionName = p.functionName } 'have ?'
+        | 'how many' p:out_param_Array__Any ('in a' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
+        | 'how many' p:out_param_Array__Any 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
+
+        | 'how many' p:out_param_Array__Any ('does' | 'do') 'the' table:with_arg_min_max_table with { functionName = p.functionName } 'have ?'
+        | 'how many' p:out_param_Array__Any 'in the' table:with_arg_min_max_table with { functionName = p.functionName } '?'
+        | 'how many' p:out_param_Array__Any 'are there in the' table:with_arg_min_max_table with { functionName = p.functionName } '?'
+        ) => {
+
+            assert (table.schema!.getArgType(p.name)!.isArray);
+            const conflictParam = C.hasConflictParam(table, p.name, 'count');
+            if (conflictParam)
+                return C.makeProjection(table, conflictParam);
+            return C.makeAggComputeExpression(table, 'count', null, p, Type.Number);
+        };
+
+        !dialogues {
+        ( 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } ('does' | 'do') table:with_filtered_table with { functionName = p.functionName } 'have ?'
+        | 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } ('in a' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
+        | 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
+
+        | 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } ('does' | 'do') 'the'  table:with_arg_min_max_table with { functionName = p.functionName } 'have ?'
+        | 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } 'in the' table:with_arg_min_max_table with { functionName = p.functionName } '?'
+        | 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } 'are there in the' table:with_arg_min_max_table with { functionName = p.functionName } '?'
+        ) => {
+            const ptype = table.schema!.getArgType(p.name);
+            if (!ptype || !(ptype instanceof Type.Array) || !(filter instanceof Ast.AtomBooleanExpression))
+                return null;
+            const elementType = ptype.elem as Type;
+            if (!(elementType instanceof Type.Compound) || !elementType.fields[filter.name])
+                return null;
+            const list = C.makeListExpression(p, filter);
+            if (!list)
+                return null;
+            return C.makeAggComputeExpression(table, 'count', null, list, Type.Number);
+        };
+        }
+
+        // aggregation questions
+        ?aggregation {
+        ( 'how many' table:with_filtered_table with { is_list = true } 'are there ?'
+        | ('please' | '') 'count the' table:with_filtered_table with { is_list = true }
+        ) => {
+            assert(table.schema!.is_list);
+            const newSchema = table.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT)
+                .addArguments([new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'count', Type.Number)]);
+            newSchema.is_list = false;
+            const agg = new Ast.AggregationExpression(null, table, '*', 'count', newSchema);
+            return new Ast.ProjectionExpression(null, agg, ['count'], [], [], newSchema);
+        };
+
+
+        !schema_org ( 'how many' p:out_param_Any with { is_numeric = true } 'are' ('in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
+        | 'how many' p:out_param_Any with { is_numeric = true } ('do' | 'does') table:with_filtered_table with { functionName = p.functionName } 'have ?'
+        ) => {
+            const arg = table.schema!.getArgument(p.name);
+            if (!arg || arg.is_input || !arg.type.isNumeric())
+                return null;
+            if (!table.schema!.is_list)
+                return null;
+
+            const newSchema = table.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+            newSchema.is_list = false;
+            const agg = new Ast.AggregationExpression(null, table, p.name, 'sum', newSchema);
+            return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
+        };
+        }
+    }
+}
+
+with_arg_min_max_table : Ast.Expression = {
+    !turking {
+        ('nearest' | 'closest') table:complete_table with { has_geo = true } ('' | 'from here' | 'to here' | 'to me')  => {
+            assert (hasGeoLocationOutput(table.schema!));
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], new Type.Measure('m'), 'asc');
+        };
+
+        ('nearest' | 'closest') table:with_filtered_table with { has_geo = true } => {
+            assert (hasGeoLocationOutput(table.schema!));
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], new Type.Measure('m'), 'asc');
+        };
+
+        ('farthest' | 'most far away') table:with_filtered_table with { has_geo = true } => {
+            assert (hasGeoLocationOutput(table.schema!));
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], new Type.Measure('m'), 'desc');
+        };
+
+        ( ('nearest' | 'closest') table:complete_table with { has_geo = true } 'to' place:constant_Location
+        | table:complete_table with { has_geo = true } ('that is' | 'which is') ('nearest' | 'closest') 'to' place:constant_Location
+        | table:complete_table with { has_geo = true } ('nearest' | 'closest') 'to' place:constant_Location
+        ) => {
+            assert (hasGeoLocationOutput(table.schema!));
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], new Type.Measure('m'), 'asc');
+        };
+
+        ( ('nearest' | 'closest') table:with_filtered_table with { has_geo = true } 'to' place:constant_Location
+        | table:with_filtered_table with { has_geo = true } ('that is' | 'which is') ('nearest' | 'closest') 'to' place:constant_Location
+        | table:with_filtered_table with { has_geo = true } ('nearest' | 'closest') 'to' place:constant_Location
+        ) => {
+            assert (hasGeoLocationOutput(table.schema!));
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], new Type.Measure('m'), 'asc');
+        };
+
+        ( ('farthest' | 'most far away') table:with_filtered_table with { has_geo = true } 'from' place:constant_Location
+        | table:with_filtered_table with { has_geo = true } ('that is' | 'which is') ('farthest' | 'most far away') 'from' place:constant_Location
+        | table:with_filtered_table with { has_geo = true } ('farthest' | 'most far away') 'from' place:constant_Location )
+        => {
+            assert (hasGeoLocationOutput(table.schema!));
+            return C.makeComputeArgMinMaxExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], new Type.Measure('m'), 'desc');
+        };
+
+        table:with_filtered_table 'with the' ('most' | 'highest number of' | 'largest number of' | 'largest count of') p:out_param_Array__Any
+            with { functionName = table.functionName } [weight=0.33] => {
+            const arg = table.schema!.getArgument(p.name);
+            if (!arg || arg.is_input || !arg.type.isArray)
+                return null;
+            const conflictParam = C.hasConflictParam(table, p.name, 'count');
+            if (conflictParam)
+                return C.makeArgMaxMinTable(table, conflictParam, 'desc');
+            return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'desc');
+        };
+        !turking table:with_filtered_table 'with the' ('least' | 'fewest' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_Array__Any
+            with { functionName = table.functionName } [weight=0.33] => {
+            const arg = table.schema!.getArgument(p.name);
+            if (!arg || arg.is_input || !arg.type.isArray)
+                return null;
+            const conflictParam = C.hasConflictParam(table, p.name, 'count');
+            if (conflictParam)
+                return C.makeArgMaxMinTable(table, conflictParam, 'asc');
+            return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'asc');
+        };
+        ?turking table:with_filtered_table 'with the' ('fewest' | 'smallest number of') p:out_param_Array__Any
+            with { functionName = table.functionName } [weight=0.33] => {
+            const arg = table.schema!.getArgument(p.name);
+            if (!arg || arg.is_input || !arg.type.isArray)
+                return null;
+            const conflictParam = C.hasConflictParam(table, p.name, 'count');
+            if (conflictParam)
+                return C.makeArgMaxMinTable(table, conflictParam, 'asc');
+            return C.makeAggComputeArgMinMaxExpression(table, 'count', null, p, Type.Number, 'asc');
+        };
+
+        table:with_filtered_table 'with the' ('most' | 'highest number of' | 'largest number of' | 'largest count of') p:out_param_ArrayCount
+            with { functionName = table.functionName } [weight=0.33] => {
+            const arg = table.schema!.getArgument(p.name);
+            if (!arg || arg.is_input || !arg.type.isNumber)
+                return null;
+            return C.makeArgMaxMinTable(table, p.name, 'desc');
+        };
+        !turking table:with_filtered_table 'with the' ('least' | 'fewest' | 'smallest number of' | 'tiniest number of' | 'smallest count of') p:out_param_ArrayCount
+            with { functionName = table.functionName } [weight=0.33] => {
+            const arg = table.schema!.getArgument(p.name);
+            if (!arg || arg.is_input || !arg.type.isNumber)
+                return null;
+            return C.makeArgMaxMinTable(table, p.name, 'asc');
+        };
+        ?turking table:with_filtered_table 'with the' ('fewest' | 'smallest number of') p:out_param_ArrayCount
+            with { functionName = table.functionName } [weight=0.33] => {
+            const arg = table.schema!.getArgument(p.name);
+            if (!arg || arg.is_input || !arg.type.isNumber)
+                return null;
+            return C.makeArgMaxMinTable(table, p.name, 'asc');
+        };
+    }
+}
+
+

@@ -24,7 +24,7 @@ import * as Stream from 'stream';
 import assert from 'assert';
 import * as fs from 'fs';
 import JSONStream from 'JSONStream';
-import { Ast, } from 'thingtalk';
+import { Ast, SchemaRetriever, } from 'thingtalk';
 
 import * as StreamUtils from '../lib/utils/stream-utils';
 import * as Utils from '../lib/utils/misc-utils';
@@ -46,6 +46,7 @@ import * as ParserClient from '../lib/prediction/parserclient';
 interface DialogueToDSTStreamOptions {
     locale : string;
     thingpediaClient : Tp.BaseClient;
+    schemaRetriever ?: SchemaRetriever;
     database : SimulationDatabase|undefined;
     tokenized : boolean;
     parser : ParserClient.ParserClient;
@@ -62,7 +63,9 @@ class DialogueToDSTStream extends Stream.Transform {
     constructor(options : DialogueToDSTStreamOptions) {
         super({ objectMode: true });
 
-        this._slotExtractor = new SlotExtractor(options.locale, options.thingpediaClient, options.database);
+        if (!options.schemaRetriever)
+            options.schemaRetriever = new SchemaRetriever(options.thingpediaClient, null, true);
+        this._slotExtractor = new SlotExtractor(options.locale, options.thingpediaClient, options.schemaRetriever, options.database);
         this._tokenized = options.tokenized;
         this._tokenizer = I18n.get(options.locale).getTokenizer();
         this._parser = options.parser;
