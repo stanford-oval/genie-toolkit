@@ -293,13 +293,15 @@ export default class AssistantDispatcher extends events.EventEmitter {
         return this._conversations.get(id);
     }
 
-    getConversations() {
-        return this._conversations;
-    }
-
     get lastConversation() {
         return this._lastConversation;
     }
+
+    pingAll() {
+        for (const [_, conversation] of this._conversations)
+            conversation.sendPing();
+    }
+
 
     async getOrOpenConversation(id : string, options : ConversationOptions, state ?: ConversationState) {
         if (this._conversations.has(id))

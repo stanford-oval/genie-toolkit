@@ -41,13 +41,13 @@ async function testActivityMonitor(engine) {
     // inactivity timers should not start when there are apps
     await delay(2000);
     assert(engine.apps.hasApp(app.uniqueId));
-    assert(idle === false);
+    assert.strictEqual(idle, false);
     engine.apps.removeApp(app);
-    assert(engine.apps.getAllApps().length === 0);
+    assert.strictEqual(engine.apps.getAllApps().length, 0);
 
     // idle timers should start when there are no apps
     await delay(1000);
-    assert(idle === true);
+    assert.strictEqual(idle, true);
 }
 
 async function testSimpleDo(engine) {

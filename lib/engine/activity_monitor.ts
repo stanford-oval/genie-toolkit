@@ -24,17 +24,25 @@ import AssistantDispatcher from '../dialogue-agent/assistant_dispatcher';
 const DEFAULT_IDLE_TIMEOUT = 600000; // 10 minutes
 const DEFAULT_QUIESCE_TIMEOUT = 30000; // 30 seconds
 
-export interface ActivityMonitorOptions  { 
-        idleTimeoutMillis : number;
-        quiesceTimeoutMillis : number;
-}
 
+export enum ActivityMonitorStatus {
+    Starting = "starting",
+    Running = "running",
+    Idle = "idle",
+    Stopping = 'stopping'
+}
 /**
- * Monitors engine activity and emits an 'idle' event when engine is
- * inactive.
+ * Monitors engine activity and emits an 'idle' event when engine is inactive.
+ * There are two monitoring timers. The first timer starts when there is no apps
+ * and resets on any activity.  The second timer starts after the first timer
+ * expires and immdiately broadcasts a ping message to all conversations. Any
+ * activity from ping resoponse or other events will reset the timers.
+ * The reason for the second timer is to avoid bounce from an idle but connected
+ * client session, which reconnects when the connection is closed.
  */
 export class ActivityMonitor extends events.EventEmitter {
-    private _running : boolean;
+    private _name : string;  // display name for logging
+    private _status : ActivityMonitorStatus;
     private _appdb : AppDatabase;
     private _assistant : AssistantDispatcher;
     private _lastUpdate : number;
@@ -42,10 +50,16 @@ export class ActivityMonitor extends events.EventEmitter {
     private _idleTimeoutMillis : number;
     private _quiesceTimeout : NodeJS.Timeout|null;
     private _quiesceTimeoutMillis : number;
+    private _appAddedListener : (...args : any[]) => void;
+    private _appRemovedListener : (...args : any[]) => void;
 
-    constructor(appdb : AppDatabase, assistant : AssistantDispatcher, options : ActivityMonitorOptions) {
+    constructor(appdb : AppDatabase, assistant : AssistantDispatcher, options : { 
+        idleTimeoutMillis ?: number;
+        quiesceTimeoutMillis ?: number;
+    }) {
         super();
-        this._running = false;
+        this._name = "Activity monitor";
+        this._status = ActivityMonitorStatus.Starting;
         this._appdb = appdb;
         this._assistant = assistant;
         this._lastUpdate = 0;
@@ -53,18 +67,28 @@ export class ActivityMonitor extends events.EventEmitter {
         this._idleTimeoutMillis = options.idleTimeoutMillis || DEFAULT_IDLE_TIMEOUT;
         this._quiesceTimeout = null;
         this._quiesceTimeoutMillis = options.quiesceTimeoutMillis || DEFAULT_QUIESCE_TIMEOUT;
+        this._appAddedListener = this.updateActivity.bind(this);
+        this._appRemovedListener = this.updateActivity.bind(this);
     }
 
-    start() {
-        this._appdb.on('app-added', this.updateActivity.bind(this));
-        this._appdb.on('app-removed', this.updateActivity.bind(this));
-        this._running = true;
-        console.log('Activity monitor started');
+    set name(name : string) {
+        this._name = name;
+    }
+
+    get status() {
+        return this._status;
+    }
+
+    async start() {
+        console.log(`${this._name} started`);
+        this._appdb.on('app-added', this._appAddedListener);
+        this._appdb.on('app-removed', this._appRemovedListener);
+        this._status = ActivityMonitorStatus.Running;
         this.updateActivity();
     }
 
     updateActivity() {
-        if (!this._running)
+        if (this._status === ActivityMonitorStatus.Starting || this._status === ActivityMonitorStatus.Stopping)
             return;
         this._lastUpdate = Date.now();
         if (this._idleTimeout !== null)
@@ -76,11 +100,11 @@ export class ActivityMonitor extends events.EventEmitter {
         this._maybeStartActivityTimeout();
     }
 
-    _maybeStartActivityTimeout() {
-        if (this._appdb.getAllApps().length > 0) 
+    private _maybeStartActivityTimeout() {
+        if (!this._appdb.isEmpty()) 
             return;
         const idleTimeout = Math.max(this._idleTimeoutMillis - (Date.now() - this._lastUpdate), 0);
-        console.log(`Activity monitor starts idle timer ${idleTimeout} ms`);
+        console.log(`${this._name} started idle timer ${idleTimeout} ms`);
         this._idleTimeout = setTimeout(() => {
             this._idleTimeout = null;
             const msSinceLastUpdate = Date.now() - this._lastUpdate;
@@ -91,23 +115,25 @@ export class ActivityMonitor extends events.EventEmitter {
         }, idleTimeout);
     }
 
-    _startQuiesce() {
-        console.log(`Activity monitor starts quiesce timer ${this._quiesceTimeoutMillis} ms`);
+    private _startQuiesce() {
+        console.log(`${this._name} started quiesce timer ${this._quiesceTimeoutMillis} ms`);
         this._quiesceTimeout = setTimeout(() => {
             this._quiesceTimeout = null;
-            console.log('Activity monitor emits idle event');
+            this._status = ActivityMonitorStatus.Idle;
             this.emit("idle");
+            console.log(`${this._name} emitted idle event`);
         }, this._quiesceTimeoutMillis);
-        for (const [_, conversation] of this._assistant.getConversations())
-            conversation.sendPing();
+        this._assistant.pingAll();
     }
 
-    stop() {
-        this._running = false;
+    async stop() {
+        console.log(`${this._name} stopped`);
+        this._status = ActivityMonitorStatus.Stopping;
         if (this._idleTimeout !== null) 
             clearTimeout(this._idleTimeout);
         if (this._quiesceTimeout !== null)
             clearTimeout(this._quiesceTimeout);
-        console.log('Activity monitor stopped');
+        this._appdb.removeListener('app-added', this._appAddedListener);
+        this._appdb.removeListener('app-removed', this._appRemovedListener);
     }
 }

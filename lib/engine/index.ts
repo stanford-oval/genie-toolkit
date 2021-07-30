@@ -41,7 +41,7 @@ import { NotificationConfig } from '../dialogue-agent/notifications';
 import NotificationFormatter from '../dialogue-agent/notifications/formatter';
 
 import * as Config from '../config';
-import  { ActivityMonitor, ActivityMonitorOptions } from './activity_monitor';
+import  { ActivityMonitor, ActivityMonitorStatus } from './activity_monitor';
 
 export {
     DB,
@@ -51,7 +51,7 @@ export {
     AppDatabase,
     AppExecutor,
     ActivityMonitor,
-    ActivityMonitorOptions
+    ActivityMonitorStatus
 };
 
 interface EngineModule {
@@ -203,7 +203,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
         nluModelUrl ?: string;
         thingpediaUrl ?: string;
         notifications ?: NotificationConfig;
-        activityMonitorOptions ?: ActivityMonitorOptions;
+        activityMonitorOptions ?: Record<string, number>;
     } = {}) {
         super(platform, options);
 
@@ -241,6 +241,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
             this._modules.push(this._audio);
         this._modules.push(this._assistant,
                            new AppRunner(this._appdb));
+        if (this._activityMonitor)
+            this._modules.push(this._activityMonitor);
 
         this._running = false;
         this._stopCallback = null;
@@ -367,9 +369,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
      */
     run() : Promise<void> {
         this._running = true;
-        if (this._activityMonitor)
-            this._activityMonitor.start();
-
         return new Promise((callback, errback) => {
             if (!this._running) {
                 callback();
@@ -390,8 +389,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
     stop() : void {
         console.log('Engine stopped');
         this._running = false;
-        if (this._activityMonitor)
-            this._activityMonitor.stop();
         if (this._stopCallback)
             this._stopCallback();
     }

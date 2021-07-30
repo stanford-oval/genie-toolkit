@@ -244,4 +244,10 @@ export default class AppDatabase extends events.EventEmitter {
     hasApp(id : string) : boolean {
         return this._apps[id] !== undefined;
     }
+
+    isEmpty() : boolean {
+        for (const _ in this._apps)
+            return false;
+        return true;
+    }
 }
