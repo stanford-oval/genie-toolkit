@@ -1164,3 +1164,32 @@ U: #[results=[{ __timestamp=1626399487 }]];
 A: Your request was completed successfully.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; timer ( base = $now , interval = DURATION_0 ) #[ results = [ { __timestamp = NUMBER_0 } ] ] ; // {"DURATION_0":{"unit":"min","value":1},"NUMBER_0":1626399487}
 A: >> expecting = null
+
+====
+# 77-clarification-question-1
+
+U: maybe turn on the lights?
+A: Did you mean set on the lights?
+A: >> context = null // {}
+A: >> expecting = yesno
+
+U: yes
+
+A: You do not have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
+A: link: Configure a new skill /devices/create
+A: >> context = null // {}
+A: >> expecting = null
+
+====
+# 78-clarification-question-2
+
+U: maybe turn on the lights?
+A: Did you mean set on the lights?
+A: >> context = null // {}
+A: >> expecting = yesno
+
+U: no
+
+A: Sorry I couldn't help on that.
+A: >> context = null // {}
+A: >> expecting = null
