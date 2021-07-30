@@ -111,16 +111,18 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     private _executorState : undefined;
 
     private _debug : boolean;
+    private _useConfidence : boolean;
 
     constructor(engine : Engine,
                 loop : DialogueLoop,
                 agent : ExecutionDialogueAgent,
                 nlu : ParserClient.ParserClient,
                 nlg : ParserClient.ParserClient,
-                options : { debug : boolean }) {
+                options : { debug : boolean, useConfidence : boolean }) {
         this._ = engine._;
 
         this._debug = options.debug;
+        this._useConfidence = options.useConfidence;
         this._engine = engine;
         this._loop = loop;
         this._prefs = engine.platform.getSharedPreferences();
@@ -283,8 +285,9 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             store: this._prefs.get('sabrina-store-log') as string || 'no'
         });
 
-        if (nluResult.intent.command < nluResult.intent.ignore ||
-            nluResult.intent.command < nluResult.intent.other) {
+        if (this._useConfidence &&
+            (nluResult.intent.command < nluResult.intent.ignore ||
+             nluResult.intent.command < nluResult.intent.other)) {
             this._loop.debug('ThingTalk confidence analyzed as out-of-domain command');
             const parsed = new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'ood'));
             return {
@@ -332,7 +335,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
             this._loop.debug('Failed to analyze message as ThingTalk');
             this._loop.conversation.stats.hit('sabrina-failure');
-        } else if (choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
+        } else if (this._useConfidence && choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
             type = CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;
             this._loop.debug('Dubiously analyzed message into ' + choice.parsed.prettyprint());
             this._loop.conversation.stats.hit('sabrina-command-maybe');

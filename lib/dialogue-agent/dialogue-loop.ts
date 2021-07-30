@@ -129,6 +129,7 @@ export class DialogueLoop {
                 options : {
                     nluServerUrl : string|undefined;
                     nlgServerUrl : string|undefined;
+                    useConfidence : boolean;
                     debug : boolean;
                     faqModels : Record<string, {
                         url : string;

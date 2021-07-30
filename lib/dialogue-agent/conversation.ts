@@ -53,6 +53,7 @@ export interface ConversationOptions {
     deleteWhenInactive ?: boolean;
     log ?: boolean;
     dialogueFlags ?: Record<string, boolean>;
+    useConfidence ?: boolean;
     faqModels ?: Record<string, {
         url : string;
         highConfidence ?: number;
@@ -140,6 +141,7 @@ export default class Conversation extends events.EventEmitter {
             nluServerUrl: options.nluServerUrl,
             nlgServerUrl: options.nlgServerUrl,
             faqModels: options.faqModels || {},
+            useConfidence: options.useConfidence ?? true,
             debug: this._debug,
         });
         this._expecting = null;
