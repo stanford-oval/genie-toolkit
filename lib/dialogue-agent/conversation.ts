@@ -143,6 +143,7 @@ export default class Conversation extends events.EventEmitter {
             faqModels: options.faqModels || {},
             useConfidence: options.useConfidence ?? true,
             debug: this._debug,
+            rng: this.rng,
         });
         this._expecting = null;
         this._context = { code: ['null'], entities: {} };

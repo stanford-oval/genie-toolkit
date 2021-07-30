@@ -175,7 +175,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         // normalize spaces
         sentence = sentence.replace(/\s+/g, ' ');
 
-        if (program.isProgram && program.principal !== null)
+        if (program && program.isProgram && program.principal !== null)
             sentence = replaceMeMy(sentence);
 
         if (!sentence.endsWith(' ?') && !sentence.endsWith(' !') && !sentence.endsWith(' .')) {

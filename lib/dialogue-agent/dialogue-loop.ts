@@ -131,6 +131,7 @@ export class DialogueLoop {
                     nlgServerUrl : string|undefined;
                     useConfidence : boolean;
                     debug : boolean;
+                    rng : () => number;
                     faqModels : Record<string, {
                         url : string;
                         highConfidence ?: number;
