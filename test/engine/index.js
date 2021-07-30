@@ -52,7 +52,11 @@ async function main() {
     const platform = Platform.newInstance();
     const engine = new Engine(platform, {
         thingpediaUrl: THINGPEDIA_URL,
-        cloudSyncUrl: THINGENGINE_URL
+        cloudSyncUrl: THINGENGINE_URL,
+        activityMonitorOptions: {
+            idleTimeoutMillis: 500,
+            quiesceTimeoutMillis: 200,
+        }
     });
     await engine.open();
     await engine.assistant.openConversation('mock');

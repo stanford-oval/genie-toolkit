@@ -575,7 +575,9 @@ export function createMockEngine(thingpedia, rng, database) {
 
         createDevice(blob) {
             return this.devices.addSerialized(blob);
-        }
+        },
+
+        updateActivity() {}
     };
     engine.gettext = function(string) {
         return gettext.dgettext('genie-toolkit', string);
