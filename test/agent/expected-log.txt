@@ -2476,3 +2476,39 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: maybe turn on the lights?
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Did you mean set on the lights?
+A: You do not have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: maybe turn on the lights?
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
+C: null
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Did you mean set on the lights?
+A: Sorry I couldn't help on that.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_clarify;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

@@ -28,6 +28,8 @@ import { stringEscape } from '../lib/utils/escaping';
 
 
 function extract(key : string, str : unknown) {
+    if (typeof str === 'boolean' || typeof str === 'number')
+        return;
     if (typeof str === 'string') {
         console.log(`/* ${key} */`);
         console.log(`var x = _(${stringEscape(str)});`);
@@ -41,7 +43,7 @@ function extract(key : string, str : unknown) {
             extract(`${key}.${subkey}`, str[subkey as keyof typeof str]);
         }
     } else {
-        throw new TypeError(`Invalid translatable entry ${str}`);
+        throw new TypeError(`Invalid translatable entry #_[${key}=${str}]`);
     }
 }
 

@@ -288,7 +288,7 @@ export abstract class Replaceable {
         if (cached)
             return cached;
 
-        const parsed = TemplateGrammar.parse(template);
+        const parsed : Replaceable = TemplateGrammar.parse(template);
         parsed.preprocess(langPack, names);
         Replaceable._cache.set(cacheKey, parsed);
         return parsed;

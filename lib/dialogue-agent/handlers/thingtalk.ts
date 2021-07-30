@@ -48,6 +48,7 @@ import {
     ReplyResult,
 } from '../dialogue-loop';
 import { Button } from '../card-output/format_objects';
+import { Replaceable } from '../../utils/template-string';
 
 // TODO: load the policy.yaml file instead
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
@@ -111,16 +112,20 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     private _executorState : undefined;
 
     private _debug : boolean;
+    private _useConfidence : boolean;
+    private _rng : () => number;
 
     constructor(engine : Engine,
                 loop : DialogueLoop,
                 agent : ExecutionDialogueAgent,
                 nlu : ParserClient.ParserClient,
                 nlg : ParserClient.ParserClient,
-                options : { debug : boolean }) {
+                options : { debug : boolean, useConfidence : boolean, rng : () => number }) {
         this._ = engine._;
 
         this._debug = options.debug;
+        this._useConfidence = options.useConfidence;
+        this._rng = options.rng;
         this._engine = engine;
         this._loop = loop;
         this._prefs = engine.platform.getSharedPreferences();
@@ -283,8 +288,9 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             store: this._prefs.get('sabrina-store-log') as string || 'no'
         });
 
-        if (nluResult.intent.command < nluResult.intent.ignore ||
-            nluResult.intent.command < nluResult.intent.other) {
+        if (this._useConfidence &&
+            (nluResult.intent.command < nluResult.intent.ignore ||
+             nluResult.intent.command < nluResult.intent.other)) {
             this._loop.debug('ThingTalk confidence analyzed as out-of-domain command');
             const parsed = new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'ood'));
             return {
@@ -332,7 +338,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
             this._loop.debug('Failed to analyze message as ThingTalk');
             this._loop.conversation.stats.hit('sabrina-failure');
-        } else if (choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
+        } else if (this._useConfidence && choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
             type = CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;
             this._loop.debug('Dubiously analyzed message into ' + choice.parsed.prettyprint());
             this._loop.conversation.stats.hit('sabrina-command-maybe');
@@ -356,16 +362,16 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_FOLLOWUP:
         case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND: {
             // TODO move this to the state machine, not here
-            const confirmation = await this._describeProgram(analyzed.parsed!);
-            assert(confirmation, `Failed to compute a description of the current command`);
-            const yesNo = await this._loop.ask(ValueCategory.YesNo, this._("Did you mean ${command}?"), { command: confirmation });
+            const question = await this._makeClarificationQuestion(analyzed.parsed!);
+            assert(question, `Failed to compute a description of the current command`);
+            const yesNo = await this._loop.ask(ValueCategory.YesNo, question);
             assert(yesNo instanceof Ast.BooleanValue);
             if (!yesNo.value) {
                 return {
-                    messages: [this._("Sorry I couldn't help on that. Would you like to try again?")],
+                    messages: [this._("Sorry I couldn't help on that.")],
                     context: this._dialogueState ? this._dialogueState.prettyprint() : 'null',
                     agent_target: '$dialogue @org.thingpedia.dialogue.transaction.sys_clarify;',
-                    expecting: this._loop.expecting,
+                    expecting: null,
                 };
             }
 
@@ -402,7 +408,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         return this._executeCurrentState();
     }
 
-    private async _describeProgram(program : Ast.Input) {
+    private async _makeClarificationQuestion(program : Ast.Input) {
         const allocator = new Syntax.SequentialEntityAllocator({});
         const describer = new ThingTalkUtils.Describer(this._engine.platform.locale,
                                                        this._engine.platform.timezone,
@@ -414,10 +420,18 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         for (const kind of kinds)
             describer.setDataset(kind, await this._engine.schemas.getExamplesByKind(kind));
 
-        const description = describer.describe(program);
+        let description = describer.describe(program);
         if (description === null)
             return null;
-        return this._langPack.postprocessNLG(description.chooseBest(), allocator.entities, this._agent);
+
+        const question = Replaceable.get(this._("Did you mean ${command}?"), this._langPack, ['command']);
+        description = question.replace({ constraints: {}, replacements: [{ text: description, value: description }] });
+        if (description === null)
+            return null;
+
+        let utterance = description.chooseBest();
+        utterance = this._langPack.postprocessSynthetic(utterance, null, this._rng, 'agent');
+        return this._langPack.postprocessNLG(utterance, allocator.entities, this._agent);
     }
 
     private async _executeCurrentState() {

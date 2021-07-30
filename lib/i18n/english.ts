@@ -175,7 +175,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         // normalize spaces
         sentence = sentence.replace(/\s+/g, ' ');
 
-        if (program.isProgram && program.principal !== null)
+        if (program && program.isProgram && program.principal !== null)
             sentence = replaceMeMy(sentence);
 
         if (!sentence.endsWith(' ?') && !sentence.endsWith(' !') && !sentence.endsWith(' .')) {
@@ -271,7 +271,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
     postprocessNLG(answer : string, entities : EntityMap, delegate : UnitPreferenceDelegate) {
         return super.postprocessNLG(answer, entities, delegate)
             // adjust the output of NLG which introduces "today", "tomorrow" and "yesterday" by replacing DATE tokens
-            .replace(/\bon (today|tomorrow|yesterday)\b/i, (match, word) => {
+            .replace(/\bon (today|tomorrow|yesterday|(?:this|last|next) (?:week|month|year|monday|tuesday|wednesday|thursday|friday|saturday|sunday))\b/i, (match, word) => {
                 // preserve the right capitalization
                 if (match.startsWith('On'))
                     return word[0].toUpperCase() + word.substring(1);

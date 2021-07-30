@@ -65,6 +65,7 @@ do_test([
     ('./test_new_tokenizer_it'),
     ('./test_new_tokenizer_zh'),
     ('./test_pos_nfa'),
+    ('./test_postprocess_nlg_en'),
     ('./test_priority_queue'),
     ('./test_random'),
     ('./test_requoting'),

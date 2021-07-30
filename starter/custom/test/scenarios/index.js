@@ -330,6 +330,7 @@ async function main() {
             showWelcome: false,
             anonymous: false,
             rng: rng,
+            useConfidence: false,
         });
         testRunner.conversation = conversation;
         const delegate = new TestDelegate(testRunner);

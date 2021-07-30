@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as ThingTalk from 'thingtalk';
 import * as argparse from 'argparse';
 import * as fs from 'fs';
 import * as Tp from 'thingpedia';
@@ -94,7 +95,7 @@ export async function execute(args : any) {
     await util.promisify(fs.mkdir)(args.output_dir, { recursive: true });
 
     if (args.type.length === 0) {
-        let listUrl = args.thingpedia_url + '/api/v3/entities/all?locale=' + args.locale;
+        let listUrl = `${args.thingpedia_url}/api/v3/entities/all?locale=${args.locale}&thingtalk_version=${ThingTalk.version}`;
         if (args.developer_key)
             listUrl += '&developer_key=' + args.developer_key;
 
@@ -115,7 +116,7 @@ export async function execute(args : any) {
 
     let progress = 0;
     for (const type of args.type) {
-        let url = args.thingpedia_url + '/api/v3/entities/list/' + type + '?locale=' + args.locale;
+        let url = `${args.thingpedia_url}/api/v3/entities/list/${type}?locale=${args.locale}&thingtalk_version=${ThingTalk.version}`;
         if (args.developer_key)
             url += '&developer_key=' + args.developer_key;
 
