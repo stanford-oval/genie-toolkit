@@ -365,10 +365,10 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             assert(yesNo instanceof Ast.BooleanValue);
             if (!yesNo.value) {
                 return {
-                    messages: [this._("Sorry I couldn't help on that. Would you like to try again?")],
+                    messages: [this._("Sorry I couldn't help on that.")],
                     context: this._dialogueState ? this._dialogueState.prettyprint() : 'null',
                     agent_target: '$dialogue @org.thingpedia.dialogue.transaction.sys_clarify;',
-                    expecting: this._loop.expecting,
+                    expecting: null,
                 };
             }
 
