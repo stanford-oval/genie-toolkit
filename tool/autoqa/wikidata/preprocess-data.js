@@ -66,6 +66,8 @@ class ParamDatasetGenerator {
         this._subtypes = new Map();  // subtype information for all types
         this._filteredPropertiesByDomain = new Map(); // final list of properties by domain
 
+        this._thingtalkEntityTypes = new Map(); // final thingtalk types of all values
+
         this._valueSets = new Map(); // parameter value sets by type 
         this._manifest = fs.createWriteStream(this._paths.manifest);
         this._tokenizer = I18N.get(options.locale).getTokenizer();
@@ -330,6 +332,7 @@ class ParamDatasetGenerator {
                     const entry = { value, name: valueLabel, canonical: tokenized };
                     // add to property value set
                     this._addToValueSet(thingtalkPropertyType, entry);
+                    this._thingtalkEntityTypes.set(value, thingtalkPropertyType);
                     
                     if (this._typeSystem === 'entity-hierarchical') {
                         // skip entities with no type information
@@ -342,6 +345,7 @@ class ParamDatasetGenerator {
                         // add to entity type value set
                         thingtalkEntityTypes.add(valueType);
                         this._addToValueSet(valueType, entry);
+                        this._thingtalkEntityTypes.set(value, valueType);
                     }         
                 }
                 if (this._typeSystem === 'entity-hierarchical')
@@ -384,6 +388,7 @@ class ParamDatasetGenerator {
         await dumpMap(this._paths.filteredProperties, this._filteredPropertiesByDomain);
         await dumpMap(path.join(this._paths.dir, 'values.json'), this._values);
         await dumpMap(path.join(this._paths.dir, 'items.json'), this._items);
+        await dumpMap(path.join(this._paths.dir, 'types.json'), this._thingtalkEntityTypes);
     }
 }
 

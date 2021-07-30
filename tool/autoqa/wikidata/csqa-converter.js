@@ -30,7 +30,12 @@ import { getElementType, getItemLabel, argnameFromLabel, readJson, Domains } fro
 import { makeDummyEntities } from "../../../lib/utils/entity-utils";
 
 const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+
+async function loadClassDef(thingpedia) {
+    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
+    assert(library instanceof ThingTalk.Ast.Library && library.classes.length === 1);
+    return library.classes[0];
+}
 
 const QUESTION_TYPES = new Set(
     ['Simple Question (Direct)',
@@ -55,14 +60,19 @@ class CsqaConverter {
         this._paths = {
             inputDir: options.inputDir,
             output: options.output,
+            thingpedia: options.thingpedia,
             wikidataProperties: options.wikidataProperties,
             items: options.items,
             values: options.values,
+            types: options.types,
             filteredExamples: options.filteredExamples
         };
 
+        this._classDef = null;
         this._items = new Map();
         this._values = new Map();
+        this._types = new Map();
+
         this._wikidataProperties = new Map();
 
         this._examples = [];
@@ -107,15 +117,15 @@ class CsqaConverter {
                 op = '=~';
             }
         } else { 
-            // FIXME: load type from schema
-            const type = new Type.Array(new Type.Entity(`org.wikidata:p_${param}`));
-            const elemType = getElementType(type);
-            if (elemType.isEntity) {
-                ttValue = new Ast.Value.Entity(value.value, elemType.type, value.preprocessed);
-                op = type.isArray ? 'contains' : '==';
+            const propertyType = this._classDef.getFunction('query', domain).getArgType(param);
+            const entityType = this._types.get(value.value);
+            const valueType = entityType ? new ThingTalk.Type.Entity(`org.wikidata:${entityType}`) : getElementType(propertyType);
+            if (valueType.isEntity) {
+                ttValue = new Ast.Value.Entity(value.value, valueType.type, value.preprocessed);
+                op = propertyType.isArray ? 'contains' : '==';
             } else { // Default to string
                 ttValue = new Ast.Value.String(value.preprocessed);
-                op = type.isArray ? 'contains~' : '=~';
+                op = propertyType.isArray ? 'contains~' : '=~';
             }
         }
         return new Ast.BooleanExpression.Atom(null, param, op, ttValue);
@@ -635,8 +645,10 @@ class CsqaConverter {
     }
 
     async run() {
+        this._classDef = await loadClassDef(this._paths.thingpedia);
         this._items = await readJson(this._paths.items);
         this._values = await readJson(this._paths.values);
+        this._types = await readJson(this._paths.types);
         this._wikidataProperties = await readJson(this._paths.wikidataProperties);
 
         // load in-domain examples 
@@ -671,6 +683,10 @@ module.exports = {
             required: true,
             help: 'the path to the file containing type mapping for each domain'
         });
+        parser.add_argument('--thingpedia', {
+            required: true,
+            help: 'Path to ThingTalk file containing class definitions.'
+        });
         parser.add_argument('--wikidata-property-list', {
             required: true,
             help: "full list of properties in the wikidata dump, named filtered_property_wikidata4.json"
@@ -683,6 +699,10 @@ module.exports = {
         parser.add_argument('--values', {
             required: true,
             help: "A json file containing the labels for value entities for the domain"
+        });
+        parser.add_argument('--types', {
+            required: true,
+            help: "A json file containing the entity types for value entities in the domain"
         });
         parser.add_argument('--filtered-examples', {
             required: true,
@@ -708,9 +728,11 @@ module.exports = {
             domains,
             inputDir: args.input,
             output: args.output,
+            thingpedia: args.thingpedia,
             wikidataProperties: args.wikidata_property_list,
             items: args.items,
             values: args.values,
+            types: args.types,
             filteredExamples: args.filtered_examples,
             includeEntityValue: args.entity_id,
             filter: args.filter

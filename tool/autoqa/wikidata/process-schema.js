@@ -99,7 +99,7 @@ class SchemaProcessor {
             name: type, 
             is_well_known: false, 
             has_ner_support: false,  
-            subtype_of: []
+            subtype_of: ['entity']
         });
     }
 
@@ -161,6 +161,14 @@ class SchemaProcessor {
             new Ast.MixinImportStmt(null, ['config'], 'org.thingpedia.config.none', [])
         ];
 
+        // add super entity type that is ancestor of every entity type
+        this._entities.set('entity', { 
+            type: `org.wikidata:entity`, 
+            name: 'entity', 
+            is_well_known: false, 
+            has_ner_support: false,  
+            subtype_of: []
+        });
         const entities = Array.from(this._entities.values()).map((entity) => {
             return new Ast.EntityDef(
                 null, 
