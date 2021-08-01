@@ -49,7 +49,7 @@
     "twilio": "^3.66.0",
     "typescript": "~4.2.4",
     "uuid": "^8.2.0",
-    "ws": "^7.5.3"
+    "ws": "^8.0.0"
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
