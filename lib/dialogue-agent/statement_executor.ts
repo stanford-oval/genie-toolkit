@@ -35,8 +35,7 @@ const MORE_SIZE = 50;
 // above PAGE_SIZE, we set the count but don't actually show the full list of results
 const PAGE_SIZE = 10;
 
-interface ErrorWithCode {
-    message : string;
+interface ErrorWithCode extends Error {
     code ?: string;
 }
 
@@ -115,7 +114,7 @@ export default class InferenceStatementExecutor {
 
     mapError(error : Error) : Ast.Value {
         const err : ErrorWithCode = error;
-        if (typeof err.code === 'string') // error codes starting with E are reserved for system errors
+        if (typeof err.code === 'string')
             return new Ast.Value.Enum(err.code);
         return new Ast.Value.String(error.message);
     }
@@ -123,22 +122,18 @@ export default class InferenceStatementExecutor {
     private async _iterateResults(app : AppExecutor,
                                   schema : Ast.FunctionDef,
                                   into : Ast.DialogueHistoryResultItem[],
-                                  intoRaw : RawExecutionResult) : Promise<[boolean, string|undefined, string|undefined]> {
+                                  intoRaw : RawExecutionResult) : Promise<[boolean, ErrorWithCode|undefined]> {
         let count = 0;
         if (app === null)
-            return [false, undefined, undefined];
+            return [false, undefined];
 
-        let errorCode, errorMessage;
+        let error : ErrorWithCode|undefined;
         for await (const value of app.mainOutput) {
             if (count >= MORE_SIZE)
-                return [true, errorCode, errorMessage];
+                return [true, error];
 
             if (value instanceof Error) {
-                const err : ErrorWithCode = value;
-                if (typeof err.code === 'string') // error codes starting with E are reserved for system errors
-                    errorCode = err.code;
-                if (!errorMessage)
-                    errorMessage = value.message;
+                error = value;
             } else {
                 const mapped = await this.mapResult(schema, value.outputValue);
                 into.push(mapped);
@@ -148,30 +143,40 @@ export default class InferenceStatementExecutor {
         }
 
         // if we get here, we iterated all results from the app, so we can stop
-        return [false, errorCode, errorMessage];
+        return [false, error];
     }
 
-    async executeStatement(stmt : Ast.ExpressionStatement, privateState : undefined, notifications : NotificationConfig|undefined) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord, undefined]> {
+    async executeStatement(stmt : Ast.ExpressionStatement, privateState : undefined, notifications : NotificationConfig|undefined) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord, undefined, Ast.AnnotationSpec]> {
         const program = new Ast.Program(null, [], [], [stmt]);
         const app = await this._engine.createApp(program, { notifications });
         // by now the statement must have been typechecked
         assert(stmt.expression.schema);
         const results : Ast.DialogueHistoryResultItem[] = [];
         const rawResults : RawExecutionResult = [];
-        const [more, errorCode, errorMessage] = await this._iterateResults(app, stmt.expression.schema, results, rawResults);
+        const [more, error] = await this._iterateResults(app, stmt.expression.schema, results, rawResults);
+
+        const annotations : Ast.AnnotationMap = {};
+        let errorValue;
+        if (error) {
+            if (error.code)
+                errorValue = new Ast.Value.Enum(error.code);
+            else
+                errorValue = new Ast.Value.String(error.message);
+            annotations.error_detail = new Ast.Value.String(error.message);
+            if (error.stack)
+                annotations.error_stack = new Ast.Value.String(error.stack);
+        }
 
         const resultList = new Ast.DialogueHistoryResultList(null, results.slice(0, PAGE_SIZE),
-            new Ast.Value.Number(results.length), more,
-            (errorCode ? new Ast.Value.Enum(errorCode) :
-             (errorMessage ? new Ast.Value.String(errorMessage) : null)));
+            new Ast.Value.Number(results.length), more, errorValue);
         const newProgramRecord = {
             uniqueId: app.uniqueId!,
             name: app.name,
             code: program.prettyprint(),
             results: rawResults.map((r) => r[1]),
-            errors: errorCode ? [errorCode] : errorMessage ? [errorMessage] : [],
+            errors: errorValue ? [errorValue.toJS()] : [],
             icon: app.icon,
         };
-        return [resultList, rawResults, newProgramRecord, undefined];
+        return [resultList, rawResults, newProgramRecord, undefined, { impl: annotations }];
     }
 }
