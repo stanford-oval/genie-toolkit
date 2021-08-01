@@ -101,11 +101,6 @@ interface CanonicalForm {
     projection : SentenceGeneratorRuntime.Phrase[];
 }
 
-// FIXME this info needs to be in Thingpedia
-interface ExtendedEntityRecord extends Tp.BaseClient.EntityTypeRecord {
-    subtype_of ?: string|string[]|null;
-}
-
 type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
 
 export interface ParsedPlaceholderPhrase {
@@ -147,7 +142,7 @@ export default class ThingpediaLoader {
     private _options : GrammarOptions;
     private _describer : ThingTalkUtils.Describer;
 
-    private _entities : Record<string, ExtendedEntityRecord>
+    private _entities : Record<string, Tp.BaseClient.EntityTypeRecord>
     // cached annotations extracted from Thingpedia, for use at inference time
     private _errorMessages : Map<string, Record<string, ParsedPlaceholderPhrase[]>>;
     private _resultPhrases : Map<string, NormalizedResultPhraseList>;
@@ -1359,7 +1354,7 @@ export default class ThingpediaLoader {
                 subTypeOf = entity.extends.map((e) =>
                     e.includes(':') ? e : classDef.kind + ':' + e);
             }
-            const entityRecord : ExtendedEntityRecord = {
+            const entityRecord : Tp.BaseClient.EntityTypeRecord = {
                 type: classDef.kind + ':' + entity.name,
                 name: entity.getImplementationAnnotation<string>('description')||'',
                 has_ner_support: hasNer,
@@ -1386,7 +1381,7 @@ export default class ThingpediaLoader {
         await Promise.all(actions.map((name) => classDef.actions[name]).map(this._loadFunction.bind(this)));
     }
 
-    private _loadEntityType(entityType : string, typeRecord : ExtendedEntityRecord) {
+    private _loadEntityType(entityType : string, typeRecord : Tp.BaseClient.EntityTypeRecord) {
         this._entities[entityType] = typeRecord;
         if (typeRecord.subtype_of) {
             const subTypeOf = typeof
@@ -1449,7 +1444,7 @@ export default class ThingpediaLoader {
     }
 
     private async _loadMetadata() {
-        const entityTypes : ExtendedEntityRecord[] = await this._tpClient.getAllEntityTypes();
+        const entityTypes : Tp.BaseClient.EntityTypeRecord[] = await this._tpClient.getAllEntityTypes();
 
         let devices;
         if (this._options.onlyDevices)
