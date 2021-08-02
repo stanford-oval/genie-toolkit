@@ -260,11 +260,11 @@ export default class ThingTalkStatementSimulator {
     }
 
     async executeStatement(stmt : Ast.ExpressionStatement,
-                           execState : ThingTalkSimulatorState) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, undefined, ThingTalkSimulatorState]> {
+                           execState : ThingTalkSimulatorState) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, undefined, ThingTalkSimulatorState, Ast.AnnotationSpec]> {
         if (stmt.stream) {
             // nothing to do, this always returns nothing
             return [new Ast.DialogueHistoryResultList(null, [],
-                new Ast.Value.Number(0), false, null), [], undefined, execState];
+                new Ast.Value.Number(0), false, null), [], undefined, execState, {}];
         }
 
         if (execState === undefined)
@@ -274,6 +274,6 @@ export default class ThingTalkStatementSimulator {
         const compiled = await execState.compile(stmt, this.cache);
         const [resultList, rawResults] = await execState.simulate(stmt, compiled);
         // ignore the new program record, it doesn't matter at simulation time
-        return [resultList, rawResults, undefined, execState];
+        return [resultList, rawResults, undefined, execState, {}];
     }
 }

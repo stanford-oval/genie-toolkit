@@ -307,7 +307,8 @@ Hello! How can I help you?
     const log = (await readLog(conversation))
         .replace(/^#! timestamp: 202[1-9]-[01][0-9]-[0123][0-9]T[012][0-9]:[0-5][0-9]:[0-5][0-9](\.[0-9]+)Z$/gm,
                  '#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ')
-        .replace(/^# test\/[0-9a-f-]{36}$/gm, '# test');
+        .replace(/^# test\/[0-9a-f-]{36}$/gm, '# test')
+        .replace(/#\[error_stack="([^\\]*)\\n[^"]*"\]/gm, '#[error_stack="$1"]');
     //fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
     const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
     assert(log === expectedLog);

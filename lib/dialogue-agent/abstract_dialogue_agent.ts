@@ -54,7 +54,7 @@ export interface NotificationConfig {
 export type RawExecutionResult = Array<[string, Record<string, unknown>]>;
 interface AbstractStatementExecutor<PrivateStateType> {
     executeStatement(stmt : Ast.ExpressionStatement, privateState : PrivateStateType|undefined, notificationConfig : NotificationConfig|undefined) :
-        Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord|undefined, PrivateStateType]>;
+        Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord|undefined, PrivateStateType, Ast.AnnotationSpec]>;
 }
 
 export interface DisambiguationHints {
@@ -163,8 +163,10 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             if (item.stmt.stream)
                 notificationConfig = await this.configureNotifications();
 
-            const [newResultList, newRawResult, newProgram, newPrivateState] = await this.executor.executeStatement(item.stmt, privateState, notificationConfig);
+            const [newResultList, newRawResult, newProgram, newPrivateState, annotations] = await this.executor.executeStatement(item.stmt, privateState, notificationConfig);
             item.results = newResultList;
+            Object.assign(item.nl_annotations, annotations.nl ?? {});
+            Object.assign(item.impl_annotations, annotations.impl ?? {});
             newResults.push(...newRawResult);
             if (newProgram)
                 newPrograms.push(newProgram);

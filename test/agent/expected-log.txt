@@ -1025,7 +1025,9 @@ UT: @com.spotify.play(playable="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spoti
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play(playable="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:playable("Hello"))
 C: #[results=[]]
-C: #[error=enum no_active_device];
+C: #[error=enum no_active_device]
+C: #[error_detail="No Spotify device is active"]
+C: #[error_stack="Error: No Spotify device is active"];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry, you must open the Spotify app first.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
@@ -1046,7 +1048,9 @@ UT: @com.spotify.play(playable="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spoti
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play(playable="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:playable("Hello"))
 C: #[results=[]]
-C: #[error=enum E_some_other_error];
+C: #[error=enum E_some_other_error]
+C: #[error_detail="Some other error occurred"]
+C: #[error_stack="Error: Some other error occurred"];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
@@ -1566,7 +1570,9 @@ UT: @org.thingpedia.weather.current(location=new Location(90, 0, "North Pole"));
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.weather.current(location=new Location(90, 0, "North Pole"))
 C: #[results=[]]
-C: #[error="unexpected weather error"];
+C: #[error="unexpected weather error"]
+C: #[error_detail="unexpected weather error"]
+C: #[error_stack="Error: unexpected weather error"];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
