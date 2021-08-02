@@ -102,6 +102,7 @@ export default class ExactMatchBuilder {
             flags: {
                 bookkeeping: true,
                 unbalanced: true,
+                dialogues: true,
             },
             rng: this._rng,
             locale: this._locale,

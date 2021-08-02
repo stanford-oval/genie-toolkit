@@ -22,6 +22,7 @@ import { Ast, } from 'thingtalk';
 
 // import the combinator library
 import * as C from './ast_manip';
+import * as D from './dialogue_acts';
 import ThingpediaLoader from './load-thingpedia';
 
 {
@@ -66,11 +67,24 @@ bookkeeping : Ast.ControlCommand = {
 $root : Ast.Input = {
     bookkeeping;
 
-    ( 'get' query:thingpedia_complete_query
-    | query:thingpedia_complete_get_command
-    ) => C.makeProgram($loader, query);
+    ?dialogues {
+        ( 'get' query:thingpedia_complete_query
+        | 'show me' query:thingpedia_complete_query
+        | query:thingpedia_complete_get_command
+        ) => C.makeProgram($loader, query);
 
-    action:thingpedia_complete_action => C.makeProgram($loader, action);
+        action:thingpedia_complete_action => C.makeProgram($loader, action);
 
-    'notify me' stream:thingpedia_complete_stream => C.makeProgram($loader, stream);
+        'notify me' stream:thingpedia_complete_stream => C.makeProgram($loader, stream);
+    }
+    !dialogues {
+        ( 'get' query:thingpedia_complete_query
+        | 'show me' query:thingpedia_complete_query
+        | query:thingpedia_complete_get_command
+        ) => D.initialRequest($loader, query);
+
+        action:thingpedia_complete_action => D.initialRequest($loader, action);
+
+        'notify me' stream:thingpedia_complete_stream => D.initialRequest($loader, stream);
+    }
 }
