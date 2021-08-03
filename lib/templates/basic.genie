@@ -67,7 +67,7 @@ bookkeeping : Ast.ControlCommand = {
 $root : Ast.Input = {
     bookkeeping;
 
-    ?dialogues {
+    !dialogues {
         ( 'get' query:thingpedia_complete_query
         | 'show me' query:thingpedia_complete_query
         | query:thingpedia_complete_get_command
@@ -77,7 +77,7 @@ $root : Ast.Input = {
 
         'notify me' stream:thingpedia_complete_stream => C.makeProgram($loader, stream);
     }
-    !dialogues {
+    ?dialogues {
         ( 'get' query:thingpedia_complete_query
         | 'show me' query:thingpedia_complete_query
         | query:thingpedia_complete_get_command
