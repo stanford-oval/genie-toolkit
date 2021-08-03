@@ -80,7 +80,8 @@ async function doTestBasic(filename) {
             undefined_filter: true,
             timer: true,
             projection: true,
-            projection_with_filter: true
+            projection_with_filter: true,
+            dialogues: true,
         },
         targetPruningSize: 20,
         maxDepth: 8,

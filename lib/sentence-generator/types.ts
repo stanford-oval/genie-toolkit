@@ -78,6 +78,7 @@ export interface GrammarOptions {
     schemaRetriever ?: SchemaRetriever;
     entityAllocator : Syntax.SequentialEntityAllocator;
     forSide : 'user'|'agent';
+    contextual : boolean;
     flags : { [key : string] : boolean };
     onlyDevices ?: string[];
     whiteList ?: string;

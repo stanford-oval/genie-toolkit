@@ -825,7 +825,7 @@ export default class ThingpediaLoader {
 
         // template #2: replace placeholders with whole queries or streams
         // TODO: enable this for table joins with param passing
-        if (grammarCat === 'action' || (this._options.flags.dialogues && grammarCat === 'action_past'))
+        if (grammarCat === 'action' || (this._options.contextual && grammarCat === 'action_past'))
             this._addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat, parsed, nonTerminals, names, options, example);
 
         // template #3: coreferences
