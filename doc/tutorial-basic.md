@@ -40,7 +40,7 @@ pick up a name you did not think of!), but the more you have, the more robust yo
 
 You should then create a parameter-datasets.tsv file mapping a string type to a
 downloaded dataset file.
-A sample parameter-datasets.tsv can be found in [here](https://github.com/stanford-oval/genie-toolkit/blob/master/test/data/parameter-datasets.tsv).
+A sample parameter-datasets.tsv can be found in [here](https://github.com/stanford-oval/genie-toolkit/blob/master/test/data/en-US/parameter-datasets.tsv).
 
 Because different datasets have different licenses and restrictions (such as the requirement to cite
 a particular paper, or a restriction to non-commercial use), Genie does not include any dataset directly.
