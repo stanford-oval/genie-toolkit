@@ -74,7 +74,6 @@ export default class SpeechHandler extends events.EventEmitter {
                 }
 
                 console.log('Wakeword ' + wakeword + ' detected');
-                this.emit('wakeword', wakeword);
                 this._onDetected(buffer);
             });
         }
@@ -216,7 +215,6 @@ export default class SpeechHandler extends events.EventEmitter {
      * This can be used to emulate a wakeword with a push button.
      */
     wakeword() : void {
-        this.emit('wakeword');
         this._onDetected(Buffer.from([]));
     }
 
@@ -225,6 +223,8 @@ export default class SpeechHandler extends events.EventEmitter {
         // already streaming the sound to the server
         if (this._currentRequest)
             return;
+
+        this.emit('wakeword');
 
         this._currentRequest = this._recognizer.request(this._stream, buffer);
         this._currentRequest.on('hypothesis', (hypothesis : string) => {
