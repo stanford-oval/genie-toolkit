@@ -76,6 +76,16 @@ one_param_direct_result_info_phrase : D.ResultPhrase = {
         bag.set(param.name, v);
         return D.makeResultPhrase(ctx, bag);
     },
+    ["the ${param} is ${v}"] : (ctx:ctx_with_result, param:out_param_Any<functionName = ctx.currentFunction>, v:constant_Any<type = param.elem>) => {
+        const bag = new SlotBag(param.schema);
+        bag.set(param.name, new Ast.Value.Array([v]));
+        return D.makeResultPhrase(ctx, bag);
+    },
+    ["the ${param} are ${pair}"] : (ctx:ctx_with_result, param:out_param_Any<functionName = ctx.currentFunction>, pair:constant_pairs<type = param.elem>, v1:constant_Any<type = param.elem>) => {
+        const bag = new SlotBag(param.schema);
+        bag.set(param.name, new Ast.Value.Array(pair));
+        return D.makeResultPhrase(ctx, bag);
+    },
 
     ["the distance is ${v}"] : (ctx:ctx_with_result, v:constant_Measure_m) => {
         const bag = new SlotBag(null);

@@ -1081,17 +1081,14 @@ class @com.spotify
     #_[formatted=[{type="text",text="${id}"}]]
     #[doc="search for artists on Spotify"];
 
-    monitorable query get_currently_playing(out song: Entity(com.spotify:song)
-                                            #[string_values="tt:song_name"])
-    #_[canonical=["currently playing track name", "currently playing song",
+    monitorable query get_currently_playing extends song()
+    #_[canonical=["currently playing track", "currently playing song",
                   "song currently playing", "current song", "current track"]]
-    #_[confirmation="the currently playing track name"]
-    #_[result=["currently playing ${song}", "the currently playing track is ${song}"]]
+    #_[result=["currently playing ${id}", "the currently playing track is ${id}"]]
     #_[on_error={
       no_song_playing=["no song is currently playing", "nothing is currently playing"],
       rate_limit_error=["spotify is temporarily unavailable"]
     }]
-    #_[formatted=[{type="text",text="The current playing song is ${song}."}]]
     #[poll_interval=60000ms]
     #[doc="retrieve the currently playing track name"];
 
