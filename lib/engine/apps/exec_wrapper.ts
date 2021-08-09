@@ -129,6 +129,14 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
         return this.app.metadata.conversation;
     }
 
+    get locale() {
+        return this.engine.platform.locale;
+    }
+
+    get timezone() {
+        return this.engine.platform.timezone;
+    }
+
     endProgram() {
         if (this._trigger)
             this._trigger.end();
@@ -164,7 +172,7 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
     }
 
     invokeAtTimer(time : ThingTalk.Builtin.Time[], expiration_date : Date|undefined) : AsyncIterator<{ __timestamp : number }> {
-        const trigger = new AtTimer(time, expiration_date);
+        const trigger = new AtTimer(time, expiration_date, this.timezone);
         this._trigger = trigger;
         trigger.start();
         return this._wrapClearCache(trigger);
