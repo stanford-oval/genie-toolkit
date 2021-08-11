@@ -1,21 +1,38 @@
 import re
 import dl_translate as dlt
 import polib
+import os
+
+mt = dlt.TranslationModel()
+
 
 # Variables for translator to edit
 
-language = "fr" # change to desired language to convert TO
+print(mt.get_lang_code_map()) 
+
+language = str(input("What is your desired language to translate to? Input the language code: ")) # change to desired language to convert TO
+Reportmsgid = str(input("What is your desired Report Msgid Bugs To? " ))
+POT_Creation_Date = str(input("What is your desired POT Creation Date? "))
+PO_Revision_Date = str(input("What is your desired PO Revision Date? "))
+Last_Translator = str(input("Who do you want as the last translator? "))
+Language_Team = str(input("What is the language team you want the translation to be in? Example: English <myteam@example.com> "))
 
 
-mt = dlt.TranslationModel()
-arrayOfTranslated = []
-msgIdArray = []
-msgStrArray = []
+while language not in mt.available_codes():
+  print("Sorry try again! The language code is incorrect")
+  language =  str(input("What is your desired language to translate to? Input the language code: ")) # change to desired language to convert TO
+
+
 pofile = polib.pofile(language + ".po") # Make sure the .po file is in the same directory
+msgIdArray = []
+theActualArray = []
+arrayOfTranslatedMsgStr = []
 
 for entry in pofile:
+    theActualArray.append([entry.msgid, entry.msgstr])
     msgIdArray.append(entry.msgid)
-    msgStrArray.append(entry.msgstr)
+
+  
 
 for messageId in msgIdArray:
     reg = "|".join(
@@ -32,7 +49,7 @@ for messageId in msgIdArray:
     translation = []
     for part in parts:
       if part.strip() != "":
-         translation.append(mt.translate(part, source=dlt.lang.ENGLISH, target=dlt.lang.FRENCH))
+         translation.append(mt.translate(part, source=dlt.lang.ENGLISH, target=language.lower()))
       else:
          translation.append(part)
 
@@ -42,18 +59,39 @@ for messageId in msgIdArray:
         res += part + " "
         res += next(placeholder_i, "") + " "
 
-    a = re.sub(' +',' ', res)
-    arrayOfTranslated.append("msgstr " + f'"{a}"')
-
-arrayOfTranslated.insert(0,'msgstr ""')
+    final = re.sub(' +',' ', res)
+    arrayOfTranslatedMsgStr.append(final)
  
-with open("fr.po", "r") as r, open("fr.po.new", "w") as w:
-    for line in r:
-        if line.startswith('msgstr'):
-            w.write(arrayOfTranslated[0] + '\n')
-            arrayOfTranslated.pop(0)
-        else:
-            w.write(line)
+
+
+for i in range(len(theActualArray)):
+  theActualArray[i][1] = arrayOfTranslatedMsgStr[i]
+
+po = polib.POFile()
+
+po.metadata = {
+    'Project-Id-Version': '1.0',
+    'Report-Msgid-Bugs-To': Reportmsgid.rstrip(),
+    'POT-Creation-Date': POT_Creation_Date.rstrip(),
+    'PO-Revision-Date': PO_Revision_Date.rstrip(),
+    'Last-Translator':  Last_Translator.rstrip(),
+    'Language-Team': Language_Team.rstrip(),
+    'MIME-Version': '1.0'.rstrip(),
+    'Content-Type': 'text/plain; charset=utf-8'.rstrip(),
+    'Content-Transfer-Encoding': '8bit'.rstrip(),
+}
+
+for i in theActualArray:
+  entry = polib.POEntry(
+      msgid=i[0],
+      msgstr=i[1]
+  )
+  po.append(entry)
+
+
+
+os.system('msgmerge newfile.po' +  language + '.po' + '> newfile.po')
+
 
 
 
