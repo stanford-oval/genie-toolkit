@@ -90,6 +90,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'wikidata-convert-csqa': require('./autoqa/wikidata/csqa-converter'),
     'wikidata-es-import': require('./autoqa/wikidata/es-import'),
     'wikidata-demo': require('./autoqa/wikidata/demo'),
+    'wikidata-postprocess-data': require('./autoqa/wikidata/postprocess-data'),
 
     'auto-annotate': require('./autoqa/auto-annotate'),
     'make-string-datasets': require('./autoqa/make-string-datasets'),
