@@ -92,6 +92,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'wikidata-make-string-datasets': require('./autoqa/wikidata/make-string-datasets'),
     'wikidata-preprocess-bootleg': require('./autoqa/wikidata/preprocess-bootleg'),
     'wikidata-demo': require('./autoqa/wikidata/demo'),
+    'wikidata-postprocess-data': require('./autoqa/wikidata/postprocess-data'),
 
     'auto-annotate': require('./autoqa/auto-annotate'),
     'make-string-datasets': require('./autoqa/make-string-datasets'),
