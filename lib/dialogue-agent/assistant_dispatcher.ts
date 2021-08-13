@@ -40,6 +40,7 @@ import AppExecutor from '../engine/apps/app_executor';
 import type Engine from '../engine';
 import DeviceView from '../engine/devices/device_view';
 import DeviceInterfaceMapper from '../engine/devices/device_interface_mapper';
+import { ConversationStateRow, LocalTable } from "../engine/db";
 
 /**
  * A conversation delegate that buffers all commands until the dialogue turn
@@ -117,6 +118,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
     private _dynamicNotificationBackends : DeviceInterfaceMapper<Tp.Capabilities.NotificationBackend>;
     private _conversations : Map<string, Conversation>;
     private _lastConversation : Conversation|null;
+    private _conversationStateDB : LocalTable<ConversationStateRow>;
 
     constructor(engine : Engine, nluModelUrl : string|undefined, notificationConfig : NotificationConfig) {
         super();
@@ -127,6 +129,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
         this._notificationOutputs = new Set;
         this._conversations = new Map;
         this._lastConversation = null;
+        this._conversationStateDB = this._engine.db.getLocalTable('conversation_state');
 
         this._dynamicNotificationBackends = new DeviceInterfaceMapper(
             new DeviceView(engine.devices, 'org.thingpedia.notification-provider', {}),
@@ -161,11 +164,22 @@ export default class AssistantDispatcher extends events.EventEmitter {
         messages : Message[],
         askSpecial : string|null;
     }> {
+        const state = await this._conversationStateDB.getOne(conversationId).then((row) => {
+            if (row) {
+                return {
+                    history : row.history ? JSON.parse(row.history) : [],
+                    dialogueState : row.dialogueState ? JSON.parse(row.dialogueState) : null,
+                    lastMessageId : row.lastMessageId ? row.lastMessageId : 0
+                };
+            }
+            return undefined;
+        });
+
         const conversation = await this.getOrOpenConversation(conversationId, {
             showWelcome: false,
             anonymous: false,
             debug: true
-        });
+        }, state);
         const delegate = new StatelessConversationDelegate(conversationId);
         await conversation.addOutput(delegate, false);
 

@@ -33,6 +33,7 @@ import type Engine from '../engine';
 import { DialogueSerializer, DialogueTurn } from "../dataset-tools/parsers";
 import AppExecutor from '../engine/apps/app_executor';
 import ConversationLogger from './logging';
+import { ConversationStateRow, LocalTable } from "../engine/db";
 
 const DummyStatistics = {
     hit() {
@@ -79,6 +80,7 @@ export interface ConversationDelegate {
 export interface ConversationState {
     history : Message[];
     dialogueState : Record<string, unknown>;
+    lastMessageId : number|null;
 }
 
 /**
@@ -114,12 +116,14 @@ export default class Conversation extends events.EventEmitter {
     private _contextResetTimeoutSec : number;
 
     private _log : ConversationLogger;
+    private readonly _conversationStateDB : LocalTable<ConversationStateRow>;
 
     constructor(engine : Engine,
                 conversationId : string,
                 options : ConversationOptions = {}) {
         super();
         this._engine = engine;
+        this._conversationStateDB = this._engine.db.getLocalTable('conversation_state');
 
         this._conversationId = conversationId;
         this._locale = this._engine.platform.locale;
@@ -214,6 +218,7 @@ export default class Conversation extends events.EventEmitter {
         if (state) {
             for (const msg of state.history)
                 await this.addMessage(msg);
+            this._nextMsgId = state.lastMessageId === null ? 0 : state.lastMessageId+1;
         }
         return this._loop.start(!!this._options.showWelcome,
             state ? state.dialogueState : null);
@@ -305,6 +310,18 @@ export default class Conversation extends events.EventEmitter {
         if (this._history.length > 30)
             this._history.shift();
         await this._callDelegates((out) => out.addMessage(msg));
+
+        this.saveState(msg.id);
+    }
+
+    saveState(lastMessageId : number) {
+        const conversationState = this.getState();
+        const row = {
+            history: JSON.stringify(conversationState.history),
+            dialogueState: JSON.stringify(conversationState.dialogueState),
+            lastMessageId: lastMessageId,
+        };
+        this._conversationStateDB.insertOne(this._conversationId, row);
     }
 
     /**
@@ -314,9 +331,12 @@ export default class Conversation extends events.EventEmitter {
      * and transfer the conversation state between engines.
      */
     getState() : ConversationState {
+        const history = this._history.slice();
+        const lastMessageId = history.length > 0 ? history[history.length-1].id : null;
         return {
-            history: this._history.slice(),
+            history: history,
             dialogueState: this._loop.getState(),
+            lastMessageId: lastMessageId ? lastMessageId : null
         };
     }
 
