@@ -113,9 +113,9 @@ for i in theActualArray:
   )
   po.append(entry)
 
+po.save('newfile.po')
 
-
-subprocess.run('msgmerge newfile.po' +  language + '.po' + '> newfile.po', shell=True)
+subprocess.run('msgmerge newfile.po ' +  language + '.po ' + '> newfile.po', shell=True)
 
 
 
