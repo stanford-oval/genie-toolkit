@@ -2,8 +2,16 @@ import re
 import dl_translate as dlt
 import polib
 import os
+from datetime import datetime
+import subprocess
 
+
+now = datetime.now()
 mt = dlt.TranslationModel()
+current_time = now.strftime("%H:%M:%S")
+
+
+
 
 
 # Variables for translator to edit
@@ -13,14 +21,27 @@ print(mt.get_lang_code_map())
 language = str(input("What is your desired language to translate to? Input the language code: ")) # change to desired language to convert TO
 Reportmsgid = str(input("What is your desired Report Msgid Bugs To? " ))
 POT_Creation_Date = str(input("What is your desired POT Creation Date? "))
-PO_Revision_Date = str(input("What is your desired PO Revision Date? "))
+PO_Revision_Date = current_time 
 Last_Translator = str(input("Who do you want as the last translator? "))
 Language_Team = str(input("What is the language team you want the translation to be in? Example: English <myteam@example.com> "))
 
 
+
+
 while language not in mt.available_codes():
-  print("Sorry try again! The language code is incorrect")
+  print("Sorry, try again! This language is not supported")
   language =  str(input("What is your desired language to translate to? Input the language code: ")) # change to desired language to convert TO
+
+POTCreationDateFetched = ""
+
+
+with open("genie-toolkit.pot", "r") as pot_file:
+
+  for line in pot_file:
+
+    stripped_line = line.strip()
+    POTCreationDateFetched = stripped_line.split(":", 1)[1].strip()
+
 
 
 pofile = polib.pofile(language + ".po") # Make sure the .po file is in the same directory
@@ -28,9 +49,13 @@ msgIdArray = []
 theActualArray = []
 arrayOfTranslatedMsgStr = []
 
+print(pofile.metadata)
+
+
 for entry in pofile:
     theActualArray.append([entry.msgid, entry.msgstr])
     msgIdArray.append(entry.msgid)
+    
 
   
 
@@ -72,7 +97,7 @@ po = polib.POFile()
 po.metadata = {
     'Project-Id-Version': '1.0',
     'Report-Msgid-Bugs-To': Reportmsgid.rstrip(),
-    'POT-Creation-Date': POT_Creation_Date.rstrip(),
+    'POT-Creation-Date': POTCreationDateFetched,
     'PO-Revision-Date': PO_Revision_Date.rstrip(),
     'Last-Translator':  Last_Translator.rstrip(),
     'Language-Team': Language_Team.rstrip(),
@@ -90,7 +115,7 @@ for i in theActualArray:
 
 
 
-os.system('msgmerge newfile.po' +  language + '.po' + '> newfile.po')
+subprocess.run('msgmerge newfile.po' +  language + '.po' + '> newfile.po', shell=True)
 
 
 
