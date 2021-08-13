@@ -40,7 +40,8 @@ with open("genie-toolkit.pot", "r") as pot_file:
   for line in pot_file:
 
     stripped_line = line.strip()
-    POTCreationDateFetched = stripped_line.split(":", 1)[1].strip()
+    if stripped_line.startswith("POT-Creation-Date:"):
+      POTCreationDateFetched = stripped_line.split(":", 1)[1].strip()
 
 
 
