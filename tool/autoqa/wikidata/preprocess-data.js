@@ -50,7 +50,8 @@ class ParamDatasetGenerator {
             subtypes: options.subtypes,
             filteredProperties: options.filteredProperties,
             symmetricProperties: options.symmetricProperties,
-            bootlegTypes: options.bootlegTypes
+            bootlegTypes: options.bootlegTypes,
+            bootlegTypeCanonical: options.bootlegTypeCanonical
         };
 
         // wikidata information
@@ -221,10 +222,11 @@ class ParamDatasetGenerator {
     }
 
     async _loadBootlegTypes() {
+        const bootlegTypeCanonical =  await readJson(this._paths.bootlegTypeCanonical);
         const pipeline = fs.createReadStream(this._paths.bootlegTypes).pipe(JSONStream.parse('$*'));
         pipeline.on('data', async (item) => {
             if (this._values.has(item.key))
-                this._bootlegTypes.set(item.key, item.value);
+                this._bootlegTypes.set(item.key, item.value.map((qid) => bootlegTypeCanonical.get(qid)));
         });
 
         pipeline.on('error', (error) => console.error(error));
@@ -257,25 +259,21 @@ class ParamDatasetGenerator {
     }
 
     _getEntityType(qid) {
-        const wikidataTypes = this._types.get(qid);
         const bootlegTypes = this._bootlegTypes.get(qid);
+        // return the first type in bootleg
+        if (bootlegTypes && bootlegTypes.length > 0) 
+            return argnameFromLabel(bootlegTypes[0]);
+        
+        // fallback to the first wikidata type with label
+        const wikidataTypes = this._types.get(qid);
         if (!wikidataTypes)
             return null;
-        // return the first type in bootleg
-        if (bootlegTypes) {
-            for (const type of bootlegTypes) {
-                if (wikidataTypes.includes(type)) {
-                    const entityType = this._values.get(type);
-                    if (entityType)
-                        return argnameFromLabel(entityType);
-                }
-            }
-        }
-        // fallback to the first wikidata type with label
         for (const type of wikidataTypes) {
             const entityType = this._values.get(type);
-            if (entityType)
+            if (entityType) {
+                console.warn(`Bootleg does not have ${qid}, fall back to CSQA type`);
                 return argnameFromLabel(entityType);
+            }
         }
         return null;
     }
@@ -446,6 +444,10 @@ module.exports = {
             required: false,
             help: "Path to types used for each entity in Bootleg"
         });
+        parser.add_argument('--bootleg-type-canonicals', {
+            required: false,
+            help: "Path to the json file containing canoncial for each bootleg type"
+        });
         parser.add_argument('--max-value-length', {
             required: false,
             help: 'Maximum number of tokens for parameter values'
@@ -475,6 +477,7 @@ module.exports = {
             filteredProperties: args.filtered_properties,
             symmetricProperties: args.symmetric_properties,
             bootlegTypes: args.bootleg_types,
+            bootlegTypeCanonical: args.bootleg_type_canonicals,
             maxValueLength: args.max_value_length,
             manifest: args.manifest,
             outputDir: args.output_dir

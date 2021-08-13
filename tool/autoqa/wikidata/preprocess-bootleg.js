@@ -41,9 +41,12 @@ export function initArgparse(subparsers) {
         required: true,
         help: "Path to the json file that map type names to wikidata QID"
     });
-    parser.add_argument('-o', '--output', {
+    parser.add_argument('--bootleg-types', {
         required: true,
-        help: "Path to the output json"
+        help: "Path to the output json file that map each entity to its types (QIDs)"
+    });
+    parser.add_argument('--bootleg-type-canonicals', {
+        help: "Path to the output json file that map bootleg types to its canonical (Wikidata label)"
     });
 }
 
@@ -51,9 +54,11 @@ export async function execute(args) {
     const typeVocab = await readJson(args.type_vocab);
 
     const typeQID = new Map(); 
+    const typeCanonical = new Map();
     for (const [name, qid] of await readJson(args.type_vocab_to_qid)) {
         const typeid = typeVocab.get(name);
         typeQID.set(typeid, qid);
+        typeCanonical.set(qid, name);
     }
 
     const types = new Map();
@@ -64,5 +69,6 @@ export async function execute(args) {
     pipeline.on('error', (error) => console.error(error));
     await StreamUtils.waitEnd(pipeline);
     
-    await dumpMap(args.output, types);
+    await dumpMap(args.bootleg_types, types);
+    await dumpMap(args.bootleg_type_canonicals, typeCanonical);
 }
