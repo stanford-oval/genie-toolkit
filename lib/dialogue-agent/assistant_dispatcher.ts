@@ -164,22 +164,11 @@ export default class AssistantDispatcher extends events.EventEmitter {
         messages : Message[],
         askSpecial : string|null;
     }> {
-        const state = await this._conversationStateDB.getOne(conversationId).then((row) => {
-            if (row) {
-                return {
-                    history : row.history ? JSON.parse(row.history) : [],
-                    dialogueState : row.dialogueState ? JSON.parse(row.dialogueState) : null,
-                    lastMessageId : row.lastMessageId ? row.lastMessageId : 0
-                };
-            }
-            return undefined;
-        });
-
         const conversation = await this.getOrOpenConversation(conversationId, {
             showWelcome: false,
             anonymous: false,
             debug: true
-        }, state);
+        });
         const delegate = new StatelessConversationDelegate(conversationId);
         await conversation.addOutput(delegate, false);
 
@@ -311,11 +300,24 @@ export default class AssistantDispatcher extends events.EventEmitter {
         return this._lastConversation;
     }
 
+    async getConversationState(conversationId : string) {
+        const state = await this._conversationStateDB.getOne(conversationId).then((row) => {
+            if (row) {
+                return {
+                    history : row.history ? JSON.parse(row.history) : [],
+                    dialogueState : row.dialogueState ? JSON.parse(row.dialogueState) : null,
+                    lastMessageId : row.lastMessageId ? row.lastMessageId : 0
+                };
+            }
+            return undefined;
+        });
+        return state;
+    }
+
     pingAll() {
         for (const [_, conversation] of this._conversations)
             conversation.sendPing();
     }
-
 
     async getOrOpenConversation(id : string, options : ConversationOptions, state ?: ConversationState) {
         if (this._conversations.has(id))
@@ -324,7 +326,8 @@ export default class AssistantDispatcher extends events.EventEmitter {
         if (!options.nluServerUrl)
             options.nluServerUrl = this._nluModelUrl;
         const conv = this.openConversation(id, options);
-        await conv.start(state);
+        const convState = state ? state : await this.getConversationState(id);
+        await conv.start(convState);
         return conv;
     }
 

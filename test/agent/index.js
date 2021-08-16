@@ -288,10 +288,10 @@ async function main(onlyIds) {
 
     // test the welcome message (and the context at the start)
     expect(testRunner, `
-Hello! How can I help you?
->> context = $dialogue @org.thingpedia.dialogue.transaction . sys_greet ; // {}
->> expecting = generic
-`);
+    Hello! How can I help you?
+    >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_greet ; // {}
+    >> expecting = generic
+    `);
 
     const TEST_CASES = await loadTestCases();
     for (let i = 0; i < TEST_CASES.length; i++) {

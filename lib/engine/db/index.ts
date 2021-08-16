@@ -66,7 +66,7 @@ export interface ConversationStateRow {
     uniqueId : string;
     history : string|null;
     dialogueState : string|null;
-    lastMessageId : number|null;
+    lastMessageId : number;
 }
 
 export interface LocalTables {

@@ -102,7 +102,7 @@ function migrateTo9(db : sqlite3.Database) {
 },
 function migrateTo10(db : sqlite3.Database) {
     db.serialize(() => {
-        db.run('dop table if exists conversation_state');
+        db.run('drop table if exists conversation_state');
         db.run('create table conversation_state (' +
             'history text default null, ' +
             'dialogueState text default null, ' +

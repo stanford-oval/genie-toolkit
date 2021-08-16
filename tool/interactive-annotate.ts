@@ -230,7 +230,7 @@ class Annotator extends events.EventEmitter {
                 return {
                     history: [],
                     dialogueState: {},
-                    lastMessageId: null,
+                    lastMessageId: 0,
                     expected: null
                 };
             }

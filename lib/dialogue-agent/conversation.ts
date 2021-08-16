@@ -80,7 +80,7 @@ export interface ConversationDelegate {
 export interface ConversationState {
     history : Message[];
     dialogueState : Record<string, unknown>;
-    lastMessageId : number|null;
+    lastMessageId : number;
 }
 
 /**
@@ -218,7 +218,7 @@ export default class Conversation extends events.EventEmitter {
         if (state) {
             for (const msg of state.history)
                 await this.addMessage(msg);
-            this._nextMsgId = state.lastMessageId === null ? 0 : state.lastMessageId+1;
+            this._nextMsgId = state.lastMessageId+1;
         }
         return this._loop.start(!!this._options.showWelcome,
             state ? state.dialogueState : null);
@@ -311,17 +311,17 @@ export default class Conversation extends events.EventEmitter {
             this._history.shift();
         await this._callDelegates((out) => out.addMessage(msg));
 
-        this.saveState(msg.id);
+        await this.saveState(msg.id);
     }
 
-    saveState(lastMessageId : number) {
+    async saveState(lastMessageId : number) {
         const conversationState = this.getState();
         const row = {
             history: JSON.stringify(conversationState.history),
             dialogueState: JSON.stringify(conversationState.dialogueState),
             lastMessageId: lastMessageId,
         };
-        this._conversationStateDB.insertOne(this._conversationId, row);
+        await this._conversationStateDB.insertOne(this._conversationId, row);
     }
 
     /**
@@ -336,7 +336,7 @@ export default class Conversation extends events.EventEmitter {
         return {
             history: history,
             dialogueState: this._loop.getState(),
-            lastMessageId: lastMessageId ? lastMessageId : null
+            lastMessageId: lastMessageId ? lastMessageId : 0
         };
     }
 
