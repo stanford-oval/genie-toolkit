@@ -47,6 +47,7 @@ import {
     makeFilter,
     makeAndFilter,
     makeDateRangeFilter,
+    makeSelfJoinCondition, 
     isHumanEntity,
     interrogativePronoun,
 } from './utils';
@@ -405,7 +406,7 @@ export default class ThingpediaLoader {
         if (!ptypestr)
             return;
         const pslot : ParamSlot = { schema, name: pname, type: ptype,
-            filterable: false, ast: new Ast.Value.VarRef(pname) };
+            filterable: false, symmetric: false, ast: new Ast.Value.VarRef(pname) };
         this.params.push(pslot);
 
         // compound types are handled by recursing into their fields through iterateArguments()
@@ -500,8 +501,9 @@ export default class ThingpediaLoader {
             return;
 
         const filterable = arg.getImplementationAnnotation<boolean>('filterable') ?? true;
+        const symmetric = arg.getImplementationAnnotation<boolean>('symmetric') ?? false;
         const pslot : ParamSlot = { schema, name: pname, type: ptype,
-            filterable, ast: new Ast.Value.VarRef(pname) };
+            filterable, symmetric, ast: new Ast.Value.VarRef(pname) };
         this.params.push(pslot);
 
         if (ptype.isCompound)
@@ -596,6 +598,8 @@ export default class ThingpediaLoader {
         const constant = this._getConstantNT(vtype, 'value');
         const corefconst = new SentenceGeneratorRuntime.NonTerminal('coref_constant', 'value');
         const both_prefix = new SentenceGeneratorRuntime.NonTerminal('both_prefix');
+        const pronoun_the_second = new SentenceGeneratorRuntime.NonTerminal('pronoun_the_second');
+        const each_other = new SentenceGeneratorRuntime.NonTerminal('each_other');
         const constant_pairs = new SentenceGeneratorRuntime.NonTerminal('constant_pairs', 'values');
         const constant_date_range = new SentenceGeneratorRuntime.NonTerminal('constant_date_range', 'value');
 
@@ -626,6 +630,12 @@ export default class ThingpediaLoader {
                     this._addRule(pos + '_filter', [both_prefix, constant_pairs], pairexpansion, (_both, values : [Ast.Value, Ast.Value]) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
                 if (ptype.isDate)
                     this._addRule(pos + '_filter', [constant_date_range], expansion, (values : [Ast.Value, Ast.Value]) => makeDateRangeFilter(this, pslot, values), keyfns.filterKeyFn, attributes);
+                
+                const joinexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${pronoun_the_second}') + '}';
+                this._addRule(pos + '_join_condition', [pronoun_the_second], joinexpansion, () => makeSelfJoinCondition(this, pslot), keyfns.filterKeyFn, attributes);
+                const symmetric_joinexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${each_other}') + '}';
+                if (pslot.symmetric)
+                    this._addRule(pos + '_symmetric_join_condition', [each_other], symmetric_joinexpansion, () => makeSelfJoinCondition(this, pslot), keyfns.filterKeyFn, attributes);
             }
 
             const argminforms = this._collectByPOS(canonical.argmin);
@@ -1038,8 +1048,9 @@ export default class ThingpediaLoader {
             shortCanonical = canonical;
         const tmpl = '{' + shortCanonical.join('|') + '}';
         this._addRule('base_table', [], tmpl, () => table, keyfns.expressionKeyFn);
+        this._addRule('base_table_hidden', [], '', () => table, keyfns.expressionKeyFn);
         this._addRule('base_noun_phrase', [], tmpl, () => q, keyfns.functionDefKeyFn);
-
+    
         this._addRule('generic_anything_noun_phrase', [], this._langPack._("{anything|one|something}"), () => table, keyfns.expressionKeyFn);
         this._addRule('generic_base_noun_phrase', [], this._langPack._("{option|choice}"), () => table, keyfns.expressionKeyFn);
 

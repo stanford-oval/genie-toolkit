@@ -131,11 +131,22 @@ both_prefix : string = {
     '';
 }
 
+// pronouns used to refer to the first/second part of 
+// an expression with left-hand side and right-hand side
+// like join
+pronoun_the_first : string = {}
+pronoun_the_second : string = {}
+
+// terminal for symmetric properties
+each_other : string = {}
+
 // filters & input parameters on npp parameters
 // nnp: Noun-Phrase parameter for Property of the subject
 // e.g.: "name", "date of birth"
 
 npp_filter : C.FilterSlot = {}
+npp_join_condition : C.FilterSlot = {}
+npp_symmetric_join_condition : C.FilterSlot = {}
 npp_input_param : C.InputParamSlot = {}
 npp_argminmax : C.ArgMinMax = {}
 coref_npp_filter : C.FilterSlot = {}
@@ -146,6 +157,8 @@ npp_boolean_projection : C.ParamSlot = {}
 // npi: Noun-phrase parameter for Identity of the subejct
 // e.g.: "owner of <company>", "student in <university>"
 npi_filter : C.FilterSlot = {}
+npi_join_condition : C.FilterSlot = {}
+npi_symmetric_join_condition : C.FilterSlot = {}
 npi_input_param : C.InputParamSlot = {}
 npi_argminmax : C.ArgMinMax = {}
 coref_npi_filter : C.FilterSlot = {}
@@ -156,6 +169,8 @@ npi_boolean_projection : C.ParamSlot = {}
 // pvp: Passive-Verb Phrase parameter
 // e.g.: "called <nickname>", "born on <date>"
 pvp_filter : C.FilterSlot = {}
+pvp_join_condition : C.FilterSlot = {}
+pvp_symmetric_join_condition : C.FilterSlot = {}
 pvp_input_param : C.InputParamSlot = {}
 pvp_argminmax : C.ArgMinMax = {}
 coref_pvp_filter : C.FilterSlot = {}
@@ -166,6 +181,8 @@ pvp_boolean_projection : C.ParamSlot = {}
 // prep: preposition parameter
 // e.g.: "at <time>", "in <area>"
 preposition_filter : C.FilterSlot = {}
+preposition_join_condition : C.FilterSlot = {}
+preposition_symmetric_join_condition : C.FilterSlot = {}
 preposition_input_param : C.InputParamSlot = {}
 preposition_argminmax : C.ArgMinMax = {}
 coref_preposition_filter : C.FilterSlot = {}
@@ -176,6 +193,8 @@ preposition_boolean_projection : C.ParamSlot = {}
 // avp: Active-Verb Phrase parameter
 // e.g.: "owns <company>", "studied in <university>"
 avp_filter : C.FilterSlot = {}
+avp_join_condition : C.FilterSlot = {}
+avp_symmetric_join_condition : C.FilterSlot = {}
 avp_input_param : C.InputParamSlot = {}
 avp_argminmax : C.ArgMinMax = {}
 coref_avp_filter : C.FilterSlot = {}
@@ -186,6 +205,8 @@ avp_boolean_projection : C.ParamSlot = {}
 // npv: implicit parameter with Noun-Phrase Value, i.e., the parameter itself will not appear in the sentence
 // e.g.: "Bob is a PhD", the parameter `academic_degree` is implicit, and should be inferred by the value "PhD"
 npv_filter : C.FilterSlot = {}
+npv_join_condition : C.FilterSlot = {}
+npv_symmetric_join_condition : C.FilterSlot = {}
 npv_input_pconstant_namearam : C.InputParamSlot = {}
 npv_argminmax : C.ArgMinMax = {}
 coref_npv_filter : C.FilterSlot = {}
@@ -196,6 +217,8 @@ npv_boolean_projection : C.ParamSlot = {}
 // apv: implicit parameter with Adjective-Phrase Value (similar to npv, but in adjective form)
 // e.g.: "Bob is left-handed"
 apv_filter : C.FilterSlot = {}
+apv_join_condition : C.FilterSlot = {}
+apv_symmetric_join_condition : C.FilterSlot = {}
 apv_input_param : C.InputParamSlot = {}
 apv_argminmax : C.ArgMinMax = {}
 coref_apv_filter : C.FilterSlot = {}
@@ -206,6 +229,8 @@ apv_boolean_projection : C.ParamSlot = {}
 // reverse verb: verb-phrase parameter where value is the subject of the verb phrase
 // e.g., "movies that Bob directed"
 reverse_verb_filter : C.FilterSlot = {}
+reverse_verb_join_condition : C.FilterSlot = {}
+reverse_verb_symmetric_join_condition : C.FilterSlot = {}
 reverse_verb_input_param : C.InputParamSlot = {}
 coref_reverse_verb_filter : C.FilterSlot = {}
 coref_reverse_verb_input_param : C.InputParamSlot = {}
@@ -223,6 +248,7 @@ constant_name : Ast.EntityValue|Ast.NumberValue = {
 
 the_base_table : Ast.InvocationExpression = {}
 base_table : Ast.InvocationExpression = {}
+base_table_hidden : Ast.InvocationExpression = {}
 base_noun_phrase : Ast.FunctionDef = {}
 generic_anything_noun_phrase : Ast.InvocationExpression = {}
 generic_base_noun_phrase : Ast.InvocationExpression = {}

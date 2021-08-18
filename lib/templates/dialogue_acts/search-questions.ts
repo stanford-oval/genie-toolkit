@@ -106,8 +106,9 @@ function checkFilterPairForDisjunctiveQuestion(ctx : ContextInfo,
     if (!good1 || !good2)
         return null;
 
+    const symmetric = f1.schema.getArgument(f1.ast.name)!.getImplementationAnnotation<boolean>('symmetric') ?? false;
     return { schema: f1.schema, type: f1.ptype, name: f1.ast.name,
-        filterable, ast: new Ast.Value.VarRef(f1.ast.name) };
+        filterable, symmetric, ast: new Ast.Value.VarRef(f1.ast.name) };
 }
 
 export function checkFilterPairForDisjunctiveQuestionWithConstant(ctx : ContextInfo,
@@ -117,7 +118,9 @@ export function checkFilterPairForDisjunctiveQuestionWithConstant(ctx : ContextI
         return null;
     const filterable = f1.schema.getArgument(f1.ast.name)!
         .getImplementationAnnotation<boolean>('filterable') ?? true;
-    const pslot = { schema: f1.schema, name: f1.ast.name, type: f1.ptype, filterable,
+    const symmetric = f1.schema.getArgument(f1.ast.name)!
+        .getImplementationAnnotation<boolean>('symmetric') ?? false;
+    const pslot = { schema: f1.schema, name: f1.ast.name, type: f1.ptype, filterable, symmetric,
         ast: new Ast.Value.VarRef(f1.ast.name) };
     const f2 = C.makeFilter(ctx.loader, pslot, f1.ast.operator, c);
     if (!f2)
@@ -237,6 +240,7 @@ function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : C.FilterSlot|
         const pslot = { schema: ctx.currentFunction!,
             type: arg.type,
             filterable: arg.getImplementationAnnotation<boolean>('filterable') ?? true,
+            symmetric: arg.getImplementationAnnotation<boolean>('symmetric') ?? false,
             name: questions[0],
             ast: new Ast.Value.VarRef(questions[0]) };
         const newFilter = C.makeFilter(ctx.loader, pslot, '==', answer);

@@ -90,6 +90,7 @@ export interface ParamSlot {
     name : string;
     type : Type;
     filterable : boolean;
+    symmetric : boolean;
     ast : Ast.VarRefValue;
 }
 
@@ -263,6 +264,41 @@ function makeDateRangeFilter(tpLoader : ThingpediaLoader,
     return { schema: slot.schema, ptype: slot.type, ast };
 }
 
+function resolveJoin(lhs : Ast.FunctionDef, rhs : Ast.FunctionDef) : Ast.FunctionDef {
+    const name = `join(${lhs.name},${rhs.name})`;
+    const classDef = null; 
+    const qualifiers = {
+        is_list : lhs.is_list || rhs.is_list,
+        is_monitorable: lhs.is_monitorable || rhs.is_monitorable
+    };
+    const args = [];
+    for (const arg of lhs.iterateArguments()) {
+        const newArg = arg.clone();
+        if (!arg.is_input)
+            newArg.name = `first.${arg.name}`;
+        args.push(newArg);
+    }
+    for (const arg of rhs.iterateArguments()) {
+        const newArg = arg.clone();
+        if (!arg.is_input)
+            newArg.name = `second.${arg.name}`;
+        args.push(newArg);
+    }
+    return new Ast.FunctionDef(null, 'query', classDef, name, [], qualifiers, args);
+}
+
+function makeSelfJoinCondition(tpLoader : ThingpediaLoader, 
+                               slot : ParamSlot) : FilterSlot|null {
+    // the join condition has to be between a non-id parameter and id
+    if (slot.name === 'id')
+        return null;
+    const joinParam = Object.assign({}, slot);
+    joinParam.schema = resolveJoin(slot.schema, slot.schema);
+    joinParam.name = `first.${slot.name}`;
+    const op = joinParam.type.isArray ? 'contains' : '==';
+    return makeFilter(tpLoader, joinParam, op, new Ast.VarRefValue('second.id', slot.schema!.getArgType('id')));
+}
+
 function isHumanEntity(type : Type|string) : boolean {
     if (type instanceof Type.Entity)
         return isHumanEntity(type.type);
@@ -329,5 +365,8 @@ export {
     isHumanEntity,
     isLocationEntity,
     isTimeEntity,
-    interrogativePronoun
+    interrogativePronoun,
+
+    resolveJoin,
+    makeSelfJoinCondition
 };
