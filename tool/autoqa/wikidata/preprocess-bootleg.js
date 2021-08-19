@@ -58,7 +58,7 @@ export async function execute(args) {
     for (const [name, qid] of await readJson(args.type_vocab_to_qid)) {
         const typeid = typeVocab.get(name);
         typeQID.set(typeid, qid);
-        typeCanonical.set(qid, name);
+        typeCanonical.set(qid, name.replace(/_Q[0-9]*/, ''));
     }
 
     const types = new Map();
