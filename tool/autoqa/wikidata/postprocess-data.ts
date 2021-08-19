@@ -228,7 +228,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 
 export async function execute(args : any) {
     const tpClient = new Tp.FileClient(args);
-    const schemas = new ThingTalk.SchemaRetriever(tpClient);
+    const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
     await postprocess(schemas, 
                       args.bootleg_types, 
                       args.bootleg_type_canonicals, 
