@@ -50,3 +50,12 @@ create table conversation (
        vote text default null,
        comment text default null
 );
+
+drop table if exists conversation_state;
+
+create table conversation_state (
+       uniqueId varchar(255) primary key,
+       history text default null,
+       dialogueState text default null,
+       lastMessageId int(11) default null
+);

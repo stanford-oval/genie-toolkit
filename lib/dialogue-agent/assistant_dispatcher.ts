@@ -40,6 +40,7 @@ import AppExecutor from '../engine/apps/app_executor';
 import type Engine from '../engine';
 import DeviceView from '../engine/devices/device_view';
 import DeviceInterfaceMapper from '../engine/devices/device_interface_mapper';
+import { ConversationStateRow, LocalTable } from "../engine/db";
 
 /**
  * A conversation delegate that buffers all commands until the dialogue turn
@@ -117,6 +118,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
     private _dynamicNotificationBackends : DeviceInterfaceMapper<Tp.Capabilities.NotificationBackend>;
     private _conversations : Map<string, Conversation>;
     private _lastConversation : Conversation|null;
+    private _conversationStateDB : LocalTable<ConversationStateRow>;
 
     constructor(engine : Engine, nluModelUrl : string|undefined, notificationConfig : NotificationConfig) {
         super();
@@ -127,6 +129,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
         this._notificationOutputs = new Set;
         this._conversations = new Map;
         this._lastConversation = null;
+        this._conversationStateDB = this._engine.db.getLocalTable('conversation_state');
 
         this._dynamicNotificationBackends = new DeviceInterfaceMapper(
             new DeviceView(engine.devices, 'org.thingpedia.notification-provider', {}),
@@ -297,11 +300,24 @@ export default class AssistantDispatcher extends events.EventEmitter {
         return this._lastConversation;
     }
 
+    async getConversationState(conversationId : string) {
+        const state = await this._conversationStateDB.getOne(conversationId).then((row) => {
+            if (row) {
+                return {
+                    history : row.history ? JSON.parse(row.history) : [],
+                    dialogueState : row.dialogueState ? JSON.parse(row.dialogueState) : null,
+                    lastMessageId : row.lastMessageId ? row.lastMessageId : 0
+                };
+            }
+            return undefined;
+        });
+        return state;
+    }
+
     pingAll() {
         for (const [_, conversation] of this._conversations)
             conversation.sendPing();
     }
-
 
     async getOrOpenConversation(id : string, options : ConversationOptions, state ?: ConversationState) {
         if (this._conversations.has(id))
@@ -310,7 +326,8 @@ export default class AssistantDispatcher extends events.EventEmitter {
         if (!options.nluServerUrl)
             options.nluServerUrl = this._nluModelUrl;
         const conv = this.openConversation(id, options);
-        await conv.start(state);
+        const convState = state ? state : await this.getConversationState(id);
+        await conv.start(convState);
         return conv;
     }
 

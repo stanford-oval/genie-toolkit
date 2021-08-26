@@ -124,6 +124,11 @@ const FIELD_NAMES = {
         'userTarget',
         'vote',
         'comment'
+    ] as const,
+    conversation_state: [
+        'history',
+        'dialogueState',
+        'lastMessageId'
     ] as const
 };
 

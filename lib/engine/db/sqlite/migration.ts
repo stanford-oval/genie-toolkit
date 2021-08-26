@@ -99,6 +99,15 @@ function migrateTo9(db : sqlite3.Database) {
                'vote text default null, ' +
                'comment text default null)');
     });
+},
+function migrateTo10(db : sqlite3.Database) {
+    db.serialize(() => {
+        db.run('drop table if exists conversation_state');
+        db.run('create table conversation_state (' +
+            'history text default null, ' +
+            'dialogueState text default null, ' +
+            'lastMessageId int(11) default null)');
+    });
 }];
 const currentVersion = MIGRATIONS.length;
 

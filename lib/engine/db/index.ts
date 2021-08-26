@@ -62,10 +62,18 @@ export interface ConversationRow {
     comment : string|null;
 }
 
+export interface ConversationStateRow {
+    uniqueId : string;
+    history : string|null;
+    dialogueState : string|null;
+    lastMessageId : number;
+}
+
 export interface LocalTables {
     app : AppRow;
     channel : ChannelRow;
     conversation : ConversationRow;
+    conversation_state : ConversationStateRow;
 }
 
 export interface SyncTables {
