@@ -34,7 +34,7 @@ const THINGENGINE_URL = 'https://dev.almond.stanford.edu';
 
 async function runTests(engine, limitTo) {
     try {
-        for (let x of ['devices', 'apps', 'database', 'http_client', 'builtins', 'cloud_sync']) {
+        for (let x of ['devices', 'apps', 'database', 'http_client', 'builtins', 'cloud_sync', 'conversation_state']) {
             if (limitTo !== undefined && x !== limitTo)
                 continue;
             console.log(`Running ${x} tests`);
