@@ -67,8 +67,14 @@ export default class ThingpediaDialogueHandler<AnalysisType extends Tp.DialogueH
     }
     private _mapConfidence(confidence : Tp.DialogueHandler.Confidence) : CommandAnalysisType {
         switch (confidence) {
+        case Tp.DialogueHandler.Confidence.EXACT_IN_DOMAIN_COMMAND:
+            return CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND;
+
         case Tp.DialogueHandler.Confidence.CONFIDENT_IN_DOMAIN_COMMAND:
             return CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND;
+        
+        case Tp.DialogueHandler.Confidence.EXACT_IN_DOMAIN_FOLLOWUP:
+            return CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP;
 
         case Tp.DialogueHandler.Confidence.CONFIDENT_IN_DOMAIN_FOLLOWUP:
             return CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP;

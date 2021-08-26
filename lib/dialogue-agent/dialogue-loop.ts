@@ -55,8 +55,10 @@ export enum CommandAnalysisType {
     DEBUG,
 
     // some sort of command
+    EXACT_IN_DOMAIN_COMMAND,
     CONFIDENT_IN_DOMAIN_COMMAND,
     NONCONFIDENT_IN_DOMAIN_COMMAND,
+    EXACT_IN_DOMAIN_FOLLOWUP,
     CONFIDENT_IN_DOMAIN_FOLLOWUP,
     NONCONFIDENT_IN_DOMAIN_FOLLOWUP,
     OUT_OF_DOMAIN_COMMAND,
@@ -64,8 +66,9 @@ export enum CommandAnalysisType {
 
 const enum Confidence {
     NO,
-    MAYBE,
-    YES
+    LOW,
+    HIGH,
+    ABSOLUTE
 }
 
 export interface CommandAnalysisResult {
@@ -259,6 +262,21 @@ export class DialogueLoop {
                 case CommandAnalysisType.DEBUG:
                 case CommandAnalysisType.NEVERMIND:
                 case CommandAnalysisType.WAKEUP:
+                case CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND:
+                    // choose if either
+                    // - we're higher priority
+                    // - we're more confident
+                    if (best === undefined ||
+                        ((handler.priority > best.priority ||
+                            (this._currentHandler === handler &&
+                            handler.priority >= best.priority)) ||
+                            bestconfidence < Confidence.ABSOLUTE)) {
+                        best = handler;
+                        bestanalysis = analysis;
+                        bestconfidence = Confidence.ABSOLUTE;
+                    }
+                    break;
+                
                 case CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND:
                     // choose if either
                     // - we're higher priority
@@ -266,12 +284,12 @@ export class DialogueLoop {
                     // - we're the current dialogue and we have the same priority
                     if (best === undefined ||
                         handler.priority > best.priority ||
-                        bestconfidence < Confidence.YES ||
+                        bestconfidence < Confidence.HIGH ||
                         (this._currentHandler === handler &&
-                         handler.priority >= best.priority)) {
+                            handler.priority >= best.priority)) {
                         best = handler;
                         bestanalysis = analysis;
-                        bestconfidence = Confidence.YES;
+                        bestconfidence = Confidence.HIGH;
                     }
                     break;
 
@@ -283,13 +301,14 @@ export class DialogueLoop {
                         ((handler.priority > best.priority ||
                          (this._currentHandler === handler &&
                          handler.priority >= best.priority)) &&
-                        bestconfidence <= Confidence.MAYBE)) {
+                        bestconfidence <= Confidence.LOW)) {
                         best = handler;
                         bestanalysis = analysis;
-                        bestconfidence = Confidence.MAYBE;
+                        bestconfidence = Confidence.LOW;
                     }
                     break;
-
+                
+                case CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP:
                 case CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP:
                     // choose if handler is the current handler and either
                     // - we're same priority
@@ -297,10 +316,10 @@ export class DialogueLoop {
                     if (this._currentHandler === handler &&
                         (best === undefined ||
                          handler.priority >= best.priority ||
-                         bestconfidence < Confidence.YES)) {
+                         bestconfidence < Confidence.HIGH)) {
                         best = handler;
                         bestanalysis = analysis;
-                        bestconfidence = Confidence.YES;
+                        bestconfidence = Confidence.HIGH;
                     }
                     break;
 
@@ -311,10 +330,10 @@ export class DialogueLoop {
                     if (this._currentHandler === handler &&
                         (best === undefined ||
                          (handler.priority >= best.priority &&
-                          bestconfidence <= Confidence.MAYBE))) {
+                          bestconfidence <= Confidence.LOW))) {
                         best = handler;
                         bestanalysis = analysis;
-                        bestconfidence = Confidence.YES;
+                        bestconfidence = Confidence.HIGH;
                     }
                     break;
 
