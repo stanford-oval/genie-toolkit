@@ -17,7 +17,7 @@ The following commands can be used to install all the dependencies on common Lin
 
 ```bash
 dnf -y install nodejs make gcc-c++ gettext GraphicsMagick zip unzip # Fedora/RHEL
-apt -y install nodejs build-essential make g++ gettext graphicsmagick zip unzip # Ubuntu/Debian
+apt -y install nodejs build-essential make g++ gettext graphicsmagick zip unzip python # Ubuntu/Debian
 ```
 
 ## Option 1: "git" install
@@ -45,7 +45,13 @@ npm install genie-toolkit
 ```
 
 This method will install Genie as a library, not as a command-line tool. It is
-suitable for integrating Genie in a larger project (such as Almond).
+suitable for integrating Genie in a larger project (such as Almond). 
+
+However you can acquire the ability to run the command line program ``genie`` if you run the following command to install the package globally:
+
+```
+npm install genie-toolkit -g
+```
 
 ## Training
 
