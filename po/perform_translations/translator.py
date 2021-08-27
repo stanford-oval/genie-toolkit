@@ -11,41 +11,24 @@ mt = dlt.TranslationModel()
 current_time = now.strftime("%H:%M:%S")
 
 
-
-
-
 # Variables for translator to edit
 
 print(mt.get_lang_code_map()) 
 
 language = str(input("What is your desired language to translate to? Input the language code: ")) # change to desired language to convert TO
 Reportmsgid = str(input("What is your desired Report Msgid Bugs To? " ))
-POT_Creation_Date = str(input("What is your desired POT Creation Date? "))
 PO_Revision_Date = current_time 
 Last_Translator = str(input("Who do you want as the last translator? "))
 Language_Team = str(input("What is the language team you want the translation to be in? Example: English <myteam@example.com> "))
-
-
 
 
 while language not in mt.available_codes():
   print("Sorry, try again! This language is not supported")
   language =  str(input("What is your desired language to translate to? Input the language code: ")) # change to desired language to convert TO
 
-POTCreationDateFetched = ""
-
-
-with open("genie-toolkit.pot", "r") as pot_file:
-
-  for line in pot_file:
-
-    stripped_line = line.strip()
-    if stripped_line.startswith("POT-Creation-Date:"):
-      POTCreationDateFetched = stripped_line.split(":", 1)[1].strip()
-
-
 
 pofile = polib.pofile(language + ".po") # Make sure the .po file is in the same directory
+POT_Creation_Date = pofile.metadata.get('POT-Creation-Date')
 msgIdArray = []
 theActualArray = []
 arrayOfTranslatedMsgStr = []
