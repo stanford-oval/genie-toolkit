@@ -33,9 +33,11 @@ After this you can examine and manually make required final changes to the newfi
 
 
 ```
-
-mv newfile.po fr.po
+msmerge newfile.po fr.po --output-file= fr.po
 
 ```
 
 Replace fr.po with $language.po . Now you have your translated po file.
+
+
+
