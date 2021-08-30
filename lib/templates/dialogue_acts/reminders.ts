@@ -15,22 +15,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-export * from './action-confirm';
-export * from './action-results';
-export * from './aggregation-results';
-export * from './coref-actions';
-export * from './coref-questions';
-export * from './empty-search';
-export * from './initial-request';
-export * from './list-proposal';
-export * from './recommendation';
-export * from './refinement';
-export * from './related-questions';
-export * from './results';
-export * from './search-questions';
-export * from './slot-fill';
-export * from './streams';
-export * from './reminders';
+import { Ast, } from 'thingtalk';
+import {
+    ContextInfo,
+} from '../state_manip';
+
+export function checkIsReminder(ctx : ContextInfo) {
+    return ctx.currentFunction!.qualifiedName === '@org.thingpedia.builtin.thingengine.builtin.say'
+    && ctx.state.current!.stmt.stream instanceof Ast.FunctionCallExpression && (ctx.state.current!.stmt.stream.name === 'ontimer' 
+    || ctx.state.current!.stmt.stream.name === 'attimer' || ctx.state.current!.stmt.stream.name === 'timer');
+}

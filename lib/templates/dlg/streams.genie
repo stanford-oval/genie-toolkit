@@ -24,9 +24,12 @@ import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
 import * as S from '../state_manip';
+import * as D from '../dialogue_acts';
 import ThingpediaLoader from '../load-thingpedia';
 
 notification_preamble : S.ContextInfo = {
+    ["reminder:", priority=1] : (ctx : ctx_with_notification) => D.checkIsReminder(ctx) ? ctx : null,
+    
     ["notification from ${app}:"] : (ctx : ctx_with_notification, app : ctx_notification_app_name) => ctx,
 
     // empty preamble if we don't have the app name
