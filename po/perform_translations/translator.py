@@ -99,7 +99,8 @@ for i in theActualArray:
 
 po.save('newfile.po')
 
-subprocess.run('msgmerge newfile.po ' +  language + '.po ' + '> newfile.po', shell=True)
+
+
 
 
 
