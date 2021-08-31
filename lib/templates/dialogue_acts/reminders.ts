@@ -23,6 +23,6 @@ import {
 
 export function checkIsReminder(ctx : ContextInfo) {
     return ctx.currentFunction!.qualifiedName === 'org.thingpedia.builtin.thingengine.builtin.say'
-    && ctx.state.current!.stmt.stream instanceof Ast.FunctionCallExpression && (ctx.state.current!.stmt.stream.name === 'ontimer' 
-    || ctx.state.current!.stmt.stream.name === 'attimer' || ctx.state.current!.stmt.stream.name === 'timer');
+    && ctx.current!.stmt.stream instanceof Ast.FunctionCallExpression && (ctx.current!.stmt.stream.name === 'ontimer' 
+    || ctx.current!.stmt.stream.name === 'attimer' || ctx.current!.stmt.stream.name === 'timer');
 }
