@@ -97,6 +97,9 @@ class TestDelegate {
         this._testRunner.writeLine('>> context = ' + context.code.join(' ') + ' // ' + JSON.stringify(context.entities));
         this._testRunner.writeLine('>> expecting = ' + expect);
     }
+    addDevice(uniqueId, state) {
+        console.log('new-device ' + uniqueId + ', state = ' + JSON.stringify(state));
+    }
 
     addMessage(msg) {
         switch (msg.type) {
@@ -143,10 +146,6 @@ class TestDelegate {
         }
 
         case 'new-program':
-            console.log(JSON.stringify(msg));
-            break;
-
-        case 'new-device':
             console.log(JSON.stringify(msg));
             break;
         }

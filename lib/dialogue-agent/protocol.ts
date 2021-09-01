@@ -18,8 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import type * as Tp from 'thingpedia';
-
 import { ConversationState } from './conversation';
 
 /**
@@ -173,13 +171,6 @@ export interface NewProgramMessage {
     icon : string|null;
 }
 
-export interface NewDeviceMessage {
-    id ?: number;
-    type : MessageType.NEW_DEVICE;
-    uniqueId : string;
-    state : Tp.BaseDevice.DeviceState;
-}
-
 export interface PingMessage {
     id ?: number;
     type : MessageType.PING;
@@ -194,5 +185,4 @@ export type Message = TextMessage
     | LinkMessage
     | ButtonMessage
     | NewProgramMessage
-    | NewDeviceMessage
     | PingMessage;

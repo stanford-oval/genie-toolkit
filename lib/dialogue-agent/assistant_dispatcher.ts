@@ -69,11 +69,14 @@ class StatelessConversationDelegate implements ConversationDelegate {
         };
     }
 
-    setHypothesis() {
+    async setHypothesis() {
+        // ignore
+    }
+    async addDevice() {
         // ignore
     }
 
-    setExpected(what : string|null) {
+    async setExpected(what : string|null) {
         assert(this._askSpecial === null);
         this._askSpecial = what;
     }
