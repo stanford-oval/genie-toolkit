@@ -538,11 +538,16 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 assert(parsed instanceof Ast.DialogueState);
                 this._dialogueState = parsed;
 
-                // execute the current dialogue state
-                // this will attempt to run all the programs that failed in the
-                // previous conversation (most likely because they were executed
-                // in the anonymous context)
-                return this._executeCurrentState();
+                if (!this._dialogueState.dialogueAct.startsWith('sys_')) {
+                    // execute the current dialogue state
+                    // this will attempt to run all the programs that failed in the
+                    // previous conversation (most likely because they were executed
+                    // in the anonymous context)
+                    return this._executeCurrentState();
+                } else {
+                    this.icon = getProgramIcon(this._dialogueState);
+                    return null;
+                }
             }
         } else if (showWelcome) {
             // if we want to show the welcome message, we run the policy on the `null` state, which will return the sys_greet intent
