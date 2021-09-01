@@ -145,6 +145,10 @@ class TestDelegate {
         case 'new-program':
             console.log(JSON.stringify(msg));
             break;
+
+        case 'new-device':
+            console.log(JSON.stringify(msg));
+            break;
         }
     }
 }
@@ -273,6 +277,7 @@ async function main(onlyIds) {
         showWelcome: true,
         anonymous: false,
         rng: rng,
+        syncDevices: true,
 
         faqModels: {
             'covid-faq': {

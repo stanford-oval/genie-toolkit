@@ -21,6 +21,7 @@
 import * as events from 'events';
 import * as ThingTalk from 'thingtalk';
 import * as Stream from "stream";
+import * as Tp from 'thingpedia';
 
 import * as I18n from '../i18n';
 
@@ -60,6 +61,7 @@ export interface ConversationOptions {
         highConfidence ?: number;
         lowConfidence ?: number;
     }>;
+    syncDevices ?: boolean;
 }
 
 interface Statistics {
@@ -114,6 +116,8 @@ export default class Conversation extends events.EventEmitter {
     private _inactivityTimeoutSec : number;
     private _contextResetTimeout : NodeJS.Timeout|null;
     private _contextResetTimeoutSec : number;
+    private _syncDevices : boolean;
+    private _deviceAddedListener : (d : Tp.BaseDevice) => void;
 
     private _log : ConversationLogger;
     private readonly _conversationStateDB : LocalTable<ConversationStateRow>;
@@ -154,6 +158,10 @@ export default class Conversation extends events.EventEmitter {
         this._delegates = new Set;
         this._history = [];
         this._nextMsgId = 0;
+        this._syncDevices = options.syncDevices ?? false;
+        this._deviceAddedListener = (d : Tp.BaseDevice) => {
+            this.sendNewDevice(d);
+        };
 
         this._inactivityTimeout = null;
         this._inactivityTimeoutSec = options.inactivityTimeout || DEFAULT_CONVERSATION_TTL;
@@ -215,6 +223,14 @@ export default class Conversation extends events.EventEmitter {
 
     async start(state ?: ConversationState) : Promise<void> {
         this._resetInactivityTimeout();
+
+        if (this._syncDevices) {
+            for (const d of this._engine.devices.getAllDevices())
+                await this.sendNewDevice(d);
+            this._engine.devices.on('device-added', this._deviceAddedListener);
+            this._engine.devices.on('device-changed', this._deviceAddedListener);
+        }
+
         if (state) {
             for (const msg of state.history)
                 await this.addMessage(msg);
@@ -225,6 +241,8 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async stop() : Promise<void> {
+        this._engine.devices.removeListener('device-added', this._deviceAddedListener);
+        this._engine.devices.removeListener('device-changed', this._deviceAddedListener);
         return this._loop.stop();
     }
 
@@ -474,6 +492,12 @@ export default class Conversation extends events.EventEmitter {
         if (this._debug)
             console.log('Genie executed new program: '+ program.uniqueId);
         return this.addMessage({ type: MessageType.NEW_PROGRAM, ...program });
+    }
+
+    sendNewDevice(device : Tp.BaseDevice) {
+        if (this._debug)
+            console.log('Genie sends a new device: '+ device.uniqueId);
+        return this.addMessage({ type: MessageType.NEW_DEVICE, uniqueId: device.uniqueId!, state: device.serialize() });
     }
 
     sendPing() {

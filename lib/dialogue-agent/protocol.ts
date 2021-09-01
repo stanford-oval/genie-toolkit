@@ -18,6 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import type * as Tp from 'thingpedia';
+
 import { ConversationState } from './conversation';
 
 /**
@@ -73,11 +75,16 @@ export enum MessageType {
     LINK = 'link',
     BUTTON = 'button',
     RDL = 'rdl',
-    NEW_PROGRAM = 'new-program',
     SOUND_EFFECT = 'sound',
     AUDIO = 'audio',
     VIDEO = 'video',
-    PING = 'ping'
+
+    // status changes from the engine
+    NEW_PROGRAM = 'new-program',
+    NEW_DEVICE = 'new-device',
+
+    // control messages
+    PING = 'ping',
 }
 
 export interface TextMessage {
@@ -166,6 +173,13 @@ export interface NewProgramMessage {
     icon : string|null;
 }
 
+export interface NewDeviceMessage {
+    id ?: number;
+    type : MessageType.NEW_DEVICE;
+    uniqueId : string;
+    state : Tp.BaseDevice.DeviceState;
+}
+
 export interface PingMessage {
     id ?: number;
     type : MessageType.PING;
@@ -180,4 +194,5 @@ export type Message = TextMessage
     | LinkMessage
     | ButtonMessage
     | NewProgramMessage
+    | NewDeviceMessage
     | PingMessage;
