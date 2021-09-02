@@ -375,7 +375,7 @@ export default class AutoCanonicalGenerator {
                     continue;
 
                 for (let cat in canonicals) {
-                    if (['default', 'adjective', 'implicit_identity', 'property', 'projection_pronoun'].includes(cat))
+                    if (['default', 'adjective', 'implicit_identity', 'projection_pronoun'].includes(cat))
                         continue;
                     if (cat.endsWith('_projection'))
                         continue;
