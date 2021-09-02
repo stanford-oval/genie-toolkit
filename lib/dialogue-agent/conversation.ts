@@ -348,7 +348,7 @@ export default class Conversation extends events.EventEmitter {
     async saveState(lastMessageId : number) {
         const conversationState = this.getState();
         const row = {
-            history: JSON.stringify(conversationState.history),
+            history: JSON.stringify(/* FIXME conversationState.history */ []),
             dialogueState: JSON.stringify(conversationState.dialogueState),
             lastMessageId: lastMessageId,
         };
