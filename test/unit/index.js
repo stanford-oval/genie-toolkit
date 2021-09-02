@@ -51,6 +51,7 @@ do_test([
     ('./test_describe'),
     ('./test_describe_api'),
     ('./test_describe_policy'),
+    ('./test_dialogue_loop'),
     ('./test_engine_protocol'),
     ('./test_entities'),
     ('./test_entity_match'),
