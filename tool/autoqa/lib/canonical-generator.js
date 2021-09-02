@@ -56,8 +56,9 @@ function typeToString(type) {
 }
 
 export default class AutoCanonicalGenerator {
-    constructor(classDef, constants, functions, parameterDatasets, options) {
+    constructor(classDef, entities, constants, functions, parameterDatasets, options) {
         this.class = classDef;
+        this.entities = entities;
         this.constants = constants;
         this.functions = functions ? functions : Object.keys(classDef.queries).concat(Object.keys(classDef.actions));
 
@@ -70,6 +71,20 @@ export default class AutoCanonicalGenerator {
 
         this.parameterDatasets = parameterDatasets;
         this.parameterDatasetPaths = {};
+
+        this.entityNames = {};
+        this.childEntities = {};
+        for (const entity of this.entities) {
+            this.entityNames[entity.type] = entity.name;
+            if (entity.subtype_of) {
+                for (const parent of entity.subtype_of) {
+                    if (parent in this.childEntities)
+                        this.childEntities[parent].push(entity.name);
+                    else
+                        this.childEntities[parent] = [entity.name];
+                }
+            }
+        }
 
         this.options = options;
 
@@ -359,6 +374,19 @@ export default class AutoCanonicalGenerator {
         }
     }
 
+    _getChildEntities(entityType) {
+        // only consider direct child types for simplicity 
+        // also avoid the case where there exist circles in the type hierarchy 
+        if (!(entityType in this._childEntities)) {
+            this._childEntities[entityType] = [];
+            for (const e of this.entities) {
+                if (e.subtype_of && e.subtype_of.includes(entityType))
+                    this._childEntities.push(e.name);
+            }
+        }
+        return this._childEntities[entityType];  
+    } 
+
     _addProjectionCanonicals() {
         for (let fname of this.functions) {
             let func = this.class.queries[fname] || this.class.actions[fname];
@@ -373,6 +401,15 @@ export default class AutoCanonicalGenerator {
                     continue;
                 if (typeof canonicals === 'string' || Array.isArray(canonicals))
                     continue;
+                    
+                const elemType = arg.type.isArray ? arg.type.elem : arg.type;
+                if (elemType.isEntity && this.options.type_based_projection && !('base_projection' in canonicals)) {
+                    const entityType = elemType.type;
+                    if (this.entityNames[entityType])
+                        canonicals['base_projection'] = [this.entityNames[entityType]];
+                    if (this.childEntities[entityType])
+                        canonicals['base_projection'].push(...this.childEntities[entityType]);
+                }
 
                 for (let cat in canonicals) {
                     if (['default', 'adjective', 'implicit_identity', 'projection_pronoun'].includes(cat))

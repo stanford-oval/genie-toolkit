@@ -21,8 +21,8 @@
 import CanonicalGenerator from './canonical-generator';
 
 export default class AutoAnnotationGenerator {
-    constructor(classDef, constants, queries, parameterDatasets, options) {
-        this.canonicalGenerator = new CanonicalGenerator(classDef, constants, queries, parameterDatasets, options);
+    constructor(classDef, entities, constants, queries, parameterDatasets, options) {
+        this.canonicalGenerator = new CanonicalGenerator(classDef, entities, constants, queries, parameterDatasets, options);
     }
 
     generate() {
