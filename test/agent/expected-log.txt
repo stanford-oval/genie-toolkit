@@ -2518,3 +2518,59 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_clarify;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Say");
+U: ontimer(date=[new Date("2021-09-30T17:30:00.000Z")]) => @org.thingpedia.builtin.thingengine.builtin.say(message="my reminder")
+U: #[results=[
+U:   { message_output="my reminder" }
+U: ]];
+UT: $dialogue @org.thingpedia.dialogue.transaction.notification("Say");
+UT: ontimer(date=[new Date("2021-09-30T17:30:00.000Z")]) => @org.thingpedia.builtin.thingengine.builtin.say(message="my reminder")
+UT: #[results=[
+UT:   { message_output="my reminder" }
+UT: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.notification("Say");
+C: ontimer(date=[new Date("2021-09-30T17:30:00.000Z")]) => @org.thingpedia.builtin.thingengine.builtin.say(message="my reminder")
+C: #[results=[
+C:   { message_output="my reminder" }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Reminder: my reminder.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Say");
+U: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.say(message="my reminder")
+U: #[results=[
+U:   { message_output="my reminder" }
+U: ]];
+UT: $dialogue @org.thingpedia.dialogue.transaction.notification("Say");
+UT: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.say(message="my reminder")
+UT: #[results=[
+UT:   { message_output="my reminder" }
+UT: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.notification("Say");
+C: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.say(message="my reminder")
+C: #[results=[
+C:   { message_output="my reminder" }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Reminder: my reminder.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

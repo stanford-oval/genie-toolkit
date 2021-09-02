@@ -2,7 +2,7 @@
 //
 // This file is part of Genie
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,22 +15,14 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-//
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-export * from './action-confirm';
-export * from './action-results';
-export * from './aggregation-results';
-export * from './coref-actions';
-export * from './coref-questions';
-export * from './empty-search';
-export * from './initial-request';
-export * from './list-proposal';
-export * from './recommendation';
-export * from './refinement';
-export * from './related-questions';
-export * from './reminders';
-export * from './results';
-export * from './search-questions';
-export * from './slot-fill';
-export * from './streams';
+import { Ast, } from 'thingtalk';
+import {
+    ContextInfo,
+} from '../state_manip';
+
+export function checkIsReminder(ctx : ContextInfo) {
+    return ctx.currentFunction!.qualifiedName === 'org.thingpedia.builtin.thingengine.builtin.say'
+    && ctx.current!.stmt.stream instanceof Ast.FunctionCallExpression && (ctx.current!.stmt.stream.name === 'ontimer' 
+    || ctx.current!.stmt.stream.name === 'attimer' || ctx.current!.stmt.stream.name === 'timer');
+}
