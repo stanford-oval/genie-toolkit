@@ -243,29 +243,19 @@ export class DialogueLoop {
 
     private async _analyzeCommand(command : UserInput) : Promise<[DialogueHandler<any, any>|undefined, CommandAnalysisResult]> {
         try {
-            let best : DialogueHandler<any, any>|undefined, bestanalysis : CommandAnalysisResult|undefined;
-            const bestconfidence = Confidence.NO;
-
             // This algorithm will choose the dialogue handlers that reports:
             // - the highest confidence
             // - if a tie, the highest priority
             // - if a tie, the current handler
             // - if a tie, the first handler that reports any confidence at all
-            
+
             const handlers = [...this._iterateDialogueHandlers()];
             const handlerCandidates = await Promise.all(handlers.map(async (handler) => {
                 const analysis = await handler.analyzeCommand(command);
                 return {handler: handler, analysis: analysis};
             }));
 
-            [best, bestanalysis] = pickHandler(this._currentHandler, 
-                                                handlerCandidates, 
-                                                best, 
-                                                bestanalysis, 
-                                                bestconfidence, 
-                                                command);
-            
-            return [best, bestanalysis];
+            return pickHandler(this._currentHandler, handlerCandidates, command);
         } catch(e) {
             if (e.code === 'EHOSTUNREACH' || e.code === 'ETIMEDOUT') {
                 await this.reply(this._("Sorry, I cannot contact the Genie service. Please check your Internet connection and try again later."), null);
@@ -694,10 +684,10 @@ export class DialogueLoop {
 
 export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResult, any> | null,
                             handlerCandidates : Array<{ handler : DialogueHandler<CommandAnalysisResult, any>; analysis : CommandAnalysisResult; }>,
-                            best : DialogueHandler<any, any> | undefined, 
-                            bestanalysis : CommandAnalysisResult|undefined, 
-                            bestconfidence : Confidence,
                             command : UserInput) : [DialogueHandler<any, any>|undefined, CommandAnalysisResult]  {
+    let best : DialogueHandler<any, any>|undefined = undefined;
+    let bestanalysis : CommandAnalysisResult|undefined = undefined;
+    let bestconfidence = Confidence.NO;
 
     for (const handlerItem of handlerCandidates) {
         const handler = handlerItem.handler;
@@ -804,8 +794,8 @@ export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResu
     }
 
 
-    return [best, 
-            bestanalysis || 
+    return [best,
+            bestanalysis ||
             { type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND,
               utterance: command.type === 'command' ? command.utterance : command.parsed.prettyprint(),
               user_target: '$failed;'}];
