@@ -2596,3 +2596,31 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Alert");
+U: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.alert()
+U: #[results=[
+U:   { time=new Time(17, 50) }
+U: ]];
+UT: $dialogue @org.thingpedia.dialogue.transaction.notification("Alert");
+UT: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.alert()
+UT: #[results=[
+UT:   { time=new Time(17, 50) }
+UT: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.notification("Alert");
+C: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.alert()
+C: #[results=[
+C:   { time=new Time(17, 50) }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Alert: it is 5:50 PM.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

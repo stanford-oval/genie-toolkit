@@ -1224,3 +1224,16 @@ A: sound: alarm-clock-elapsed
 A: It is 5:50 PM.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.builtin.thingengine.builtin . alert ( ) #[ results = [ { time = TIME_0 } ] ] ; // {"TIME_0":{"hour":17,"minute":50,"second":0}}
 A: >> expecting = null
+
+====
+# 82-alert-notification
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Alert");
+U: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.alert()
+U: #[results=[{ time=new Time(17,50) }]];
+
+# fixme the sound is not here due to how the test is set up, but it should play
+# correctly in real life
+A: Alert: it is 5:50 PM.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; ontimer ( date = [ $now + DURATION_0 ] ) => @org.thingpedia.builtin.thingengine.builtin . alert ( ) #[ results = [ { time = TIME_0 } ] ] ; // {"DURATION_0":{"unit":"min","value":10},"TIME_0":{"hour":17,"minute":50,"second":0}}
+A: >> expecting = null

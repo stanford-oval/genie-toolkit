@@ -21,8 +21,13 @@ import {
     ContextInfo,
 } from '../state_manip';
 
-export function checkIsReminder(ctx : ContextInfo) {
-    return ctx.currentFunction!.qualifiedName === 'org.thingpedia.builtin.thingengine.builtin.say'
-    && ctx.current!.stmt.stream instanceof Ast.FunctionCallExpression && (ctx.current!.stmt.stream.name === 'ontimer' 
-    || ctx.current!.stmt.stream.name === 'attimer' || ctx.current!.stmt.stream.name === 'timer');
+export function checkIsReminder(ctx : ContextInfo, fname : string) : ContextInfo|null {
+    if (ctx.currentFunction!.qualifiedName !== ('org.thingpedia.builtin.thingengine.builtin.' + fname))
+        return null;
+
+    if (!(ctx.current!.stmt.stream instanceof Ast.FunctionCallExpression && (ctx.current!.stmt.stream.name === 'ontimer'
+        || ctx.current!.stmt.stream.name === 'attimer' || ctx.current!.stmt.stream.name === 'timer')))
+        return null;
+
+    return ctx;
 }
