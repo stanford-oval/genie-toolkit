@@ -86,8 +86,14 @@ export default class CardFormatter {
 
         // workaround a bug in ThingTalk with getFormatMetadata
 
-        const fndef = await this._schemas.getMeta(kind, ftype, fname_);
-        return fndef.metadata.formatted || [];
+        try {
+            const fndef = await this._schemas.getMeta(kind, ftype, fname_);
+            return fndef.metadata.formatted || [];
+        } catch(e) {
+            // workaround the fact that output type is wrong if the function is defined
+            // in the parent
+            return [];
+        }
     }
 
     async formatForType(outputType : string, outputValue : PlainObject) : Promise<Tp.FormatObjects.FormattedObject[]> {
