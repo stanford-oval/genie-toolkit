@@ -1,8 +1,8 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020-2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
-function cleanEnumValue(v) {
+function cleanEnumValue(v : string) : string {
     // replace dash with space
     v = v.replace(/-/g, ' ');
     // camelcase the value
@@ -31,16 +31,16 @@ function cleanEnumValue(v) {
     return v;
 }
 
-function camelcase(v) {
+function camelcase(v : string) : string {
     return v.replace(/(?:^|\s+|-)[A-Za-z]/g, (letter) => letter.trim().toUpperCase());
 }
 
-function snakecase(v) {
+function snakecase(v : string) : string {
     return v.replace(/[() _-]+/g, '_').toLowerCase();
 }
 
-function titleCase(str) {
-    return str.split(' ').map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
+function titleCase(v : string) : string {
+    return v.split(' ').map((word) => word[0].toUpperCase() + word.substring(1)).join(' ');
 }
 
 const DEFAULT_ENTITIES = [

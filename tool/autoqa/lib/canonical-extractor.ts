@@ -17,18 +17,34 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
+//
+/// <reference types="./stemmer" />
 
-
+import { Ast, Type } from 'thingtalk';
 import assert from 'assert';
 import * as fs from 'fs';
 import * as util from 'util';
 import * as child_process from 'child_process';
 import stemmer from 'stemmer';
-
 import PosParser from '../../../lib/pos-parser';
 
+interface AnnotationExtractorOptions {
+    batch_size : string,
+    filtering : boolean,
+    debug : boolean,
+}
+
 export default class AnnotationExtractor {
-    constructor(klass, queries, model, options) {
+    private class : Ast.ClassDef;
+    private model : string;
+    private queries : string[];
+    private options : AnnotationExtractorOptions;
+    private parser : PosParser;
+    private _input : string[];
+    private _output : string[];
+    private newCanonicals : Record<string, any>;
+
+    constructor(klass : Ast.ClassDef, queries : string[], model : string, options : AnnotationExtractorOptions) {
         this.class = klass;
         this.model = model;
         this.queries = queries;
@@ -40,11 +56,11 @@ export default class AnnotationExtractor {
         this.newCanonicals = {};
     }
 
-    async run(synonyms, queries) {
-        const slices = {};
-        for (let qname of this.queries) {
+    async run(synonyms : Record<string, Record<string, any>>, queries : Record<string, Record<'args'|'canonical', any>>) {
+        const slices : Record<string, any> = {};
+        for (const qname of this.queries) {
             slices[qname] = {};
-            for (let arg in synonyms[qname]) {
+            for (const arg in synonyms[qname]) {
                 if (arg === 'id' || Object.keys(synonyms[qname][arg]).length === 0)
                     continue;
 
@@ -58,24 +74,24 @@ export default class AnnotationExtractor {
         await this._paraphrase();
         assert.strictEqual(this._input.length, this._output.length);
 
-        for (let qname of this.queries) {
+        for (const qname of this.queries) {
             const query_canonical = Array.isArray(queries[qname]['canonical']) ? queries[qname]['canonical'][0] : queries[qname]['canonical'];
-            for (let arg in synonyms[qname]) {
+            for (const arg in synonyms[qname]) {
                 const values = queries[qname]['args'][arg]['values'];
                 const slice = slices[qname][arg];
                 for (let i = slice[0]; i < slice[1]; i++)
                     this.extractCanonical(arg, i, values, query_canonical);
             }
 
-            for (let arg in synonyms[qname]) {
+            for (const arg in synonyms[qname]) {
                 if (!(arg in this.newCanonicals))
                     continue;
 
                 const wordCounter = this.countWords(this.newCanonicals[arg]);
-                let canonicals = (this.class.queries[qname] || this.class.actions[qname]).getArgument(arg).metadata.canonical;
-                for (let typeNewCanonical in this.newCanonicals[arg]) {
+                const canonicals = (this.class.queries[qname] || this.class.actions[qname]).getArgument(arg)!.metadata.canonical;
+                for (const typeNewCanonical in this.newCanonicals[arg]) {
                     const candidates = this.filterCandidates(typeNewCanonical, this.newCanonicals[arg][typeNewCanonical], wordCounter);
-                    for (let newCanonical of candidates) {
+                    for (const newCanonical of candidates) {
                         if (this.hasConflict(qname, arg, typeNewCanonical, newCanonical))
                             continue;
 
@@ -94,22 +110,22 @@ export default class AnnotationExtractor {
         }
     }
 
-    countWords(candidates) {
-        const counter = {};
-        for (let pos in candidates) {
-            for (let candidate of candidates[pos]) {
-                for (let word of candidate.split(' '))
+    countWords(candidates : Record<string, string[]>) : Record<string, number> {
+        const counter : Record<string, number> = {};
+        for (const pos in candidates) {
+            for (const candidate of candidates[pos]) {
+                for (const word of candidate.split(' '))
                     counter[word] = (counter[word] || 0) + 1;
             }
         }
         return counter;
     }
 
-    filterCandidates(pos, candidates, wordCounter) {
-        candidates = new Set(candidates);
+    filterCandidates(pos : string, candidates : string[], wordCounter : Record<string, number>) {
+        const dedupedCandidates = new Set(candidates);
 
         const filtered = [];
-        for (let candidate of candidates) {
+        for (const candidate of dedupedCandidates) {
             if (!(candidate.startsWith('# ') || candidate.endsWith(' #') || candidate.includes(' # ') || candidate === '#'))
                 continue;
 
@@ -117,7 +133,7 @@ export default class AnnotationExtractor {
                 continue;
 
             let includesRareWord = false;
-            for (let word of candidate.split(' ')) {
+            for (const word of candidate.split(' ')) {
                 if (wordCounter[word] < 2) {
                     includesRareWord = true;
                     break;
@@ -131,29 +147,30 @@ export default class AnnotationExtractor {
         return filtered;
     }
 
-    hasConflict(fname, currentArg, currentPos, currentCanonical) {
+    hasConflict(fname : string, currentArg : string, currentPos : string, currentCanonical : string) {
         const func = this.class.queries[fname] || this.class.actions[fname];
-        currentArg = func.getArgument(currentArg);
-        const currentStringset = currentArg.getImplementationAnnotation('string_values');
-        for (let arg of func.iterateArguments()) {
-            if (arg.name === currentArg.name)
+        const currentArgDef = func.getArgument(currentArg);
+        assert(currentArgDef);
+        const currentStringset = currentArgDef.getImplementationAnnotation('string_values');
+        for (const arg of func.iterateArguments()) {
+            if (arg.name === currentArgDef.name)
                 continue;
 
             // for non base, we only check conflict between arguments of the same type, or same string set
             if (currentPos !== 'base') {
                 if (currentStringset) {
-                    let stringset = arg.getImplementationAnnotation('string_values');
+                    const stringset = arg.getImplementationAnnotation('string_values');
                     if (stringset && stringset !== currentStringset)
                         continue;
                 }
-                let currentType = currentArg.type.isArray ? currentArg.type.elem : currentArg.type;
-                let type = arg.type.isArray ? arg.type.elem : arg.type;
+                const currentType = currentArgDef.type instanceof Type.Array ? currentArgDef.type.elem as Type : currentArgDef.type;
+                const type = arg.type instanceof Type.Array ? arg.type.elem as Type : arg.type;
                 if (!currentType.equals(type))
                     continue;
             }
 
-            for (let pos in this.newCanonicals[arg]) {
-                for (let canonical of this.newCanonicals[arg][pos]) {
+            for (const pos in this.newCanonicals[arg.name]) {
+                for (const canonical of this.newCanonicals[arg.name][pos]) {
                    if (canonical.replace('#', '').trim() === currentCanonical.replace('#', '').trim())
                        return true;
                 }
@@ -161,7 +178,7 @@ export default class AnnotationExtractor {
 
             const canonicals = arg.metadata.canonical;
 
-            for (let pos in canonicals) {
+            for (const pos in canonicals) {
                 // if current pos is base, only check base
                 if (currentPos === 'base' && pos !== 'base')
                     continue;
@@ -169,9 +186,9 @@ export default class AnnotationExtractor {
                 if (currentPos !== 'base' && pos === 'base')
                     continue;
                 let conflictFound = false;
-                let todelete = [];
+                const todelete = [];
                 for (let i = 0; i < canonicals[pos].length; i++) {
-                    let canonical = canonicals[pos][i];
+                    const canonical = canonicals[pos][i];
                     if (stemmer(canonical) === stemmer(currentCanonical)) {
                         // conflict with the base canonical phrase of another parameter, return true directly
                         if (i === 0)
@@ -182,8 +199,8 @@ export default class AnnotationExtractor {
                     }
                 }
                 if (conflictFound) {
-                    for (let canonical of todelete) {
-                        let index = canonicals[pos].indexOf(canonical);
+                    for (const canonical of todelete) {
+                        const index = canonicals[pos].indexOf(canonical);
                         canonicals[pos].splice(index, 1);
                     }
                     return true;
@@ -233,7 +250,7 @@ export default class AnnotationExtractor {
         if (this.options.debug)
             await output(`./paraphraser-in.tsv`, this._input.join('\n'));
 
-        const stdout = await new Promise((resolve, reject) => {
+        const stdout : string = await new Promise((resolve, reject) => {
             child.stdin.write(this._input.join('\n'));
             child.stdin.end();
             child.on('error', reject);
@@ -252,17 +269,17 @@ export default class AnnotationExtractor {
         this._output = JSON.parse(stdout);
     }
 
-    generateInput(candidates) {
-        for (let category in candidates) {
+    generateInput(candidates : Record<string, any>) {
+        for (const category in candidates) {
             if (category === 'base')
                 continue;
-            let canonical = Object.keys(candidates[category])[0];
-            for (let sentence of candidates[category][canonical])
+            const canonical = Object.keys(candidates[category])[0];
+            for (const sentence of candidates[category][canonical])
                 this._input.push(`${sentence.charAt(0).toUpperCase()}${sentence.slice(1)}`);
         }
     }
 
-    extractCanonical(arg, index, values, query_canonical) {
+    extractCanonical(arg : string, index : number, values : string[], query_canonical : string) {
         const origin = this._input[index];
         const paraphrases = this._output[index];
 
@@ -273,17 +290,17 @@ export default class AnnotationExtractor {
         // In case of boolean parameter, values field is empty, skip for now
         if (!values)
             return;
-        let value = values.find((v) => origin.includes(v));
+        const value = values.find((v) => origin.includes(v));
         if (!value) {
             // base canonical, do nothing
             return;
         }
 
-        for (let paraphrase of paraphrases)
+        for (const paraphrase of paraphrases)
             this._extractOneCanonical(canonical, paraphrase, value, query_canonical);
     }
 
-    _extractOneCanonical(canonical, paraphrase, value, query_canonical) {
+    _extractOneCanonical(canonical : Record<string, any>, paraphrase : string, value : string, query_canonical : string) {
         const annotations = this.parser.match('query', paraphrase, [query_canonical], value);
         if (annotations) {
             for (const annotation of annotations) {
