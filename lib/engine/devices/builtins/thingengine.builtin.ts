@@ -231,7 +231,7 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         return { time: new Tp.Value.Time(now.getHours(), now.getMinutes()) };
     }
 
-    do_timer_expire(env : ExecWrapper) {
+    do_timer_expire(params : unknown, env : ExecWrapper) {
         const now = new Date;
         const duration = now.getTime() - env.app.metadata.startTime;
 
