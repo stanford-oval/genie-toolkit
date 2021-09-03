@@ -479,11 +479,18 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         this.icon = getProgramIcon(this._dialogueState!);
 
+        const before : Array<string|Tp.FormatObjects.FormattedObject> = [];
         const messages : Array<string|Tp.FormatObjects.FormattedObject> = [utterance];
 
         for (const [outputType, outputValue] of newResults.slice(0, policyResult.numResults)) {
             const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
-            messages.push(...formatted);
+
+            for (const msg of formatted) {
+                if (msg.type === 'sound' && (msg as any).before)
+                    before.push(msg);
+                else
+                    messages.push(msg);
+            }
         }
 
         let expecting : ValueCategory|null;
@@ -508,7 +515,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             expecting = ValueCategory.Generic;
 
         return {
-            messages,
+            messages: before.concat(messages),
             context: oldState ? oldState!.prettyprint() : '',
             agent_target: agentTarget,
             expecting,

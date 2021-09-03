@@ -1220,7 +1220,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @org.thingpedia.builtin.thingengine.builtin.alert();
 
-A: It is 5:50 PM.
 A: sound: alarm-clock-elapsed
+A: It is 5:50 PM.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.builtin.thingengine.builtin . alert ( ) #[ results = [ { time = TIME_0 } ] ] ; // {"TIME_0":{"hour":17,"minute":50,"second":0}}
 A: >> expecting = null

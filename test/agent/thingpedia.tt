@@ -177,7 +177,7 @@ class @org.thingpedia.builtin.thingengine.builtin
                  #_[canonical=["time"]])
   #_[result="It is ${time}"]
   #_[formatted=[
-    { type="sound", name="alarm-clock-elapsed", exclusive=false }
+    { type="sound", name="alarm-clock-elapsed", exclusive=false, before=true }
   ]]
   #_[canonical="alert"]
   #[doc="makes Genie show/play a generic alert"]
@@ -187,7 +187,7 @@ class @org.thingpedia.builtin.thingengine.builtin
                       #_[canonical="duration"])
   #_[result="It has been ${duration}"]
   #_[formatted=[
-    { type="sound", name="alarm-clock-elapsed", exclusive=true }
+    { type="sound", name="alarm-clock-elapsed", exclusive=false, before=true }
   ]]
   #_[canonical="timer expire"]
   #[doc="makes Genie play a generic alert and show/say the elapsed time"]

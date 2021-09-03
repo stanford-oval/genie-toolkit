@@ -187,6 +187,7 @@ class SoundEffect extends BaseFormattedObject implements Tp.FormatObjects.SoundE
     type : 'sound';
     name : string;
     exclusive : boolean;
+    before : boolean;
 
     /**
      * Construct a new sound effect object.
@@ -195,7 +196,7 @@ class SoundEffect extends BaseFormattedObject implements Tp.FormatObjects.SoundE
      * @param {string} spec.name - the name of the sound, from the {@link http://0pointer.de/public/sound-theme-spec.html|Freedesktop Sound Theme Spec}
      *                             (with a couple Genie-specific extensions)
      */
-    constructor(spec : Tp.FormatObjects.SoundEffect) {
+    constructor(spec : Tp.FormatObjects.SoundEffect & { before ?: boolean }) {
         super();
 
         /**
@@ -205,6 +206,7 @@ class SoundEffect extends BaseFormattedObject implements Tp.FormatObjects.SoundE
         this.type = 'sound';
         this.name = spec.name;
         this.exclusive = spec.exclusive || false;
+        this.before = spec.before || false;
     }
 
     isValid() : boolean {
