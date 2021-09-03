@@ -74,6 +74,22 @@ export default class CardFormatter {
         return replaced;
     }
 
+    private async _getFormatMetadata(outputType : string) : Promise<unknown[]> {
+        const [kind, fname] = outputType.split(':');
+        let ftype : 'query'|'action' = 'query';
+
+        let fname_ = fname;
+        if (fname_.startsWith('action/')) {
+            ftype = 'action';
+            fname_ = fname_.substring('action/'.length);
+        }
+
+        // workaround a bug in ThingTalk with getFormatMetadata
+
+        const fndef = await this._schemas.getMeta(kind, ftype, fname_);
+        return fndef.metadata.formatted || [];
+    }
+
     async formatForType(outputType : string, outputValue : PlainObject) : Promise<Tp.FormatObjects.FormattedObject[]> {
         // apply masquerading for @remote.receive
         if (outputType === 'org.thingpedia.builtin.thingengine.remote:receive')
@@ -92,8 +108,7 @@ export default class CardFormatter {
         if (aggregation !== null)
             return [];
 
-        const [kind, function_name] = outputType.split(':');
-        const formatspec = (await this._schemas.getFormatMetadata(kind, function_name)) as FormatSpecChunk[];
+        const formatspec = (await this._getFormatMetadata(outputType)) as FormatSpecChunk[];
 
         return formatspec.map((f : FormatSpecChunk, i : number) : Tp.FormatObjects.FormattedObject|null => {
             if (typeof f === 'string')

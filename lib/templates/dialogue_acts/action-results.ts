@@ -49,7 +49,7 @@ function makeThingpediaActionSuccessPhrase(ctx : ContextInfo, info : SlotBag) {
     // we don't need to check anything here, we know the context matches
     // because the generation enforces that, and we know that the result phrase
     // is correct by construction
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), info);
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), info, null, { numResults: 1 });
 }
 
 function checkSelector(ctxSelector : Ast.DeviceSelector, actionSelector : Ast.DeviceSelector) : boolean {
@@ -164,11 +164,11 @@ function makeCompleteActionSuccessPhrase(ctx : ContextInfo, action : Ast.Express
             return null;
     }
 
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), info);
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), info, null, { numResults: 1 });
 }
 
 function makeGenericActionSuccessPhrase(ctx : ContextInfo) {
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), null);
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), null, null, { numResults: 0 });
 }
 
 export interface ErrorMessage {

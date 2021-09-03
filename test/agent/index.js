@@ -118,6 +118,16 @@ class TestDelegate {
             this._testRunner.writeLine('picture: ' + msg.url);
             break;
 
+        case 'sound':
+            checkIcon(msg);
+            this._testRunner.writeLine('sound: ' + msg.name);
+            break;
+
+        case 'audio':
+            checkIcon(msg);
+            this._testRunner.writeLine('audio: ' + msg.url);
+            break;
+
         case 'rdl':
             checkIcon(msg);
             this._testRunner.writeLine('rdl: ' + msg.rdl.displayTitle + ' ' + (msg.rdl.callback || msg.rdl.webCallback));

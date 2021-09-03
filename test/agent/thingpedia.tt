@@ -173,6 +173,26 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[doc="makes Almond say something"]
   #[confirm=false];
 
+  action alert(out time: Time
+                 #_[canonical=["time"]])
+  #_[result="It is ${time}"]
+  #_[formatted=[
+    { type="sound", name="alarm-clock-elapsed", exclusive=false }
+  ]]
+  #_[canonical="alert"]
+  #[doc="makes Genie show/play a generic alert"]
+  #[confirm=false];
+
+  action timer_expire(out duration: Measure(ms)
+                      #_[canonical="duration"])
+  #_[result="It has been ${duration}"]
+  #_[formatted=[
+    { type="sound", name="alarm-clock-elapsed", exclusive=true }
+  ]]
+  #_[canonical="timer expire"]
+  #[doc="makes Genie play a generic alert and show/say the elapsed time"]
+  #[confirm=false];
+
   action debug_log(in req message: String
                    #_[prompt=["what should I write in the logs", "what do you want me to write"]]
                    #[string_values="tt:long_free_text"])
