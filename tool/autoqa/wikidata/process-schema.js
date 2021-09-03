@@ -76,14 +76,14 @@ class SchemaProcessor {
         if (this._entities.has(type)) {
             const entity = this._entities.get(type);
             if (subtype_of && !entity.subtype_of.includes(subtype_of))
-                entity.subtype_of.push(subtype_of);
+                entity.subtype_of.push(`org.wikidata:` + subtype_of);
         } else {
             this._entities.set(type, { 
                 type: `org.wikidata:` + type, 
-                name: type, 
+                name: clean(type), 
                 is_well_known: false, 
                 has_ner_support: true, 
-                subtype_of: subtype_of ? [subtype_of] : []
+                subtype_of: subtype_of ? [`org.wikidata:` + subtype_of] : []
             });
         }
     }
@@ -96,10 +96,10 @@ class SchemaProcessor {
         }
         this._entities.set(type, { 
             type: `org.wikidata:` + type, 
-            name: type, 
+            name: clean(type.slice('p_'.length)), 
             is_well_known: false, 
             has_ner_support: false,  
-            subtype_of: ['entity']
+            subtype_of: ['org.wikidata:entity']
         });
     }
 
@@ -164,7 +164,7 @@ class SchemaProcessor {
         // add super entity type that is ancestor of every entity type
         this._entities.set('entity', { 
             type: `org.wikidata:entity`, 
-            name: 'entity', 
+            name: 'generic wikidata entity', 
             is_well_known: false, 
             has_ner_support: false,  
             subtype_of: []
@@ -173,7 +173,7 @@ class SchemaProcessor {
             return new Ast.EntityDef(
                 null, 
                 entity.type.slice('org.wikidata:'.length), 
-                entity.subtype_of, 
+                entity.subtype_of.map((e) => e.slice('org.wikidata:'.length)), 
                 { impl: { has_ner: new Ast.Value.Boolean(entity.has_ner_support) }}
             );
         });
