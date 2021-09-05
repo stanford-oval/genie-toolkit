@@ -142,11 +142,16 @@ function adjustStatementsForInitialRequest(loader : ThingpediaLoader,
             assert(newTable === null);
 
             const query = loader.idQueries.get(type.type)!;
+            const invoInputParam = [];
+            for (const i of query.iterateArguments()) {
+                if (i.is_input && i.required)
+                    invoInputParam.push(new Ast.InputParam(null, i.name, new Ast.UndefinedValue()));
+            }
             newTable = new Ast.InvocationExpression(null,
                     new Ast.Invocation(null,
                         new Ast.DeviceSelector(null, query.class!.name, null, null),
                         query.name,
-                        [],
+                        invoInputParam,
                         query),
                     query);
 
