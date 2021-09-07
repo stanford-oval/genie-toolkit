@@ -1,0 +1,78 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2021 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Silei Xu <silei@cs.stanford.edu>
+
+import { Ast } from 'thingtalk';
+
+import * as C from './ast_manip';
+import ThingpediaLoader from './load-thingpedia';
+
+pronoun_the_first : string = {
+    'the first';
+    'the former';
+}
+
+pronoun_the_second : string = {
+    'the second';
+    'the latter';
+}
+
+each_other : string = {
+    'each other';
+    'one another';
+}
+
+short_phrase_table : Ast.Expression = {
+    complete_table;
+    one_clean_filter_table;
+}
+
+self_join_table : Ast.Expression = {
+    ( 'pairs of' table:short_phrase_table ('such that'|'that') pronoun_the_first ('is'|'are'|'was'|'were') ('the'|'a'|'') param:out_param_Any 'of' pronoun_the_second 
+    | 'pairs of' table:short_phrase_table ('such that'|'that') pronoun_the_first ('has'|'have'|'had') pronoun_the_second 'as' ('the'|'a'|'') param:out_param_Any 
+    ) => C.makeSelfJoinFromParam($loader, table, param);
+
+    ( 'pairs of' table:short_phrase_table ('such that'|'that') pronoun_the_first ('has'|'have'|'had') condition:npp_join_condition
+    | 'pairs of' table:short_phrase_table ('such that'|'that') pronoun_the_first ('is'|'are'|'was'|'were') ('the'|'a'|'') condition:npi_join_condition
+    | 'pairs of' table:short_phrase_table ('such that'|'that') pronoun_the_first ('is'|'are'|'was'|'were') condition:pvp_join_condition 
+    | 'pairs of' table:short_phrase_table ('such that'|'that') pronoun_the_first ('is'|'are'|'was'|'were') condition:preposition_join_condition 
+    | 'pairs of' table:short_phrase_table ('such that'|'that') pronoun_the_first condition:avp_join_condition 
+    | 'pairs of' table:short_phrase_table ('such that'|'that') pronoun_the_first condition:reverse_verb_join_condition 
+    ) => C.makeSelfJoin(table, condition);
+
+    table:short_phrase_table ('pairs'|'') ('that'|'which'|'who') ('are'|'were') ('the'|'') param:out_param_Any with { symmetric = true } 'of' each_other
+    => C.makeSelfJoinFromParam($loader, table, param);
+
+    ( ('pairs of'|'') table:short_phrase_table ('that'|'which'|'who') ('are'|'were')  ('the'|'') condition:npi_symmetric_join_condition 
+    | ('pairs of'|'') table:short_phrase_table ('that'|'which'|'who') ('are'|'were') condition:pvp_symmetric_join_condition 
+    | ('pairs of'|'') table:short_phrase_table ('that'|'which'|'who') ('are'|'were') condition:preposition_symmetric_join_condition 
+    | ('pairs of'|'') table:short_phrase_table ('that'|'which'|'who') condition:avp_symmetric_join_condition 
+    | ('pairs of'|'') table:short_phrase_table  ('that'|'which'|'who') condition:reverse_verb_symmetric_join_condition
+    ) => C.makeSelfJoin(table, condition);
+}
+
+generic_join_table = { 
+    table1:short_phrase_table ('and'|'with') 'the' table2:base_table_hidden param2:out_param_Any 'of' ('its'|'their') param1:out_param_Any
+    => C.makeGenericJoin($loader, table1, param1, table2, param2);
+}
+
+complete_table : Ast.Expression = {
+    !notablejoin self_join_table;
+    !notablejoin generic_join_table;
+}

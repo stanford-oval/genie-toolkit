@@ -74,6 +74,7 @@ export function inputParamKeyFn(slot : InputParamSlot) {
 
 export function paramKeyFn(slot : ParamSlot) {
     const id = slot.schema.getArgument('id');
+    const symmetric = slot.schema.getArgument(slot.name)?.getImplementationAnnotation<boolean>('symmetric');
     return {
         functionName: slot.schema.qualifiedName,
         type: slot.type,
@@ -81,7 +82,8 @@ export function paramKeyFn(slot : ParamSlot) {
         elem: slot.type instanceof Type.Array ? slot.type.elem as Type : null,
         is_numeric_elem: slot.type instanceof Type.Array ? (slot.type.elem as Type).isNumeric() : false,
         associatedIdType: id && !id.is_input ? id.type : null,
-        filterable: slot.filterable
+        filterable: slot.filterable,
+        symmetric: symmetric ?? false 
     };
 }
 

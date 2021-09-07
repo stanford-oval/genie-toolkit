@@ -227,6 +227,7 @@ function booleanQuestion(base : Ast.Expression|null, slot : C.FilterSlot) : C.Pa
             schema: slot.schema,
             type: slot.ptype,
             filterable: slot.schema.getArgument(op1.name)!.getImplementationAnnotation<boolean>('filterable') ?? true,
+            symmetric: slot.schema.getArgument(op1.name)!.getImplementationAnnotation<boolean>('symmetric') ?? false,
             name: op1.name,
             ast: new Ast.Value.VarRef(op1.name)
         }];
@@ -237,6 +238,7 @@ function booleanQuestion(base : Ast.Expression|null, slot : C.FilterSlot) : C.Pa
         schema: slot.schema,
         type: slot.ptype,
         filterable: slot.schema.getArgument(ast.name)!.getImplementationAnnotation<boolean>('filterable') ?? true,
+        symmetric: slot.schema.getArgument(ast.name)!.getImplementationAnnotation<boolean>('symmetric') ?? false,
         name: ast.name,
         ast: new Ast.Value.VarRef(ast.name),
     }];

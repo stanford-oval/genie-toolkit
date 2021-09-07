@@ -220,6 +220,7 @@ specific_dontcare_phrase : C.FilterSlot = {
             return null;
         return C.makeDontCareFilter({ schema: param.schema, type: param.ptype, name: param.ast.name,
             filterable: param.schema.getArgument(param.ast.name)!.getImplementationAnnotation<boolean>('filterable') ?? true,
+            symmetric: param.schema.getArgument(param.ast.name)!.getImplementationAnnotation<boolean>('symmetric') ?? false,
             ast: new Ast.Value.VarRef(param.ast.name) });
     };
 }

@@ -44,7 +44,7 @@
     "stemmer": "^1.0.5",
     "string-interp": "^0.3.1",
     "thingpedia": "^2.10.0-alpha.2",
-    "thingtalk": "^2.1.0-alpha.4",
+    "thingtalk": "^2.1.0-alpha.5",
     "thingtalk-units": "^0.2.0",
     "twilio": "^3.66.1",
     "typescript": "~4.3.5",

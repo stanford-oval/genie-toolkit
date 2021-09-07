@@ -41,6 +41,8 @@ import {
 
     typeToStringSafe,
     isSameFunction,
+
+    resolveJoin
 } from './utils';
 export {
     Placeholder,
@@ -1766,7 +1768,8 @@ function findFilterExpression(root : Ast.Expression) : Ast.FilterExpression|null
     while (!(expr instanceof Ast.FilterExpression)) {
         // do not touch these with filters
         if (expr instanceof Ast.AggregationExpression ||
-            expr instanceof Ast.FunctionCallExpression)
+            expr instanceof Ast.FunctionCallExpression ||
+            expr instanceof Ast.JoinExpression)
             return null;
 
         // go inside these
@@ -1968,6 +1971,63 @@ export function makeDateTimer(loader : ThingpediaLoader, date : Ast.Value) {
     return new Ast.FunctionCallExpression(null, 'ontimer', params, loader.standardSchemas.ontimer);
 }
 
+function makeJoinExpressionHelper(join : Ast.JoinExpression, condition : FilterSlot, projection = ['first.id', 'second.id']) {
+    const filtered = new Ast.FilterExpression(null, join, condition.ast, join.schema);
+    return new Ast.ProjectionExpression(null, filtered, projection, [], [], resolveProjection(filtered.schema!, projection));
+}
+
+function makeSelfJoin(table : Ast.Expression, condition : FilterSlot) {
+    assert(table.schema);
+    if (condition.schema !== null && !isSameFunction(table.schema!, condition.schema))
+        return null;
+    const join = new Ast.JoinExpression(null, table, table.clone(), resolveJoin(table.schema, table.schema));
+    return makeJoinExpressionHelper(join, condition);
+}
+
+function makeSelfJoinFromParam(tpLoader : ThingpediaLoader, table : Ast.Expression, param : ParamSlot) {
+    // the join condition has to be between a non-id parameter and id
+    if (param.name === 'id')
+        return null;
+    assert(table.schema);
+    if (!table.schema.hasArgument(param.name))
+        return null;
+    
+    const schema = resolveJoin(table.schema, table.schema);
+    const joinParam = Object.assign({}, param);
+    joinParam.name = `first.${param.name}`;
+    joinParam.schema = schema;
+    const op = joinParam.type.isArray ? 'contains' : '==';
+    const condition = makeFilter(tpLoader, joinParam, op, new Ast.VarRefValue('second.id', schema.getArgType('second.id')));
+    if (!condition)
+        return null;
+    const join = new Ast.JoinExpression(null, table, table.clone(), resolveJoin(table.schema, table.schema));
+    return makeJoinExpressionHelper(join, condition);
+}
+
+function makeGenericJoin(tpLoader : ThingpediaLoader,
+                         lhs : Ast.Expression, lhsParam : ParamSlot,
+                         rhs : Ast.Expression, rhsParam : ParamSlot) {
+    // the join condition has to be between a non-id parameter and id
+    if (lhsParam.name === 'id')
+        return null;
+    // if the projection on the rhs table is simply id, we don't need join
+    if (rhsParam.name === 'id')
+        return null;
+    assert(lhs.schema && rhs.schema);
+    if (!lhs.schema.hasArgument(lhsParam.name) || !rhs.schema.hasArgument(rhsParam.name))
+        return null;
+    const schema = resolveJoin(lhs.schema, rhs.schema);
+    const joinParam = Object.assign({}, lhsParam);
+    joinParam.name = `first.${lhsParam.name}`;
+    joinParam.schema = schema;
+    const op = joinParam.type.isArray ? 'contains' : '==';
+    const condition = makeFilter(tpLoader, joinParam, op, new Ast.VarRefValue('second.id', schema.getArgType('second.id')));
+    if (!condition)
+        return null;
+    const join =  new Ast.JoinExpression(null, lhs, rhs, schema);
+    return makeJoinExpressionHelper(join, condition, ['first.id', `second.${rhsParam.name}`]);
+}
+
 export {
     // helpers
     typeToStringSafe,
@@ -2027,6 +2087,11 @@ export {
     makeSingleFieldProjection,
     makeMultiFieldProjection,
     sayProjection,
+
+    // joins
+    makeSelfJoin,
+    makeSelfJoinFromParam,
+    makeGenericJoin,
 
     // streams
     makeEdgeFilterStream,
