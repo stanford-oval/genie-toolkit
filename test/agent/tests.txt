@@ -1237,3 +1237,26 @@ U: #[results=[{ time=new Time(17,50) }]];
 A: Alert: it is 5:50 PM.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; ontimer ( date = [ $now + DURATION_0 ] ) => @org.thingpedia.builtin.thingengine.builtin . alert ( ) #[ results = [ { time = TIME_0 } ] ] ; // {"DURATION_0":{"unit":"min","value":10},"TIME_0":{"hour":17,"minute":50,"second":0}}
 A: >> expecting = null
+
+====
+# 83-issue-668
+
+U: \t @com.spotify.get_currently_playing();
+
+A: Currently playing Hello.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . get_currently_playing ( ) #[ results = [ { id = GENERIC_ENTITY_com.spotify:song_0 , artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] , album = GENERIC_ENTITY_com.spotify:album_0 , genres = [ QUOTED_STRING_0 , QUOTED_STRING_1 , QUOTED_STRING_2 ] , release_date = DATE_0 , popularity = NUMBER_0 , energy = NUMBER_1 , danceability = NUMBER_2 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:4sPmO7WMQUAf45kwMOtONw","display":"Hello"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:4dpARuHxo51G3z768sgnrY","display":"Adele"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:0K4pIOOsfJ9lK8OjrZfXzd","display":"25"},"QUOTED_STRING_0":"british soul","QUOTED_STRING_1":"pop","QUOTED_STRING_2":"uk pop","DATE_0":"2016-06-24T00:00:00.000Z","NUMBER_0":72,"NUMBER_1":45,"NUMBER_2":48}
+A: >> expecting = null
+
+U: \t [artists] of @com.spotify.get_currently_playing();
+
+A: The artist is Adele.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; [ artists ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . get_currently_playing ( ) #[ results = [ { id = GENERIC_ENTITY_com.spotify:song_0 , artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:4sPmO7WMQUAf45kwMOtONw","display":"Hello"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:4dpARuHxo51G3z768sgnrY","display":"Adele"}}
+A: >> expecting = null
+====
+# 84-issue-668-2
+
+U: \t [artists] of @com.spotify.get_currently_playing();
+
+A: Currently playing Hello. The artist is Adele.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; [ artists ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . get_currently_playing ( ) #[ results = [ { id = GENERIC_ENTITY_com.spotify:song_0 , artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:4sPmO7WMQUAf45kwMOtONw","display":"Hello"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:4dpARuHxo51G3z768sgnrY","display":"Adele"}}
+A: >> expecting = null

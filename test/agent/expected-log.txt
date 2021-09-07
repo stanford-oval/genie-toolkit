@@ -2624,3 +2624,61 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @com.spotify.get_currently_playing();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.get_currently_playing();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).get_currently_playing()
+C: #[results=[
+C:   { id="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"), artists=["spotify:artist:4dpARuHxo51G3z768sgnrY"^^com.spotify:artist("Adele")], album="spotify:album:0K4pIOOsfJ9lK8OjrZfXzd"^^com.spotify:album("25"), genres=["british soul", "pop", "uk pop"], release_date=new Date("2016-06-24T00:00:00.000Z"), popularity=72, energy=45, danceability=48 }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Currently playing Hello.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t [artists] of @com.spotify.get_currently_playing();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [artists] of @com.spotify.get_currently_playing();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).get_currently_playing()
+C: #[results=[
+C:   { id="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"), artists=["spotify:artist:4dpARuHxo51G3z768sgnrY"^^com.spotify:artist("Adele")], album="spotify:album:0K4pIOOsfJ9lK8OjrZfXzd"^^com.spotify:album("25"), genres=["british soul", "pop", "uk pop"], release_date=new Date("2016-06-24T00:00:00.000Z"), popularity=72, energy=45, danceability=48 }
+C: ]];
+C: [artists] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).get_currently_playing()
+C: #[results=[
+C:   { id="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"), artists=["spotify:artist:4dpARuHxo51G3z768sgnrY"^^com.spotify:artist("Adele")] }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: The artist is Adele.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t [artists] of @com.spotify.get_currently_playing();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [artists] of @com.spotify.get_currently_playing();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [artists] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).get_currently_playing()
+C: #[results=[
+C:   { id="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"), artists=["spotify:artist:4dpARuHxo51G3z768sgnrY"^^com.spotify:artist("Adele")] }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Currently playing Hello. The artist is Adele.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
