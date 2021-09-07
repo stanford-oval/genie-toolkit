@@ -19,12 +19,8 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 
 import * as fs from 'fs';
-import util from 'util';
 import path from 'path';
 import { Ast, Type } from 'thingtalk';
-import stemmer from 'stemmer';
-import { Inflectors } from 'en-inflectors';
-import * as child_process from 'child_process';
 
 import * as utils from '../../../lib/utils/misc-utils';
 import { makeLookupKeys } from '../../../lib/dataset-tools/mturk/sample-utils';
@@ -33,10 +29,23 @@ import { clean } from '../../../lib/utils/misc-utils';
 
 import CanonicalExtractor from './canonical-extractor';
 import genBaseCanonical from './base-canonical-generator';
+import { PARTS_OF_SPEECH, Canonicals, CanonicalAnnotation } from './base-canonical-generator';
+import { ParaphraseExample, generateExamples } from './canonical-example-constructor';
+import Paraphraser from './canonical-example-paraphraser';
 
-const topk_property_synonyms = 3;
-const topk_domain_synonyms = 5;
-const topk_adjectives = 500;
+interface AutoCanonicalGeneratorOptions {
+    dataset : 'schemaorg'|'sgd'|'multiwoz'|'wikidata'|'custom',
+    paraphraser_model : string,
+    remove_existing_canonicals : boolean,
+    batch_size : number,
+    filtering : boolean,
+    debug : boolean
+}
+
+interface Constant {
+    value ?: any,
+    display : string
+}
 
 function getElemType(type : Type) : Type {
     if (type instanceof Type.Array)
@@ -44,343 +53,155 @@ function getElemType(type : Type) : Type {
     return type;
 }
 
-function typeToString(type : Type) : string|null {
+function typeToString(type : Type) : string {
     const elemType = getElemType(type);
-
     if (elemType instanceof Type.Entity)
         return elemType.type;
-
-    if (elemType.isCompound)
-        return null;
-
     return type.toString();
+}
+
+function countArgTypes(schema : Ast.FunctionDef) : Record<string, number> {
+    const count : Record<string, number> = {};
+    for (const arg of schema.iterateArguments()) {
+        const typestr = typeToString(arg.type);
+        if (!typestr)
+            continue;
+        count[typestr] = (count[typestr] || 0) + 1;
+    }
+    return count;
 }
 
 export default class AutoCanonicalGenerator {
     private class : Ast.ClassDef;
-    private constants : Record<string, any[]>;
+    private constants : Record<string, Constant[]>;
     private functions : string[];
-    private algorithms : string[];
-    private pruning : number;
-    private mask : boolean;
-    private language_model : string;
-    private gpt2_ordering : boolean;
-    private paraphraser_model : string;
-    private parameterDatasets : string;
-    private parameterDatasetPaths : Record<string, [string, string]>;
+    private paraphraserModel : string;
     private annotatedProperties : string[];
-    private _langPack : EnglishLanguagePack;
-    private options : any;
+    private langPack : EnglishLanguagePack;
+    private options : AutoCanonicalGeneratorOptions;
 
     constructor(classDef : Ast.ClassDef, 
                 constants : Record<string, any[]>, 
                 functions : string[], 
                 parameterDatasets : string, 
-                options : any) {
+                options : AutoCanonicalGeneratorOptions) {
         this.class = classDef;
         this.constants = constants;
         this.functions = functions ? functions : Object.keys(classDef.queries).concat(Object.keys(classDef.actions));
-
-        this.algorithms = options.algorithms;
-        this.pruning = options.pruning;
-        this.mask = options.mask;
-        this.language_model = options.language_model;
-        this.gpt2_ordering = options.gpt2_ordering;
-        this.paraphraser_model = options.paraphraser_model;
-
-        this.parameterDatasets = parameterDatasets;
-        this.parameterDatasetPaths = {};
-
-        this.options = options;
-
+        this.paraphraserModel = options.paraphraser_model;
         this.annotatedProperties = [];
-        const file = path.resolve(path.dirname(module.filename), `../${options.dataset}/manual-annotations.js`);
-        if (options.dataset !== 'custom' && fs.existsSync(file)) {
-            // FIXME refactor to use import() instead (must be async)
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            const manualAnnotations = require(`../${options.dataset}/manual-annotations`);
-            if (manualAnnotations.PROPERTY_CANONICAL_OVERRIDE)
-                this.annotatedProperties = Object.keys(manualAnnotations.PROPERTY_CANONICAL_OVERRIDE);
-        }
-        this._langPack = new EnglishLanguagePack('en-US');
+        this.langPack = new EnglishLanguagePack('en-US');
+        this.options = options;
     }
 
     async generate() {
-        await this._loadParameterDatasetPaths();
-        const functions : Record<string, any> = {};
+        await this._loadManualCanonicalOverride();
+        const examples : ParaphraseExample[] = [];
         for (const fname of this.functions) {
             const func = this.class.queries[fname] || this.class.actions[fname];
-            functions[fname] = {
-                type: this.class.queries[fname] ? 'query' : 'action',
-                canonical: func.canonical || clean(fname),
-                args: {}
-            };
-            if (Array.isArray(functions[fname].canonical))
-                functions[fname].canonical = functions[fname].canonical[0];
-
-            const typeCounts = this._getArgTypeCount(func);
+            const typeCounts = countArgTypes(func);
             for (const arg of func.iterateArguments()) {
-                const argobj : Record<string, any> = {};
-
+                // skip argument with existed annotations
                 if (this.annotatedProperties.includes(arg.name) || arg.name === 'id')
                     continue;
-
-                // TODO: bert on counted object only for these args
-                if (arg.metadata.counted_object)
-                    continue;
-
                 if (arg.name.includes('.') && this.annotatedProperties.includes(arg.name.slice(arg.name.indexOf('.') + 1)))
                     continue;
-
-                // some args don't have canonical: e.g., id, name
-                if (!arg.metadata.canonical)
-                    continue;
-
-                // skip compound types
-                if (arg.type.isCompound)
-                    continue;
-
-                // get the paths to the data
-                const datasetTypeAndPath = this._getDatasetPath(fname, arg);
-                if (datasetTypeAndPath) {
-                    const [datasetType, ] = datasetTypeAndPath;
-                    let [, datasetPath] = datasetTypeAndPath;
-                    datasetPath = path.dirname(this.parameterDatasets) + '/' + datasetPath;
-                    if (datasetPath && fs.existsSync(datasetPath))
-                        argobj['path'] = [datasetType, datasetPath];
-                }
-
-                let canonical = arg.metadata.canonical;
-                if (this.options.remove_existing_canonicals) {
-                    canonical = {};
-                    genBaseCanonical(canonical, arg.name, arg.type);
-                } else {
-                    if (typeof canonical === 'string')
-                        canonical = { base: [canonical] };
-                    else if (Array.isArray(canonical))
-                        canonical = { base: canonical };
-                }
-                arg.metadata.canonical = canonical;
-                for (const type in canonical) {
-                    if (!Array.isArray(canonical[type]))
-                        canonical[type] = [canonical[type]];
-                }
-
-                // remove function name in arg name, normally it's repetitive
-                for (const type in canonical) {
-                    canonical[type] = canonical[type].map((c : string) => {
-                        if (c.startsWith(fname.toLowerCase() + ' '))
-                            return c.slice(fname.toLowerCase().length + 1);
-                        return c;
-                    });
-                }
-
-                // copy base canonical if property canonical is missing
-                if (canonical.base && !canonical.property)
-                    canonical.property = [...canonical.base];
-
-                const typestr = typeToString(func.getArgType(arg.name)!);
-
-                if (typestr && typeCounts[typestr] === 1) {
-                    // if an entity is unique, allow dropping the property name entirely
-                    if (canonical.property && !this.functions.includes(typestr.substring(typestr.indexOf(':') + 1))) {
-                        if (!canonical.property.includes('#'))
-                            canonical.property.push('#');
-                    }
-
-                    // if it's the only people entity, adding adjective form
-                    // E.g., author for review - bob's review
-                    //       byArtist for MusicRecording - bob's song
-                    if (typestr.endsWith(':Person'))
-                        canonical.adjective = ["# 's", '#'];
-
-                    // if it's the only date, adding argmin/argmax/base_projection
-                    if (typestr === 'Date') {
-                        canonical.adjective_argmax = ["most recent", "latest", "last", "newest"];
-                        canonical.adjective_argmin = ["earliest", "first", "oldest"];
-                        canonical.base_projection = ['date'];
-                    }
-                }
-
-                // if property is missing, try to use entity type info
-                if (!('property' in canonical)) {
-                    // only apply this if there is only one property uses this entity type
-                    if (typestr && typeCounts[typestr] === 1) {
-                        const base = utils.clean(typestr.substring(typestr.indexOf(':') + 1));
-                        canonical['property'] = [base];
-                        canonical['base'] = [base];
-                    }
-                }
-                argobj['canonicals'] = canonical;
-
-                const samples = this._retrieveSamples(fname, arg);
-                if (samples)
-                    argobj['values'] = samples;
-
-                functions[fname]['args'][arg.name] = argobj;
+                    
+                // set starting canonical annotation
+                const sampleValues = this._retrieveSamples(fname, arg);
+                const canonicalAnnotation = this._generateBaseCanonicalAnnotation(func, arg, typeCounts);
+                examples.push(...generateExamples(func, arg, canonicalAnnotation, sampleValues));
             }
         }
 
-        if (this.algorithms.length > 0) {
-            const args = [path.resolve(path.dirname(module.filename), './bert-canonical-annotator.py'), 'all'];
-            args.push('--k-synonyms', topk_property_synonyms.toString());
-            args.push('--k-domain-synonyms', topk_domain_synonyms.toString());
-            args.push('--k-adjectives', topk_adjectives.toString());
-            if (this.gpt2_ordering)
-                args.push('--gpt2-ordering');
-            if (this.pruning) {
-                args.push('--pruning-threshold');
-                args.push(this.pruning.toString());
-            }
-            args.push('--model-name-or-path');
-            args.push(this.language_model);
-            args.push(this.mask ? '--mask' : '--no-mask');
-
-            // call bert to generate candidates
-            const child = child_process.spawn(`python3`, args, {stdio: ['pipe', 'pipe', 'inherit']});
-
-            const output = util.promisify(fs.writeFile);
-            const startTime = (new Date()).getTime();
-            if (this.options.debug)
-                await output(`./bert-canonical-annotator-in.json`, JSON.stringify(functions, null, 2));
-
-            const stdout : string = await new Promise((resolve, reject) => {
-                child.stdin.write(JSON.stringify(functions));
-                child.stdin.end();
-                child.on('error', reject);
-                child.stdout.on('error', reject);
-                child.stdout.setEncoding('utf8');
-                let buffer = '';
-                child.stdout.on('data', (data) => {
-                    buffer += data;
-                });
-                child.stdout.on('end', () => resolve(buffer));
-            });
-
-            if (this.options.debug) {
-                try {
-                    await output(`./bert-canonical-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
-                    const time = Math.round(((new Date()).getTime() - startTime) / 1000);
-                    console.log(`Bert annotator took ${time} seconds to run.`);
-                } catch(e) {
-                     await output(`./bert-canonical-annotator-out.json`, stdout);
-                }
-            }
-
-            const { domains, synonyms, adjectives } = JSON.parse(stdout);
-            if (this.algorithms.includes('bert-domain-synonyms'))
-                this._updateFunctionCanonicals(domains);
-            if (this.algorithms.includes('bert-property-synonyms') || this.algorithms.includes('bert-adjectives'))
-                this._updateCanonicals(synonyms, adjectives);
-            if (this.algorithms.includes('bart-paraphrase')) {
-                const startTime = (new Date()).getTime();
-                const extractor = new CanonicalExtractor(this.class, this.functions, this.paraphraser_model, this.options);
-                await extractor.run(synonyms, functions);
-                if (this.options.debug) {
-                    const time = Math.round(((new Date()).getTime() - startTime) / 1000);
-                    console.log(`Bart annotator took ${time} seconds to run.`);
-                }
-            }
-            this._addProjectionCanonicals();
+        const paraphraser = new Paraphraser(this.paraphraserModel, this.options);
+        const startTime = (new Date()).getTime();
+        await paraphraser.paraphrase(examples);
+        if (this.options.debug) {
+            const time = Math.round(((new Date()).getTime() - startTime) / 1000);
+            console.log(`Paraphraser took ${time} seconds to run.`);
         }
 
+        const extractor = new CanonicalExtractor(this.class, this.functions, this.options);
+        await extractor.run(examples);
+        
+        this._addProjectionCanonicals();
         return this.class;
     }
 
-    _getArgTypeCount(schema : Ast.FunctionDef) : Record<string, number> {
-        const count : Record<string, number> = {};
-        for (const arg of schema.iterateArguments()) {
-            const typestr = typeToString(arg.type);
-            if (!typestr)
-                continue;
-            count[typestr] = (count[typestr] || 0) + 1;
-        }
-        return count;
+    private async _loadManualCanonicalOverride() {
+        const file = path.resolve(path.dirname(module.filename), `../${this.options.dataset}/manual-annotations.js`);
+        if (!fs.existsSync(file))
+            return;
+        const manualAnnotations = await import(`../${this.options.dataset}/manual-annotations.js`);
+        if (manualAnnotations.PROPERTY_CANONICAL_OVERRIDE)
+                this.annotatedProperties = Object.keys(manualAnnotations.PROPERTY_CANONICAL_OVERRIDE);
     }
 
-    async _loadParameterDatasetPaths() {
-        const rows = (await (util.promisify(fs.readFile))(this.parameterDatasets, { encoding: 'utf8' })).split('\n');
-        for (const row of rows) {
-            const [type, /*locale*/, key, path] = row.split('\t');
-            this.parameterDatasetPaths[key] = [type, path];
-        }
-    }
+    private _generateBaseCanonicalAnnotation(func : Ast.FunctionDef, 
+                                     arg : Ast.ArgumentDef, 
+                                     typeCounts : Record<string, number>) : CanonicalAnnotation {
+        const canonicalAnnotation : CanonicalAnnotation = {};
+        if (this.options.remove_existing_canonicals) {
+            genBaseCanonical(canonicalAnnotation, arg.name, arg.type);
+        } else {
+            const existingCanonical : Record<string, any> = arg.getNaturalLanguageAnnotation('canonical') || {};
+            if (typeof existingCanonical === 'string') 
+                canonicalAnnotation.base = [existingCanonical];
+            else if (Array.isArray(existingCanonical))
+                canonicalAnnotation.base = existingCanonical;
+            else if (typeof existingCanonical === 'object') 
+                Object.assign(canonicalAnnotation, existingCanonical);
+        } 
 
-    _getDatasetPath(qname : string, arg : Ast.ArgumentDef) {
-        const keys : string[] = [];
-        const stringValueAnnotation = arg.getImplementationAnnotation('string_values') as string;
-        if (stringValueAnnotation)
-            keys.push(stringValueAnnotation);
-        keys.push(`${this.class.kind}:${qname}_${arg.name}`);
-        const elementType = arg.type instanceof Type.Array ? arg.type.elem as Type: arg.type;
-        if (!(elementType instanceof Type.Compound))
-            keys.push(typeToString(elementType)!);
-
-        for (const key of keys) {
-            if (this.parameterDatasetPaths[key])
-                return this.parameterDatasetPaths[key];
-        }
-        return null;
-    }
-
-    _updateFunctionCanonicals(canonicals : Record<string, Record<string, number>>) {
-        for (const fname of this.functions) {
-            const func = this.class.queries[fname] || this.class.actions[fname];
-            const canonical = Array.isArray(func.nl_annotations.canonical) ? func.nl_annotations.canonical : [func.nl_annotations.canonical];
-            const candidates = canonicals[fname];
-            const maxCount = Object.values(candidates).reduce((a, b) => a + b, 0) / topk_domain_synonyms;
-            for (const candidate in candidates) {
-                if (candidates[candidate] > maxCount * this.pruning)
-                    canonical.push(candidate);
-            }
-
-            func.nl_annotations.canonical = canonical;
-        }
-    }
-
-    _updateCanonicals(candidates : Record<string, Record<string, Record<string, any>>>, adjectives : string[]) {
-        for (const fname of this.functions) {
-            const func = this.class.queries[fname] || this.class.actions[fname];
-            for (const arg in candidates[fname]) {
-                if (arg === 'id')
-                    continue;
-                let canonicals = func.getArgument(arg)!.metadata.canonical;
-                if (!canonicals)
-                    throw new Error(`Missing canonical form for ${arg} in @${func.class!.name}.${func.name}`);
-                if (typeof canonicals === 'string')
-                    canonicals = { base: [canonicals] };
-                else if (Array.isArray(canonicals))
-                    canonicals = { base: canonicals };
-
-                if (this.algorithms.includes('bert-adjectives') && adjectives.includes(`${fname}.${arg}`))
-                    canonicals['adjective'] = ['#'];
-
-                if (this.algorithms.includes('bert-property-synonyms')) {
-                    for (const type in candidates[fname][arg]) {
-                        for (const candidate in candidates[fname][arg][type]) {
-                            if (this._hasConflict(fname, arg, type, candidate))
-                                continue;
-                            if (type === 'reverse_verb' && !this._isVerb(candidate))
-                                continue;
-                            if (!canonicals[type].includes(candidate))
-                                canonicals[type].push(candidate);
-                        }
-                    }
-
-                    if (canonicals.reverse_verb && canonicals.reverse_verb.length === 1) {
-                        // FIXME: a hack, when there is only one candidate for reverse verb, it means the inflector noun
-                        //  to verb doesn't work, add the following heuristics
-                        const base = (new Inflectors(canonicals.base[0])).toSingular();
-                        if (base.endsWith('or') || base.endsWith('er'))
-                            canonicals.reverse_verb.push(base.slice(0, -2) + 'ed');
-                        canonicals.reverse_verb.push(base);
-                    }
-                }
+        // remove function name in arg name, normally it's repetitive
+        for (const [key, value] of Object.entries(canonicalAnnotation)) {
+            if (PARTS_OF_SPEECH.includes(key)) {
+                canonicalAnnotation[key as keyof Canonicals] = value.map((c : string) => {
+                    if (c.startsWith(func.name.toLowerCase() + ' '))
+                        return c.slice(func.name.toLowerCase().length + 1);
+                    return c;
+                });
             }
         }
+
+        // copy base canonical if property canonical is missing
+        if (canonicalAnnotation.base && !canonicalAnnotation.property)
+            canonicalAnnotation.property = [...canonicalAnnotation.base];
+
+        const typestr = typeToString(func.getArgType(arg.name)!);
+        if (typestr && typeCounts[typestr] === 1) {
+            // if an entity is unique, allow dropping the property name entirely
+            // FIXME: consider type hierarchy, or probably drop it entirely
+            if (canonicalAnnotation.property && !this.functions.includes(typestr.substring(typestr.indexOf(':') + 1))) {
+                if (!canonicalAnnotation.property.includes('#'))
+                    canonicalAnnotation.property.push('#');
+            }
+
+            // if property is missing, use the type information
+            if (!('property' in canonicalAnnotation)) {
+                    const base = utils.clean(typestr.substring(typestr.indexOf(':') + 1));
+                    canonicalAnnotation['property'] = [base];
+                    canonicalAnnotation['base'] = [base];
+            }
+
+            // if it's the only people entity, adding adjective form
+            // E.g., author for review - bob's review
+            //       byArtist for MusicRecording - bob's song
+            if (typestr.endsWith(':Person'))
+                canonicalAnnotation.adjective = ["# 's", '#'];
+
+            // if it's the only date, adding argmin/argmax/base_projection
+            if (typestr === 'Date') {
+                canonicalAnnotation.adjective_argmax = ["most recent", "latest", "last", "newest"];
+                canonicalAnnotation.adjective_argmin = ["earliest", "first", "oldest"];
+                canonicalAnnotation.base_projection = ['date'];
+            }
+        }
+        return canonicalAnnotation;
     }
 
-    _addProjectionCanonicals() {
+    private _addProjectionCanonicals() {
         for (const fname of this.functions) {
             const func = this.class.queries[fname] || this.class.actions[fname];
             for (const arg of func.iterateArguments()) {
@@ -412,21 +233,21 @@ export default class AutoCanonicalGenerator {
                             const tokens = c.split(' ');
                             if (tokens.length === 1)
                                 return c;
-                            if (['IN', 'TO', 'PR'].includes(this._langPack.posTag(tokens)[tokens.length - 1]))
+                            if (['IN', 'TO', 'PR'].includes(this.langPack.posTag(tokens)[tokens.length - 1]))
                                 return [...tokens.slice(0, -1), '//', tokens[tokens.length - 1]].join(' ');
                             return c;
-                        }).filter(this._dedup);
+                        }).filter((v : string, i : number, self : string[]) => self.indexOf(v) === i);
                     } else {
                         canonicals[cat + '_projection'] = canonicals[cat].map((canonical : string) => {
                             return this._processProjectionCanonical(canonical, cat);
-                        }).filter(Boolean).filter(this._dedup);
+                        }).filter((v : string, i : number, self : string[]) => self.indexOf(v) === i);
                     }
                 }
             }
         }
     }
 
-    _processProjectionCanonical(canonical : string, cat : string) {
+    private _processProjectionCanonical(canonical : string, cat : string) {
         if (canonical.includes('#') && !canonical.endsWith(' #'))
             return null;
         canonical = canonical.replace(' #', '');
@@ -440,95 +261,23 @@ export default class AutoCanonicalGenerator {
         return canonical;
     }
 
-    _dedup(value : string, index : number, self : string[]) {
-        return self.indexOf(value) === index;
-    }
-
-    _isVerb(candidate : string) {
-        if (candidate === 'is' || candidate === 'are')
-            return false;
-
-        return ['VBP', 'VBZ', 'VBD'].includes(this._langPack.posTag([candidate])[0]);
-    }
-
-    _hasConflict(fname : string, currentArg : string, currentPos : string, currentCanonical : string) {
-        const func = this.class.queries[fname] || this.class.actions[fname];
-        const currentArgDef = func.getArgument(currentArg)!;
-        const currentStringset = currentArgDef.getImplementationAnnotation('string_values');
-        for (const arg of func.iterateArguments()) {
-            if (arg.name === currentArgDef.name)
-                continue;
-
-            // for non base, we only check conflict between arguments of the same type, or same string set
-            if (currentPos !== 'base') {
-                if (currentStringset) {
-                    const stringset = arg.getImplementationAnnotation('string_values');
-                    if (stringset && stringset !== currentStringset)
-                        continue;
-                }
-                const currentType = currentArgDef.type instanceof Type.Array ? currentArgDef.type.elem as Type : currentArgDef.type;
-                const type = arg.type instanceof Type.Array ? arg.type.elem as Type: arg.type;
-                if (!currentType.equals(type))
-                    continue;
-            }
-
-            const canonicals = arg.metadata.canonical;
-
-            for (const pos in canonicals) {
-                // if current pos is base, only check base
-                if (currentPos === 'base' && pos !== 'base')
-                    continue;
-                // if current pos is not base, only check non-base
-                if (currentPos !== 'base' && pos === 'base')
-                    continue;
-                let conflictFound = false;
-                const todelete = [];
-                for (let i = 0; i < canonicals[pos].length; i++) {
-                    const canonical = canonicals[pos][i];
-                    if (stemmer(canonical) === stemmer(currentCanonical)) {
-                        // conflict with the base canonical phrase of another parameter, return true directly
-                        if (i === 0)
-                            return true;
-                        // conflict with generate canonicals of another parameter, remove conflicts, then return true
-                        conflictFound = true;
-                        todelete.push(canonical);
-                    }
-                }
-                if (conflictFound) {
-                    for (const canonical of todelete) {
-                        const index = canonicals[pos].indexOf(canonical);
-                        canonicals[pos].splice(index, 1);
-                    }
-                    return true;
-                }
-            }
-        }
-
-        //TODO: also consider conflicts between candidates
-
-        return false;
-    }
-
-    _retrieveSamples(qname : string, arg : Ast.ArgumentDef) {
+    private _retrieveSamples(qname : string, arg : Ast.ArgumentDef) : string[] {
         //TODO: also use enum canonicals?
-        if (arg.type instanceof Type.Enum)
+        if (arg.type instanceof Type.Enum) 
             return arg.type.entries!.slice(0, 10).map(clean);
 
         const keys = makeLookupKeys('@' + this.class.kind + '.' + qname, arg.name, arg.type);
-        let samples;
+        let sampleConstants : Constant[] = [];
         for (const key of keys) {
             if (this.constants[key]) {
-                samples = this.constants[key];
+                sampleConstants = this.constants[key];
                 break;
             }
         }
-        if (samples) {
-            samples = samples.map((v) => {
-                if (arg.type.isString || (arg.type instanceof Type.Array && (arg.type.elem as Type).isString))
-                    return v.value;
-                return v.display;
-            });
-        }
-        return samples;
+        return sampleConstants.map((v) => {
+            if (arg.type.isString || (arg.type instanceof Type.Array && (arg.type.elem as Type).isString))
+                return v.value;
+            return v.display;
+        });
     }
 }

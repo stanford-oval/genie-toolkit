@@ -53,9 +53,6 @@ $(built_bundled_templates) : $(template_sources) lib/sentence-generator/compiler
 
 dist: $(wildcard $(sources)) $(generated) tsconfig.json
 	tsc --build tsconfig.json
-	# copy the BERT script to the build folder
-	mkdir -p dist/tool/autoqa/lib
-	cp tool/autoqa/lib/bert-canonical-annotator.py dist/tool/autoqa/lib
 	touch dist
 
 bundle: bundle/en.zip

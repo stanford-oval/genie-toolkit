@@ -20,294 +20,210 @@
 //
 /// <reference types="./stemmer" />
 
-import { Ast, Type } from 'thingtalk';
-import assert from 'assert';
-import * as fs from 'fs';
-import * as util from 'util';
-import * as child_process from 'child_process';
+import { Ast } from 'thingtalk';
 import stemmer from 'stemmer';
 import PosParser from '../../../lib/pos-parser';
+import { ParaphraseExample } from './canonical-example-constructor';
+import { PROJECTION_PARTS_OF_SPEECH } from './base-canonical-generator';
 
 interface AnnotationExtractorOptions {
-    batch_size : string,
+    batch_size : number,
     filtering : boolean,
     debug : boolean,
 }
 
-export default class AnnotationExtractor {
-    private class : Ast.ClassDef;
-    private model : string;
-    private queries : string[];
-    private options : AnnotationExtractorOptions;
-    private parser : PosParser;
-    private _input : string[];
-    private _output : string[];
-    private newCanonicals : Record<string, any>;
+function stem(str : string) : string {
+    if (str.endsWith(' #'))
+        str = str.slice(0, -2);
+    return str.split(' ').map(stemmer).join(' ');
+}
 
-    constructor(klass : Ast.ClassDef, queries : string[], model : string, options : AnnotationExtractorOptions) {
-        this.class = klass;
-        this.model = model;
-        this.queries = queries;
-        this.options = options;
-        this.parser = new PosParser();
+class ConflictResolver {
+    private schema : Ast.FunctionDef;
+    private candidates : Record<string, Record<string, string[]>>;
+    private stemmedBaseCanonicals : Record<string, string>;
 
-        this._input = [];
-        this._output = [];
-        this.newCanonicals = {};
+    constructor(schema : Ast.FunctionDef, candidates : Record<string, Record<string, string[]>>) {
+        this.schema = schema;
+        this.candidates = candidates;
+        this.stemmedBaseCanonicals = {};
+        for (const arg of schema.iterateArguments()) 
+            this.stemmedBaseCanonicals[arg.name] = stem(arg.canonical);
     }
 
-    async run(synonyms : Record<string, Record<string, any>>, queries : Record<string, Record<'args'|'canonical', any>>) {
-        const slices : Record<string, any> = {};
-        for (const qname of this.queries) {
-            slices[qname] = {};
-            for (const arg in synonyms[qname]) {
-                if (arg === 'id' || Object.keys(synonyms[qname][arg]).length === 0)
-                    continue;
-
-                const startIndex = this._input.length;
-                this.generateInput(synonyms[qname][arg]);
-                const endIndex = this._input.length;
-                slices[qname][arg] = [startIndex, endIndex];
-            }
-        }
-
-        await this._paraphrase();
-        assert.strictEqual(this._input.length, this._output.length);
-
-        for (const qname of this.queries) {
-            const query_canonical = Array.isArray(queries[qname]['canonical']) ? queries[qname]['canonical'][0] : queries[qname]['canonical'];
-            for (const arg in synonyms[qname]) {
-                const values = queries[qname]['args'][arg]['values'];
-                const slice = slices[qname][arg];
-                for (let i = slice[0]; i < slice[1]; i++)
-                    this.extractCanonical(arg, i, values, query_canonical);
-            }
-
-            for (const arg in synonyms[qname]) {
-                if (!(arg in this.newCanonicals))
-                    continue;
-
-                const wordCounter = this.countWords(this.newCanonicals[arg]);
-                const canonicals = (this.class.queries[qname] || this.class.actions[qname]).getArgument(arg)!.metadata.canonical;
-                for (const typeNewCanonical in this.newCanonicals[arg]) {
-                    const candidates = this.filterCandidates(typeNewCanonical, this.newCanonicals[arg][typeNewCanonical], wordCounter);
-                    for (const newCanonical of candidates) {
-                        if (this.hasConflict(qname, arg, typeNewCanonical, newCanonical))
-                            continue;
-
-                        if (!canonicals[typeNewCanonical]) {
-                            canonicals[typeNewCanonical] = [newCanonical];
-                            continue;
-                        }
-                        if (canonicals[typeNewCanonical].includes(newCanonical))
-                            continue;
-                        if (newCanonical.endsWith(' #') && canonicals[typeNewCanonical].includes(newCanonical.slice(0, -2)))
-                            continue;
-                        canonicals[typeNewCanonical].push(newCanonical);
-                    }
+    resolve() {
+        for (const [arg, candidatesByPos] of Object.entries(this.candidates)) {
+            for (const [pos, candidates] of Object.entries(candidatesByPos)) {
+                const filteredCandidates = [];
+                for (const candidate of candidates) {
+                    if (!this._hasConflict(arg, pos, candidate))
+                        filteredCandidates.push(candidate);
                 }
+                this.candidates[arg][pos] = filteredCandidates;
             }
         }
     }
 
-    countWords(candidates : Record<string, string[]>) : Record<string, number> {
-        const counter : Record<string, number> = {};
-        for (const pos in candidates) {
-            for (const candidate of candidates[pos]) {
-                for (const word of candidate.split(' '))
-                    counter[word] = (counter[word] || 0) + 1;
-            }
+    private _hasConflict(argument : string, pos : string, candidate : string) : boolean {
+        // remove candidates that conflict with the default canonical of other arguments
+        for (const [arg, stemmedBaseCanonical] of Object.entries(this.stemmedBaseCanonicals)) {
+            if (arg !== argument && stemmedBaseCanonical === stem(candidate))
+                return true;
         }
-        return counter;
-    }
-
-    filterCandidates(pos : string, candidates : string[], wordCounter : Record<string, number>) {
-        const dedupedCandidates = new Set(candidates);
-
-        const filtered = [];
-        for (const candidate of dedupedCandidates) {
-            if (!(candidate.startsWith('# ') || candidate.endsWith(' #') || candidate.includes(' # ') || candidate === '#'))
+        // remove candidates that conflict with each other
+        for (const [arg, candidatesByPos] of Object.entries(this.candidates)) {
+            if (arg === argument)
                 continue;
-
-            if (candidate === '#' && pos !== 'adjective')
-                continue;
-
-            let includesRareWord = false;
-            for (const word of candidate.split(' ')) {
-                if (wordCounter[word] < 2) {
-                    includesRareWord = true;
-                    break;
-                }
-            }
-            if (this.options.filtering && includesRareWord)
-                continue;
-
-            filtered.push(candidate);
-        }
-        return filtered;
-    }
-
-    hasConflict(fname : string, currentArg : string, currentPos : string, currentCanonical : string) {
-        const func = this.class.queries[fname] || this.class.actions[fname];
-        const currentArgDef = func.getArgument(currentArg);
-        assert(currentArgDef);
-        const currentStringset = currentArgDef.getImplementationAnnotation('string_values');
-        for (const arg of func.iterateArguments()) {
-            if (arg.name === currentArgDef.name)
-                continue;
-
-            // for non base, we only check conflict between arguments of the same type, or same string set
-            if (currentPos !== 'base') {
-                if (currentStringset) {
-                    const stringset = arg.getImplementationAnnotation('string_values');
-                    if (stringset && stringset !== currentStringset)
-                        continue;
-                }
-                const currentType = currentArgDef.type instanceof Type.Array ? currentArgDef.type.elem as Type : currentArgDef.type;
-                const type = arg.type instanceof Type.Array ? arg.type.elem as Type : arg.type;
-                if (!currentType.equals(type))
+            for (const [pos, candidates] of Object.entries(candidatesByPos)) {
+                // for non-projection canonical, we only care about the arguments having conflict types
+                if (!PROJECTION_PARTS_OF_SPEECH.includes(pos) && !this._hasConflictTypes(arg, argument))
                     continue;
-            }
-
-            for (const pos in this.newCanonicals[arg.name]) {
-                for (const canonical of this.newCanonicals[arg.name][pos]) {
-                   if (canonical.replace('#', '').trim() === currentCanonical.replace('#', '').trim())
-                       return true;
-                }
-            }
-
-            const canonicals = arg.metadata.canonical;
-
-            for (const pos in canonicals) {
-                // if current pos is base, only check base
-                if (currentPos === 'base' && pos !== 'base')
-                    continue;
-                // if current pos is not base, only check non-base
-                if (currentPos !== 'base' && pos === 'base')
-                    continue;
-                let conflictFound = false;
-                const todelete = [];
-                for (let i = 0; i < canonicals[pos].length; i++) {
-                    const canonical = canonicals[pos][i];
-                    if (stemmer(canonical) === stemmer(currentCanonical)) {
-                        // conflict with the base canonical phrase of another parameter, return true directly
-                        if (i === 0)
-                            return true;
-                        // conflict with generate canonicals of another parameter, remove conflicts, then return true
-                        conflictFound = true;
-                        todelete.push(canonical);
-                    }
-                }
-                if (conflictFound) {
-                    for (const canonical of todelete) {
-                        const index = canonicals[pos].indexOf(canonical);
-                        canonicals[pos].splice(index, 1);
-                    }
+                
+                if (candidates.includes(candidate)) {
+                    // return true, and remove conflicted ones for the compared argument as well
+                    candidatesByPos[pos] = candidates.filter((c) => c === candidate);
                     return true;
                 }
             }
         }
 
-        //TODO: also consider conflicts between candidates
-
         return false;
     }
 
-    async _paraphrase() {
-        // skip paraphrase when no input generated
-        if (this._input.length === 0) {
-            this._output = [];
-            return;
-        }
-
-        // in travis, we skip the paraphrasing step because it's too memory intensive
-        if (process.env.CI || process.env.TRAVIS) {
-            this._output = this._input.slice();
-            return;
-        }
-
-        // if debug file exists, use them directly
-        if (fs.existsSync(`./paraphraser-out.json`)) {
-            this._output = JSON.parse(fs.readFileSync(`./paraphraser-out.json`, 'utf-8'));
-            return;
-        }
-
-        // genienlp run-paraphrase --input_column 0 --skip_heuristics --model_name_or_path xxx --temperature 1 1 1 --num_beams 4 --pipe_mode
-        const args = [
-            `run-paraphrase`,
-            `--task`, `paraphrase`,
-            `--input_column`, `0`,
-            `--skip_heuristics`,
-            `--model_name_or_path`, this.model,
-            `--temperature`, `1`, `1`, `1`,
-            `--num_beams`, `4`,
-            `--pipe_mode`,
-            `--batch_size`, this.options.batch_size
-        ];
-        const child = child_process.spawn(`genienlp`, args, { stdio: ['pipe', 'pipe', 'inherit'] });
-
-        const output = util.promisify(fs.writeFile);
-        if (this.options.debug)
-            await output(`./paraphraser-in.tsv`, this._input.join('\n'));
-
-        const stdout : string = await new Promise((resolve, reject) => {
-            child.stdin.write(this._input.join('\n'));
-            child.stdin.end();
-            child.on('error', reject);
-            child.stdout.on('error', reject);
-            child.stdout.setEncoding('utf8');
-            let buffer = '';
-            child.stdout.on('data', (data) => {
-                buffer += data;
-            });
-            child.stdout.on('end', () => resolve(buffer));
-        });
-
-        if (this.options.debug)
-            await output(`./paraphraser-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
-
-        this._output = JSON.parse(stdout);
+    private _hasConflictTypes(arg1 : string, arg2 : string) : boolean {
+        // FIXME: consider subtypes
+        // if types conflict
+        if (this.schema.getArgType(arg1)!.equals(this.schema.getArgType(arg2)!))
+            return true;
+        // if string set conflict
+        const stringSet1 = this.schema.getArgument(arg1)!.getImplementationAnnotation('string_values');
+        const stringSet2 = this.schema.getArgument(arg2)!.getImplementationAnnotation('string_values');
+        if (stringSet1 && stringSet2 && stringSet1 === stringSet2)
+            return true;
+        // otherwise 
+        return false;
     }
+}
 
-    generateInput(candidates : Record<string, any>) {
-        for (const category in candidates) {
-            if (category === 'base')
-                continue;
-            const canonical = Object.keys(candidates[category])[0];
-            for (const sentence of candidates[category][canonical])
-                this._input.push(`${sentence.charAt(0).toUpperCase()}${sentence.slice(1)}`);
+export default class AnnotationExtractor {
+    private class : Ast.ClassDef;
+    private queries : string[];
+    private options : AnnotationExtractorOptions;
+    private parser : PosParser;
+    private candidates : Record<string, Record<string, Record<string, string[]>>>;
+
+    constructor(klass : Ast.ClassDef, queries : string[], options : AnnotationExtractorOptions) {
+        this.class = klass;
+        this.queries = queries;
+        this.options = options;
+        this.parser = new PosParser();
+
+        this.candidates = {};
+        for (const qname of this.queries) {
+            this.candidates[qname] = {};
+            for (const arg of this.class.getFunction('query', qname)!.iterateArguments())
+                this.candidates[qname][arg.name] = {};
         }
     }
 
-    extractCanonical(arg : string, index : number, values : string[], query_canonical : string) {
-        const origin = this._input[index];
-        const paraphrases = this._output[index];
-
-        if (!(arg in this.newCanonicals))
-            this.newCanonicals[arg] = {};
-
-        const canonical = this.newCanonicals[arg];
-        // In case of boolean parameter, values field is empty, skip for now
-        if (!values)
-            return;
-        const value = values.find((v) => origin.includes(v));
-        if (!value) {
-            // base canonical, do nothing
-            return;
+    async run(examples : ParaphraseExample[]) {
+        // extract canonicals from paraphrases;
+        examples.forEach((ex) => this._extractCanonical(ex));
+        // validate extracted canonicals and add to schema
+        for (const qname of this.queries) {
+            const query : Ast.FunctionDef = this.class.getFunction('query', qname)!;
+            // filter candidates for each argument
+            for (const candidates of Object.values(this.candidates[qname]))
+                this._filterCandidates(candidates);
+            // remove conflict candidates among arguments
+            this._removeConflictedCandidates(qname);
+            // add filtered candidates to the canonical annotation
+            for (const [arg, candidates] of Object.entries(this.candidates[qname]))
+                this._addCandidates(query.getArgument(arg)!, candidates);
         }
-
-        for (const paraphrase of paraphrases)
-            this._extractOneCanonical(canonical, paraphrase, value, query_canonical);
     }
 
-    _extractOneCanonical(canonical : Record<string, any>, paraphrase : string, value : string, query_canonical : string) {
-        const annotations = this.parser.match('query', paraphrase, [query_canonical], value);
+    private _extractCanonical(example : ParaphraseExample) {
+        // FIXME: In case of boolean parameter or projection, values field is empty, skip for now
+        if (typeof example.value !== 'string') 
+            return;
+
+        const canonical = this.candidates[example.query][example.argument];
+        for (const paraphrase of example.paraphrases)
+            this._extractOneCanonical(canonical, paraphrase, example.value, example.queryCanonical);
+    }
+
+    private _extractOneCanonical(canonical : Record<string, string[]>, paraphrase : string, value : string, queryCanonical : string) {
+        const annotations = this.parser.match('query', paraphrase, [queryCanonical], value);
         if (annotations) {
             for (const annotation of annotations) {
-                canonical[annotation.pos] = canonical[annotation.pos] || [];
+                canonical[annotation.pos] = canonical[annotation.pos] ?? [];
                 canonical[annotation.pos].push(annotation.canonical.replace('$value', '#'));
             }
         }
     }
+        
+    private _filterCandidates(candidatesByPos : Record<string, string[]>) {
+        const wordCounter = this._countWords(candidatesByPos);
+        for (const [pos, candidates] of Object.entries(candidatesByPos)) {
+            const dedupedCandidates = new Set(candidates);
+            const filteredCandidates = [];
+            for (const candidate of dedupedCandidates) {
+                // skip candidate with value directly connected with a word
+                if (PROJECTION_PARTS_OF_SPEECH.includes(pos) && !/(#\w)|(\w#)/.test(candidate))
+                    continue;
+                // skip value only candidate for non-adjectives
+                if (candidate === '#' && !pos.startsWith('adjective'))
+                    continue;
+                // skip candidate with rare word in it 
+                let includesRareWord = false;
+                for (const word of candidate.split(' ')) {
+                    if (wordCounter[word] < 2) {
+                        includesRareWord = true;
+                        break;
+                    }
+                }
+                if (this.options.filtering && includesRareWord)
+                    continue;
+                filteredCandidates.push(candidate);
+            }
+            candidatesByPos[pos] = filteredCandidates;
+        }
+    }
 
+    private _countWords(candidates : Record<string, string[]>) : Record<string, number> {
+        const counter : Record<string, number> = {};
+        for (const pos in candidates) {
+            for (const candidate of candidates[pos]) {
+                for (const word of candidate.split(' '))
+                    counter[word] = (counter[word] ?? 0) + 1;
+            }
+        }
+        return counter;
+    }
+
+    private _removeConflictedCandidates(query : string) {
+        const conflictResolver = new ConflictResolver(this.class.getFunction('query', query)!, this.candidates[query]);
+        conflictResolver.resolve();
+    }
+
+    private _addCandidates(argument : Ast.ArgumentDef, candidates : Record<string, string[]>) {
+        const canonicalAnnotation : Record<string, string[]> = argument.getNaturalLanguageAnnotation('canonical')!;
+        for (const [pos, canonicals] of Object.entries(candidates)) {
+            if (canonicals.length === 0)
+                continue;
+            if (!(pos in canonicalAnnotation)) {
+                canonicalAnnotation[pos] = canonicals;
+            } else {
+                for (const canonical of canonicals) {
+                    if (canonicalAnnotation[pos].includes(canonical))
+                        continue;
+                    if (canonical.endsWith(' #') && canonicalAnnotation[pos].includes(canonical.slice(0, -2)))
+                        continue;
+                    canonicalAnnotation[pos].push(canonical);
+                }
+            }
+
+        }
+    }
 }

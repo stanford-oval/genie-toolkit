@@ -22,8 +22,37 @@ import * as ThingTalk from 'thingtalk';
 import { clean } from '../../../lib/utils/misc-utils';
 import EnglishLanguagePack from '../../../lib/i18n/english';
 
+export const PARTS_OF_SPEECH = [
+    'base',
+    'property',
+    'property_true',
+    'property_false',
+    'reverse_property',
+    'reverse_property_true',
+    'reverse_property_false',
+    'verb',
+    'verb_true',
+    'verb_false',
+    'passive_verb',
+    'passive_verb_true',
+    'passive_verb_false',
+    'adjective',
+    'adjective_true',
+    'adjective_false',
+    'preposition',
+    'preposition_true',
+    'preposition_false',
+    'reverse_verb'
+];
+
+export const PROJECTION_PARTS_OF_SPEECH = [
+    'base',
+    'reverse_verb',
+];
+
 export interface Canonicals {
     base ?: string[],
+    base_projection ?: string[],
     property ?: string[],
     property_true ?: string[],
     property_false ?: string[],
@@ -32,10 +61,14 @@ export interface Canonicals {
     verb ?: string[],
     verb_true ?: string[],
     passive_verb ?: string[],
+    passive_verb_true ?: string[],
     adjective ?: string[],
+    adjective_argmin ?: string[],
+    adjective_argmax ?: string[],
     adjective_true ?: string[],
     preposition ?: string[]
-    preposition_true : string[]
+    preposition_true ?: string[],
+    reverse_verb ?: string[]
 }
 
 export interface CanonicalAnnotation extends Canonicals {
