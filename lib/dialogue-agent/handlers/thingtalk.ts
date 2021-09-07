@@ -479,11 +479,18 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         this.icon = getProgramIcon(this._dialogueState!);
 
+        const before : Array<string|Tp.FormatObjects.FormattedObject> = [];
         const messages : Array<string|Tp.FormatObjects.FormattedObject> = [utterance];
 
         for (const [outputType, outputValue] of newResults.slice(0, policyResult.numResults)) {
             const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
-            messages.push(...formatted);
+
+            for (const msg of formatted) {
+                if (msg.type === 'sound' && (msg as any).before)
+                    before.push(msg);
+                else
+                    messages.push(msg);
+            }
         }
 
         let expecting : ValueCategory|null;
@@ -508,7 +515,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             expecting = ValueCategory.Generic;
 
         return {
-            messages,
+            messages: before.concat(messages),
             context: oldState ? oldState!.prettyprint() : '',
             agent_target: agentTarget,
             expecting,
@@ -538,11 +545,16 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 assert(parsed instanceof Ast.DialogueState);
                 this._dialogueState = parsed;
 
-                // execute the current dialogue state
-                // this will attempt to run all the programs that failed in the
-                // previous conversation (most likely because they were executed
-                // in the anonymous context)
-                return this._executeCurrentState();
+                if (!this._dialogueState.dialogueAct.startsWith('sys_')) {
+                    // execute the current dialogue state
+                    // this will attempt to run all the programs that failed in the
+                    // previous conversation (most likely because they were executed
+                    // in the anonymous context)
+                    return this._executeCurrentState();
+                } else {
+                    this.icon = getProgramIcon(this._dialogueState);
+                    return null;
+                }
             }
         } else if (showWelcome) {
             // if we want to show the welcome message, we run the policy on the `null` state, which will return the sys_greet intent

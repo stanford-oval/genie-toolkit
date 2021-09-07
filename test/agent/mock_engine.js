@@ -150,6 +150,10 @@ class MockDevice {
     queryInterface() {
         return null;
     }
+
+    serialize() {
+        return { kind: this.kind };
+    }
 }
 
 class MockTwitterDevice extends MockDevice {
@@ -333,10 +337,13 @@ class MockDeviceDatabase extends events.EventEmitter {
     addSerialized(blob) {
         if (blob.kind === 'com.bing') {
             console.log('MOCK: Loading bing');
-            return Promise.resolve(this._devices['com.bing'] = new MockBingDevice());
+            this._devices['com.bing'] = new MockBingDevice();
+            this.emit('device-added', this._devices['com.bing']);
+            return Promise.resolve();
         } else {
             console.log('MOCK: Loading device ' + JSON.stringify(blob));
             const device = new MockUnknownDevice(blob.kind);
+            this.emit('device-added', device);
             return Promise.resolve(this._devices[device.uniqueId] = device);
         }
     }

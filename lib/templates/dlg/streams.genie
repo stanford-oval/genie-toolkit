@@ -28,8 +28,10 @@ import * as D from '../dialogue_acts';
 import ThingpediaLoader from '../load-thingpedia';
 
 notification_preamble : S.ContextInfo = {
-    ["reminder:", priority=1] : (ctx : ctx_with_notification) => D.checkIsReminder(ctx) ? ctx : null,
-    
+    ["reminder:", priority=1] : (ctx : ctx_with_notification) => D.checkIsReminder(ctx, 'say'),
+    ["alert:", priority=1] : (ctx : ctx_with_notification) => D.checkIsReminder(ctx, 'alert'),
+    ["alert:", priority=1] : (ctx : ctx_with_notification) => D.checkIsReminder(ctx, 'timer_expire'),
+
     ["notification from ${app}:"] : (ctx : ctx_with_notification, app : ctx_notification_app_name) => ctx,
 
     // empty preamble if we don't have the app name

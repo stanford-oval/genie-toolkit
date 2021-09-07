@@ -122,9 +122,12 @@ export default class SpeechHandler extends events.EventEmitter {
     }
 
     // called from conversation
-    setHypothesis() : void {
+    async setHypothesis() {
         // ignore, this is called from the conversation when it broadcasts the hypothesis
         // to all listeners
+    }
+    async addDevice() {
+        // ignore
     }
 
     private _waitFinishSpeaking() {

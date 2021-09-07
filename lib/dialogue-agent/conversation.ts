@@ -21,6 +21,7 @@
 import * as events from 'events';
 import * as ThingTalk from 'thingtalk';
 import * as Stream from "stream";
+import * as Tp from 'thingpedia';
 
 import * as I18n from '../i18n';
 
@@ -60,6 +61,7 @@ export interface ConversationOptions {
         highConfidence ?: number;
         lowConfidence ?: number;
     }>;
+    syncDevices ?: boolean;
 }
 
 interface Statistics {
@@ -72,8 +74,9 @@ interface Context {
 }
 
 export interface ConversationDelegate {
-    setHypothesis(hyp : string) : void;
-    setExpected(expect : string|null, ctx : Context) : void;
+    setHypothesis(hyp : string) : Promise<void>;
+    setExpected(expect : string|null, ctx : Context) : Promise<void>;
+    addDevice(uniqueId : string, state : Tp.BaseDevice.DeviceState) : Promise<void>;
     addMessage(msg : Message) : Promise<void>;
 }
 
@@ -107,6 +110,7 @@ export default class Conversation extends events.EventEmitter {
     private _expecting : ValueCategory|null;
     private _context : Context;
 
+    private _started : boolean;
     private _delegates : Set<ConversationDelegate>;
     private _history : Message[];
     private _nextMsgId : number;
@@ -114,6 +118,8 @@ export default class Conversation extends events.EventEmitter {
     private _inactivityTimeoutSec : number;
     private _contextResetTimeout : NodeJS.Timeout|null;
     private _contextResetTimeoutSec : number;
+    private _syncDevices : boolean;
+    private _deviceAddedListener : (d : Tp.BaseDevice) => void;
 
     private _log : ConversationLogger;
     private readonly _conversationStateDB : LocalTable<ConversationStateRow>;
@@ -154,6 +160,11 @@ export default class Conversation extends events.EventEmitter {
         this._delegates = new Set;
         this._history = [];
         this._nextMsgId = 0;
+        this._syncDevices = options.syncDevices ?? false;
+        this._deviceAddedListener = (d : Tp.BaseDevice) => {
+            this.sendNewDevice(d);
+        };
+        this._started = false;
 
         this._inactivityTimeout = null;
         this._inactivityTimeoutSec = options.inactivityTimeout || DEFAULT_CONVERSATION_TTL;
@@ -215,16 +226,26 @@ export default class Conversation extends events.EventEmitter {
 
     async start(state ?: ConversationState) : Promise<void> {
         this._resetInactivityTimeout();
+
+        if (this._syncDevices) {
+            this._engine.devices.on('device-added', this._deviceAddedListener);
+            this._engine.devices.on('device-changed', this._deviceAddedListener);
+        }
+
         if (state) {
             for (const msg of state.history)
                 await this.addMessage(msg);
             this._nextMsgId = state.lastMessageId+1;
         }
+        this._started = true;
+
         return this._loop.start(!!this._options.showWelcome,
             state ? state.dialogueState : null);
     }
 
     async stop() : Promise<void> {
+        this._engine.devices.removeListener('device-added', this._deviceAddedListener);
+        this._engine.devices.removeListener('device-changed', this._deviceAddedListener);
         return this._loop.stop();
     }
 
@@ -252,31 +273,41 @@ export default class Conversation extends events.EventEmitter {
 
     async addOutput(out : ConversationDelegate, replayHistory = true) {
         this._delegates.add(out);
+        if (this._syncDevices) {
+            for (const d of this._engine.devices.getAllDevices()) {
+                if (!await this._callDelegate(out, (out) => out.addDevice(d.uniqueId!, d.serialize())))
+                    return;
+            }
+        }
         if (replayHistory) {
             for (const msg of this._history) {
-                try {
-                    await out.addMessage(msg);
-                } catch(e) {
-                    // delegate disappeared immediately (race condition)
-                    this._delegates.delete(out);
+                if (!await this._callDelegate(out, (out) => out.addMessage(msg)))
                     return;
-                }
             }
+        }
+
+        if (this._started) {
+            const what = ValueCategory.toString(this._expecting);
+            await this._callDelegate(out, (out) => out.setExpected(what, this._context));
         }
     }
     async removeOutput(out : ConversationDelegate) {
         this._delegates.delete(out);
     }
 
+    private async _callDelegate(out : ConversationDelegate, fn : (out : ConversationDelegate) => unknown) {
+        try {
+            await fn(out);
+            return true;
+        } catch(e) {
+            // delegate disappeared (likely a disconnected websocket)
+            this._delegates.delete(out);
+            return false;
+        }
+    }
+
     private _callDelegates(fn : (out : ConversationDelegate) => unknown) {
-        return Promise.all(Array.from(this._delegates).map(async (out) => {
-            try {
-                await fn(out);
-            } catch(e) {
-                // delegate disappeared (likely a disconnected websocket)
-                this._delegates.delete(out);
-            }
-        }));
+        return Promise.all(Array.from(this._delegates).map((out) => this._callDelegate(out, fn)));
     }
 
     async setHypothesis(hypothesis : string) : Promise<void> {
@@ -317,7 +348,7 @@ export default class Conversation extends events.EventEmitter {
     async saveState(lastMessageId : number) {
         const conversationState = this.getState();
         const row = {
-            history: JSON.stringify(conversationState.history),
+            history: JSON.stringify(/* FIXME conversationState.history */ []),
             dialogueState: JSON.stringify(conversationState.dialogueState),
             lastMessageId: lastMessageId,
         };
@@ -474,6 +505,13 @@ export default class Conversation extends events.EventEmitter {
         if (this._debug)
             console.log('Genie executed new program: '+ program.uniqueId);
         return this.addMessage({ type: MessageType.NEW_PROGRAM, ...program });
+    }
+
+    sendNewDevice(device : Tp.BaseDevice) {
+        if (this._debug)
+            console.log('Genie sends a new device: '+ device.uniqueId);
+        const state = device.serialize();
+        return this._callDelegates((out) => out.addDevice(device.uniqueId!, state));
     }
 
     sendPing() {

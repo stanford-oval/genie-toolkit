@@ -97,6 +97,9 @@ class TestDelegate {
         this._testRunner.writeLine('>> context = ' + context.code.join(' ') + ' // ' + JSON.stringify(context.entities));
         this._testRunner.writeLine('>> expecting = ' + expect);
     }
+    addDevice(uniqueId, state) {
+        console.log('new-device ' + uniqueId + ', state = ' + JSON.stringify(state));
+    }
 
     addMessage(msg) {
         switch (msg.type) {
@@ -113,6 +116,16 @@ class TestDelegate {
         case 'picture':
             checkIcon(msg);
             this._testRunner.writeLine('picture: ' + msg.url);
+            break;
+
+        case 'sound':
+            checkIcon(msg);
+            this._testRunner.writeLine('sound: ' + msg.name);
+            break;
+
+        case 'audio':
+            checkIcon(msg);
+            this._testRunner.writeLine('audio: ' + msg.url);
             break;
 
         case 'rdl':
@@ -273,6 +286,7 @@ async function main(onlyIds) {
         showWelcome: true,
         anonymous: false,
         rng: rng,
+        syncDevices: true,
 
         faqModels: {
             'covid-faq': {

@@ -73,11 +73,16 @@ export enum MessageType {
     LINK = 'link',
     BUTTON = 'button',
     RDL = 'rdl',
-    NEW_PROGRAM = 'new-program',
     SOUND_EFFECT = 'sound',
     AUDIO = 'audio',
     VIDEO = 'video',
-    PING = 'ping'
+
+    // status changes from the engine
+    NEW_PROGRAM = 'new-program',
+    NEW_DEVICE = 'new-device',
+
+    // control messages
+    PING = 'ping',
 }
 
 export interface TextMessage {
