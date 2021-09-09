@@ -219,10 +219,17 @@ export class Describer {
             default:
                 throw new Error(`Invalid time unit ${date.unit}`);
             }
-            if (date.edge === 'start_of')
-                base = this._interp(this._("the start of ${unit}"), { unit });
-            else
-                base = this._interp(this._("the end of ${unit}"), { unit });
+            if (date.edge === 'start_of') {
+                if (date.unit === "day")
+                    base = this._interp(this._("today"), {});
+                else
+                    base = this._interp(this._("the start of ${unit}"), { unit });
+            } else {
+                if (date.unit === "day")
+                    base = this._interp(this._("tomorrow"), {});
+                else
+                    base = this._interp(this._("the end of ${unit}"), { unit });
+            }
         } else if (date instanceof Ast.WeekDayDate) {
             const time = date.time === null ? this._("start of day") : this._describeTime(date.time);
             const weekday = this._(date.weekday);
@@ -294,8 +301,12 @@ export class Describer {
                 return this._interp(this._("the total ${arg}"), { arg: operands[0] });
             case 'count':
                 return this._interp(this._("the number of ${arg}"), { arg: operands[0] });
-            case 'set_time':
-                return this._interp(this._("set time ${time} on date ${date}"), { date : operands[0], time: operands[1] });
+            case 'set_time': {
+                if (String(operands[0]).includes('now'))
+                    return this._interp(this._("${time} today"), { time: operands[1] });
+                else
+                    return this._interp(this._("${time} on ${date}"), { date : operands[0], time: operands[1] });
+            }
             default:
                 throw new TypeError(`Unexpected computation operator ${arg.op}`);
             }
