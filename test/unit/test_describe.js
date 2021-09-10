@@ -378,7 +378,12 @@ const TEST_CASES = [
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
     ontimer(date=[$now + 5min]) => @org.thingpedia.builtin.thingengine.builtin.alert();`,
     `Alert at 5 min past now.`,
-    ``]
+    ``],
+    
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    now => (@com.spotify2.song(), id =~ ("despacito")) => @com.spotify2.play(playable=id);`,
+    'Get songs that have name despacito and then play them on Spotify.', 
+    `Spotify2 ⇒ Spotify2`]
 ];
 
 async function test(i) {

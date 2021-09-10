@@ -219,17 +219,10 @@ export class Describer {
             default:
                 throw new Error(`Invalid time unit ${date.unit}`);
             }
-            if (date.edge === 'start_of') {
-                if (date.unit === "day")
-                    base = this._interp(this._("today"), {});
-                else
-                    base = this._interp(this._("the start of ${unit}"), { unit });
-            } else {
-                if (date.unit === "day")
-                    base = this._interp(this._("tomorrow"), {});
-                else
-                    base = this._interp(this._("the end of ${unit}"), { unit });
-            }
+            if (date.edge === 'start_of')
+                base = this._interp(this._("the start of ${unit}"), { unit });
+            else
+                base = this._interp(this._("the end of ${unit}"), { unit });
         } else if (date instanceof Ast.WeekDayDate) {
             const time = date.time === null ? this._("start of day") : this._describeTime(date.time);
             const weekday = this._(date.weekday);
@@ -258,7 +251,10 @@ export class Describer {
                 name = new ReplacedConcatenation([name], {}, {});
             if (skipThePrefix)
                 return name;
-            return this._interp(this._("the ${name} [plural=name[plural]]"), { name });
+            if (arg.name ==='id')
+                return this._interp(this._("{them [plural=other]|it [plural=one]}"), {});
+            else
+                return this._interp(this._("the ${name} [plural=name[plural]]"), { name });
         }
         if (arg instanceof Ast.ComputationValue) {
             if ((arg.op === '+' || arg.op === '-') &&
@@ -302,10 +298,19 @@ export class Describer {
             case 'count':
                 return this._interp(this._("the number of ${arg}"), { arg: operands[0] });
             case 'set_time': {
-                if (String(operands[0]).includes('now'))
+                if (arg.operands[0] instanceof Ast.DateValue && arg.operands[0].value === null)
                     return this._interp(this._("${time} today"), { time: operands[1] });
-                else
-                    return this._interp(this._("${time} on ${date}"), { date : operands[0], time: operands[1] });
+                if (arg.operands[0] instanceof Ast.DateValue && 
+                    arg.operands[0].value instanceof Ast.DateEdge && 
+                    arg.operands[0].value.edge === 'start_of' &&
+                    arg.operands[0].value.unit === 'day')
+                    return this._interp(this._("${time} today"), { time: operands[1] });
+                if (arg.operands[0] instanceof Ast.DateValue && 
+                    arg.operands[0].value instanceof Ast.DateEdge && 
+                    arg.operands[0].value.edge === 'end_of' &&
+                    arg.operands[0].value.unit === 'day')
+                    return this._interp(this._("${time} tomorrow"), { time: operands[1] });
+                return this._interp(this._("${time} on ${date}"), { date : operands[0], time: operands[1] });
             }
             default:
                 throw new TypeError(`Unexpected computation operator ${arg.op}`);
