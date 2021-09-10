@@ -348,7 +348,42 @@ const TEST_CASES = [
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
     @com.spotify2.playable() filter contains(artists, null^^com.spotify2:artist("roddy ricch")) && id =~ "box";`,
     `Get music by roddy ricch and have name box.`,
-    ``]
+    ``],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    ontimer(date=[set_time($now, new Time(12, 35))]) => @org.thingpedia.builtin.thingengine.builtin.alert();`,
+    `Alert at 12:35 PM today.`,
+    ``],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    ontimer(date=[set_time($end_of(day), new Time(12, 35))]) => @org.thingpedia.builtin.thingengine.builtin.alert();`,
+    `Alert at 12:35 PM tomorrow.`,
+    ``],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    ontimer(date=[set_time($start_of(day), new Time(12, 35))]) => @org.thingpedia.builtin.thingengine.builtin.alert();`,
+    `Alert at 12:35 PM today.`,
+    ``],
+    
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    ontimer(date=[set_time(new Date("08-12-2021"), new Time(12, 35))]) => @org.thingpedia.builtin.thingengine.builtin.alert();`,
+    `Alert at 12:35 PM on August 12.`,
+    ``],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    ontimer(date=[set_time($start_of(week), new Time(12, 35))]) => @org.thingpedia.builtin.thingengine.builtin.alert();`,
+    `Alert at 12:35 PM on the start of this week.`,
+    ``],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    ontimer(date=[$now + 5min]) => @org.thingpedia.builtin.thingengine.builtin.alert();`,
+    `Alert at 5 min past now.`,
+    ``],
+    
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    now => (@com.spotify2.song(), id =~ ("despacito")) => @com.spotify2.play(playable=id);`,
+    'Get songs that have name despacito and then play them on Spotify.', 
+    `Spotify2 ⇒ Spotify2`]
 ];
 
 async function test(i) {
