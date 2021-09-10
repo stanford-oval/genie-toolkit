@@ -114,6 +114,12 @@ export function initArgparse(subparsers) {
         action: 'store_true',
         help: `Make use of the entity type names when generating projection annotations`
     });
+    parser.add_argument('--max-per-pos', {
+        required: false,
+        type: Number,
+        default: 5,
+        help: `The maximum number of canonicals per part of speech`
+    });
     parser.add_argument('--debug', {
         required: false,
         default: false,

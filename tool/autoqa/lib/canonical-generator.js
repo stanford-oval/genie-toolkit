@@ -276,9 +276,27 @@ export default class AutoCanonicalGenerator {
                 }
             }
             this._addProjectionCanonicals();
+            this._trimAnnotations();
         }
 
         return this.class;
+    }
+
+    _trimAnnotations() {
+        for (let fname of this.functions) {
+            let func = this.class.queries[fname] || this.class.actions[fname];
+            for (let arg of func.iterateArguments()) {
+                if (this.annotatedProperties.includes(arg.name) || arg.name === 'id')
+                    continue;
+                    
+                const canonicalAnnotation = arg.metadata.canonical;
+                for (const pos in canonicalAnnotation) {
+                    if (pos === 'default')
+                        continue;
+                    canonicalAnnotation[pos] = canonicalAnnotation[pos].slice(0, this.options.max_per_pos);
+                }
+            }
+        }
     }
 
     _getArgTypeCount(schema) {
