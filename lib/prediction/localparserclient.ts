@@ -79,6 +79,7 @@ export default class LocalParserClient {
         this._tokenizer = this._langPack.getTokenizer();
         this._predictor = new Predictor(modeldir, options);
 
+        this._platform = platform;
         this._exactmatcher = exactmatcher;
         this._tpClient = tpClient;
     }
