@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import { Temporal } from '@js-temporal/polyfill';
 import assert from 'assert';
 
 import * as ThingTalk from 'thingtalk';
@@ -381,6 +381,8 @@ class SimulationExecEnvironment extends ExecEnvironment {
     private _simulateErrors : boolean;
     private _testDevice = new SimpleTestDevice();
     private _delegate ! : OutputDelegate;
+    private _locale : string;
+    private _timezone : string;
 
     private _execCache : Array<[string, Record<string, string>, Record<string, unknown>, Array<[string, Record<string, unknown>]>]>;
 
@@ -398,6 +400,8 @@ class SimulationExecEnvironment extends ExecEnvironment {
         this._database = database;
         this._rng = rng;
         this._simulateErrors = simulateErrors;
+        this._locale = locale;
+        this._timezone = timezone ?? Temporal.Now.timeZone().id;
 
         this.generator = null;
     }
@@ -408,6 +412,12 @@ class SimulationExecEnvironment extends ExecEnvironment {
 
     get program_id() {
         return new ThingTalk.Entity('uuid-simulation', null);
+    }
+    get locale() {
+        return this._locale;
+    }
+    get timezone() {
+        return this._timezone;
     }
 
     clearGetCache() {
