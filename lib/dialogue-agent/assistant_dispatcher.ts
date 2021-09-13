@@ -77,7 +77,6 @@ class StatelessConversationDelegate implements ConversationDelegate {
     }
 
     async setExpected(what : string|null) {
-        assert(this._askSpecial === null);
         this._askSpecial = what;
     }
 
