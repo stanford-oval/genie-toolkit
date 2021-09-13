@@ -92,7 +92,7 @@ export default class DialoguePolicy {
         this._locale = options.locale;
         this._timezone = options.timezone;
         this._langPack = I18n.get(options.locale);
-        this._entityAllocator = new Syntax.SequentialEntityAllocator({});
+        this._entityAllocator = new Syntax.SequentialEntityAllocator({}, { timezone: this._timezone });
 
         this._rng = options.rng;
         assert(this._rng);

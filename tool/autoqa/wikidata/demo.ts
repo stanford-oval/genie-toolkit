@@ -33,12 +33,14 @@ class CommandLineHandler {
     private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _parser : ParserClient.ParserClient;
+    private _timezone : string;
 
-    constructor(rl : readline.Interface, options : { locale : string, server : string, thingpedia : string }) {
+    constructor(rl : readline.Interface, options : { locale : string, timezone : string, server : string, thingpedia : string }) {
         this._rl = rl;
         this._rl.on('line', this._onLine.bind(this));
         this._rl.on('SIGINT', this._quit.bind(this));
 
+        this._timezone = options.timezone;
         this._tpClient = new Tp.FileClient(options);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
         this._parser = ParserClient.get(options.server, 'en-US');
@@ -65,6 +67,7 @@ class CommandLineHandler {
             return;
         }
         const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+            timezone: this._timezone,
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas
         });
@@ -110,6 +113,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 'en-US',
         help: `BGP 47 locale tag of the language to use for the assistant (defaults to 'en-US', English)`
     });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
+    });
     parser.add_argument('--manifest', {
         required: true,
         help: 'URL of wikidata manifest to use.'
@@ -123,6 +131,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 export async function execute(args : any) {
     const options = {
         locale: args.locale,
+        timezone: args.timezone,
         thingpedia: args.manifest,
         server: args.model
     };

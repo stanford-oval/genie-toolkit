@@ -29,6 +29,7 @@ import { SentenceExample } from '../parsers';
 
 interface DatasetAugmenterOptions {
     locale : string;
+    timezone : string;
     paramLocale : string;
     rng : () => number;
     debug : boolean;
@@ -88,6 +89,7 @@ export default class DatasetAugmenter extends Stream.Transform {
             constProvider: constProvider,
 
             paramLocale: options.paramLocale,
+            timezone: options.timezone,
             rng: this._rng,
             addFlag: true,
             quotedProbability: this._options.quotedProbability,

@@ -61,7 +61,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--timezone', {
         required: false,
         default: undefined,
-        help: `Timezone to use to print dates and times (defaults to the current timezone).`
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--thingpedia', {
         required: true,
@@ -130,6 +130,7 @@ class SimulatorStream extends Stream.Transform {
     private _tpClient : Tp.BaseClient;
     private _outputMistakesOnly : boolean;
     private _locale : string;
+    private _timezone : string;
     private _langPack : I18n.LanguagePack;
 
     constructor(policy : DialoguePolicy,
@@ -138,7 +139,8 @@ class SimulatorStream extends Stream.Transform {
                 parser : ParserClient.ParserClient | null,
                 tpClient : Tp.BaseClient,
                 outputMistakesOnly : boolean,
-                locale : string) {
+                locale : string,
+                timezone : string) {
         super({ objectMode : true });
 
         this._dialoguePolicy = policy;
@@ -148,6 +150,7 @@ class SimulatorStream extends Stream.Transform {
         this._tpClient = tpClient;
         this._outputMistakesOnly = outputMistakesOnly;
         this._locale = locale;
+        this._timezone = timezone;
         this._langPack = I18n.get(locale);
     }
 
@@ -180,6 +183,7 @@ class SimulatorStream extends Stream.Transform {
             });
 
             const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+                timezone: this._timezone,
                 thingpediaClient: this._tpClient,
                 schemaRetriever: this._schemas,
                 loadMetadata: true
@@ -193,10 +197,12 @@ class SimulatorStream extends Stream.Transform {
             }
             const normalizedUserTarget : string = ThingTalkUtils.serializePrediction(userTarget, parsed.tokens, parsed.entities, {
                 locale: this._locale,
+                timezone: this._timezone,
                 ignoreSentence: true
             }).join(' ');
             const normalizedGoldUserTarget : string = ThingTalkUtils.serializePrediction(goldUserTarget, parsed.tokens, parsed.entities, {
                 locale: this._locale,
+                timezone: this._timezone,
                 ignoreSentence: true
             }).join(' ');
 
@@ -341,7 +347,7 @@ export async function execute(args : any) {
             readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
             .pipe(new DialogueToPartialDialoguesStream()) // convert each dialogues to many partial dialogues
-            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
+            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale, args.timezone))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
         );
@@ -349,7 +355,7 @@ export async function execute(args : any) {
         await StreamUtils.waitFinish(
             readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
-            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
+            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale, args.timezone))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
         );

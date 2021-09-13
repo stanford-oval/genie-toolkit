@@ -25,6 +25,7 @@ import * as I18n from '../../i18n';
 
 interface EntityRetrieverOptions {
     locale : string;
+    timezone : string|undefined;
     allowNonConsecutive : boolean;
     useHeuristics : boolean;
     alwaysAllowStrings : boolean;
@@ -43,7 +44,7 @@ export default class GenieEntityRetriever extends Syntax.EntityRetriever {
     constructor(sentence : string[],
                 entities : Syntax.EntityMap,
                 options : EntityRetrieverOptions) {
-        super(sentence, entities);
+        super(sentence, entities, options);
 
         this._locale = options.locale;
         this._langPack = I18n.get(this._locale);

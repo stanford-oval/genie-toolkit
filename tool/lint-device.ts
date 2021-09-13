@@ -22,6 +22,7 @@ import * as argparse from 'argparse';
 import * as ThingTalk from 'thingtalk';
 import * as Tp from 'thingpedia';
 import { promises as pfs } from 'fs';
+import { Temporal } from '@js-temporal/polyfill';
 
 import { splitParams } from '../lib/utils/misc-utils';
 
@@ -49,14 +50,14 @@ function validateMetadata(metadata : Record<string, unknown>, allowed : Set<stri
     }
 }
 
-function parseNewOrOldSyntax(code : string) {
+function parseNewOrOldSyntax(code : string, options : ThingTalk.Syntax.ParseOptions) {
     try {
-        return ThingTalk.Syntax.parse(code);
+        return ThingTalk.Syntax.parse(code, ThingTalk.Syntax.SyntaxType.Normal, options);
     } catch(e1) {
         if (e1.name !== 'SyntaxError')
             throw e1;
         try {
-            const parsed = ThingTalk.Syntax.parse(code, ThingTalk.Syntax.SyntaxType.Legacy);
+            const parsed = ThingTalk.Syntax.parse(code, ThingTalk.Syntax.SyntaxType.Legacy, options);
             warning('WARNING: manifest.tt and dataset.tt use legacy syntax, you should migrate to ThingTalk 2.0');
             return parsed;
         } catch(e2) {
@@ -69,21 +70,25 @@ function parseNewOrOldSyntax(code : string) {
 
 class SimplePlatform extends Tp.BasePlatform {
     private _developerKey : string|null;
+    private _locale : string;
+    private _timezone : string;
     private _prefs : Tp.Preferences;
 
-    constructor(developerKey : string|null) {
+    constructor(options : { developer_key : string|null, locale : string, timezone : string|undefined }) {
         super();
-        this._developerKey = developerKey;
+        this._developerKey = options.developer_key;
+        this._locale = options.locale;
+        this._timezone = options.timezone ?? Temporal.Now.timeZone().id;
         this._prefs = new Tp.Helpers.MemoryPreferences();
     }
     get type() {
         return 'simple';
     }
     get locale() {
-        return 'en-US';
+        return this._locale;
     }
     get timezone() {
-        return 'America/Los_Angeles';
+        return this._timezone;
     }
     hasCapability() {
         return false;
@@ -101,7 +106,7 @@ class SimplePlatform extends Tp.BasePlatform {
 
 
 async function loadClassDef(args : any, classCode : string, datasetCode : string) : Promise<[ThingTalk.Ast.ClassDef, ThingTalk.Ast.Dataset]> {
-    const platform = new SimplePlatform(args.developer_key);
+    const platform = new SimplePlatform(args);
     const prefs = platform.getSharedPreferences();
     if (args.thingpedia_dir && args.thingpedia_dir.length)
         prefs.set('developer-dir', args.thingpedia_dir);
@@ -110,7 +115,7 @@ async function loadClassDef(args : any, classCode : string, datasetCode : string
 
     let parsed;
     try {
-        parsed = await parseNewOrOldSyntax(`${classCode}\n${datasetCode}`).typecheck(schemaRetriever, true);
+        parsed = await parseNewOrOldSyntax(`${classCode}\n${datasetCode}`, { locale: args.locale, timezone: args.timezone }).typecheck(schemaRetriever, true);
     } catch(e) {
         if (e.name === 'SyntaxError' && e.location) {
             let lineNumber = e.location.start.line;
@@ -300,6 +305,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('lint-device', {
         add_help: true,
         description: "Check the manifest for a Thingpedia device."
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--thingpedia-url', {
         required: false,

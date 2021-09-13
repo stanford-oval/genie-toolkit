@@ -24,6 +24,7 @@ import * as TT from 'thingtalk';
 import * as stream from 'stream';
 
 import CustomError from '../../../utils/custom_error';
+import * as ThingTalkUtils from '../../../utils/thingtalk';
 
 import type ExecWrapper from '../../apps/exec_wrapper';
 import type AssistantEngine from '../..';
@@ -167,17 +168,12 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
             dataset = this.engine.thingpedia.getAllExamples();
 
         const code = await dataset;
-        let parsed;
-        try {
-            parsed = TT.Syntax.parse(code);
-        } catch(e) {
-            if (e.name !== 'SyntaxError')
-                throw e;
-            // try parsing using legacy syntax too in case we're talking
-            // to an old Thingpedia that has not been migrated
-            parsed = TT.Syntax.parse(code, TT.Syntax.SyntaxType.Legacy);
-        }
-        await parsed.typecheck(this.engine.schemas, false);
+        const parsed = await ThingTalkUtils.parse(code, {
+            locale: this.platform.locale,
+            timezone: this.platform.timezone,
+            thingpediaClient: this.engine.thingpedia,
+            schemaRetriever: this.engine.schemas
+        });
         assert(parsed instanceof TT.Ast.Library);
 
         return parsed.datasets[0].examples.map((ex) => {

@@ -69,6 +69,7 @@ class CacheSerializer extends Stream.Transform {
 
 class TypecheckStream extends Stream.Transform {
     private _locale : string;
+    private _timezone : string;
     private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _cache : Map<string, CacheEntry>;
@@ -87,10 +88,11 @@ class TypecheckStream extends Stream.Transform {
                 cache : Map<string, CacheEntry>,
                 cacheOut : Stream.Writable|undefined,
                 droppedOut : Stream.Writable,
-                args : { interactive : boolean, strict : boolean, locale : string }) {
+                args : { interactive : boolean, strict : boolean, locale : string, timezone : string }) {
         super({ objectMode: true });
 
         this._locale = args.locale;
+        this._timezone = args.timezone;
         this._tpClient = tpClient;
         this._schemas = schemas;
         this._cache = cache;
@@ -169,7 +171,8 @@ class TypecheckStream extends Stream.Transform {
         try {
             const program = await ThingTalkUtils.parse(line, this._schemas);
             const code = ThingTalkUtils.serializePrediction(program, this._current!.preprocessed, this._entities!, {
-                locale: this._locale
+                locale: this._locale,
+                timezone: this._timezone,
             }).join(' ');
 
             this._doCache(code);
@@ -194,12 +197,14 @@ class TypecheckStream extends Stream.Transform {
         let program : ThingTalk.Ast.Input|undefined;
         try {
             program = await ThingTalkUtils.parsePrediction(String(ex.target_code).split(' '), this._entities, {
+                timezone: this._timezone,
                 thingpediaClient: this._tpClient,
                 schemaRetriever: this._schemas,
             }, true);
 
             ex.target_code = ThingTalkUtils.serializePrediction(program!, this._current!.preprocessed, this._entities, {
-                locale: this._locale
+                locale: this._locale,
+                timezone: this._timezone,
             }).join(' ');
             this.push(ex);
             return;
@@ -276,6 +281,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: false,
         default: 'en-US',
         help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--thingpedia', {
         required: true,

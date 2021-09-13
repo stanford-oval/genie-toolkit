@@ -230,7 +230,7 @@ const USE_MANUAL_AGENT_ANNOTATION = true;
 
 interface ConverterOptions {
     locale : string;
-    timezone : string|undefined;
+    timezone : string;
     thingpedia : string;
     database_file : string;
     user_nlu_server : string;
@@ -269,6 +269,7 @@ class Converter extends stream.Readable {
     private _simulatorOverrides : Map<string, string>;
     private _database : MultiJSONDatabase;
     private _simulator : ThingTalkUtils.Simulator;
+    private _timezone : string;
 
     private _onlyMultidomain : boolean;
     private _useExisting : boolean;
@@ -286,6 +287,7 @@ class Converter extends stream.Readable {
         this._agentParser = ParserClient.get(args.agent_nlu_server, 'en-US');
         this._useExisting = args.use_existing;
         this._maxTurn = args.max_turn;
+        this._timezone = args.timezone;
 
         this._simulatorOverrides = new Map;
         const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
@@ -337,6 +339,7 @@ class Converter extends stream.Readable {
             example_id
         });
         return ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+            timezone: this._timezone,
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas
         }) as Promise<Ast.DialogueState[]>;
@@ -852,7 +855,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--timezone', {
         required: false,
         default: undefined,
-        help: `Timezone to use to print dates and times (defaults to the current timezone).`
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--thingpedia', {
         required: true,

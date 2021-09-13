@@ -397,6 +397,7 @@ export class ValidationRejecter extends Stream.Transform {
 
 interface ParaphrasingRejecterOptions {
     locale : string;
+    timezone : string;
     sentencesPerTask : number;
     paraphrasesPerSentence : number;
     contextual : boolean;
@@ -408,6 +409,7 @@ export class ParaphrasingRejecter extends Stream.Transform {
     private _tokenizer : I18n.BaseTokenizer;
 
     private _locale : string;
+    private _timezone : string;
     private _sentencesPerTask : number;
     private _paraphrasesPerSentence : number;
     private _contextual : boolean;
@@ -427,6 +429,7 @@ export class ParaphrasingRejecter extends Stream.Transform {
         this._tokenizer = this._langPack.getTokenizer();
 
         this._locale = options.locale;
+        this._timezone = options.timezone;
         this._sentencesPerTask = options.sentencesPerTask;
         this._paraphrasesPerSentence = options.paraphrasesPerSentence;
         this._contextual = options.contextual;
@@ -444,7 +447,7 @@ export class ParaphrasingRejecter extends Stream.Transform {
 
     private async _validate(paraobj : ParsedParaphrase) {
         const paraphrase = new ParaphraseValidator(this._schemas, this._langPack, this._tokenizer, this._locale,
-            paraobj, this._counter, false);
+            this._timezone, paraobj, this._counter, false);
 
         try {
             await paraphrase.clean();

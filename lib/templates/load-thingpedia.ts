@@ -25,7 +25,6 @@ import assert from 'assert';
 import {
     Ast,
     Type,
-    Syntax,
     SchemaRetriever,
     Operators
 } from 'thingtalk';
@@ -47,7 +46,7 @@ import {
     makeFilter,
     makeAndFilter,
     makeDateRangeFilter,
-    makeSelfJoinCondition, 
+    makeSelfJoinCondition,
     isHumanEntity,
     interrogativePronoun,
 } from './utils';
@@ -630,7 +629,7 @@ export default class ThingpediaLoader {
                     this._addRule(pos + '_filter', [both_prefix, constant_pairs], pairexpansion, (_both, values : [Ast.Value, Ast.Value]) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
                 if (ptype.isDate)
                     this._addRule(pos + '_filter', [constant_date_range], expansion, (values : [Ast.Value, Ast.Value]) => makeDateRangeFilter(this, pslot, values), keyfns.filterKeyFn, attributes);
-                
+
                 const joinexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${pronoun_the_second}') + '}';
                 this._addRule(pos + '_join_condition', [pronoun_the_second], joinexpansion, () => makeSelfJoinCondition(this, pslot), keyfns.filterKeyFn, attributes);
                 const symmetric_joinexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${each_other}') + '}';
@@ -1050,7 +1049,7 @@ export default class ThingpediaLoader {
         this._addRule('base_table', [], tmpl, () => table, keyfns.expressionKeyFn);
         this._addRule('base_table_hidden', [], '', () => table, keyfns.expressionKeyFn);
         this._addRule('base_noun_phrase', [], tmpl, () => q, keyfns.functionDefKeyFn);
-    
+
         this._addRule('generic_anything_noun_phrase', [], this._langPack._("{anything|one|something}"), () => table, keyfns.expressionKeyFn);
         this._addRule('generic_base_noun_phrase', [], this._langPack._("{option|choice}"), () => table, keyfns.expressionKeyFn);
 
@@ -1479,16 +1478,12 @@ export default class ThingpediaLoader {
             }));
         } else {
             const code = await this._tpClient.getAllExamples();
-            let parsed;
-            try {
-                parsed = Syntax.parse(code);
-            } catch(e) {
-                if (e.name !== 'SyntaxError')
-                    throw e;
-                // try parsing using legacy syntax too in case we're talking
-                // to an old Thingpedia that has not been migrated
-                parsed = Syntax.parse(code, Syntax.SyntaxType.Legacy);
-            }
+            const parsed = await ThingTalkUtils.parse(code, {
+                locale: this._langPack.locale,
+                timezone: this._options.timezone,
+                thingpediaClient: this._tpClient,
+                schemaRetriever: this._schemas
+            });
             assert(parsed instanceof Ast.Library);
             datasets = parsed.datasets;
             this._describer.setFullDataset(datasets);

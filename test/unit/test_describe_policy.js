@@ -263,9 +263,10 @@ async function test(i) {
     console.log('Test Case #' + (i+1));
     const [code, expected] = TEST_CASES[i];
     const langPack = I18n.get('en-US');
+    const timezone = 'America/Los_Angeles';
 
-    const allocator = new Syntax.SequentialEntityAllocator({});
-    const describer = new Describer('en-US', 'America/Los_Angeles', allocator);
+    const allocator = new Syntax.SequentialEntityAllocator({}, { timezone });
+    const describer = new Describer('en-US', timezone, allocator);
     const prog = await Syntax.parse(code, Syntax.SyntaxType.Legacy).typecheck(schemaRetriever, true);
     try {
         assert(prog.isPermissionRule);
@@ -280,7 +281,7 @@ async function test(i) {
 
         let reconstructed = describer.describePermissionRule(prog).chooseBest();
         reconstructed = langPack.postprocessNLG(langPack.postprocessSynthetic(reconstructed, prog, null, 'agent'), allocator.entities, {
-            timezone: 'America/Los_Angeles',
+            timezone,
             getPreferredUnit(key) {
                 return undefined;
             }

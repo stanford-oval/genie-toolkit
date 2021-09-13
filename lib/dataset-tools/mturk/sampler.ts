@@ -49,6 +49,7 @@ interface SentenceProcessorOptions {
     contexts ?: Map<string, string[]>;
     compoundOnly : boolean;
     locale : string;
+    timezone : string;
     rng : () => number;
     debug : boolean;
 }
@@ -85,6 +86,7 @@ class SentenceProcessor {
     private _compoundOnly : boolean;
     private _debug : boolean;
     private _locale : string;
+    private _timezone : string;
 
     private _id : string;
     private _context : string|null;
@@ -113,6 +115,7 @@ class SentenceProcessor {
         this._compoundOnly = options.compoundOnly;
         this._debug = options.debug;
         this._locale = options.locale;
+        this._timezone = options.timezone;
 
         this._id = input.id;
         this._context = input.context || null;
@@ -291,6 +294,7 @@ class SentenceProcessor {
                 const entityResolver = ((entity : string, param : string|null, functionname : string|null, unit : string|null) =>
                     this._entityRetriever(entity, param, functionname, unit, { forContext: true }));
                 context = await ThingTalkUtils.parsePrediction(this._context.split(' '), entityResolver, {
+                    timezone: this._timezone,
                     thingpediaClient: this._tpClient,
                     schemaRetriever: this._schemaRetriever
                 }, true);
@@ -310,6 +314,7 @@ class SentenceProcessor {
             const entityResolver = ((entity : string, param : string|null, functionname : string|null, unit : string|null) =>
                     this._entityRetriever(entity, param, functionname, unit, { forContext: false }));
             program = await ThingTalkUtils.parsePrediction(tokens, entityResolver, {
+                timezone: this._timezone,
                 thingpediaClient: this._tpClient,
                 schemaRetriever: this._schemaRetriever
             }, true);
@@ -571,6 +576,7 @@ interface SentenceSamplerOptions {
     deviceWhiteList ?: Set<string>;
     compoundOnly : boolean;
     locale : string;
+    timezone : string;
     rng : () => number;
     debug : boolean;
 }

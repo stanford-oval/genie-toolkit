@@ -29,10 +29,11 @@ import { readAllLines } from './lib/argutils';
 import { DatasetParser } from '../lib/dataset-tools/parsers';
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
 
-async function normalize(preprocessed : string, target_code : string, tpClient : Tp.BaseClient, schemas : ThingTalk.SchemaRetriever) : Promise<string> {
+async function normalize(preprocessed : string, target_code : string, tpClient : Tp.BaseClient, schemas : ThingTalk.SchemaRetriever, timezone : string) : Promise<string> {
     const entities = Utils.makeDummyEntities(preprocessed);
     const sequence = target_code.split(' ');
     const parsed = await ThingTalkUtils.parsePrediction(sequence, entities, {
+        timezone: timezone,
         thingpediaClient: tpClient,
         schemaRetriever: schemas
     }, true);
@@ -54,6 +55,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: false,
         default: 'en-US',
         help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--training-set', {
         required: true,
@@ -77,7 +83,7 @@ export async function execute(args : any) {
     const training = await readAllLines([args.training_set])
         .pipe(new DatasetParser({ preserveId: true }));
     for await (const line of training) {
-        const normalized = await normalize(line.preprocessed, line.target_code, tpClient, schemas);
+        const normalized = await normalize(line.preprocessed, line.target_code, tpClient, schemas, args.timezone);
         const requoted = Array.from(requoteProgram(normalized)).join(' ');
         trainingPrograms.set(requoted, (trainingPrograms.get(requoted) || 0) + 1);
         trainingSize += 1;
@@ -96,7 +102,7 @@ export async function execute(args : any) {
         let covered = false;
         let requoted = '';
         for (const thingtalk of candidates) {
-            const normalized = await normalize(line.preprocessed, thingtalk, tpClient, schemas);
+            const normalized = await normalize(line.preprocessed, thingtalk, tpClient, schemas, args.timezone);
             requoted = Array.from(requoteProgram(normalized)).join(' ');
             if (trainingPrograms.has(requoted)) {
                 covered = true;

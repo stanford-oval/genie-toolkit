@@ -45,6 +45,7 @@ import * as ParserClient from '../lib/prediction/parserclient';
 
 interface DialogueToDSTStreamOptions {
     locale : string;
+    timezone : string;
     thingpediaClient : Tp.BaseClient;
     schemaRetriever ?: SchemaRetriever;
     database : SimulationDatabase|undefined;
@@ -191,6 +192,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 'en-US',
         help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
     });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
+    });
     parser.add_argument('--url', {
         required: false,
         help: "URL of the server to evaluate. Use a file:// URL pointing to a model directory to evaluate using a local instance of genienlp",
@@ -248,6 +254,7 @@ export async function execute(args : any) {
         .pipe(new DialogueParser())
         .pipe(new DialogueToDSTStream({
             locale: args.locale,
+            timezone: args.timezone,
             debug: args.debug,
             tokenized: args.tokenized,
             thingpediaClient: tpClient,

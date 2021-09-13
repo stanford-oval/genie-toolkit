@@ -369,6 +369,7 @@ interface ParameterReplacerOptions {
     constProvider : ParameterProvider;
 
     paramLocale : string;
+    timezone : string;
     rng : () => number;
     debug ?: boolean;
 
@@ -402,6 +403,7 @@ export default class ParameterReplacer {
 
     private _addFlag : boolean;
     private _paramLangPack : I18n.LanguagePack;
+    private _timezone : string;
     private _quotedProbability : number;
     private _untypedStringProbability : number;
     private _maxSpanLength : number;
@@ -421,6 +423,7 @@ export default class ParameterReplacer {
         this._schemas = options.schemaRetriever;
         this._loader = new ValueListLoader(options.constProvider, options.samplingType, options.subsetParamSet, options.rng);
         this._rng = options.rng;
+        this._timezone = options.timezone;
         this._addFlag = _default(options.addFlag, false);
         this._paramLangPack = I18n.get(options.paramLocale);
         this._quotedProbability = _default(options.quotedProbability, 0.1);
@@ -910,6 +913,7 @@ export default class ParameterReplacer {
         // replace all entities with SLOT_*, which allows us to pass a VarRef instead of a real value
         const replacedCode = this._replaceWithSlot(code, entities);
         const targetProgram = await ThingTalkUtils.parsePrediction(replacedCode, entities, {
+            timezone: this._timezone,
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
             loadMetadata: true
@@ -919,6 +923,7 @@ export default class ParameterReplacer {
             // So this is a dialogue, has context and we can safely process the context
             const replacedContext = this._replaceWithSlot(context, entities);
             const contextProgram = await ThingTalkUtils.parsePrediction(replacedContext, entities, {
+                timezone: this._timezone,
                 thingpediaClient: this._tpClient,
                 schemaRetriever: this._schemas,
                 loadMetadata: true

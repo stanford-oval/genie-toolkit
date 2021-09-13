@@ -402,6 +402,7 @@ export default class Conversation extends events.EventEmitter {
         }
 
         const parsed = await ThingTalkUtils.parsePrediction(code, entities, {
+            timezone: this._engine.platform.timezone,
             thingpediaClient: this._engine.thingpedia,
             schemaRetriever: this._engine.schemas,
             loadMetadata: true
@@ -420,6 +421,7 @@ export default class Conversation extends events.EventEmitter {
             console.log('Received ThingTalk program');
 
         const parsed = await ThingTalkUtils.parse(program, {
+            timezone: this._engine.platform.timezone,
             thingpediaClient: this._engine.thingpedia,
             schemaRetriever: this._engine.schemas,
             loadMetadata: true
