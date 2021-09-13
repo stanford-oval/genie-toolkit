@@ -85,11 +85,11 @@ function expandChoices(utterances : string[]) : string[] {
 
 async function main() {
     const manifestfile = path.resolve(path.dirname(module.filename), './manifest.tt');
-    const manifest = Syntax.parse(await pfs.readFile(manifestfile + '.in', { encoding: 'utf8' }));
+    const manifest = Syntax.parse(await pfs.readFile(manifestfile + '.in', { encoding: 'utf8' }), Syntax.SyntaxType.Normal, { locale: 'en-US', timezone: 'America/Los_Angeles' });
     assert(manifest instanceof Ast.Library);
 
     const datasetfile = path.resolve(path.dirname(module.filename), './dataset.tt');
-    const dataset = Syntax.parse(await pfs.readFile(datasetfile + '.in', { encoding: 'utf8' }));
+    const dataset = Syntax.parse(await pfs.readFile(datasetfile + '.in', { encoding: 'utf8' }), Syntax.SyntaxType.Normal, { locale: 'en-US', timezone: 'America/Los_Angeles' });
     assert(dataset instanceof Ast.Library);
 
     const classDef = manifest.classes[0];
