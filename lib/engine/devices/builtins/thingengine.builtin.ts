@@ -22,6 +22,7 @@ import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as TT from 'thingtalk';
 import * as stream from 'stream';
+import { Temporal } from '@js-temporal/polyfill';
 
 import CustomError from '../../../utils/custom_error';
 import * as ThingTalkUtils from '../../../utils/thingtalk';
@@ -52,14 +53,15 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     get_get_date() {
-        const today = new Date;
-        today.setHours(0, 0, 0);
-        return [{ date: today }];
+        const today = Temporal.Now.zonedDateTime('iso8601', this.platform.timezone).withPlainTime({
+            hour: 0, minute: 0, second: 0
+        });
+        // convert back to a JS date for compatibility
+        return [{ date: new Date(today.epochMilliseconds) }];
     }
     get_get_time() {
-        const now = new Date;
-        // FIXME convert to the right timezone...
-        return [{ time: new Tp.Value.Time(now.getHours(), now.getMinutes(), now.getSeconds()) }];
+        const now = Temporal.Now.zonedDateTime('iso8601', this.platform.timezone);
+        return [{ time: Tp.Value.Time.fromTemporal(now.toPlainTime()) }];
     }
     get_get_random_between({ low, high } : { low : number|null|undefined, high : number|null|undefined }) {
         if ((low === null || low === undefined) && (high === null || high === undefined)) {
@@ -218,8 +220,8 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     do_alert() {
-        const now = new Date;
-        return { time: new Tp.Value.Time(now.getHours(), now.getMinutes()) };
+        const now = Temporal.Now.zonedDateTime('iso8601', this.platform.timezone);
+        return [{ time: Tp.Value.Time.fromTemporal(now.toPlainTime()) }];
     }
 
     do_timer_expire(params : unknown, env : ExecWrapper) {
