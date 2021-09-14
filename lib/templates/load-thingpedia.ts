@@ -255,6 +255,10 @@ export default class ThingpediaLoader {
         return this._langPack.locale;
     }
 
+    get timezone() {
+        return this._options.timezone;
+    }
+
     get flags() {
         return this._options.flags;
     }

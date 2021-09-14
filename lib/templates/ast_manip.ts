@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
+import { Temporal } from '@js-temporal/polyfill';
 
 import { Ast, Type } from 'thingtalk';
 import * as Units from 'thingtalk-units';
@@ -107,17 +108,25 @@ export function fixTwoYearNumber(year : number) {
         return 2000 + year;
 }
 
-export function dateOrDatePiece(year : number|null, month : number|null) : Date|Ast.DatePiece {
+export function makeJSDate(year : number, month : number, loader : ThingpediaLoader) : Date {
+    const datetz = Temporal.ZonedDateTime.from({
+        timeZone: loader.timezone,
+        year, month, day: 1,
+    });
+    return new Date(datetz.epochMilliseconds);
+}
+
+export function dateOrDatePiece(year : number|null, month : number|null, loader : ThingpediaLoader) : Date|Ast.DatePiece {
     if (year === null)
         return new Ast.DatePiece(year, month, null, null);
     else
-        return new Date(fixTwoYearNumber(year), month === null ? 0 : month - 1);
+        return makeJSDate(fixTwoYearNumber(year), month ?? 1, loader);
 }
 
-function makeMonthDateRange(year : number|null, month : number|null) : [Ast.Value, Ast.Value] {
+function makeMonthDateRange(year : number|null, month : number|null, loader : ThingpediaLoader) : [Ast.Value, Ast.Value] {
     return [
-        makeDate(dateOrDatePiece(year, month), '+', null),
-        makeDate(dateOrDatePiece(year, month), '+', new Ast.Value.Measure(1, 'mon'))!
+        makeDate(dateOrDatePiece(year, month, loader), '+', null),
+        makeDate(dateOrDatePiece(year, month, loader), '+', new Ast.Value.Measure(1, 'mon'))!
     ];
 }
 
@@ -1991,7 +2000,7 @@ function makeSelfJoinFromParam(tpLoader : ThingpediaLoader, table : Ast.Expressi
     assert(table.schema);
     if (!table.schema.hasArgument(param.name))
         return null;
-    
+
     const schema = resolveJoin(table.schema, table.schema);
     const joinParam = Object.assign({}, param);
     joinParam.name = `first.${param.name}`;

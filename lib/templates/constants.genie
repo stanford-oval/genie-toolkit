@@ -103,45 +103,45 @@ constant_date_range : [Ast.Value, Ast.Value] = {
             if (year.value <= 0)
                 return null;
             return [
-                C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', null),
-                C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', new Ast.Value.Measure(1, 'year'))!
+                C.makeDate(C.makeJSDate(C.fixTwoYearNumber(year.value), 1, $loader), '+', null),
+                C.makeDate(C.makeJSDate(C.fixTwoYearNumber(year.value), 1, $loader), '+', new Ast.Value.Measure(1, 'year'))!
             ];
         };
         year:constant_Number 's' => {
             if (year.value <= 0)
                 return null;
             return [
-                C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', null),
-                C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', new Ast.Value.Measure(10, 'year'))!
+                C.makeDate(C.makeJSDate(C.fixTwoYearNumber(year.value), 1, $loader), '+', null),
+                C.makeDate(C.makeJSDate(C.fixTwoYearNumber(year.value), 1, $loader), '+', new Ast.Value.Measure(10, 'year'))!
             ];
         };
     }
 
     // months
-    ('jan' | 'january') => C.makeMonthDateRange(null, 1);
-    ('jan' | 'january') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 1);
-    ('feb' | 'february') => C.makeMonthDateRange(null, 2);
-    ('feb' | 'february') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 2);
-    ('mar' | 'march') => C.makeMonthDateRange(null, 3);
-    ('mar' | 'march') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 3);
-    ('apr' | 'april') => C.makeMonthDateRange(null, 4);
-    ('apr' | 'april') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 4);
-    'may' => C.makeMonthDateRange(null, 5);
-    'may of' year:constant_Number => C.makeMonthDateRange(year.value, 5);
-    ('jun' | 'june') => C.makeMonthDateRange(null, 6);
-    ('jun' | 'june') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 6);
-    ('jul' | 'july') => C.makeMonthDateRange(null, 7);
-    ('jul' | 'july') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 7);
-    ('aug' | 'august') => C.makeMonthDateRange(null, 8);
-    ('aug' | 'august') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 8);
-    ('sep' | 'sept' | 'september') => C.makeMonthDateRange(null, 9);
-    ('sep' | 'sept' | 'september') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 9);
-    ('oct' | 'october') => C.makeMonthDateRange(null, 10);
-    ('oct' | 'october') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 10);
-    ('nov' | 'november') => C.makeMonthDateRange(null, 11);
-    ('nov' | 'november') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 11);
-    ('dec' | 'december') => C.makeMonthDateRange(null, 12);
-    ('dec' | 'december') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 12);
+    ('jan' | 'january') => C.makeMonthDateRange(null, 1, $loader);
+    ('jan' | 'january') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 1, $loader);
+    ('feb' | 'february') => C.makeMonthDateRange(null, 2, $loader);
+    ('feb' | 'february') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 2, $loader);
+    ('mar' | 'march') => C.makeMonthDateRange(null, 3, $loader);
+    ('mar' | 'march') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 3, $loader);
+    ('apr' | 'april') => C.makeMonthDateRange(null, 4, $loader);
+    ('apr' | 'april') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 4, $loader);
+    'may' => C.makeMonthDateRange(null, 5, $loader);
+    'may of' year:constant_Number => C.makeMonthDateRange(year.value, 5, $loader);
+    ('jun' | 'june') => C.makeMonthDateRange(null, 6, $loader);
+    ('jun' | 'june') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 6, $loader);
+    ('jul' | 'july') => C.makeMonthDateRange(null, 7, $loader);
+    ('jul' | 'july') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 7, $loader);
+    ('aug' | 'august') => C.makeMonthDateRange(null, 8, $loader);
+    ('aug' | 'august') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 8, $loader);
+    ('sep' | 'sept' | 'september') => C.makeMonthDateRange(null, 9, $loader);
+    ('sep' | 'sept' | 'september') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 9, $loader);
+    ('oct' | 'october') => C.makeMonthDateRange(null, 10, $loader);
+    ('oct' | 'october') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 10, $loader);
+    ('nov' | 'november') => C.makeMonthDateRange(null, 11, $loader);
+    ('nov' | 'november') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 11, $loader);
+    ('dec' | 'december') => C.makeMonthDateRange(null, 12, $loader);
+    ('dec' | 'december') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 12, $loader);
 }
 
 constant_day_of_week : Ast.Value = {

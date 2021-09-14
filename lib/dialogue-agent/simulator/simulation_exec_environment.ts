@@ -29,15 +29,26 @@ import { coin, uniform, randint } from '../../utils/random';
 import { SimulationDatabase } from './types';
 import { getAllDevicesOfKind } from './helpers';
 
+function makeJSDate(timezone : string, year : number, month : number, day : number) : Date {
+    const datetz = Temporal.ZonedDateTime.from({
+        timeZone: timezone,
+        year, month, day
+    });
+    return new Date(datetz.epochMilliseconds);
+}
+
 class ResultGenerator {
     private _rng : () => number;
+    private _timezone : string;
     private _overrides : Map<string, unknown>;
     private _candidates : Map<string, unknown[]>;
     private _constants : Map<string, unknown[]>;
 
     constructor(rng : () => number,
+                timezone : string,
                 overrides : Map<string, unknown>) {
         this._rng = rng;
+        this._timezone = timezone;
 
         this._overrides = overrides;
         this._candidates = new Map;
@@ -175,7 +186,7 @@ class ResultGenerator {
 
         const num = this._generateNumber('DATE::number', repeatable);
         assert(Number.isFinite(num));
-        const date = new Date(2018, 0, num);
+        const date = makeJSDate(this._timezone, 2018, 1, num);
         assert(Number.isFinite(date.getTime()));
         return date;
     }

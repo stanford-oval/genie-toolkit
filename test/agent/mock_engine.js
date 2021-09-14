@@ -85,7 +85,7 @@ class MockAppExecutor {
 
     async execute() {
         const overrides = new Map;
-        const generator = new ResultGenerator(this._rng, overrides);
+        const generator = new ResultGenerator(this._rng, 'America/Los_Angeles', overrides);
         for (let slot of this._program.iterateSlots2()) {
             if (slot instanceof Ast.DeviceSelector)
                 continue;

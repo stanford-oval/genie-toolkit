@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
+import { Temporal } from '@js-temporal/polyfill';
 import assert from 'assert';
 
 import { Ast, Type, Syntax } from 'thingtalk';
@@ -31,6 +32,14 @@ interface Constant {
     value : Ast.Value;
 }
 type ConstantMap = { [key : string] : Constant[] };
+
+function makeJSDate(timezone : string, year : number, month : number, day : number) : Date {
+    const datetz = Temporal.ZonedDateTime.from({
+        timeZone: timezone,
+        year, month, day
+    });
+    return new Date(datetz.epochMilliseconds);
+}
 
 function extractConstants(ast : Ast.Node, entityAllocator : Syntax.SequentialEntityAllocator) : ConstantMap {
     const constants : ConstantMap = {};
@@ -177,7 +186,7 @@ function createConstants(tokenPrefix : string,
             createConstant('LOCATION', i, new Ast.Value.Location(new Ast.Location.Absolute(2 + i, 2 + i, null)));
             break;
         case 'DATE':
-            createConstant('DATE', i, new Ast.Value.Date(new Date(2018, 0, 2 + i)));
+            createConstant('DATE', i, new Ast.Value.Date(makeJSDate(entityAllocator.timezone, 2018, 1, 2 + i)));
             break;
         case 'TIME':
             createConstant('TIME', i, new Ast.Value.Time(new Ast.Time.Absolute(Math.floor(i/4), [0, 15, 30, 45][i % 4], 0)));
