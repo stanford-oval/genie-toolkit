@@ -110,7 +110,7 @@ export function fixTwoYearNumber(year : number) {
 
 export function makeJSDate(year : number, month : number, loader : ThingpediaLoader) : Date {
     const datetz = Temporal.ZonedDateTime.from({
-        timeZone: loader.timezone,
+        timeZone: loader.timezone ?? Temporal.Now.timeZone(),
         year, month, day: 1,
     });
     return new Date(datetz.epochMilliseconds);
