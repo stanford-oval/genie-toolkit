@@ -29,11 +29,13 @@ import { coin, uniform, randint } from '../../utils/random';
 import { SimulationDatabase } from './types';
 import { getAllDevicesOfKind } from './helpers';
 
-function makeJSDate(timezone : string, year : number, month : number, day : number) : Date {
+function makeJSDate(timezone : string, day : number) : Date {
+    // emulate the behavior of JS date where passed a very large day number
+    // (which we do in the result generator when creating random dates)
     const datetz = Temporal.ZonedDateTime.from({
         timeZone: timezone,
-        year, month, day
-    });
+        year: 2018, month: 1, day: 1
+    }).add({ days: day-1 });
     return new Date(datetz.epochMilliseconds);
 }
 
@@ -186,7 +188,7 @@ class ResultGenerator {
 
         const num = this._generateNumber('DATE::number', repeatable);
         assert(Number.isFinite(num));
-        const date = makeJSDate(this._timezone, 2018, 1, num);
+        const date = makeJSDate(this._timezone, num);
         assert(Number.isFinite(date.getTime()));
         return date;
     }
