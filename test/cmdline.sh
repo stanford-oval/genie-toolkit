@@ -20,10 +20,7 @@ diff -u thingpedia12.tt $srcdir/test/data/en-US/expected-thingpedia12.tt
 node $srcdir/dist/tool/genie.js download-templates -o dataset.tt
 
 node $srcdir/dist/tool/genie.js download-entities -o entities.json
-node $srcdir/dist/tool/genie.js download-entity-values -d parameters --manifest parameters/parameter-datasets.tsv
-
 node $srcdir/dist/tool/genie.js download-strings -o strings.json
-node $srcdir/dist/tool/genie.js download-string-values -d parameters --manifest parameters/parameter-datasets.tsv --append-manifest
 
 ## test requote.js
 # replace mode
