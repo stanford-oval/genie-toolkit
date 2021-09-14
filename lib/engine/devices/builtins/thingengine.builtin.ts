@@ -221,7 +221,7 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
 
     do_alert() {
         const now = Temporal.Now.zonedDateTime('iso8601', this.platform.timezone);
-        return [{ time: Tp.Value.Time.fromTemporal(now.toPlainTime()) }];
+        return { time: Tp.Value.Time.fromTemporal(now.toPlainTime()) };
     }
 
     do_timer_expire(params : unknown, env : ExecWrapper) {
