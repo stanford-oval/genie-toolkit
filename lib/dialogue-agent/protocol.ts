@@ -18,6 +18,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Tp from 'thingpedia';
+
+import { EntityMap } from '../utils/entity-utils';
+
 import { ConversationState } from './conversation';
 
 /**
@@ -65,6 +69,8 @@ export interface PlatformData {
 export enum MessageType {
     // from user
     COMMAND = 'command',
+    PARSED_COMMAND = 'parsed',
+    THINGTALK_COMMAND = 'tt',
 
     // from agent
     TEXT = 'text',
@@ -76,13 +82,15 @@ export enum MessageType {
     SOUND_EFFECT = 'sound',
     AUDIO = 'audio',
     VIDEO = 'video',
-
-    // status changes from the engine
     NEW_PROGRAM = 'new-program',
-    NEW_DEVICE = 'new-device',
 
     // control messages
+    ID = 'id',
     PING = 'ping',
+    NEW_DEVICE = 'new-device',
+    HYPOTHESIS = 'hypothesis',
+    ASK_SPECIAL = 'askSpecial',
+    ERROR = 'error'
 }
 
 export interface TextMessage {
@@ -171,12 +179,17 @@ export interface NewProgramMessage {
     icon : string|null;
 }
 
-export interface PingMessage {
-    id ?: number;
-    type : MessageType.PING;
-}
-
-export type Message = TextMessage
+/**
+ * A message (chat bubble) from either the user or the agent.
+ *
+ * Objects of this type are included in the conversation history.
+ *
+ * They correspond to protocol messages sent from the server to
+ * the client when the server replays the history, or when a
+ * new message is added to the history.
+ */
+export type Message =
+      TextMessage
     | CommandMessage
     | MediaMessage
     | RDLMessage
@@ -184,5 +197,80 @@ export type Message = TextMessage
     | ChoiceMessage
     | LinkMessage
     | ButtonMessage
-    | NewProgramMessage
-    | PingMessage;
+    | NewProgramMessage;
+
+
+export interface ConversationIDMessage {
+    type : MessageType.ID,
+    id : string;
+}
+
+export interface PingMessage {
+    type : MessageType.PING;
+}
+
+export interface AskSpecialMessage {
+    type : MessageType.ASK_SPECIAL;
+    ask : string|null;
+    context : {
+        code : string[];
+        entities : EntityMap;
+    }
+}
+
+export interface HypothesisMessage {
+    type : MessageType.HYPOTHESIS;
+    hypothesis : string;
+}
+
+export interface NewDeviceMessage {
+    type : MessageType.NEW_DEVICE;
+    uniqueId : string;
+    state : Tp.BaseDevice.DeviceState;
+}
+
+export interface ErrorMessage {
+    type : MessageType.ERROR;
+    message : string;
+    code ?: string;
+}
+
+/**
+ * A single JSON object sent from the server to client.
+ */
+export type ServerProtocolMessage =
+    Message
+    | ConversationIDMessage
+    | PingMessage
+    | HypothesisMessage
+    | NewDeviceMessage
+    | AskSpecialMessage
+    | ErrorMessage;
+
+export interface ClientTextCommand {
+    type : MessageType.COMMAND;
+    text : string;
+    platformData ?: PlatformData;
+}
+
+export interface ClientParsedCommand {
+    type : MessageType.PARSED_COMMAND;
+    json : any;
+    title ?: string;
+    platformData ?: PlatformData;
+}
+
+export interface ClientThingTalkCommand {
+    type : MessageType.THINGTALK_COMMAND;
+    code : string;
+    platformData ?: PlatformData;
+}
+
+/**
+ * A single JSON object sent from the client to the server.
+ */
+export type ClientProtocolMessage =
+    PingMessage
+    | ClientTextCommand
+    | ClientParsedCommand
+    | ClientThingTalkCommand;

@@ -552,6 +552,8 @@ class MockAbstractDatabase {
     }
 }
 
+class MockActivityMonitor extends events.EventEmitter {}
+
 export function createMockEngine(thingpedia, rng, database) {
     const platform = new TestPlatform();
     const schemas = new SchemaRetriever(thingpedia, null, true);
@@ -566,6 +568,7 @@ export function createMockEngine(thingpedia, rng, database) {
         audio: new MockAudioController(),
         assistant: new MockAssistantDispatcher(),
         db : new MockAbstractDatabase(),
+        activityMonitor : new MockActivityMonitor(),
 
         createApp(program, options = {}) {
             return this.apps.createApp(program, options);

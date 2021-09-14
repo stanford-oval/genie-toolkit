@@ -42,4 +42,5 @@ export {
     default as Conversation
 } from './conversation';
 export * as Protocol from './protocol';
+export { default as ConversationWebSocketConnection } from './conversation_ws';
 export * from './errors';

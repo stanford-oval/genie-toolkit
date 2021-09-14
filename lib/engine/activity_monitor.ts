@@ -16,14 +16,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
+// Author: Jim Deng
 
 import * as events from 'events';
+
 import AppDatabase from './apps/database';
-import AssistantDispatcher from '../dialogue-agent/assistant_dispatcher';
 
 const DEFAULT_IDLE_TIMEOUT = 600000; // 10 minutes
 const DEFAULT_QUIESCE_TIMEOUT = 30000; // 30 seconds
-
 
 export enum ActivityMonitorStatus {
     Starting = "starting",
@@ -31,6 +31,7 @@ export enum ActivityMonitorStatus {
     Idle = "idle",
     Stopping = 'stopping'
 }
+
 /**
  * Monitors engine activity and emits an 'idle' event when engine is inactive.
  * There are two monitoring timers. The first timer starts when there is no apps
@@ -44,24 +45,22 @@ export class ActivityMonitor extends events.EventEmitter {
     private _name : string;  // display name for logging
     private _status : ActivityMonitorStatus;
     private _appdb : AppDatabase;
-    private _assistant : AssistantDispatcher;
     private _lastUpdate : number;
     private _idleTimeout : NodeJS.Timeout|null;
     private _idleTimeoutMillis : number;
     private _quiesceTimeout : NodeJS.Timeout|null;
     private _quiesceTimeoutMillis : number;
-    private _appAddedListener : (...args : any[]) => void;
-    private _appRemovedListener : (...args : any[]) => void;
+    private _appAddedListener : () => void;
+    private _appRemovedListener : () => void;
 
-    constructor(appdb : AppDatabase, assistant : AssistantDispatcher, options : { 
+    constructor(appdb : AppDatabase, options : {
         idleTimeoutMillis ?: number;
         quiesceTimeoutMillis ?: number;
-    }) {
+    } = {}) {
         super();
         this._name = "Activity monitor";
         this._status = ActivityMonitorStatus.Starting;
         this._appdb = appdb;
-        this._assistant = assistant;
         this._lastUpdate = 0;
         this._idleTimeout = null;
         this._idleTimeoutMillis = options.idleTimeoutMillis || DEFAULT_IDLE_TIMEOUT;
@@ -101,7 +100,7 @@ export class ActivityMonitor extends events.EventEmitter {
     }
 
     private _maybeStartActivityTimeout() {
-        if (!this._appdb.isEmpty()) 
+        if (!this._appdb.isEmpty())
             return;
         const idleTimeout = Math.max(this._idleTimeoutMillis - (Date.now() - this._lastUpdate), 0);
         console.log(`${this._name} started idle timer ${idleTimeout} ms`);
@@ -123,13 +122,13 @@ export class ActivityMonitor extends events.EventEmitter {
             this.emit("idle");
             console.log(`${this._name} emitted idle event`);
         }, this._quiesceTimeoutMillis);
-        this._assistant.pingAll();
+        this.emit('ping');
     }
 
     async stop() {
         console.log(`${this._name} stopped`);
         this._status = ActivityMonitorStatus.Stopping;
-        if (this._idleTimeout !== null) 
+        if (this._idleTimeout !== null)
             clearTimeout(this._idleTimeout);
         if (this._quiesceTimeout !== null)
             clearTimeout(this._quiesceTimeout);
