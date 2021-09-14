@@ -155,10 +155,12 @@ export default class SpeechHandler extends events.EventEmitter {
             let player : {
                 stop() : Promise<void>
             }|undefined;
-            await this._audioController.requestSystemAudio(async () => {
-                if (player) {
-                    await player.stop();
-                    player = undefined;
+            await this._audioController.requestSystemAudio({
+                async stop() {
+                    if (player) {
+                        await player.stop();
+                        player = undefined;
+                    }
                 }
             });
             player = await cap.play(toPlay);

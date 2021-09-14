@@ -24,6 +24,30 @@ import * as Tp from 'thingpedia';
 import type DeviceDatabase from './devices/database';
 
 /**
+ * The interface implemented by skills that can retrieve audio to play,
+ * and control APIs to play such audio.
+ */
+export interface AudioDevice {
+    /**
+     * Stop all playback.
+     */
+    stop() : void;
+
+    /**
+     * Resume playback.
+     */
+    resume?() : void;
+}
+
+class CustomError extends Error {
+    readonly code : string;
+    constructor(code : string, message : string) {
+        super(message);
+        this.code = code;
+    }
+}
+
+/**
  * Coordinate access to audio between multiple skills.
  */
 export default class AudioController extends events.EventEmitter {
@@ -31,7 +55,7 @@ export default class AudioController extends events.EventEmitter {
     private _deviceRemovedListener : (d : Tp.BaseDevice) => void;
 
     private _currentDevice : Tp.BaseDevice|null = null;
-    private _releaseCallback : (() => void|Promise<void>)|null = null;
+    private _currentInterface : AudioDevice|null = null;
 
     constructor(devices : DeviceDatabase) {
         super();
@@ -47,6 +71,22 @@ export default class AudioController extends events.EventEmitter {
         this._devices.removeListener('device-removed', this._deviceRemovedListener);
         await this.stopAudio();
     }
+    async resumeAudio() {
+        if (!this._currentInterface)
+            throw new CustomError(`no_device_playing`, `No interface registered to resume audio`);
+
+        if (!this._currentInterface.resume)
+            throw new CustomError(`unsupported`, `Resuming is not supported`);
+
+        await this._currentInterface.resume();
+    }
+
+    private _normalizeCompatIface(iface : AudioDevice|(() => Promise<void>)) {
+        if (typeof iface === 'function')
+            return { stop: iface };
+        else
+            return iface;
+    }
 
     /**
      * Request background audio on behalf of the given device.
@@ -60,17 +100,16 @@ export default class AudioController extends events.EventEmitter {
      *
      * This method can be called multiple times for the same device, with no effect.
      */
-    async requestAudio(device : Tp.BaseDevice, releaseCallback : () => void|Promise<void>) {
+    async requestAudio(device : Tp.BaseDevice, iface : AudioDevice|(() => Promise<void>)) {
         if (device === this._currentDevice) {
-            this._releaseCallback = releaseCallback;
+            this._currentInterface = this._normalizeCompatIface(iface);
             return;
         }
-
-        if (this._releaseCallback)
-            this._releaseCallback();
+        if (this._currentInterface)
+            await this._currentInterface.stop();
         this._currentDevice = device;
         console.log(`Switching audio to ${this._currentDevice.uniqueId}`);
-        this._releaseCallback = releaseCallback;
+        this._currentInterface = this._normalizeCompatIface(iface);
     }
 
     /**
@@ -78,12 +117,12 @@ export default class AudioController extends events.EventEmitter {
      *
      * This method must not be called outside of Genie
      */
-    async requestSystemAudio(releaseCallback : () => void|Promise<void>) {
-        if (this._releaseCallback)
-            this._releaseCallback();
+    async requestSystemAudio(iface : AudioDevice) {
+        if (this._currentInterface)
+            await this._currentInterface.stop();
         this._currentDevice = null;
         console.log(`Switching audio to system`);
-        this._releaseCallback = releaseCallback;
+        this._currentInterface = iface;
     }
 
     /**
@@ -93,10 +132,10 @@ export default class AudioController extends events.EventEmitter {
      * audio.
      */
     async releaseAudio(device : Tp.BaseDevice) {
-        if (device !== this._currentDevice)
-            return;
-        this._currentDevice = null;
-        this._releaseCallback = null;
+      if (device !== this._currentDevice)
+          return;
+      this._currentDevice = null;
+      this._currentInterface = null;
     }
 
     /**
@@ -107,16 +146,16 @@ export default class AudioController extends events.EventEmitter {
      */
     async stopAudio() {
         this.emit('stop');
-        if (this._releaseCallback)
-            await this._releaseCallback();
-        this._releaseCallback = null;
+        if (this._currentInterface)
+            await this._currentInterface.stop();
+        this._currentInterface = null;
     }
 
     private _onDeviceRemoved(device : Tp.BaseDevice) {
         if (device === this._currentDevice) {
             console.log(`Audio device removed`);
             this._currentDevice = null;
-            this._releaseCallback = null;
+            this._currentInterface = null;
         }
     }
 }

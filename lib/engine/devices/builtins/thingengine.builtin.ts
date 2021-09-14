@@ -26,6 +26,8 @@ import * as stream from 'stream';
 import ExecWrapper from '../../apps/exec_wrapper';
 import AssistantEngine from '../..';
 
+
+
 import FAQ from './faq.json';
 
 class CustomError extends Error {
@@ -323,5 +325,12 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         const platform = this.platform;
         const prefs = platform.getSharedPreferences();
         prefs.set('preferred-temperature', unit[0].toUpperCase());
+    }
+
+    do_pause() {
+        return (this.engine as AssistantEngine).audio.stopAudio();
+    }
+    do_resume() {
+        return (this.engine as AssistantEngine).audio.resumeAudio();
     }
 }
