@@ -274,7 +274,7 @@ export class DialogueLoop {
         case CommandAnalysisType.STOP:
             // stop means cancel, but without a failure message + stopping audio
             if (this.engine.audio)
-                await this.engine.audio.stopAudio();
+                await this.engine.audio.stopAudio(this.conversation.id);
             throw new CancellationError();
 
         case CommandAnalysisType.NEVERMIND:

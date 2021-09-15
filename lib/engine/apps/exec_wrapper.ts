@@ -118,6 +118,16 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
     get program_id() {
         return this._programId;
     }
+    /**
+     * Retrieve the unique ID of the conversation associated with this execution
+     * environment.
+     *
+     * This roughly corresponds to the ID of the session or speaker where the user
+     * is issuing the command.
+     */
+    get conversation() {
+        return this.app.metadata.conversation;
+    }
 
     endProgram() {
         if (this._trigger)

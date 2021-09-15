@@ -23,10 +23,8 @@ import * as Tp from 'thingpedia';
 import * as TT from 'thingtalk';
 import * as stream from 'stream';
 
-import ExecWrapper from '../../apps/exec_wrapper';
-import AssistantEngine from '../..';
-
-
+import type ExecWrapper from '../../apps/exec_wrapper';
+import type AssistantEngine from '../..';
 
 import FAQ from './faq.json';
 
@@ -327,10 +325,10 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         prefs.set('preferred-temperature', unit[0].toUpperCase());
     }
 
-    do_pause() {
-        return (this.engine as AssistantEngine).audio.stopAudio();
+    do_pause(params : unknown, env : ExecWrapper) {
+        return (this.engine as AssistantEngine).audio.stopAudio(env.conversation);
     }
-    do_resume() {
-        return (this.engine as AssistantEngine).audio.resumeAudio();
+    do_resume(params : unknown, env : ExecWrapper) {
+        return (this.engine as AssistantEngine).audio.resumeAudio(env.conversation);
     }
 }

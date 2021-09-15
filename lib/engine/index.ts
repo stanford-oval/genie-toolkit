@@ -30,7 +30,7 @@ import DeviceDatabase from './devices/database';
 import SyncManager from './sync/manager';
 import PairedEngineManager from './sync/pairing';
 import Builtins from './devices/builtins';
-import AudioController from './audio_controller';
+import AudioController from './audio/controller';
 
 import AppDatabase from './apps/database';
 import AppRunner from './apps/runner';

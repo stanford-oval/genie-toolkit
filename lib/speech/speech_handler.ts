@@ -25,10 +25,53 @@ import SpeechRecognizer from './speech_recognizer';
 import SpeechSynthesizer from './speech_synthesizer';
 import { MessageType } from '../dialogue-agent/protocol';
 import type Conversation from '../dialogue-agent/conversation';
-import type AudioController from '../engine/audio_controller';
+import type AudioController from '../engine/audio/controller';
+import { AudioPlayer, CustomPlayerSpec } from '../engine/audio/interface';
 
 interface SpeechHandlerOptions {
     nlUrl ?: string;
+}
+
+class LocalAudioPlayer implements AudioPlayer {
+    private _handler : SpeechHandler
+    private _cap : Tp.Capabilities.AudioPlayerApi;
+    readonly conversationId : string;
+    private _player : Tp.Capabilities.Player|null;
+
+    constructor(handler : SpeechHandler, platform : Tp.BasePlatform, conversation : Conversation) {
+        this.conversationId = conversation.id;
+        this._handler = handler;
+        this._cap = platform.getCapability('audio-player')!;
+        this._player = null;
+    }
+
+    async prepare(spec : CustomPlayerSpec) : Promise<boolean> {
+        return spec.type === 'url';
+    }
+
+    async requestAudio(spec ?: CustomPlayerSpec) : Promise<void> {
+        if (spec && spec.type !== 'url')
+            throw new Error(`unsupported`);
+
+        // wait until the agent finishes speaking to start playing audio
+        await this._handler.waitFinishSpeaking();
+    }
+
+    async stop() : Promise<void> {
+        if (this._player)
+            await this._player.stop();
+        this._player = null;
+    }
+    async playURLs(urls : string[]) : Promise<void> {
+        await this.stop();
+        this._player = await this._cap.play(urls);
+    }
+    async setVolume(volume : number) : Promise<void> {
+        throw new Error('Method not implemented.');
+    }
+    async setMute(mute : boolean) : Promise<void> {
+        throw new Error('Method not implemented.');
+    }
 }
 
 export default class SpeechHandler extends events.EventEmitter {
@@ -48,6 +91,7 @@ export default class SpeechHandler extends events.EventEmitter {
     private _stream : any|null = null;
     private _audioController : AudioController;
     private _queuedAudio : string[];
+    private _player : LocalAudioPlayer|null;
 
     constructor(conversation : Conversation,
                 platform : Tp.BasePlatform,
@@ -59,7 +103,7 @@ export default class SpeechHandler extends events.EventEmitter {
         this._prefs = platform.getSharedPreferences();
 
         this._conversation = conversation;
-        this._audioController = conversation.engine.audio!;
+        this._audioController = conversation.engine.audio;
 
         this._pulse = platform.getCapability('sound')!;
         this._wakeWordDetector = platform.getCapability('wakeword-detector');
@@ -101,6 +145,10 @@ export default class SpeechHandler extends events.EventEmitter {
             else if (key === 'enable-voice-output')
                 this.setVoiceOutput(this._prefs.get('enable-voice-output') as boolean ?? true);
         });
+
+        this._player = null;
+        if (this._platform.hasCapability('audio-player'))
+            this._player = new LocalAudioPlayer(this, platform, conversation);
     }
 
     setVoiceInput(enable : boolean) : void {
@@ -130,7 +178,7 @@ export default class SpeechHandler extends events.EventEmitter {
         // ignore
     }
 
-    private _waitFinishSpeaking() {
+    waitFinishSpeaking() {
         return new Promise<void>((resolve, reject) => {
             if (!this._tts.speaking) {
                 resolve();
@@ -146,24 +194,16 @@ export default class SpeechHandler extends events.EventEmitter {
         if (this._queuedAudio.length) {
             const toPlay = this._queuedAudio;
             this._queuedAudio = [];
-            // wait until the agent finishes speaking to start playing audio
-            await this._waitFinishSpeaking();
-            const cap = this._platform.getCapability('audio-player');
-            if (!cap)
+            if (!this._player)
                 return;
 
-            let player : {
-                stop() : Promise<void>
-            }|undefined;
+            const player = this._player;
             await this._audioController.requestSystemAudio({
                 async stop() {
-                    if (player) {
-                        await player.stop();
-                        player = undefined;
-                    }
+                    await player.stop();
                 }
-            });
-            player = await cap.play(toPlay);
+            }, this._conversation.id);
+            await player.playURLs(toPlay);
         }
     }
 
@@ -194,7 +234,7 @@ export default class SpeechHandler extends events.EventEmitter {
                     else
                         console.log(`Ignored unknown sound effect ${message.name}`);
                 } else {
-                    this._waitFinishSpeaking().then(() => {
+                    this.waitFinishSpeaking().then(() => {
                         return soundEffects.play(message.name);
                     }).catch((e) => {
                         console.error(`Failed to play sound effect: ${e.message}`);
@@ -280,6 +320,8 @@ export default class SpeechHandler extends events.EventEmitter {
 
     start() : void {
         this._conversation.addOutput(this, false);
+        if (this._player)
+            this._audioController.addPlayer(this._player);
         this._started = true;
 
         if (this._enableVoiceInput)
@@ -311,7 +353,11 @@ export default class SpeechHandler extends events.EventEmitter {
             this._stream!.pipe(this._wakeWordDetector);
     }
 
-    stop() {
+    async stop() {
+        if (this._player) {
+            await this._player.stop();
+            this._audioController.removePlayer(this._player);
+        }
         this._conversation.removeOutput(this);
         this._started = false;
         this._stopVoiceInput();
