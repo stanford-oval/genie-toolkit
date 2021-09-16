@@ -20,16 +20,16 @@
 
 import * as Tp from 'thingpedia';
 
-import AssistantEngine from '../engine';
-import { EntityMap } from '../utils/entity-utils';
+import AssistantEngine from '../../engine';
+import { EntityMap } from '../../utils/entity-utils';
 
-import Conversation, { ConversationDelegate } from "./conversation";
+import Conversation, { ConversationDelegate } from "../conversation";
 import {
     ServerProtocolMessage,
     ClientProtocolMessage,
     Message,
     MessageType
-} from "./protocol";
+} from ".";
 
 /**
  * A single connection from a conversation API client.

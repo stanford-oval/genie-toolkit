@@ -25,8 +25,8 @@ import SpeechRecognizer from './speech_recognizer';
 import SpeechSynthesizer from './speech_synthesizer';
 import { MessageType } from '../dialogue-agent/protocol';
 import type Conversation from '../dialogue-agent/conversation';
-import type AudioController from '../engine/audio/controller';
-import { AudioPlayer, CustomPlayerSpec } from '../engine/audio/interface';
+import type AudioController from '../dialogue-agent/audio/controller';
+import { AudioPlayer, CustomPlayerSpec } from '../dialogue-agent/audio/interface';
 
 interface SpeechHandlerOptions {
     nlUrl ?: string;

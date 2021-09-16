@@ -2,7 +2,7 @@
 //
 // This file is part of Genie
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020-2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,29 +18,29 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-/**
- * The public APIs of the dialogue agent components of Genie.
- *
- * Exported for convenience of TypeScript users.
- */
+export enum MessageType {
+    // from user
+    COMMAND = 'command',
+    PARSED_COMMAND = 'parsed',
+    THINGTALK_COMMAND = 'tt',
 
-export {
-    NotificationDelegate,
-    NotificationConfig,
-} from './notifications';
-export {
-    default as AssistantDispatcher,
-    ThingTalkInput,
-    ParsedInput,
-    CommandInput,
-    ConverseInput
-} from './assistant_dispatcher';
-export {
-    ConversationState,
-    ConversationDelegate,
-    ConversationOptions,
-    default as Conversation
-} from './conversation';
-export * as Protocol from './protocol';
-export * from './errors';
-export { default as AudioController } from './audio/controller';
+    // from agent
+    TEXT = 'text',
+    PICTURE = 'picture',
+    CHOICE = 'choice',
+    LINK = 'link',
+    BUTTON = 'button',
+    RDL = 'rdl',
+    SOUND_EFFECT = 'sound',
+    AUDIO = 'audio',
+    VIDEO = 'video',
+    NEW_PROGRAM = 'new-program',
+
+    // control messages
+    ID = 'id',
+    PING = 'ping',
+    NEW_DEVICE = 'new-device',
+    HYPOTHESIS = 'hypothesis',
+    ASK_SPECIAL = 'askSpecial',
+    ERROR = 'error'
+}

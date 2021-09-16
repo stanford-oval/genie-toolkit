@@ -21,7 +21,7 @@
 import * as events from 'events';
 import * as Tp from 'thingpedia';
 
-import type DeviceDatabase from '../devices/database';
+import type DeviceDatabase from '../../engine/devices/database';
 import { AudioDevice, AudioPlayer, CustomPlayerSpec } from './interface';
 
 class CustomError extends Error {

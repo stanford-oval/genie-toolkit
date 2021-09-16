@@ -30,12 +30,12 @@ import DeviceDatabase from './devices/database';
 import SyncManager from './sync/manager';
 import PairedEngineManager from './sync/pairing';
 import Builtins from './devices/builtins';
-import AudioController from './audio/controller';
 
 import AppDatabase from './apps/database';
 import AppRunner from './apps/runner';
 import type AppExecutor from './apps/app_executor';
 
+import AudioController from '../dialogue-agent/audio/controller';
 import AssistantDispatcher from '../dialogue-agent/assistant_dispatcher';
 import { NotificationConfig } from '../dialogue-agent/notifications';
 import NotificationFormatter from '../dialogue-agent/notifications/formatter';
@@ -47,7 +47,6 @@ export {
     DB,
     DeviceDatabase,
     SyncManager,
-    AudioController,
     AppDatabase,
     AppExecutor,
     ActivityMonitor,
