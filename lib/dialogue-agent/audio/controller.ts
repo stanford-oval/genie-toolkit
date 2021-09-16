@@ -206,9 +206,6 @@ export default class AudioController extends events.EventEmitter {
             await state.player.prepare(spec);
             return;
         }
-        if (spec !== undefined && !await state.player.checkCustomPlayer(spec))
-            throw new CustomError(`unsupported`, `The player does not support the given custom spec`);
-
         state.timestamp = Date.now();
         if (state.iface)
             await state.iface.stop(state.player.conversationId);
@@ -231,9 +228,6 @@ export default class AudioController extends events.EventEmitter {
         const state = this._getPlayer(conversationId);
         if (!state)
             throw new CustomError(`unsupported`, `No player is available to complete this request`);
-
-        if (!await state.player.checkCustomPlayer({ type: 'url' }))
-            throw new CustomError(`unsupported`, `The player does not support playing URLs`);
 
         state.timestamp = Date.now();
         if (state.iface)
