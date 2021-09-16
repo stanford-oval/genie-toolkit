@@ -40,6 +40,7 @@ import AbstractDialogueAgent, {
 } from './abstract_dialogue_agent';
 
 interface AbstractConversation {
+    id : string;
     getState() : ConversationState;
 }
 
@@ -94,7 +95,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
 
         this._engine = engine;
         this._platform = engine.platform;
-        this._executor = new StatementExecutor(engine);
+        this._executor = new StatementExecutor(engine, dlg.conversation.id);
         this._dlg = dlg;
     }
 
