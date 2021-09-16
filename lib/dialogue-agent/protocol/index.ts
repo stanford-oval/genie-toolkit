@@ -26,6 +26,9 @@ export { default as WebSocketConnection } from './connection';
 export * from './chat_message';
 export * from './control_message';
 
+import * as Audio from '../audio/protocol';
+export { Audio };
+
 import { Message } from './chat_message';
 import {
     ConversationIDMessage,
@@ -34,6 +37,7 @@ import {
     NewDeviceMessage,
     AskSpecialMessage,
     ErrorMessage,
+    ClientRequestSubprotocolCommand,
 } from './control_message';
 
 /**
@@ -46,7 +50,8 @@ export type ServerProtocolMessage =
     | HypothesisMessage
     | NewDeviceMessage
     | AskSpecialMessage
-    | ErrorMessage;
+    | ErrorMessage
+    | Audio.ServerMessage;
 
 
 export interface ClientTextCommand {
@@ -75,4 +80,6 @@ export type ClientProtocolMessage =
     PingMessage
     | ClientTextCommand
     | ClientParsedCommand
-    | ClientThingTalkCommand;
+    | ClientThingTalkCommand
+    | ClientRequestSubprotocolCommand
+    | Audio.ClientMessage;

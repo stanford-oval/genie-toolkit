@@ -21,16 +21,10 @@
 import * as events from 'events';
 import * as Tp from 'thingpedia';
 
+import CustomError from '../../utils/custom_error';
 import type DeviceDatabase from '../../engine/devices/database';
-import { AudioDevice, AudioPlayer, CustomPlayerSpec } from './interface';
 
-class CustomError extends Error {
-    readonly code : string;
-    constructor(code : string, message : string) {
-        super(message);
-        this.code = code;
-    }
-}
+import { AudioDevice, AudioPlayer, CustomPlayerSpec } from './interface';
 
 /**
  * State tracked with each player, associating a player with the skill
@@ -159,11 +153,25 @@ export default class AudioController extends events.EventEmitter {
             return iface;
     }
 
-    async prepare(spec : CustomPlayerSpec, conversationId ?: string) : Promise<boolean> {
+    /**
+     * Check if the custom player backend is available.
+     *
+     * This function will check whether the backend is supported, and will
+     * attempt to initialize it using the given spec.
+     *
+     * The function is safe to call if the backend is unsupported, and will
+     * return false.
+     *
+     * @param spec the player to check
+     * @param conversationId the conversation ID associated with the current command;
+     *      if specified, it will affect the choice of which player to play on
+     * @returns
+     */
+    async checkCustomPlayer(spec : CustomPlayerSpec, conversationId ?: string) : Promise<boolean> {
         const state = this._getPlayer(conversationId);
         if (!state)
             return false;
-        return state.player.prepare(spec);
+        return state.player.checkCustomPlayer(spec);
     }
 
     /**
@@ -195,10 +203,10 @@ export default class AudioController extends events.EventEmitter {
         if (device === state.device) {
             state.iface = this._normalizeCompatIface(iface);
             state.timestamp = Date.now();
-            await state.player.requestAudio(spec);
+            await state.player.prepare(spec);
             return;
         }
-        if (spec !== undefined && !await state.player.prepare(spec))
+        if (spec !== undefined && !await state.player.checkCustomPlayer(spec))
             throw new CustomError(`unsupported`, `The player does not support the given custom spec`);
 
         state.timestamp = Date.now();
@@ -206,7 +214,7 @@ export default class AudioController extends events.EventEmitter {
             await state.iface.stop(state.player.conversationId);
         state.device = device;
         console.log(`Switching audio to ${state.device.uniqueId}`);
-        await state.player.requestAudio(spec);
+        await state.player.prepare(spec);
         state.iface = this._normalizeCompatIface(iface);
     }
 
@@ -224,7 +232,7 @@ export default class AudioController extends events.EventEmitter {
         if (!state)
             throw new CustomError(`unsupported`, `No player is available to complete this request`);
 
-        if (!await state.player.prepare({ type: 'url' }))
+        if (!await state.player.checkCustomPlayer({ type: 'url' }))
             throw new CustomError(`unsupported`, `The player does not support playing URLs`);
 
         state.timestamp = Date.now();
@@ -232,7 +240,6 @@ export default class AudioController extends events.EventEmitter {
             await state.iface.stop(state.player.conversationId);
         state.device = device;
         console.log(`Switching audio to ${state.device.uniqueId}`);
-        await state.player.requestAudio({ type: 'url' });
         await state.player.playURLs(urls);
     }
 

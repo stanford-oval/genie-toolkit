@@ -45,11 +45,11 @@ class LocalAudioPlayer implements AudioPlayer {
         this._player = null;
     }
 
-    async prepare(spec : CustomPlayerSpec) : Promise<boolean> {
+    async checkCustomPlayer(spec : CustomPlayerSpec) : Promise<boolean> {
         return spec.type === 'url';
     }
 
-    async requestAudio(spec ?: CustomPlayerSpec) : Promise<void> {
+    async prepare(spec ?: CustomPlayerSpec) : Promise<void> {
         if (spec && spec.type !== 'url')
             throw new Error(`unsupported`);
 

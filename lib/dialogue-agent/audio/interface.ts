@@ -88,7 +88,7 @@ export interface AudioPlayer {
     conversationId : string;
 
     /**
-     * Prepare for playing with the given custom player backend.
+     * Check if playing with given custom player backend is possible.
      *
      * This function will check whether the backend is supported, and will
      * attempt to initialize it.
@@ -98,7 +98,7 @@ export interface AudioPlayer {
      * @param spec the player backend to prepare
      * @returns whether preparation was successful or not
      */
-    prepare(spec : CustomPlayerSpec) : Promise<boolean>;
+    checkCustomPlayer(spec : CustomPlayerSpec) : Promise<boolean>;
 
     /**
      * Request playing audio.
@@ -106,7 +106,7 @@ export interface AudioPlayer {
      * The function will wait until the player is ready (all speech queues
      * are flushed, all concurrent audio is paused) before returning.
      */
-    requestAudio(spec ?: CustomPlayerSpec) : Promise<void>;
+    prepare(spec ?: CustomPlayerSpec) : Promise<void>;
 
     /**
      * Stop playing.

@@ -22,7 +22,7 @@ import * as Tp from 'thingpedia';
 
 import { EntityMap } from '../../utils/entity-utils';
 
-import { MessageType } from './message_type';
+import { MessageType, SubprotocolType } from './message_type';
 
 export interface ConversationIDMessage {
     type : MessageType.ID,
@@ -57,4 +57,13 @@ export interface ErrorMessage {
     type : MessageType.ERROR;
     message : string;
     code ?: string;
+}
+
+/**
+ * Enable a subprotocol on this connection
+ */
+export interface ClientRequestSubprotocolCommand {
+    type : MessageType.REQUEST_SUBPROTOCOL,
+    proto : SubprotocolType,
+    caps : string[]
 }

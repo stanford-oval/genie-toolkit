@@ -18,3 +18,125 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import { MessageType } from "../protocol/message_type";
+
+import { CustomPlayerSpec } from "./interface";
+
+// Protocol types associated with the audio control protocol
+
+export enum RequestType {
+    CHECK_BACKEND = 'check',
+    PREPARE = 'prepare',
+    STOP = 'stop',
+    PLAY_URLS = 'play-urls',
+    SET_VOLUME = 'set-volume',
+    SET_MUTE = 'set-mute'
+}
+
+// server->client messages
+
+export interface CheckBackendRequestMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.CHECK_BACKEND;
+
+    /**
+     * Serial number of the request
+     */
+    req : number;
+
+    spec : CustomPlayerSpec;
+}
+
+export interface PrepareRequestMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.PREPARE;
+    req : number;
+    spec ?: CustomPlayerSpec;
+}
+
+export interface StopRequestMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.STOP;
+    req : number;
+}
+
+export interface PlayURLMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.PLAY_URLS;
+    req : number;
+    urls : string[];
+}
+
+export interface SetVolumeMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.SET_VOLUME;
+    req : number;
+    volume : number;
+}
+
+export interface SetMuteMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.SET_MUTE;
+    req : number;
+    mute : boolean;
+}
+
+export type ServerMessage =
+    CheckBackendRequestMessage
+    | PrepareRequestMessage
+    | StopRequestMessage
+    | PlayURLMessage
+    | SetVolumeMessage
+    | SetMuteMessage;
+
+
+// client->server messages
+
+/**
+ * The result of a "check backend" operation.
+ */
+export interface CheckBackendResponseMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    req : number;
+    /**
+     * Whether the backend was available and initialized successfully.
+     */
+    ok : boolean;
+    /**
+     * Detailed string of why the backend was not available, for logging.
+     */
+    detail ?: string;
+}
+
+/**
+ * The result of any other server-initiated operation.
+ *
+ * The operation was considered successful if the {@link error}
+ * field is not present.
+ */
+export interface GenericResponseMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    req : number;
+
+    /**
+     * Error associated with this operation, if any.
+     */
+    error ?: {
+        /**
+         * Human readable error message.
+         *
+         * The purpose of this error message is for logging and developer
+         * use, not to be displayed directly to users.
+         */
+        message : string;
+
+        /**
+         * Error code, if available.
+         */
+        code ?: string;
+    }
+}
+
+export type ClientMessage =
+    CheckBackendResponseMessage
+    | GenericResponseMessage;

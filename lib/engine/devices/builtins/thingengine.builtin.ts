@@ -23,17 +23,12 @@ import * as Tp from 'thingpedia';
 import * as TT from 'thingtalk';
 import * as stream from 'stream';
 
+import CustomError from '../../../utils/custom_error';
+
 import type ExecWrapper from '../../apps/exec_wrapper';
 import type AssistantEngine from '../..';
 
 import FAQ from './faq.json';
-
-class CustomError extends Error {
-    constructor(public code : string,
-                message : string) {
-        super(message);
-    }
-}
 
 // A placeholder object for builtin triggers/queries/actions that
 // don't have any better place to live, such as those related to

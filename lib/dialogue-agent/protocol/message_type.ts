@@ -42,5 +42,20 @@ export enum MessageType {
     NEW_DEVICE = 'new-device',
     HYPOTHESIS = 'hypothesis',
     ASK_SPECIAL = 'askSpecial',
-    ERROR = 'error'
+    ERROR = 'error',
+    REQUEST_SUBPROTOCOL = 'req-subproto',
+
+    // subprotocol identifiers
+    AUDIO_SUBPROTOCOL = 'protocol:audio'
+}
+
+/**
+ * Extension protocols
+ *
+ * These allows various components in Genie
+ * to piggy-back into the conversation websocket,
+ * avoiding a different connection to the server.
+ */
+export enum SubprotocolType {
+    AUDIO = 'audio'
 }
