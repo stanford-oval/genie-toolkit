@@ -32,7 +32,7 @@ import * as seedrandom from 'seedrandom';
 import { DialogueParser } from '../../lib';
 import * as StreamUtils from '../../lib/utils/stream-utils';
 import Conversation from '../../lib/dialogue-agent/conversation';
-import ConversationWebSocketConnection from '../../lib/dialogue-agent/conversation_ws';
+import { WebSocketConnection as ConversationWebSocketConnection } from '../../lib/dialogue-agent/protocol';
 
 import MockThingpediaClient from './mock_thingpedia_client';
 import * as MockEngine from './mock_engine';
