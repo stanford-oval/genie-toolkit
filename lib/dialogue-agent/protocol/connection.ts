@@ -50,6 +50,7 @@ export interface SubprotocolImplementation {
 export default class ConversationWebSocketConnection implements ConversationDelegate {
     readonly send : (msg : ServerProtocolMessage) => Promise<void>;
     private _syncDevices : boolean;
+    private _replayHistory : boolean;
     private _pingListener : () => void;
     private _deviceAddedListener : (d : Tp.BaseDevice) => void;
     private _conversation : Conversation;
@@ -58,12 +59,16 @@ export default class ConversationWebSocketConnection implements ConversationDele
 
     constructor(conversation : Conversation,
                 sendCallback : (msg : ServerProtocolMessage) => Promise<void>,
-                options : { syncDevices ?: boolean } = {}) {
+                options : {
+                    replayHistory ?: boolean
+                    syncDevices ?: boolean
+                } = {}) {
         this._conversation = conversation;
         this._engine = conversation.engine;
         this.send = sendCallback;
 
         this._syncDevices = options.syncDevices ?? false;
+        this._replayHistory = options.replayHistory ?? true;
         this._deviceAddedListener = (d : Tp.BaseDevice) => {
             this._sendNewDevice(d);
         };
@@ -92,7 +97,7 @@ export default class ConversationWebSocketConnection implements ConversationDele
         }
         this._engine.activityMonitor.on('ping', this._pingListener);
 
-        await this._conversation.addOutput(this);
+        await this._conversation.addOutput(this, this._replayHistory);
     }
 
     async stop() {
