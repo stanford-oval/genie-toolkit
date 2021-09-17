@@ -106,6 +106,27 @@ export interface CheckBackendResponseMessage {
      * Detailed string of why the backend was not available, for logging.
      */
     detail ?: string;
+
+    /**
+     * Error associated with this operation, if any.
+     *
+     * This is only relevant for protocol errors, not errors related to
+     * the initialization of the backend.
+     */
+    error ?: {
+        /**
+         * Human readable error message.
+         *
+         * The purpose of this error message is for logging and developer
+         * use, not to be displayed directly to users.
+         */
+        message : string;
+
+        /**
+         * Error code, if available.
+         */
+        code ?: string;
+    }
 }
 
 /**

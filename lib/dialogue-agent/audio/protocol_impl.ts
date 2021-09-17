@@ -84,6 +84,12 @@ export default class AudioSubprotocolImplementation implements AudioPlayer {
             op: RequestType.CHECK_BACKEND,
             spec
         })) as CheckBackendResponseMessage;
+        if (msg.error) {
+            if (msg.error.code)
+                throw new CustomError(msg.error.code, msg.error.message);
+            else
+                throw new Error(msg.error.message);
+        }
         if (typeof msg.ok !== 'boolean') {
             this._conn.send({ type: MessageType.ERROR, code: 'EINVAL', message: `Invalid reply to check request` });
             return false;
