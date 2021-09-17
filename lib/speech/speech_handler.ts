@@ -234,6 +234,8 @@ export default class SpeechHandler extends events.EventEmitter {
                     else
                         console.log(`Ignored unknown sound effect ${message.name}`);
                 } else {
+                    if (!this._enableVoiceOutput)
+                        break;
                     this.waitFinishSpeaking().then(() => {
                         return soundEffects.play(message.name);
                     }).catch((e) => {
