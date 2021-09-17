@@ -240,7 +240,7 @@ export default class AutoCanonicalGenerator {
                     } else {
                         canonicals[cat + '_projection'] = canonicals[cat].map((canonical : string) => {
                             return this._processProjectionCanonical(canonical, cat);
-                        }).filter((v : string, i : number, self : string[]) => self.indexOf(v) === i);
+                        }).filter(Boolean).filter((v : string, i : number, self : string[]) => self.indexOf(v) === i);
                     }
                 }
             }
