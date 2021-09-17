@@ -20,6 +20,7 @@
 
 import assert from 'assert';
 import { Ast, Type, Syntax } from 'thingtalk';
+import { toTemporalInstant } from '@js-temporal/polyfill';
 
 import * as I18n from '../../i18n';
 import { clean, cleanKind, tokenizeExample } from '../misc-utils';
@@ -300,16 +301,30 @@ export class Describer {
             case 'set_time': {
                 if (arg.operands[0] instanceof Ast.DateValue && arg.operands[0].value === null)
                     return this._interp(this._("${time} today"), { time: operands[1] });
-                if (arg.operands[0] instanceof Ast.DateValue && 
-                    arg.operands[0].value instanceof Ast.DateEdge && 
+                if (arg.operands[0] instanceof Ast.DateValue &&
+                    arg.operands[0].value instanceof Ast.DateEdge &&
                     arg.operands[0].value.edge === 'start_of' &&
                     arg.operands[0].value.unit === 'day')
                     return this._interp(this._("${time} today"), { time: operands[1] });
-                if (arg.operands[0] instanceof Ast.DateValue && 
-                    arg.operands[0].value instanceof Ast.DateEdge && 
+                if (arg.operands[0] instanceof Ast.DateValue &&
+                    arg.operands[0].value instanceof Ast.DateEdge &&
                     arg.operands[0].value.edge === 'end_of' &&
                     arg.operands[0].value.unit === 'day')
                     return this._interp(this._("${time} tomorrow"), { time: operands[1] });
+
+                if (arg.operands[0] instanceof Ast.DateValue &&
+                    arg.operands[0].value instanceof Date) {
+                    // if the date operand is absolute, remove any time component from it
+                    const datetz = toTemporalInstant.call(arg.operands[0].value).toZonedDateTime({
+                        timeZone: this.timezone!,
+                        calendar: 'iso8601'
+                    }).withPlainTime({ hour: 0, minute: 0, second: 0 });
+
+                    // we have to convert back to legacy Date object for compatibility with
+                    // other code that handles entities
+                    operands[0] = this._getEntity('DATE', new Date(datetz.epochMilliseconds));
+                }
+
                 return this._interp(this._("${time} on ${date}"), { date : operands[0], time: operands[1] });
             }
             default:

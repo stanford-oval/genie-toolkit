@@ -190,7 +190,10 @@ export default class AppExecutor extends events.EventEmitter {
         this.command = null;
         this.rules = [];
 
-        const ast = Syntax.parse(code);
+        const ast = Syntax.parse(code, Syntax.SyntaxType.Normal, {
+            locale: this.engine.platform.locale,
+            timezone: this.engine.platform.timezone
+        });
         assert(ast instanceof Ast.Program);
         this.program = ast;
         this._error = null;

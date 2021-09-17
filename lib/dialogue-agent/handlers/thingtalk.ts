@@ -308,6 +308,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             let parsed;
             try {
                 parsed = await ThingTalkUtils.parsePrediction(candidate.code, nluResult.entities, {
+                    timezone: this._engine.platform.timezone,
                     thingpediaClient: this._engine.thingpedia,
                     schemaRetriever: this._engine.schemas,
                     loadMetadata: true,
@@ -409,7 +410,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     }
 
     private async _makeClarificationQuestion(program : Ast.Input) {
-        const allocator = new Syntax.SequentialEntityAllocator({});
+        const allocator = new Syntax.SequentialEntityAllocator({}, { timezone: this._engine.platform.timezone });
         const describer = new ThingTalkUtils.Describer(this._engine.platform.locale,
                                                        this._engine.platform.timezone,
                                                        allocator);
@@ -539,6 +540,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 return null;
             } else {
                 const parsed = await ThingTalkUtils.parse(initialState, {
+                    locale: this._engine.platform.locale,
+                    timezone: this._engine.platform.timezone,
                     schemaRetriever: this._engine.schemas,
                     thingpediaClient: this._engine.thingpedia
                 });

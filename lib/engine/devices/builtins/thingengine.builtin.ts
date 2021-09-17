@@ -22,8 +22,10 @@ import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as TT from 'thingtalk';
 import * as stream from 'stream';
+import { Temporal } from '@js-temporal/polyfill';
 
 import CustomError from '../../../utils/custom_error';
+import * as ThingTalkUtils from '../../../utils/thingtalk';
 
 import type ExecWrapper from '../../apps/exec_wrapper';
 import type AssistantEngine from '../..';
@@ -51,14 +53,15 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     get_get_date() {
-        const today = new Date;
-        today.setHours(0, 0, 0);
-        return [{ date: today }];
+        const today = Temporal.Now.zonedDateTime('iso8601', this.platform.timezone).withPlainTime({
+            hour: 0, minute: 0, second: 0
+        });
+        // convert back to a JS date for compatibility
+        return [{ date: new Date(today.epochMilliseconds) }];
     }
     get_get_time() {
-        const now = new Date;
-        // FIXME convert to the right timezone...
-        return [{ time: new Tp.Value.Time(now.getHours(), now.getMinutes(), now.getSeconds()) }];
+        const now = Temporal.Now.zonedDateTime('iso8601', this.platform.timezone);
+        return [{ time: Tp.Value.Time.fromTemporal(now.toPlainTime()) }];
     }
     get_get_random_between({ low, high } : { low : number|null|undefined, high : number|null|undefined }) {
         if ((low === null || low === undefined) && (high === null || high === undefined)) {
@@ -167,17 +170,12 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
             dataset = this.engine.thingpedia.getAllExamples();
 
         const code = await dataset;
-        let parsed;
-        try {
-            parsed = TT.Syntax.parse(code);
-        } catch(e) {
-            if (e.name !== 'SyntaxError')
-                throw e;
-            // try parsing using legacy syntax too in case we're talking
-            // to an old Thingpedia that has not been migrated
-            parsed = TT.Syntax.parse(code, TT.Syntax.SyntaxType.Legacy);
-        }
-        await parsed.typecheck(this.engine.schemas, false);
+        const parsed = await ThingTalkUtils.parse(code, {
+            locale: this.platform.locale,
+            timezone: this.platform.timezone,
+            thingpediaClient: this.engine.thingpedia,
+            schemaRetriever: this.engine.schemas
+        });
         assert(parsed instanceof TT.Ast.Library);
 
         return parsed.datasets[0].examples.map((ex) => {
@@ -222,8 +220,8 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     do_alert() {
-        const now = new Date;
-        return { time: new Tp.Value.Time(now.getHours(), now.getMinutes()) };
+        const now = Temporal.Now.zonedDateTime('iso8601', this.platform.timezone);
+        return { time: Tp.Value.Time.fromTemporal(now.toPlainTime()) };
     }
 
     do_timer_expire(params : unknown, env : ExecWrapper) {

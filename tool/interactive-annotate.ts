@@ -48,7 +48,7 @@ import Platform from './lib/cmdline-platform';
 
 interface AnnotatorOptions {
     locale : string;
-    timezone : string|undefined;
+    timezone : string;
     thingpedia_url : string;
     thingpedia_dir : string[]|undefined;
     nlu_server : string;
@@ -60,6 +60,7 @@ interface AnnotatorOptions {
 class Annotator extends events.EventEmitter {
     private _rl : readline.Interface;
     private _locale : string;
+    private _timezone : string;
     private _langPack : I18n.LanguagePack;
     private _rng : () => number;
     private _platform : Tp.BasePlatform;
@@ -88,6 +89,7 @@ class Annotator extends events.EventEmitter {
         this._rl = rl;
 
         this._locale = options.locale;
+        this._timezone = options.timezone;
         this._langPack = I18n.get(options.locale);
         this._rng = seedrandom.alea(options.random_seed);
         this._parser = ParserClient.get(options.nlu_server, options.locale);
@@ -324,7 +326,8 @@ class Annotator extends events.EventEmitter {
 
             // check that the entities are correct by serializing the program once
             ThingTalkUtils.serializePrediction(newState, this._preprocessed!, this._entities!, {
-                locale: this._locale
+                locale: this._locale,
+                timezone: this._timezone,
             }).join(' ');
         } catch(e) {
             console.log(`${e.name}: ${e.message}`);
@@ -498,6 +501,7 @@ class Annotator extends events.EventEmitter {
         this._preprocessed = parsed.tokens.join(' ');
         this._entities = parsed.entities;
         const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+            timezone: this._timezone,
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
             loadMetadata: true
@@ -535,7 +539,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--timezone', {
         required: false,
         default: undefined,
-        help: `Timezone to use to print dates and times (defaults to the current timezone).`
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--thingpedia-url', {
         required: false,

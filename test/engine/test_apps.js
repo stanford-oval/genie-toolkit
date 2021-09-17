@@ -609,7 +609,7 @@ async function testAtTimer(engine, conversation) {
     };
     engine.assistant.addNotificationOutput(delegate);
 
-    const app = await engine.createApp(`attimer(time=[new Time(${now.getHours()+2},${now.getMinutes()})]) => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
+    const app = await engine.createApp(`attimer(time=[new Time(${(now.getHours()+2)%24},${now.getMinutes()})]) => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
         { icon: 'org.foo', uniqueId: 'uuid-attimer-foo', name: 'some app', description: 'some app description' });
     assert.strictEqual(app.icon, 'org.foo');
     assert.strictEqual(app.uniqueId, 'uuid-attimer-foo');

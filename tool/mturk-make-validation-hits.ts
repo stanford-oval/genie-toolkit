@@ -48,6 +48,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 'en-US',
         help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
     });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
+    });
     parser.add_argument('--thingpedia', {
         required: true,
         help: 'Path to ThingTalk file containing class definitions.'
@@ -110,6 +115,7 @@ export async function execute(args : any) {
         }))
         .pipe(new ParaphraseValidatorFilter(schemaRetriever, {
             locale: args.locale,
+            timezone: args.timezone,
             debug: args.debug
         }))
         .pipe(accumulator);

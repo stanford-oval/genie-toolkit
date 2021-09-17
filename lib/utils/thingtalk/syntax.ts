@@ -26,6 +26,8 @@ import { Ast, SchemaRetriever, Syntax } from 'thingtalk';
 import GenieEntityRetriever from './entity-retriever';
 
 export interface ParseOptions {
+    locale ?: string;
+    timezone : string|undefined;
     thingpediaClient : Tp.BaseClient|null;
     schemaRetriever ?: SchemaRetriever;
     loadMetadata ?: boolean;
@@ -36,28 +38,31 @@ export async function parse(code : string, options : ParseOptions) : Promise<Ast
 export async function parse(code : string, options : SchemaRetriever|ParseOptions) : Promise<Ast.Input> {
     let schemas : SchemaRetriever;
     let loadMetadata : boolean;
+    let parseOptions : Syntax.ParseOptions;
     if (options instanceof SchemaRetriever) {
         schemas = options;
         loadMetadata = false;
+        parseOptions = { timezone: undefined };
     } else {
         const tpClient = options.thingpediaClient!;
         if (!options.schemaRetriever)
             options.schemaRetriever = new SchemaRetriever(tpClient, null, true);
         schemas = options.schemaRetriever;
         loadMetadata = options.loadMetadata||false;
+        parseOptions = options;
     }
 
     assert(code);
     let parsed : Ast.Input;
     try {
         // first try parsing using normal syntax
-        parsed = Syntax.parse(code);
+        parsed = Syntax.parse(code, Syntax.SyntaxType.Normal, parseOptions);
     } catch(e1) {
         // if that fails, try with legacy syntax
         if (e1.name !== 'SyntaxError')
             throw e1;
         try {
-            parsed = Syntax.parse(code, Syntax.SyntaxType.Legacy);
+            parsed = Syntax.parse(code, Syntax.SyntaxType.Legacy, parseOptions);
         } catch(e2) {
             if (e2.name !== 'SyntaxError')
                 throw e2;
@@ -79,13 +84,13 @@ export async function parsePrediction(code : string|string[], entities : Syntax.
         let parsed : Ast.Input;
         try {
             // first try parsing using normal tokenized syntax
-            parsed = Syntax.parse(code, Syntax.SyntaxType.Tokenized, entities);
+            parsed = Syntax.parse(code, Syntax.SyntaxType.Tokenized, entities, options);
         } catch(e1) {
             // if that fails, try with legacy NN syntax
             if (e1.name !== 'SyntaxError')
                 throw e1;
             try {
-                parsed = Syntax.parse(code, Syntax.SyntaxType.LegacyNN, entities);
+                parsed = Syntax.parse(code, Syntax.SyntaxType.LegacyNN, entities, options);
             } catch(e2) {
                 if (e2.name !== 'SyntaxError')
                     throw e2;
@@ -123,13 +128,16 @@ export function serializeNormalized(program : Ast.Input|null, entities : Syntax.
     if (program === null)
         return [['null'], {}];
 
-    const allocator = new Syntax.SequentialEntityAllocator(entities);
+    // use UTC to compare dates for equality in normalized form
+    // (this removes any ambiguity due to DST)
+    const allocator = new Syntax.SequentialEntityAllocator(entities, { timezone: 'UTC' });
     const code : string[] = Syntax.serialize(program, Syntax.SyntaxType.Tokenized, allocator);
     return [code, entities];
 }
 
 interface SerializeOptions {
     locale : string;
+    timezone : string|undefined;
     ignoreSentence ?: boolean;
     compatibility ?: string;
 }
@@ -142,7 +150,8 @@ export function serializePrediction(program : Ast.Input,
                                     entities : Syntax.EntityMap,
                                     options : SerializeOptions) : string[] {
     const entityRetriever = new GenieEntityRetriever(typeof sentence === 'string' ? sentence.split(' ') : sentence, entities, {
-        locale: options.locale!,
+        locale: options.locale,
+        timezone: options.timezone,
         allowNonConsecutive: true,
         useHeuristics: true,
         alwaysAllowStrings: false,

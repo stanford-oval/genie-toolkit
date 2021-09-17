@@ -66,6 +66,7 @@ interface BasicGeneratorOptions {
 class BasicSentenceGenerator extends stream.Readable {
     private _idPrefix : string;
     private _locale : string;
+    private _timezone : string|undefined;
     private _langPack : I18n.LanguagePack;
     private _rng : () => number;
     private _generator : SentenceGenerator;
@@ -76,6 +77,7 @@ class BasicSentenceGenerator extends stream.Readable {
         super({ objectMode: true });
         this._idPrefix = options.idPrefix || '';
         this._locale = options.locale;
+        this._timezone = options.timezone;
         this._langPack = I18n.get(options.locale);
         this._rng = options.rng;
         this._generator = new SentenceGenerator({
@@ -92,7 +94,7 @@ class BasicSentenceGenerator extends stream.Readable {
             rng: options.rng,
 
             thingpediaClient: options.thingpediaClient,
-            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
+            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}, { timezone: options.timezone }),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList
         });
@@ -140,7 +142,8 @@ class BasicSentenceGenerator extends stream.Readable {
         let sequence;
         try {
             sequence = ThingTalkUtils.serializePrediction(program, [], tokenized.entities, {
-                locale: this._locale
+                locale: this._locale,
+                timezone: this._timezone,
             });
         } catch(e) {
             console.error(preprocessed);
@@ -544,7 +547,7 @@ class DialogueGenerator extends stream.Readable {
             logPrefix: options.logPrefix,
             rng: options.rng,
             thingpediaClient: options.thingpediaClient,
-            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
+            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}, { timezone: options.timezone }),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList,
         };
@@ -566,7 +569,7 @@ class DialogueGenerator extends stream.Readable {
             logPrefix: options.logPrefix,
             rng: options.rng,
             thingpediaClient: options.thingpediaClient,
-            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
+            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}, { timezone: options.timezone }),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList,
         };

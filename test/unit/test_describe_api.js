@@ -24,7 +24,7 @@ import { Ast, Syntax }  from 'thingtalk';
 import { Describer } from '../../lib/utils/thingtalk/describe';
 
 async function testDescribeArg() {
-    const allocator = new Syntax.SequentialEntityAllocator({});
+    const allocator = new Syntax.SequentialEntityAllocator({}, { timezone: 'America/Los_Angeles' });
     const describer = new Describer('en-US', 'America/Los_Angeles', allocator);
 
     const TEST_CASES = [

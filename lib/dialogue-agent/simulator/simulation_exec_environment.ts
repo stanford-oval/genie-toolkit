@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import { Temporal } from '@js-temporal/polyfill';
 import assert from 'assert';
 
 import * as ThingTalk from 'thingtalk';
@@ -29,15 +29,28 @@ import { coin, uniform, randint } from '../../utils/random';
 import { SimulationDatabase } from './types';
 import { getAllDevicesOfKind } from './helpers';
 
+function makeJSDate(timezone : string, day : number) : Date {
+    // emulate the behavior of JS date where passed a very large day number
+    // (which we do in the result generator when creating random dates)
+    const datetz = Temporal.ZonedDateTime.from({
+        timeZone: timezone,
+        year: 2018, month: 1, day: 1
+    }).add({ days: day-1 });
+    return new Date(datetz.epochMilliseconds);
+}
+
 class ResultGenerator {
     private _rng : () => number;
+    private _timezone : string;
     private _overrides : Map<string, unknown>;
     private _candidates : Map<string, unknown[]>;
     private _constants : Map<string, unknown[]>;
 
     constructor(rng : () => number,
+                timezone : string,
                 overrides : Map<string, unknown>) {
         this._rng = rng;
+        this._timezone = timezone;
 
         this._overrides = overrides;
         this._candidates = new Map;
@@ -175,7 +188,7 @@ class ResultGenerator {
 
         const num = this._generateNumber('DATE::number', repeatable);
         assert(Number.isFinite(num));
-        const date = new Date(2018, 0, num);
+        const date = makeJSDate(this._timezone, num);
         assert(Number.isFinite(date.getTime()));
         return date;
     }
@@ -381,6 +394,8 @@ class SimulationExecEnvironment extends ExecEnvironment {
     private _simulateErrors : boolean;
     private _testDevice = new SimpleTestDevice();
     private _delegate ! : OutputDelegate;
+    private _locale : string;
+    private _timezone : string;
 
     private _execCache : Array<[string, Record<string, string>, Record<string, unknown>, Array<[string, Record<string, unknown>]>]>;
 
@@ -398,6 +413,8 @@ class SimulationExecEnvironment extends ExecEnvironment {
         this._database = database;
         this._rng = rng;
         this._simulateErrors = simulateErrors;
+        this._locale = locale;
+        this._timezone = timezone ?? Temporal.Now.timeZone().id;
 
         this.generator = null;
     }
@@ -408,6 +425,12 @@ class SimulationExecEnvironment extends ExecEnvironment {
 
     get program_id() {
         return new ThingTalk.Entity('uuid-simulation', null);
+    }
+    get locale() {
+        return this._locale;
+    }
+    get timezone() {
+        return this._timezone;
     }
 
     clearGetCache() {

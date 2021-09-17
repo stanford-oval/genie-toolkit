@@ -618,7 +618,10 @@ export default class AssistantEngine extends Tp.BaseEngine {
     }) : Promise<AppExecutor> {
         let program : ThingTalk.Ast.Program;
         if (typeof programOrString === 'string') {
-            const parsed = await ThingTalk.Syntax.parse(programOrString).typecheck(this.schemas, true);
+            const parsed = await ThingTalk.Syntax.parse(programOrString, ThingTalk.Syntax.SyntaxType.Normal, {
+                locale: this._platform.locale,
+                timezone: this._platform.timezone
+            }).typecheck(this.schemas, true);
             assert(parsed instanceof ThingTalk.Ast.Program);
             program = parsed;
         } else {

@@ -37,6 +37,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: true,
         type: fs.createWriteStream
     });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
+    });
     parser.add_argument('--fraction', {
         required: true,
         type: Number,
@@ -54,7 +64,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 export async function execute(args : any) {
     const rng = seedrandom.alea(args.random_seed);
 
-    const parsed = ThingTalk.Syntax.parse(await pfs.readFile(args.input_file, { encoding: 'utf8' }));
+    const parsed = ThingTalk.Syntax.parse(await pfs.readFile(args.input_file, { encoding: 'utf8' }), ThingTalk.Syntax.SyntaxType.Normal, { locale: args.locale, timezone: args.timezone });
     assert(parsed instanceof ThingTalk.Ast.Library);
     parsed.classes = parsed.classes.filter(() => coin(args.fraction, rng));
 

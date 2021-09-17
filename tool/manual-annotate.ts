@@ -48,6 +48,7 @@ function waitEnd(stream : stream.Readable) {
 
 interface TrainerOptions {
     locale : string;
+    timezone : string;
     thingpedia : string;
     server : string;
     offset : number;
@@ -65,6 +66,7 @@ class Trainer extends events.EventEmitter {
     private _schemas : ThingTalk.SchemaRetriever;
     private _parser : ParserClient.ParserClient;
     private _locale : string;
+    private _timezone : string;
 
     private _nextLine : Iterator<string>;
 
@@ -83,6 +85,7 @@ class Trainer extends events.EventEmitter {
         this._rl = rl;
 
         this._locale = options.locale;
+        this._timezone = options.timezone;
         this._tpClient = new Tp.FileClient(options);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
         this._parser = ParserClient.get(options.server, 'en-US');
@@ -149,7 +152,8 @@ class Trainer extends events.EventEmitter {
         let targetCode;
         try {
             targetCode = ThingTalkUtils.serializePrediction(program, this._preprocessed!, this._entities!, {
-                locale: this._locale
+                locale: this._locale,
+                timezone: this._timezone,
             }).join(' ');
         } catch(e) {
             console.log(`${e.name}: ${e.message}`);
@@ -248,6 +252,7 @@ class Trainer extends events.EventEmitter {
         if (oldTargetCode) {
             try {
                 await ThingTalkUtils.parsePrediction(oldTargetCode.split(' '), parsed.entities, {
+                    timezone: this._timezone,
                     thingpediaClient: this._tpClient,
                     schemaRetriever: this._schemas
                 }, true);
@@ -265,6 +270,7 @@ class Trainer extends events.EventEmitter {
         this._preprocessed = parsed.tokens.join(' ');
         this._entities = parsed.entities;
         const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+            timezone: this._timezone,
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas
         });
@@ -313,6 +319,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: false,
         default: 'en-US',
         help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
+    });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--thingpedia', {
         required: true,
