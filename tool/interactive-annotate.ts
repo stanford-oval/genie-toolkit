@@ -226,6 +226,8 @@ class Annotator extends events.EventEmitter {
     }
     get conversation() {
         return {
+            id: 'main',
+
             getState() {
                 return {
                     history: [],

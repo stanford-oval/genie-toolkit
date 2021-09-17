@@ -23,17 +23,12 @@ import * as Tp from 'thingpedia';
 import * as TT from 'thingtalk';
 import * as stream from 'stream';
 
-import ExecWrapper from '../../apps/exec_wrapper';
-import AssistantEngine from '../..';
+import CustomError from '../../../utils/custom_error';
+
+import type ExecWrapper from '../../apps/exec_wrapper';
+import type AssistantEngine from '../..';
 
 import FAQ from './faq.json';
-
-class CustomError extends Error {
-    constructor(public code : string,
-                message : string) {
-        super(message);
-    }
-}
 
 // A placeholder object for builtin triggers/queries/actions that
 // don't have any better place to live, such as those related to
@@ -323,5 +318,12 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         const platform = this.platform;
         const prefs = platform.getSharedPreferences();
         prefs.set('preferred-temperature', unit[0].toUpperCase());
+    }
+
+    do_pause(params : unknown, env : ExecWrapper) {
+        return (this.engine as AssistantEngine).audio.stopAudio(env.conversation);
+    }
+    do_resume(params : unknown, env : ExecWrapper) {
+        return (this.engine as AssistantEngine).audio.resumeAudio(env.conversation);
     }
 }

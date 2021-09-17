@@ -58,7 +58,7 @@ export default class NotificationFormatter {
         this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
         this._langPack = I18n.get(engine.platform.locale);
 
-        this._executor = new StatementExecutor(engine);
+        this._executor = new StatementExecutor(engine, 'internal');
         this._policy = new DialoguePolicy({
             thingpedia: engine.thingpedia,
             schemas: engine.schemas,

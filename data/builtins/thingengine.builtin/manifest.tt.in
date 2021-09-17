@@ -369,4 +369,30 @@ class @org.thingpedia.builtin.thingengine.builtin
                 "set the default temperature unit"]]
   #[doc="change the user's preferred temperature unit (a setting)"]
   #[confirm=false];
+
+  action pause()
+  #_[canonical=["pause", "pause audio", "stop audio"]]
+  #[doc="pause the currently playing skill"]
+  #[confirm=false];
+
+  action resume()
+  #_[canonical=["resume", "resume audio"]]
+  #[doc="resume the currently playing skill"]
+  #[confirm=false]
+  #_[on_error={
+    unsupported=["the current skill does not support resuming audio. please report this issue to the skill developer."],
+    no_device_playing=["nothing is currently playing yet. to play music, you can say play music."],
+  }];
+
+  /*
+  action next()
+  #_[canonical=["next"]]
+  #[doc="go next for the currently playing skill"]
+  #[confirm=false];
+
+  action previous()
+  #_[canonical=["previous"]]
+  #[doc="go previous for the currently playing skill"]
+  #[confirm=false];
+  */
 }

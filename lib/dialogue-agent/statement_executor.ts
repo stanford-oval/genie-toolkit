@@ -45,9 +45,11 @@ interface ErrorWithCode extends Error {
  */
 export default class InferenceStatementExecutor {
     private _engine : Engine;
+    private _conversationId : string;
 
-    constructor(engine : Engine) {
+    constructor(engine : Engine, conversationId : string) {
         this._engine = engine;
+        this._conversationId = conversationId;
     }
 
     private _inferType(key : string, jsValue : unknown) : Type {
@@ -148,7 +150,7 @@ export default class InferenceStatementExecutor {
 
     async executeStatement(stmt : Ast.ExpressionStatement, privateState : undefined, notifications : NotificationConfig|undefined) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord, undefined, Ast.AnnotationSpec]> {
         const program = new Ast.Program(null, [], [], [stmt]);
-        const app = await this._engine.createApp(program, { notifications });
+        const app = await this._engine.createApp(program, { notifications, conversation: this._conversationId });
         // by now the statement must have been typechecked
         assert(stmt.expression.schema);
         const results : Ast.DialogueHistoryResultItem[] = [];

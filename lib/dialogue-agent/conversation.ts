@@ -21,7 +21,6 @@
 import * as events from 'events';
 import * as ThingTalk from 'thingtalk';
 import * as Stream from "stream";
-import * as Tp from 'thingpedia';
 
 import * as I18n from '../i18n';
 
@@ -68,15 +67,12 @@ interface Statistics {
     hit(key : string) : void;
 }
 
-interface Context {
-    code : string[];
-    entities : EntityMap;
-}
-
 export interface ConversationDelegate {
     setHypothesis(hyp : string) : Promise<void>;
-    setExpected(expect : string|null, ctx : Context) : Promise<void>;
-    addDevice(uniqueId : string, state : Tp.BaseDevice.DeviceState) : Promise<void>;
+    setExpected(expect : string|null, ctx : {
+        code : string[];
+        entities : EntityMap;
+    }) : Promise<void>;
     addMessage(msg : Message) : Promise<void>;
 }
 
@@ -108,7 +104,10 @@ export default class Conversation extends events.EventEmitter {
 
     private _loop : DialogueLoop;
     private _expecting : ValueCategory|null;
-    private _context : Context;
+    private _context : {
+        code : string[];
+        entities : EntityMap;
+    };
 
     private _started : boolean;
     private _delegates : Set<ConversationDelegate>;
@@ -118,8 +117,6 @@ export default class Conversation extends events.EventEmitter {
     private _inactivityTimeoutSec : number;
     private _contextResetTimeout : NodeJS.Timeout|null;
     private _contextResetTimeoutSec : number;
-    private _syncDevices : boolean;
-    private _deviceAddedListener : (d : Tp.BaseDevice) => void;
 
     private _log : ConversationLogger;
     private readonly _conversationStateDB : LocalTable<ConversationStateRow>;
@@ -160,10 +157,6 @@ export default class Conversation extends events.EventEmitter {
         this._delegates = new Set;
         this._history = [];
         this._nextMsgId = 0;
-        this._syncDevices = options.syncDevices ?? false;
-        this._deviceAddedListener = (d : Tp.BaseDevice) => {
-            this.sendNewDevice(d);
-        };
         this._started = false;
 
         this._inactivityTimeout = null;
@@ -219,18 +212,16 @@ export default class Conversation extends events.EventEmitter {
         return this._loop.dispatchNotifyError(app, error);
     }
 
-    setExpected(expecting : ValueCategory|null, context : Context) : void {
+    setExpected(expecting : ValueCategory|null, context : {
+        code : string[];
+        entities : EntityMap;
+    }) : void {
         this._expecting = expecting;
         this._context = context;
     }
 
     async start(state ?: ConversationState) : Promise<void> {
         this._resetInactivityTimeout();
-
-        if (this._syncDevices) {
-            this._engine.devices.on('device-added', this._deviceAddedListener);
-            this._engine.devices.on('device-changed', this._deviceAddedListener);
-        }
 
         if (state) {
             for (const msg of state.history)
@@ -244,8 +235,6 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async stop() : Promise<void> {
-        this._engine.devices.removeListener('device-added', this._deviceAddedListener);
-        this._engine.devices.removeListener('device-changed', this._deviceAddedListener);
         return this._loop.stop();
     }
 
@@ -273,12 +262,6 @@ export default class Conversation extends events.EventEmitter {
 
     async addOutput(out : ConversationDelegate, replayHistory = true) {
         this._delegates.add(out);
-        if (this._syncDevices) {
-            for (const d of this._engine.devices.getAllDevices()) {
-                if (!await this._callDelegate(out, (out) => out.addDevice(d.uniqueId!, d.serialize())))
-                    return;
-            }
-        }
         if (replayHistory) {
             for (const msg of this._history) {
                 if (!await this._callDelegate(out, (out) => out.addMessage(msg)))
@@ -444,12 +427,6 @@ export default class Conversation extends events.EventEmitter {
         return this._loop.handleCommand({ type: 'thingtalk', parsed, platformData });
     }
 
-    async handlePing() {
-        this._engine.updateActivity();
-        if (this._debug)
-            console.log('Received ping message');
-    }
-
     sendReply(message : string, icon : string|null) {
         if (this._debug)
             console.log('Genie says: ' + message);
@@ -505,19 +482,6 @@ export default class Conversation extends events.EventEmitter {
         if (this._debug)
             console.log('Genie executed new program: '+ program.uniqueId);
         return this.addMessage({ type: MessageType.NEW_PROGRAM, ...program });
-    }
-
-    sendNewDevice(device : Tp.BaseDevice) {
-        if (this._debug)
-            console.log('Genie sends a new device: '+ device.uniqueId);
-        const state = device.serialize();
-        return this._callDelegates((out) => out.addDevice(device.uniqueId!, state));
-    }
-
-    sendPing() {
-        if (this._debug)
-            console.log('Genie sends ping');
-        return this.addMessage({ type: MessageType.PING });
     }
 
     async dialogueFinished() {

@@ -30,12 +30,12 @@ import DeviceDatabase from './devices/database';
 import SyncManager from './sync/manager';
 import PairedEngineManager from './sync/pairing';
 import Builtins from './devices/builtins';
-import AudioController from './audio_controller';
 
 import AppDatabase from './apps/database';
 import AppRunner from './apps/runner';
 import type AppExecutor from './apps/app_executor';
 
+import AudioController from '../dialogue-agent/audio/controller';
 import AssistantDispatcher from '../dialogue-agent/assistant_dispatcher';
 import { NotificationConfig } from '../dialogue-agent/notifications';
 import NotificationFormatter from '../dialogue-agent/notifications/formatter';
@@ -47,7 +47,6 @@ export {
     DB,
     DeviceDatabase,
     SyncManager,
-    AudioController,
     AppDatabase,
     AppExecutor,
     ActivityMonitor,
@@ -186,7 +185,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
     private _appdb : AppDatabase;
     private _assistant : AssistantDispatcher;
     private _audio : AudioController;
-    private _activityMonitor : ActivityMonitor|null;
+    private _activityMonitor : ActivityMonitor;
 
     private _running : boolean;
     private _stopCallback : (() => void)|null;
@@ -203,7 +202,10 @@ export default class AssistantEngine extends Tp.BaseEngine {
         nluModelUrl ?: string;
         thingpediaUrl ?: string;
         notifications ?: NotificationConfig;
-        activityMonitorOptions ?: Record<string, number>;
+        activityMonitorOptions ?: {
+            idleTimeoutMillis ?: number;
+            quiesceTimeoutMillis ?: number;
+        }
     } = {}) {
         super(platform, options);
 
@@ -226,8 +228,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._audio = new AudioController(this._devices);
 
-        this._activityMonitor = options.activityMonitorOptions ?
-                new ActivityMonitor(this._appdb, this._assistant, options.activityMonitorOptions) : null;
+        this._activityMonitor = new ActivityMonitor(this._appdb, options.activityMonitorOptions);
 
         // in loading order
         this._modules = [this._sync,
@@ -238,8 +239,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
             this._modules.push(this._audio);
         this._modules.push(this._assistant,
                            new AppRunner(this._appdb));
-        if (this._activityMonitor)
-            this._modules.push(this._activityMonitor);
+        this._modules.push(this._activityMonitor);
 
         this._running = false;
         this._stopCallback = null;
