@@ -40,11 +40,11 @@ generated := \
 	$(generated_early) \
 	$(patsubst %.po,%.mo,$(wildcard po/*.po)) \
 	$(built_bundled_templates) \
-	data/builtins/thingengine.builtin/dataset.tt \
+	data/builtins/org.thingpedia.builtin.thingengine.builtin/dataset.tt \
 	lib/engine/db/sqlite/schema.json \
-	lib/engine/devices/builtins/test.tt.json \
-	lib/engine/devices/builtins/thingengine.tt.json \
-	lib/engine/devices/builtins/thingengine.builtin.tt.json \
+	lib/engine/devices/builtins/org.thingpedia.builtin.test.tt.json \
+	lib/engine/devices/builtins/org.thingpedia.builtin.thingengine.tt.json \
+	lib/engine/devices/builtins/org.thingpedia.builtin.thingengine.builtin.tt.json \
 	lib/engine/devices/builtins/faq.json
 
 $(built_bundled_templates) : $(template_sources) lib/sentence-generator/compiler/*.ts $(generated_early)
@@ -67,8 +67,8 @@ lib/engine/devices/builtins/%.tt.json : data/builtins/%/manifest.tt
 	node -e 'console.log(JSON.stringify(require("fs").readFileSync(process.argv[1]).toString("utf8")))' $< > $@.tmp
 	mv $@.tmp $@
 
-data/builtins/thingengine.builtin/dataset.tt data/builtins/thingengine.builtin/manifest.tt lib/engine/devices/builtins/faq.json &: data/builtins/thingengine.builtin/dataset.tt.in data/builtins/thingengine.builtin/manifest.tt.in data/builtins/thingengine.builtin/faq.yaml
-	ts-node data/builtins/thingengine.builtin/merge-faq
+data/builtins/org.thingpedia.builtin.thingengine.builtin/dataset.tt data/builtins/org.thingpedia.builtin.thingengine.builtin/manifest.tt lib/engine/devices/builtins/faq.json &: data/builtins/org.thingpedia.builtin.thingengine.builtin/dataset.tt.in data/builtins/org.thingpedia.builtin.thingengine.builtin/manifest.tt.in data/builtins/org.thingpedia.builtin.thingengine.builtin/faq.yaml
+	ts-node data/builtins/org.thingpedia.builtin.thingengine.builtin/merge-faq
 
 %.mo : %.po
 	msgfmt $< -o $@

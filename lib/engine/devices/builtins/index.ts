@@ -24,9 +24,9 @@ import Test from './test';
 import ThingEngine from './thingengine';
 import ThingEngineBuiltin from './thingengine.builtin';
 
-import TestTT from './test.tt.json';
-import ThingEngineTT from './thingengine.tt.json';
-import ThingEngineBuiltinTT from './thingengine.builtin.tt.json';
+import TestTT from './org.thingpedia.builtin.test.tt.json';
+import ThingEngineTT from './org.thingpedia.builtin.thingengine.tt.json';
+import ThingEngineBuiltinTT from './org.thingpedia.builtin.thingengine.builtin.tt.json';
 
 const modules : Record<string, { class : string, module : Tp.BaseDevice.DeviceClass<Tp.BaseDevice> }> = {
     'org.thingpedia.builtin.test' : {

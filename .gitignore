@@ -30,6 +30,7 @@ po/*.json
 *.tgz
 *.tt.json
 data/builtins/thingengine.builtin/*.tt
+data/builtins/org.thingpedia.builtin.thingengine.builtin/*.tt
 lib/engine/devices/builtins/faq.json
 lib/engine/db/sqlite/schema.json
 
