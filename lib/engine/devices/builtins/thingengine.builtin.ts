@@ -324,4 +324,45 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     do_resume(params : unknown, env : ExecWrapper) {
         return (this.engine as AssistantEngine).audio.resumeAudio(env.conversation);
     }
+
+    do_raise_volume(params : unknown, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.adjustVolume(+10);
+    }
+    do_lower_volume(params : unknown, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.adjustVolume(-10);
+    }
+    do_set_volume({ volume } : { volume : number }, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.setVolume(volume);
+    }
+    do_mute(params : unknown, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.setMute(true);
+    }
+    do_unmute(params : unknown, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.setMute(false);
+    }
 }

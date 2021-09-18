@@ -1,4 +1,4 @@
-class @org.thingpedia.builtin.thingengine.builtin
+class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume-control
 #_[thingpedia_name="Miscellaneous Interfaces"]
 #_[thingpedia_description="Time, random numbers, and other commands not specific to any skill."]
 #_[name="Miscellaneous Interfaces"]

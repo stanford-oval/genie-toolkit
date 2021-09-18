@@ -30,6 +30,7 @@ export enum RequestType {
     STOP = 'stop',
     PLAY_URLS = 'play-urls',
     SET_VOLUME = 'set-volume',
+    ADJUST_VOLUME = 'adj-volume',
     SET_MUTE = 'set-mute'
 }
 
@@ -74,6 +75,13 @@ export interface SetVolumeMessage {
     volume : number;
 }
 
+export interface AdjustVolumeMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.ADJUST_VOLUME;
+    req : number;
+    delta : number;
+}
+
 export interface SetMuteMessage {
     type : MessageType.AUDIO_SUBPROTOCOL;
     op : RequestType.SET_MUTE;
@@ -87,6 +95,7 @@ export type ServerMessage =
     | StopRequestMessage
     | PlayURLMessage
     | SetVolumeMessage
+    | AdjustVolumeMessage
     | SetMuteMessage;
 
 

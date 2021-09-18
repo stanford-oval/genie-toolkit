@@ -132,11 +132,18 @@ export interface AudioPlayer {
     playURLs(urls : string[]) : Promise<void>;
 
     /**
-     * Set the output volume.
+     * Set the output volume to a specific value.
      *
      * @param volume the volume, between 0 and 100
      */
     setVolume(volume : number) : Promise<void>;
+
+    /**
+     * Adjust the output volume by the given delta.
+     *
+     * @param delta the volume delta, between -100 and 100
+     */
+    adjustVolume(delta : number) : Promise<void>;
 
     /**
      * Mute or unmute the audio.

@@ -130,6 +130,14 @@ export default class AudioSubprotocolImplementation implements AudioPlayer {
             volume
         });
     }
+    adjustVolume(delta : number) : Promise<void> {
+        return this._simpleReq({
+            type: MessageType.AUDIO_SUBPROTOCOL,
+            req: this._nextReq++,
+            op: RequestType.ADJUST_VOLUME,
+            delta
+        });
+    }
     setMute(mute : boolean) : Promise<void> {
         return this._simpleReq({
             type: MessageType.AUDIO_SUBPROTOCOL,

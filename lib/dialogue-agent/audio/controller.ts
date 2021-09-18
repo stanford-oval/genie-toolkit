@@ -121,7 +121,7 @@ export default class AudioController extends events.EventEmitter {
      *
      * @param conversationId
      */
-    getPlayer(conversationId : string) : AudioPlayer|undefined {
+    getPlayer(conversationId ?: string) : AudioPlayer|undefined {
         const state = this._getPlayer(conversationId);
         return state?.player;
     }

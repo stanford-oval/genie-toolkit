@@ -29,7 +29,7 @@ import { AbstractDatabase, createDB } from './db';
 import DeviceDatabase from './devices/database';
 import SyncManager from './sync/manager';
 import PairedEngineManager from './sync/pairing';
-import Builtins from './devices/builtins';
+import * as Builtins from './devices/builtins';
 
 import AppDatabase from './apps/database';
 import AppRunner from './apps/runner';
@@ -218,7 +218,16 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._modules = [];
 
-        const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, Builtins);
+        const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, Builtins.modules);
+
+        // inject the abstract interfaces used by the builtin devices into the schema retriever
+        for (const kind in Builtins.interfaces) {
+            const iface = Builtins.interfaces[kind];
+            const classDef = ThingTalk.Syntax.parse(iface, ThingTalk.Syntax.SyntaxType.Normal, { locale: platform.locale, timezone: 'UTC' });
+            assert(classDef instanceof ThingTalk.Ast.Library);
+            this._schemas.injectClass(classDef.classes[0]);
+        }
+
         this._devices = new DeviceDatabase(platform, this._db, this._sync,
                                            deviceFactory, this._schemas);
 

@@ -45,6 +45,7 @@ generated := \
 	lib/engine/devices/builtins/org.thingpedia.builtin.test.tt.json \
 	lib/engine/devices/builtins/org.thingpedia.builtin.thingengine.tt.json \
 	lib/engine/devices/builtins/org.thingpedia.builtin.thingengine.builtin.tt.json \
+	lib/engine/devices/builtins/org.thingpedia.volume-control.tt.json \
 	lib/engine/devices/builtins/faq.json
 
 $(built_bundled_templates) : $(template_sources) lib/sentence-generator/compiler/*.ts $(generated_early)

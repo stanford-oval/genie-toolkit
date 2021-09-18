@@ -69,6 +69,9 @@ class LocalAudioPlayer implements AudioPlayer {
     async setVolume(volume : number) : Promise<void> {
         throw new Error('Method not implemented.');
     }
+    async adjustVolume(delta : number) : Promise<void> {
+        throw new Error('Method not implemented.');
+    }
     async setMute(mute : boolean) : Promise<void> {
         throw new Error('Method not implemented.');
     }
