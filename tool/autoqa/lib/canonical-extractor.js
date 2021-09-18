@@ -245,9 +245,15 @@ export default class AnnotationExtractor {
             });
             child.stdout.on('end', () => resolve(buffer));
         });
-
-        if (this.options.debug)
-            await output(`./paraphraser-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+        
+        if (this.options.debug) {
+            try {
+                await output(`./paraphraser-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));               
+            } catch(e) {
+                await output(`./paraphraser-out.txt`, stdout);
+                throw new Error(e);
+            }
+        }
 
         this._output = JSON.parse(stdout);
     }
