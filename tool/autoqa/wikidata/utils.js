@@ -449,9 +449,12 @@ class Domains {
                 if (!this.wikidataTypes.includes(type))
                     this.wikidataTypes.push(type);
             }
+            const csqaType = row['csqa-type'];
+            const wikidataTypes = row['wikidata-types'].split(' ').map((x) => x.split(':')[0]);
             this._map[row.domain] = {
-                'csqa-type': row['csqa-type'],
-                'wikidata-types': row['wikidata-types'].split(' ').map((x) => x.split(':')[0])
+                'csqa-type': csqaType,
+                'wikidata-types': wikidataTypes,
+                'wikidata_subject': [csqaType, ...wikidataTypes]
             };
         });
         pipeline.on('error', (error) => console.error(error));
