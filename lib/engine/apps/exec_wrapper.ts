@@ -269,7 +269,7 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
 
         for (const device of devices) {
             const outputType = recursivelyComputeOutputType(device.kind, command.expression);
-            for await (const result of device.query(query, this))
+            for await (const result of await device.query(query, this))
                 yield [outputType, result];
         }
     }
