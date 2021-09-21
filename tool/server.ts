@@ -105,12 +105,18 @@ const QUERY_PARAMS = {
 
 async function queryNLU(params : Record<string, string>,
                         data : QueryNLUData,
-                        res : express.Response) {
+                        res : express.Response,
+                        contextual : boolean) {
     const app = res.app;
 
     if (params.locale !== app.args.locale) {
         res.status(400).json({ error: 'Unsupported language' });
         return;
+    }
+
+    if (!contextual) {
+        data.context = undefined;
+        data.entities = undefined;
     }
 
     const result = await res.app.backend.nlu.sendUtterance(data.q,
@@ -133,7 +139,8 @@ const NLG_PARAMS = {
 
 async function queryNLG(params : Record<string, string>,
                         data : QueryNLGData,
-                        res : express.Response) {
+                        res : express.Response,
+                        contextual : boolean) {
     const app = res.app;
 
     if (params.locale !== app.args.locale) {
@@ -174,6 +181,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: false,
         default: 'en-US',
         help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--contextual', {
+        action: 'store_true',
+        help: 'Contextual parser.',
+        default: true
+    });
+    parser.add_argument('--no-contextual', {
+        action: 'store_false',
+        dest: 'contextual',
+        help: 'Single turn parser.'
     });
     parser.add_argument('--debug', {
         action: 'store_true',
@@ -220,11 +237,11 @@ export async function execute(args : any) {
     });
 
     app.post('/:locale/query', qv.validatePOST(QUERY_PARAMS, { accept: 'application/json' }), (req, res, next) => {
-        queryNLU(req.params, req.body, res).catch(next);
+        queryNLU(req.params, req.body, res, args.contextual).catch(next);
     });
 
     app.post('/:locale/answer', qv.validatePOST(NLG_PARAMS, { accept: 'application/json' }), (req, res, next) => {
-        queryNLG(req.params, req.body, res).catch(next);
+        queryNLG(req.params, req.body, res, args.contextual).catch(next);
     });
 
     app.post('/:locale/tokenize', qv.validatePOST({ q: 'string', entities: '?object' }, { accept: 'application/json' }), (req, res, next) => {
