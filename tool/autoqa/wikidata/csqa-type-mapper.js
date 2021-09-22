@@ -28,6 +28,20 @@ import { argnameFromLabel } from './utils';
 
 const pfs = fs.promises;
 
+// map experiment name to CSQA type 
+const domainMap = {
+    'human': 'common_name',
+    'city': 'administrative_territorial_entity',
+    'country': 'designation_for_an_administrative_territorial_entity',
+    'art': 'work_of_art',
+    'song': 'release',
+    'music_band': 'music_ensemble',
+    'game': 'application',
+    'organization': 'organization',
+    'disease': 'disease',
+    'tv': 'television_program'
+};
+
 class CSQATypeMapper {
     constructor(options) {
         this._inputDir = options.input_dir;
@@ -36,7 +50,7 @@ class CSQATypeMapper {
         this._wikidataLabels = options.wikidata_labels;
         this._minAppearance = options.minimum_appearance;
         this._minPercentage = options.minimum_percentage;
-        this._domains = options.domains;
+        this._domains = options.domains ? options.domains.map((domain) => domainMap[domain] || domain) : undefined;
 
         this._labels = new Map();
         this._wikidataTypes = new Map();
