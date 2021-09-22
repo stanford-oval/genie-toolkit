@@ -38,8 +38,9 @@ const domainMap = {
     'music_band': 'music_ensemble',
     'game': 'application',
     'organization': 'organization',
-    'disease': 'disease',
-    'tv': 'television_program'
+    'disease': 'health_problem',
+    'tv': 'television_program',
+    'drug': 'drug'
 };
 
 class CSQATypeMapper {
