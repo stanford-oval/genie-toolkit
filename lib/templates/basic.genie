@@ -66,7 +66,11 @@ bookkeeping : Ast.ControlCommand = {
     | 'no . no'
     ) => special('no');
 
-    c:constant_Any => new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, c));
+    c:constant_Any => {
+        if (c.isEnum)
+            return null;
+        return new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, c));
+    };
 }
 
 $root : Ast.Input = {
