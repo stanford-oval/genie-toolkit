@@ -38,6 +38,7 @@ import { ConversationState } from './conversation';
 import AbstractDialogueAgent, {
     DisambiguationHints,
 } from './abstract_dialogue_agent';
+import FileThingpediaClient from '../../tool/lib/file_thingpedia_client';
 
 interface AbstractConversation {
     id : string;
@@ -85,6 +86,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     private _platform : Tp.BasePlatform;
     private _dlg : AbstractDialogueLoop;
     private _executor : StatementExecutor;
+    private _fileTpClient ?: FileThingpediaClient;
 
     constructor(engine : Engine, dlg : AbstractDialogueLoop, debug : boolean) {
         super(engine.thingpedia, engine.schemas, {
@@ -97,6 +99,17 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         this._platform = engine.platform;
         this._executor = new StatementExecutor(engine, dlg.conversation.id);
         this._dlg = dlg;
+
+        const prefs = this._platform.getSharedPreferences();
+        const fileTpClientOptions = {
+            thingpedia: prefs.get('thingpedia') as string,
+            locale: prefs.get('locale') as string ?? 'en-US',
+            entities: prefs.get('entities') as string,
+            dataset: prefs.get('dataset') as string,
+            parameter_datasets: prefs.get('parameter-datasets') as string
+        };
+        if (fileTpClientOptions.parameter_datasets)
+            this._fileTpClient = new FileThingpediaClient(fileTpClientOptions);
     }
 
     get _() {
@@ -304,7 +317,9 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                 return appLauncher.listApps();
         }
 
-        const { data: tpCandidates, meta } = await this._tpClient.lookupEntity(entityType, entityDisplay);
+        const { data: tpCandidates, meta } = this._fileTpClient ? 
+            await this._fileTpClient.lookupEntity(entityType, entityDisplay) :
+            await this._tpClient.lookupEntity(entityType, entityDisplay);
         if (tpCandidates.length > 0)
             return tpCandidates;
 
