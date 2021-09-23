@@ -384,7 +384,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 }
             }
         } else if (value instanceof Ast.LocationValue && value.value instanceof Ast.UnresolvedLocation) {
-            slot.set(await this.lookupLocation(value.value.name, hints.previousLocations || []));
+            slot.set(await this.lookupLocation(value.value.name, []));
         } else if (value instanceof Ast.LocationValue && value.value instanceof Ast.RelativeLocation) {
             slot.set(await this.resolveUserContext('$context.location.' + value.value.relativeTag));
         } else if (value instanceof Ast.TimeValue && value.value instanceof Ast.RelativeTime) {
@@ -404,8 +404,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 value.value = resolved.value;
                 value.display = resolved.name;
             } else {
-                const candidates = (hints.idEntities ? hints.idEntities.get(value.type) : undefined)
-                    || await this.lookupEntityCandidates(value.type, value.display!, hints);
+                const candidates = await this.lookupEntityCandidates(value.type, value.display!, hints);
                 const resolved = getBestEntityMatch(value.display!, value.type, candidates);
                 value.value = resolved.value;
                 value.display = resolved.name;
