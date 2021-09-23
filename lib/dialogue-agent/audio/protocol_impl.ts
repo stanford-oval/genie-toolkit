@@ -114,6 +114,20 @@ export default class AudioSubprotocolImplementation implements AudioPlayer {
             op: RequestType.STOP,
         });
     }
+    pause() : Promise<void> {
+        return this._simpleReq({
+            type: MessageType.AUDIO_SUBPROTOCOL,
+            req: this._nextReq++,
+            op: RequestType.PAUSE,
+        });
+    }
+    resume() : Promise<void> {
+        return this._simpleReq({
+            type: MessageType.AUDIO_SUBPROTOCOL,
+            req: this._nextReq++,
+            op: RequestType.RESUME,
+        });
+    }
     playURLs(urls : string[]) : Promise<void> {
         return this._simpleReq({
             type: MessageType.AUDIO_SUBPROTOCOL,

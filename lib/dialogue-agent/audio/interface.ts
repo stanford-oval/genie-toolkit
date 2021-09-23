@@ -30,6 +30,11 @@
     stop(conversationId : string) : void;
 
     /**
+     * Pause all playback.
+     */
+    pause?(conversationId : string) : void;
+
+    /**
      * Resume playback.
      */
     resume?(conversationId : string) : void;
@@ -118,6 +123,30 @@ export interface AudioPlayer {
      * to stop.
      */
     stop() : Promise<void>;
+
+    /**
+     * Pause playing.
+     *
+     * This method should pause all playback, while preserving the state
+     * of all queues so playback can be resumed.
+     *
+     * Depending on the kind of backend currently playing, this might have
+     * no effect, as backends might rely on the skill to invoke third-party APIs
+     * to stop.
+     */
+    pause() : Promise<void>;
+
+    /**
+     * Resume playing.
+     *
+     * This method should attempt to resume playback. It should return an
+     * error if resuming is not possible for any reason.
+     *
+     * Depending on the kind of backend currently playing, this might have
+     * no effect, as backends might rely on the skill to invoke third-party APIs
+     * to stop.
+     */
+    resume() : Promise<void>;
 
     /**
      * Start playing with the given URLs.

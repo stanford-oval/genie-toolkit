@@ -318,8 +318,11 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         prefs.set('preferred-temperature', unit[0].toUpperCase());
     }
 
-    do_pause(params : unknown, env : ExecWrapper) {
+    do_stop(params : unknown, env : ExecWrapper) {
         return (this.engine as AssistantEngine).audio.stopAudio(env.conversation);
+    }
+    do_pause(params : unknown, env : ExecWrapper) {
+        return (this.engine as AssistantEngine).audio.pauseAudio(env.conversation);
     }
     do_resume(params : unknown, env : ExecWrapper) {
         return (this.engine as AssistantEngine).audio.resumeAudio(env.conversation);

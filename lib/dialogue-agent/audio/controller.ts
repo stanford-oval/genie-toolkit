@@ -136,14 +136,14 @@ export default class AudioController extends events.EventEmitter {
      */
     async resumeAudio(conversationId ?: string) {
         const state = this._getPlayer(conversationId);
-        if (!state || !state.iface)
+        if (!state)
             throw new CustomError(`no_device_playing`, `No interface registered to resume audio`);
 
-        if (!state.iface.resume)
-            throw new CustomError(`unsupported`, `Resuming is not supported`);
-
         state.timestamp = Date.now();
-        await state.iface.resume(state.player.conversationId);
+        if (state.iface && state.iface.resume)
+            await state.iface.resume(state.player.conversationId);
+        else
+            await state.player.resume();
     }
 
     private _normalizeCompatIface(iface : AudioDevice|(() => Promise<void>)) {
@@ -233,6 +233,7 @@ export default class AudioController extends events.EventEmitter {
         if (state.iface)
             await state.iface.stop(state.player.conversationId);
         state.device = device;
+        state.iface = null;
         console.log(`Switching audio to ${state.device.uniqueId}`);
         await state.player.playURLs(urls);
     }
@@ -277,6 +278,49 @@ export default class AudioController extends events.EventEmitter {
                 if (state.device === device) {
                     state.device = null;
                     state.iface = null;
+                }
+            }
+        }
+    }
+
+    /**
+     * Pause all audio coming from this assistant.
+     *
+     * This method will inform the currently playing device that it must pause
+     * playing. It corresponds to the command "pause".
+     *
+     * This command differs from {@link stopAudio} because the audio device
+     * should interpret this request in a way that makes the audio resumable.
+     *
+     * @param the conversation ID associated with the command; if specified,
+     *   only audio associated with that conversation will be paused
+     */
+    async pauseAudio(conversationId ?: string) {
+        this.emit('stop', conversationId);
+
+        if (conversationId !== undefined) {
+            const state = this._getPlayer(conversationId);
+            if (!state)
+                return;
+
+            await state.player.pause();
+            if (state.iface !== null) {
+                if (state.iface.pause)
+                    await state.iface.pause(state.player.conversationId);
+                else
+                    await state.iface.stop(state.player.conversationId);
+            }
+
+            // the interface continues to be the current audio interface
+            // so it will be resumed on a resume command later
+        } else {
+            for (const state of this._players.values()) {
+                await state.player.pause();
+                if (state.iface !== null) {
+                    if (state.iface.pause)
+                        await state.iface.pause(state.player.conversationId);
+                    else
+                        await state.iface.stop(state.player.conversationId);
                 }
             }
         }

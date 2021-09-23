@@ -28,6 +28,8 @@ export enum RequestType {
     CHECK_BACKEND = 'check',
     PREPARE = 'prepare',
     STOP = 'stop',
+    PAUSE = 'pause',
+    RESUME = 'resume',
     PLAY_URLS = 'play-urls',
     SET_VOLUME = 'set-volume',
     ADJUST_VOLUME = 'adj-volume',
@@ -58,6 +60,18 @@ export interface PrepareRequestMessage {
 export interface StopRequestMessage {
     type : MessageType.AUDIO_SUBPROTOCOL;
     op : RequestType.STOP;
+    req : number;
+}
+
+export interface PauseRequestMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.PAUSE;
+    req : number;
+}
+
+export interface ResumeRequestMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.RESUME;
     req : number;
 }
 
@@ -93,6 +107,8 @@ export type ServerMessage =
     CheckBackendRequestMessage
     | PrepareRequestMessage
     | StopRequestMessage
+    | PauseRequestMessage
+    | ResumeRequestMessage
     | PlayURLMessage
     | SetVolumeMessage
     | AdjustVolumeMessage

@@ -27,6 +27,7 @@ import { MessageType } from '../dialogue-agent/protocol';
 import type Conversation from '../dialogue-agent/conversation';
 import type AudioController from '../dialogue-agent/audio/controller';
 import { AudioPlayer, CustomPlayerSpec } from '../dialogue-agent/audio/interface';
+import CustomError from '../utils/custom_error';
 
 interface SpeechHandlerOptions {
     nlUrl ?: string;
@@ -57,7 +58,17 @@ class LocalAudioPlayer implements AudioPlayer {
         await this._handler.waitFinishSpeaking();
     }
 
+    async resume() : Promise<void> {
+        throw new CustomError(`unsupported`, `Resuming is not supported`);
+    }
+
     async stop() : Promise<void> {
+        if (this._player)
+            await this._player.stop();
+        this._player = null;
+    }
+    async pause() : Promise<void> {
+        // we don't have a way to pause, so we just stop
         if (this._player)
             await this._player.stop();
         this._player = null;
