@@ -279,24 +279,21 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         throw new CustomError('unsupported', `not supported`);
     }
 
-    do_set_voice_output({ status } : { status : 'on'|'off' }) {
-        const platform = this.platform;
-        if (!platform.hasCapability('sound'))
-            throw new CustomError('unsupported', `not supported`);
-        const prefs = platform.getSharedPreferences();
-        // TODO this does not quite work because SpeechHandler doesn't listen
-        // to preference changes
-        prefs.set('enable-voice-output', status === 'on');
-    }
+    do_set_voice_output({ status } : { status : 'on'|'off' }, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
 
-    do_set_voice_input({ status } : { status : 'on'|'off' }) {
-        const platform = this.platform;
-        if (!platform.hasCapability('sound'))
-            throw new CustomError('unsupported', `not supported`);
-        const prefs = platform.getSharedPreferences();
-        // TODO this does not quite work because SpeechHandler doesn't listen
-        // to preference changes
-        prefs.set('enable-voice-input', status === 'on');
+        return player.setVoiceOutput(status === 'on');
+    }
+    do_set_voice_input({ status } : { status : 'on'|'off' }, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.setVoiceInput(status === 'on');
     }
 
     do_set_name({ name } : { name : string }) {
@@ -318,10 +315,54 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         prefs.set('preferred-temperature', unit[0].toUpperCase());
     }
 
-    do_pause(params : unknown, env : ExecWrapper) {
+    do_stop(params : unknown, env : ExecWrapper) {
         return (this.engine as AssistantEngine).audio.stopAudio(env.conversation);
+    }
+    do_pause(params : unknown, env : ExecWrapper) {
+        return (this.engine as AssistantEngine).audio.pauseAudio(env.conversation);
     }
     do_resume(params : unknown, env : ExecWrapper) {
         return (this.engine as AssistantEngine).audio.resumeAudio(env.conversation);
+    }
+
+    do_raise_volume(params : unknown, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.adjustVolume(+10);
+    }
+    do_lower_volume(params : unknown, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.adjustVolume(-10);
+    }
+    do_set_volume({ volume } : { volume : number }, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.setVolume(volume);
+    }
+    do_mute(params : unknown, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.setMute(true);
+    }
+    do_unmute(params : unknown, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.setMute(false);
     }
 }

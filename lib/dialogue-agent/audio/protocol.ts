@@ -28,9 +28,14 @@ export enum RequestType {
     CHECK_BACKEND = 'check',
     PREPARE = 'prepare',
     STOP = 'stop',
+    PAUSE = 'pause',
+    RESUME = 'resume',
     PLAY_URLS = 'play-urls',
     SET_VOLUME = 'set-volume',
-    SET_MUTE = 'set-mute'
+    ADJUST_VOLUME = 'adj-volume',
+    SET_MUTE = 'set-mute',
+    SET_VOICE_INPUT = 'set-voice-input',
+    SET_VOICE_OUTPUT = 'set-voice-output'
 }
 
 // server->client messages
@@ -60,6 +65,18 @@ export interface StopRequestMessage {
     req : number;
 }
 
+export interface PauseRequestMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.PAUSE;
+    req : number;
+}
+
+export interface ResumeRequestMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.RESUME;
+    req : number;
+}
+
 export interface PlayURLMessage {
     type : MessageType.AUDIO_SUBPROTOCOL;
     op : RequestType.PLAY_URLS;
@@ -74,6 +91,13 @@ export interface SetVolumeMessage {
     volume : number;
 }
 
+export interface AdjustVolumeMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.ADJUST_VOLUME;
+    req : number;
+    delta : number;
+}
+
 export interface SetMuteMessage {
     type : MessageType.AUDIO_SUBPROTOCOL;
     op : RequestType.SET_MUTE;
@@ -81,13 +105,33 @@ export interface SetMuteMessage {
     mute : boolean;
 }
 
+export interface SetVoiceInputMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.SET_VOICE_INPUT;
+    req : number;
+    input : boolean;
+}
+
+export interface SetVoiceOutputMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.SET_VOICE_OUTPUT;
+    req : number;
+    output : boolean;
+}
+
+
 export type ServerMessage =
     CheckBackendRequestMessage
     | PrepareRequestMessage
     | StopRequestMessage
+    | PauseRequestMessage
+    | ResumeRequestMessage
     | PlayURLMessage
     | SetVolumeMessage
-    | SetMuteMessage;
+    | AdjustVolumeMessage
+    | SetMuteMessage
+    | SetVoiceInputMessage
+    | SetVoiceOutputMessage;
 
 
 // client->server messages

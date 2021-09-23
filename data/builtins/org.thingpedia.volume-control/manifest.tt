@@ -1,0 +1,55 @@
+abstract class @org.thingpedia.volume-control
+#_[thingpedia_name="Volume Control"]
+#_[thingpedia_description="Interface for Volume Control."]
+#_[description="Interface for Volume Control."]
+#[license="Apache-2.0"]
+#[license_gplcompatible=true]
+#[subcategory="home"]
+{
+
+  action raise_volume()
+  #_[canonical=["increase the volume of the speaker",
+                "increase my speaker 's volume",
+                "make the speaker louder",
+                "increase the speaker volume"]]
+  #[confirm=false]
+  #[doc="increase the volume of the speaker"];
+
+  action lower_volume()
+  #_[canonical=["decrease the volume of my speaker",
+                "decrease my speaker 's volume",
+                "reduce the volume of the speaker",
+                "reduce my speaker 's volume",
+                "make the speaker softer"]]
+  #[confirm=false]
+  #[doc="decrease the volume of the speaker"];
+
+  action mute()
+  #_[canonical=["mute my speaker",
+                "silence my speaker 's volume",
+                "turn off the volume of the speaker",
+                "switch off the sound for my speaker",
+                "mute my speaker 's sound",
+                "make my speaker silent"]]
+  #[confirm=false]
+  #[doc="mute the speaker"];
+
+  action unmute()
+  #_[canonical=["unmute my speaker",
+                "unmute the speaker 's volume",
+                "unmute my speaker 's sound",
+                "turn on the speaker sound",
+                "stop muting my speaker"]]
+  #[confirm=false]
+  #[doc="unmute the speaker"];
+
+  action set_volume(in req volume: Number #_[prompt="from 0 to 100, what volume do you want to set"]
+                    #_[canonical={
+                      base=["volume", "value"],
+                      preposition=["to #"]
+                    }])
+  #_[canonical="set the volume of the speaker"]
+  #[confirm=false]
+  #[doc="set the speaker volume"];
+
+}

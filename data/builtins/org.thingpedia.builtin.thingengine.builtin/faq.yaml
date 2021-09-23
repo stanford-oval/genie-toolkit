@@ -16,8 +16,7 @@ about_almond_age:
     - How old are you?
     - When were you born?
   a:
-    - Officially, I'm beta. The plan is for me to be released in the first half of 2021.
-    - I was born in 2015 in a class at Stanford. The plan is for me to be released in the first half of 2021.
+    - I was born in 2015 in a class at Stanford. The plan is for me to be released in the second half of 2021.
 
 about_almond_how_are_you:
   q:
@@ -26,14 +25,17 @@ about_almond_how_are_you:
     - How are {you|u} today?
     - How are {you|u} feeling today?
   a:
-    - Great. Thanks for asking. How can I help you?
+    - Great, thanks for asking! How can I help you?
 
 about_almond_location:
   q:
     - Where are you?
     - Where are you now?
   a:
+    cloud:
     - My creators are mostly at Stanford. I'm an open-source assistant in the cloud.
+    default:
+    - My creators are mostly at Stanford, but I'm right here in your device.
 
 about_almond_comparison:
   q:
@@ -101,7 +103,7 @@ general_help:
     - Can you give me another suggestion?
     - Show skills
   a:
-    - I'm a new virtual assistant. At the moment, I can help you with music, jokes, and managing some IoT devices.
+    - I'm a new virtual assistant. At the moment, I can help you with music, jokes, news, podcasts, weather, reminders, and managing IoT devices.
 
 iot_help:
   q:
@@ -141,8 +143,8 @@ positive_emotion_cool:
 
 abusive:
   q:
-    - Kill yourself
     - You suck
+    - Kill yourself
     - Go die
     - Fuck you
   a:
@@ -210,9 +212,9 @@ how_to_use_wakeword:
     - How do I enable audio?
   a:
     cloud:
-    - I am sorry, continuous voice input with wake word detection is not available in the web version of Genie.
+    - To speak to me in voice using a wake word, you will need the Genie client running in a device with speaker and microphone. Then you can just say “Hey Genie” to wake me up. You will hear a sound when the wake word is recognized correctly.
     default:
-    - To speak to me in voice using a wake word, first make sure that voice input is enabled in Settings. Then you can just say “Computer” to wake me up. You will hear a sound when the wake word is recognized correctly.
+    - To speak to me in voice using a wake word, first make sure that voice input is enabled in Settings. Then you can just say “Hey Genie” to wake me up. You will hear a sound when the wake word is recognized correctly.
 
 troubleshooting_home_assistant:
   q:

@@ -1,4 +1,4 @@
-class @org.thingpedia.builtin.thingengine.builtin
+class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume-control
 #_[thingpedia_name="Miscellaneous Interfaces"]
 #_[thingpedia_description="Time, random numbers, and other commands not specific to any skill."]
 #_[name="Miscellaneous Interfaces"]
@@ -370,13 +370,29 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[doc="change the user's preferred temperature unit (a setting)"]
   #[confirm=false];
 
+  action stop()
+  #_[canonical=["stop audio",
+                "stop playing",
+                "stop playback"]]
+  #[doc="pause the currently playing skill"]
+  #[confirm=false];
+
   action pause()
-  #_[canonical=["pause", "pause audio", "stop audio"]]
+  #_[canonical=["pause",
+                "pause audio",
+                "pause playback",
+                "pause playing"]]
   #[doc="pause the currently playing skill"]
   #[confirm=false];
 
   action resume()
-  #_[canonical=["resume", "resume audio"]]
+  #_[canonical=["resume",
+                "resume audio",
+                "resume playback",
+                "resume playing",
+                "start playing again",
+                "continue playback",
+                "continue playing"]]
   #[doc="resume the currently playing skill"]
   #[confirm=false]
   #_[on_error={

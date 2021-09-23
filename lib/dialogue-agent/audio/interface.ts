@@ -30,6 +30,11 @@
     stop(conversationId : string) : void;
 
     /**
+     * Pause all playback.
+     */
+    pause?(conversationId : string) : void;
+
+    /**
      * Resume playback.
      */
     resume?(conversationId : string) : void;
@@ -120,6 +125,30 @@ export interface AudioPlayer {
     stop() : Promise<void>;
 
     /**
+     * Pause playing.
+     *
+     * This method should pause all playback, while preserving the state
+     * of all queues so playback can be resumed.
+     *
+     * Depending on the kind of backend currently playing, this might have
+     * no effect, as backends might rely on the skill to invoke third-party APIs
+     * to stop.
+     */
+    pause() : Promise<void>;
+
+    /**
+     * Resume playing.
+     *
+     * This method should attempt to resume playback. It should return an
+     * error if resuming is not possible for any reason.
+     *
+     * Depending on the kind of backend currently playing, this might have
+     * no effect, as backends might rely on the skill to invoke third-party APIs
+     * to stop.
+     */
+    resume() : Promise<void>;
+
+    /**
      * Start playing with the given URLs.
      *
      * Existing playback will be stopped and replaced with the given URLs.
@@ -132,14 +161,38 @@ export interface AudioPlayer {
     playURLs(urls : string[]) : Promise<void>;
 
     /**
-     * Set the output volume.
+     * Set the output volume to a specific value.
      *
      * @param volume the volume, between 0 and 100
      */
     setVolume(volume : number) : Promise<void>;
 
     /**
+     * Adjust the output volume by the given delta.
+     *
+     * @param delta the volume delta, between -100 and 100
+     */
+    adjustVolume(delta : number) : Promise<void>;
+
+    /**
      * Mute or unmute the audio.
      */
     setMute(mute : boolean) : Promise<void>;
+
+    /**
+     * Enable or disable voice input.
+     *
+     * This command only affects wake-word activation. If the assistant can
+     * be activated by other means (e.g. a button) it is not affected by enabling
+     * the wake word.
+     */
+    setVoiceInput(input : boolean) : Promise<void>;
+
+    /**
+     * Enable or disable voice output.
+     *
+     * This command only affects speech from the agent. It does not affect
+     * alert sounds or background audio.
+     */
+    setVoiceOutput(output : boolean) : Promise<void>;
 }

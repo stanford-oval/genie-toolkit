@@ -27,12 +27,14 @@ import { MessageType } from '../dialogue-agent/protocol';
 import type Conversation from '../dialogue-agent/conversation';
 import type AudioController from '../dialogue-agent/audio/controller';
 import { AudioPlayer, CustomPlayerSpec } from '../dialogue-agent/audio/interface';
+import CustomError from '../utils/custom_error';
 
 interface SpeechHandlerOptions {
     nlUrl ?: string;
 }
 
 class LocalAudioPlayer implements AudioPlayer {
+    private _platform : Tp.BasePlatform;
     private _handler : SpeechHandler
     private _cap : Tp.Capabilities.AudioPlayerApi;
     readonly conversationId : string;
@@ -41,6 +43,7 @@ class LocalAudioPlayer implements AudioPlayer {
     constructor(handler : SpeechHandler, platform : Tp.BasePlatform, conversation : Conversation) {
         this.conversationId = conversation.id;
         this._handler = handler;
+        this._platform = platform;
         this._cap = platform.getCapability('audio-player')!;
         this._player = null;
     }
@@ -57,7 +60,17 @@ class LocalAudioPlayer implements AudioPlayer {
         await this._handler.waitFinishSpeaking();
     }
 
+    async resume() : Promise<void> {
+        throw new CustomError(`unsupported`, `Resuming is not supported`);
+    }
+
     async stop() : Promise<void> {
+        if (this._player)
+            await this._player.stop();
+        this._player = null;
+    }
+    async pause() : Promise<void> {
+        // we don't have a way to pause, so we just stop
         if (this._player)
             await this._player.stop();
         this._player = null;
@@ -69,8 +82,22 @@ class LocalAudioPlayer implements AudioPlayer {
     async setVolume(volume : number) : Promise<void> {
         throw new Error('Method not implemented.');
     }
+    async adjustVolume(delta : number) : Promise<void> {
+        throw new Error('Method not implemented.');
+    }
     async setMute(mute : boolean) : Promise<void> {
         throw new Error('Method not implemented.');
+    }
+
+    async setVoiceInput(input : boolean) {
+        const prefs = this._platform.getSharedPreferences();
+        prefs.set('enable-voice-input', input);
+        this._handler.setVoiceInput(input);
+    }
+    async setVoiceOutput(input : boolean) {
+        const prefs = this._platform.getSharedPreferences();
+        prefs.set('enable-voice-output', input);
+        this._handler.setVoiceOutput(input);
     }
 }
 
@@ -234,6 +261,8 @@ export default class SpeechHandler extends events.EventEmitter {
                     else
                         console.log(`Ignored unknown sound effect ${message.name}`);
                 } else {
+                    if (!this._enableVoiceOutput)
+                        break;
                     this.waitFinishSpeaking().then(() => {
                         return soundEffects.play(message.name);
                     }).catch((e) => {

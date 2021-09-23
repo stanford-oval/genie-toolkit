@@ -114,6 +114,20 @@ export default class AudioSubprotocolImplementation implements AudioPlayer {
             op: RequestType.STOP,
         });
     }
+    pause() : Promise<void> {
+        return this._simpleReq({
+            type: MessageType.AUDIO_SUBPROTOCOL,
+            req: this._nextReq++,
+            op: RequestType.PAUSE,
+        });
+    }
+    resume() : Promise<void> {
+        return this._simpleReq({
+            type: MessageType.AUDIO_SUBPROTOCOL,
+            req: this._nextReq++,
+            op: RequestType.RESUME,
+        });
+    }
     playURLs(urls : string[]) : Promise<void> {
         return this._simpleReq({
             type: MessageType.AUDIO_SUBPROTOCOL,
@@ -130,12 +144,36 @@ export default class AudioSubprotocolImplementation implements AudioPlayer {
             volume
         });
     }
+    adjustVolume(delta : number) : Promise<void> {
+        return this._simpleReq({
+            type: MessageType.AUDIO_SUBPROTOCOL,
+            req: this._nextReq++,
+            op: RequestType.ADJUST_VOLUME,
+            delta
+        });
+    }
     setMute(mute : boolean) : Promise<void> {
         return this._simpleReq({
             type: MessageType.AUDIO_SUBPROTOCOL,
             req: this._nextReq++,
             op: RequestType.SET_MUTE,
             mute
+        });
+    }
+    setVoiceInput(input : boolean) : Promise<void> {
+        return this._simpleReq({
+            type: MessageType.AUDIO_SUBPROTOCOL,
+            req: this._nextReq++,
+            op: RequestType.SET_VOICE_INPUT,
+            input
+        });
+    }
+    setVoiceOutput(output : boolean) : Promise<void> {
+        return this._simpleReq({
+            type: MessageType.AUDIO_SUBPROTOCOL,
+            req: this._nextReq++,
+            op: RequestType.SET_VOICE_OUTPUT,
+            output
         });
     }
 }

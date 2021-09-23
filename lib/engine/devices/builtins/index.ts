@@ -24,11 +24,12 @@ import Test from './test';
 import ThingEngine from './thingengine';
 import ThingEngineBuiltin from './thingengine.builtin';
 
-import TestTT from './test.tt.json';
-import ThingEngineTT from './thingengine.tt.json';
-import ThingEngineBuiltinTT from './thingengine.builtin.tt.json';
+import TestTT from './org.thingpedia.builtin.test.tt.json';
+import ThingEngineTT from './org.thingpedia.builtin.thingengine.tt.json';
+import ThingEngineBuiltinTT from './org.thingpedia.builtin.thingengine.builtin.tt.json';
+import VolumeControlTT from './org.thingpedia.volume-control.tt.json';
 
-const modules : Record<string, { class : string, module : Tp.BaseDevice.DeviceClass<Tp.BaseDevice> }> = {
+export const modules : Record<string, { class : string, module : Tp.BaseDevice.DeviceClass<Tp.BaseDevice> }> = {
     'org.thingpedia.builtin.test' : {
         class: TestTT,
         module: Test
@@ -42,6 +43,9 @@ const modules : Record<string, { class : string, module : Tp.BaseDevice.DeviceCl
     'org.thingpedia.builtin.thingengine.builtin': {
         class: ThingEngineBuiltinTT,
         module: ThingEngineBuiltin
-    }
+    },
 };
-export default modules;
+
+export const interfaces : Record<string, string> = {
+    'org.thingpedia.volume-control': VolumeControlTT,
+};

@@ -22,7 +22,7 @@ import assert from 'assert';
 import * as Tp from 'thingpedia';
 
 import * as IpAddress from '../util/ip_address';
-import Builtins from '../devices/builtins';
+import { modules as Builtins } from '../devices/builtins';
 import ThingEngineDevice from '../devices/builtins/thingengine';
 
 import type DeviceDatabase from '../devices/database';

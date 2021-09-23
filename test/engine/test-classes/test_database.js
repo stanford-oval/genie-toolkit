@@ -22,7 +22,7 @@ import { Ast } from 'thingtalk';
 import * as Tp from 'thingpedia';
 import * as fs from 'fs';
 import * as path from 'path';
-import Builtins from '../../../lib/engine/devices/builtins';
+import { modules as Builtins } from '../../../lib/engine/devices/builtins';
 
 export default class TestDatabaseDevice extends Tp.BaseDevice {
     constructor(engine, state) {

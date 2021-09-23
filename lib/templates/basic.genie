@@ -41,6 +41,7 @@ bookkeeping : Ast.ControlCommand = {
     ) => special('nevermind');
 
     ('stop'
+    | 'stop it'
     | 'shut up'
     | 'shush'
     | 'quiet'
@@ -53,15 +54,23 @@ bookkeeping : Ast.ControlCommand = {
     | 'yeah'
     | 'ok'
     | 'okay'
+    | 'yes yes'
+    | 'yes . yes'
     ) => special('yes');
 
     ( 'no'
     | 'no thanks'
     | 'no ,  thanks'
     | 'nope'
+    | 'no no'
+    | 'no . no'
     ) => special('no');
 
-    c:constant_Any => new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, c));
+    c:constant_Any => {
+        if (c.isEnum)
+            return null;
+        return new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, c));
+    };
 }
 
 $root : Ast.Input = {
