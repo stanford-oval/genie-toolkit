@@ -46,10 +46,10 @@ export default class MockThingpediaClient extends Tp.BaseClient {
         this._thingpediafilename = path.resolve(thisdir, 'thingpedia.tt');
         this._entityfilename = path.resolve(thisdir, 'entities.json');
         this._builtins = {};
-        for (const builtin of ['thingengine.builtin', 'thingengine', 'test']) {
-            this._builtins[builtin] = {
-                manifest: path.resolve(thisdir, '../../data/builtins', builtin, 'manifest.tt'),
-                dataset: path.resolve(thisdir, '../../data/builtins', builtin, 'dataset.tt'),
+        for (const builtin of ['builtin.thingengine.builtin', 'builtin.thingengine', 'builtin.test', 'volume-control']) {
+            this._builtins['org.thingpedia.' + builtin] = {
+                manifest: path.resolve(thisdir, '../../data/builtins', 'org.thingpedia.' + builtin, 'manifest.tt'),
+                dataset: path.resolve(thisdir, '../../data/builtins', 'org.thingpedia.' + builtin, 'dataset.tt'),
             };
         }
         this._loaded = null;
@@ -293,6 +293,9 @@ export default class MockThingpediaClient extends Tp.BaseClient {
     async getExamplesByKinds(kinds) {
         assert.strictEqual(kinds.length, 1);
 
-        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
+        if (kinds in this._builtins)
+            return util.promisify(fs.readFile)(this._builtins[kinds[0]].dataset, { encoding: 'utf8' });
+        else
+            return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
     }
 }

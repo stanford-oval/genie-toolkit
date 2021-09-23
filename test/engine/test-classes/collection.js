@@ -27,7 +27,7 @@ import * as Tp from 'thingpedia';
 const manifests = fs.readFileSync(path.resolve(path.dirname(module.filename), 'collection.tt'))
     .toString('utf8').split('====');
 
-import Builtins from '../../../lib/engine/devices/builtins';
+import { modules as Builtins } from '../../../lib/engine/devices/builtins';
 
 class TestSubdevice extends Tp.BaseDevice {
     constructor(engine, state, master) {
