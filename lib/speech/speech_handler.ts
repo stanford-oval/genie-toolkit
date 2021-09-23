@@ -34,6 +34,7 @@ interface SpeechHandlerOptions {
 }
 
 class LocalAudioPlayer implements AudioPlayer {
+    private _platform : Tp.BasePlatform;
     private _handler : SpeechHandler
     private _cap : Tp.Capabilities.AudioPlayerApi;
     readonly conversationId : string;
@@ -42,6 +43,7 @@ class LocalAudioPlayer implements AudioPlayer {
     constructor(handler : SpeechHandler, platform : Tp.BasePlatform, conversation : Conversation) {
         this.conversationId = conversation.id;
         this._handler = handler;
+        this._platform = platform;
         this._cap = platform.getCapability('audio-player')!;
         this._player = null;
     }
@@ -85,6 +87,17 @@ class LocalAudioPlayer implements AudioPlayer {
     }
     async setMute(mute : boolean) : Promise<void> {
         throw new Error('Method not implemented.');
+    }
+
+    async setVoiceInput(input : boolean) {
+        const prefs = this._platform.getSharedPreferences();
+        prefs.set('enable-voice-input', input);
+        this._handler.setVoiceInput(input);
+    }
+    async setVoiceOutput(input : boolean) {
+        const prefs = this._platform.getSharedPreferences();
+        prefs.set('enable-voice-output', input);
+        this._handler.setVoiceOutput(input);
     }
 }
 

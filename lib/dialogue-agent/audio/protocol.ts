@@ -33,7 +33,9 @@ export enum RequestType {
     PLAY_URLS = 'play-urls',
     SET_VOLUME = 'set-volume',
     ADJUST_VOLUME = 'adj-volume',
-    SET_MUTE = 'set-mute'
+    SET_MUTE = 'set-mute',
+    SET_VOICE_INPUT = 'set-voice-input',
+    SET_VOICE_OUTPUT = 'set-voice-output'
 }
 
 // server->client messages
@@ -103,6 +105,21 @@ export interface SetMuteMessage {
     mute : boolean;
 }
 
+export interface SetVoiceInputMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.SET_VOICE_INPUT;
+    req : number;
+    input : boolean;
+}
+
+export interface SetVoiceOutputMessage {
+    type : MessageType.AUDIO_SUBPROTOCOL;
+    op : RequestType.SET_VOICE_OUTPUT;
+    req : number;
+    output : boolean;
+}
+
+
 export type ServerMessage =
     CheckBackendRequestMessage
     | PrepareRequestMessage
@@ -112,7 +129,9 @@ export type ServerMessage =
     | PlayURLMessage
     | SetVolumeMessage
     | AdjustVolumeMessage
-    | SetMuteMessage;
+    | SetMuteMessage
+    | SetVoiceInputMessage
+    | SetVoiceOutputMessage;
 
 
 // client->server messages

@@ -178,4 +178,21 @@ export interface AudioPlayer {
      * Mute or unmute the audio.
      */
     setMute(mute : boolean) : Promise<void>;
+
+    /**
+     * Enable or disable voice input.
+     *
+     * This command only affects wake-word activation. If the assistant can
+     * be activated by other means (e.g. a button) it is not affected by enabling
+     * the wake word.
+     */
+    setVoiceInput(input : boolean) : Promise<void>;
+
+    /**
+     * Enable or disable voice output.
+     *
+     * This command only affects speech from the agent. It does not affect
+     * alert sounds or background audio.
+     */
+    setVoiceOutput(output : boolean) : Promise<void>;
 }

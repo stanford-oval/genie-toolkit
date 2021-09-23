@@ -279,24 +279,21 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         throw new CustomError('unsupported', `not supported`);
     }
 
-    do_set_voice_output({ status } : { status : 'on'|'off' }) {
-        const platform = this.platform;
-        if (!platform.hasCapability('sound'))
-            throw new CustomError('unsupported', `not supported`);
-        const prefs = platform.getSharedPreferences();
-        // TODO this does not quite work because SpeechHandler doesn't listen
-        // to preference changes
-        prefs.set('enable-voice-output', status === 'on');
-    }
+    do_set_voice_output({ status } : { status : 'on'|'off' }, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
 
-    do_set_voice_input({ status } : { status : 'on'|'off' }) {
-        const platform = this.platform;
-        if (!platform.hasCapability('sound'))
-            throw new CustomError('unsupported', `not supported`);
-        const prefs = platform.getSharedPreferences();
-        // TODO this does not quite work because SpeechHandler doesn't listen
-        // to preference changes
-        prefs.set('enable-voice-input', status === 'on');
+        return player.setVoiceOutput(status === 'on');
+    }
+    do_set_voice_input({ status } : { status : 'on'|'off' }, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.setVoiceInput(status === 'on');
     }
 
     do_set_name({ name } : { name : string }) {
