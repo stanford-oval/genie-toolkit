@@ -1420,7 +1420,7 @@ export default class ThingpediaLoader {
             const { has_ner_support } = this._entities[entityType];
             const typestr = this._recordType(ttType);
 
-            if (has_ner_support) {
+            if (has_ner_support || this._options.flags.inference) {
                 if (this.idQueries.has(entityType)) {
                     if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.DUMP_TEMPLATES)
                         this._grammar.log('Loaded entity ' + entityType + ' as id entity');
