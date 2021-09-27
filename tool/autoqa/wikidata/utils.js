@@ -469,6 +469,10 @@ class Domains {
         return this._map[domain]['wikidata-types'];
     }
 
+    getWikidataSubjects(domain) {
+        return this._map[domain]['wikidata_subject'];
+    }
+
     getDomainByCSQAType(csqaType) {
         for (const [domain, map] of Object.entries(this._map)) {
             if (map['csqa-type'] === csqaType)

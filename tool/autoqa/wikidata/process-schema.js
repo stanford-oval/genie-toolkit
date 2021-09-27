@@ -143,8 +143,10 @@ class SchemaProcessor {
         const annotations = {
             nl: { canonical: canonical(domain) },
             impl: { 
+                handle_thingtalk: new Ast.Value.Boolean(true),
                 csqa_type: new Ast.Value.String(this._domains.getCSQAType(domain)),
-                wikidata_types: new Ast.Value.Array(this._domains.getWikidataTypes(domain).map((t) => new Ast.Value.String(t))) 
+                wikidata_types: new Ast.Value.Array(this._domains.getWikidataTypes(domain).map((t) => new Ast.Value.String(t))),
+                wikidata_subject: new Ast.Value.Array(this._domains.getWikidataSubjects(domain).map((t) => new Ast.Value.String(t)))
             }
         };
         return new Ast.FunctionDef(null, 'query', null, domain, null, qualifiers, args, annotations);
