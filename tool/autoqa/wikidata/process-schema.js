@@ -141,7 +141,7 @@ class SchemaProcessor {
         }
         const qualifiers = { is_list: true, is_monitorable: false };
         const annotations = {
-            nl: { canonical: canonical(domain) },
+            nl: { canonical: [canonical(domain), ...this._domains.getWikidataTypeLabels(domain)] },
             impl: { 
                 handle_thingtalk: new Ast.Value.Boolean(true),
                 csqa_type: new Ast.Value.String(this._domains.getCSQAType(domain)),

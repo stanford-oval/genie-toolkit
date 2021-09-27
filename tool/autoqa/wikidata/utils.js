@@ -26,6 +26,7 @@ import JSONStream from 'JSONStream';
 import csvparse from 'csv-parse';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 import { snakecase } from '../lib/utils';
+import { clean } from '../../../lib/utils/misc-utils';
 
 const URL = 'https://query.wikidata.org/sparql';
 const Type = ThingTalk.Type;
@@ -451,10 +452,12 @@ class Domains {
             }
             const csqaType = row['csqa-type'];
             const wikidataTypes = row['wikidata-types'].split(' ').map((x) => x.split(':')[0]);
+            const wikidataTypeLabels = row['wikidata-types'].split(' ').map((x) => x.split(':')[1]);
             this._map[row.domain] = {
                 'csqa-type': csqaType,
                 'wikidata-types': wikidataTypes,
-                'wikidata_subject': [csqaType, ...wikidataTypes]
+                'wikidata-types-labels': wikidataTypeLabels.map(clean),
+                'wikidata-subject': [csqaType, ...wikidataTypes],
             };
         });
         pipeline.on('error', (error) => console.error(error));
@@ -469,8 +472,12 @@ class Domains {
         return this._map[domain]['wikidata-types'];
     }
 
+    getWikidataTypeLabels(domain) {
+        return this._map[domain]['wikidata-types-labels'];
+    }
+
     getWikidataSubjects(domain) {
-        return this._map[domain]['wikidata_subject'];
+        return this._map[domain]['wikidata-subject'];
     }
 
     getDomainByCSQAType(csqaType) {
