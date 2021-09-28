@@ -144,6 +144,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: "Include entity id in thingtalk",
         default: false
     });
+    parser.add_argument('--ignore-entity-type', {
+        action: 'store_true',
+        help: "Ignore the exact entity type when evaluate",
+        default: false
+    });
 }
 
 export async function execute(args : any) {
@@ -164,7 +169,8 @@ export async function execute(args : any) {
             debug: args.debug,
             complexityMetric: args.complexity_metric,
             oracle: args.oracle,
-            includeEntityValue: args.entity_id
+            includeEntityValue: args.entity_id,
+            ignoreEntityType: args.ignore_entity_type
         }))
         .pipe(new CollectSentenceStatistics({
             minComplexity: args.min_complexity,
