@@ -35,7 +35,7 @@ const domainMap = {
     'country': 'designation_for_an_administrative_territorial_entity',
     'art': 'work_of_art',
     'song': 'release',
-    'music_band': 'music_ensemble',
+    'music_band': 'musical_ensemble',
     'game': 'application',
     'organization': 'organization',
     'disease': 'health_problem',
