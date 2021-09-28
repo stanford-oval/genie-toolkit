@@ -710,7 +710,7 @@ export function toChainExpression(expr : Ast.Expression) {
 
 function makeProgram(loader : ThingpediaLoader,
                      rule : Ast.Expression) : Ast.Program|null {
-    if (!loader.flags.entity_id && !checkValidQuery(rule))
+    if (!loader.flags.no_soft_match_id && !checkValidQuery(rule))
         return null;
     const chain = toChainExpression(rule);
     if (chain.first.schema!.functionType === 'stream' && loader.flags.nostream)
