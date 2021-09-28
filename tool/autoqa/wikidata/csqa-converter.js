@@ -50,6 +50,7 @@ class CsqaConverter {
     constructor(options) {
         this._domains = options.domains;
         this._includeEntityValue = options.includeEntityValue;
+        this._softMatchId = options.softMatchId;
         this._filters = {};
         for (const filter of options.filter || []) {
             assert(filter.indexOf('=') > 0 && filter.indexOf('=') === filter.lastIndexOf('='));
@@ -109,12 +110,12 @@ class CsqaConverter {
     _generateFilter(domain, param, value) {
         let ttValue, op;
         if (param === 'id') {
-            if (this._includeEntityValue) {
-                ttValue = new Ast.Value.Entity(value.value, `org.wikidata:${domain}`, value.preprocessed);
-                op = '==';
-            } else {
+            if (this._softMatchId) {
                 ttValue = new Ast.Value.String(value.preprocessed);
                 op = '=~';
+            } else {
+                ttValue = new Ast.Value.Entity(value.value, `org.wikidata:${domain}`, value.preprocessed);
+                op = '==';
             }
         } else { 
             const propertyType = this._classDef.getFunction('query', domain).getArgType(param);
@@ -713,6 +714,11 @@ module.exports = {
             help: "Include entity id in thingtalk",
             default: false
         });
+        parser.add_argument('--soft-match-id', {
+            action: 'store_true',
+            help: "Do string soft match on id property",
+            default: false
+        });
         parser.add_argument('--filter', {
             required: false,
             default: [],
@@ -735,6 +741,7 @@ module.exports = {
             types: args.types,
             filteredExamples: args.filtered_examples,
             includeEntityValue: args.entity_id,
+            softMatchId: args.soft_match_id,
             filter: args.filter
         });
         csqaConverter.run();

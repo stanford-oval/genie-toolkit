@@ -546,7 +546,7 @@ export default class ThingpediaLoader {
             } else if (ptype.isRecurrentTimeSpecification) {
                 vtypes = [Type.Date, Type.Time];
                 op = 'contains';
-            } else if (pname === 'id' && !this._options.flags.entity_id) {
+            } else if (pname === 'id' && !this._options.flags.no_soft_match_id) {
                 vtypes = [Type.String];
             }
         }
@@ -1078,7 +1078,7 @@ export default class ThingpediaLoader {
             span = canonical.map((c) => `${c} \${p_name:no-undefined}`);
         }
 
-        if (this._options.flags.entity_id) {
+        if (this._options.flags.no_soft_match_id) {
             const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_name'));
             await this._loadTemplate(new Ast.Example(
                 null,
