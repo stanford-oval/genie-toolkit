@@ -81,6 +81,7 @@ type SentenceEvaluatorOptions = {
     oracle ?: boolean;
     complexityMetric ?: keyof typeof COMPLEXITY_METRICS;
     includeEntityValue ?: boolean
+    ignoreEntityType ?: boolean
 } & ThingTalkUtils.ParseOptions;
 
 export interface ExampleEvaluationResult {
@@ -137,6 +138,7 @@ class SentenceEvaluator {
     private _debug : boolean;
     private _oracle : boolean;
     private _includeEntityValue : boolean;
+    private _ignoreEntityType : boolean;
     private _tokenizer : I18n.BaseTokenizer;
     private _computeComplexity : ((id : string, code : string) => number)|undefined;
 
@@ -158,6 +160,7 @@ class SentenceEvaluator {
         this._debug = options.debug;
         this._oracle = !!options.oracle;
         this._includeEntityValue = !!options.includeEntityValue;
+        this._ignoreEntityType = !!options.ignoreEntityType;
         this._tokenizer = tokenizer;
 
         if (options.complexityMetric)
@@ -185,6 +188,14 @@ class SentenceEvaluator {
         }
         return false;
     }
+
+    private _equals(thingtalk1 : string, thingtalk2 : string) : boolean {
+        if (this._ignoreEntityType) {
+            thingtalk1 = thingtalk1.replace(/\^\^\S+/g, '^^entity');
+            thingtalk2 = thingtalk2.replace(/\^\^\S+/g, '^^entity');
+        }
+        return thingtalk1 === thingtalk2;
+    } 
 
     async evaluate() : Promise<ExampleEvaluationResult|undefined> {
         const result : ExampleEvaluationResult = {
@@ -336,7 +347,7 @@ class SentenceEvaluator {
 
             // check that by normalizing we did not accidentally mark wrong a program that
             // was correct before
-            if (beamString === normalizedTargetCode[0] && normalizedCode !== normalizedTargetCode[0]) {
+            if (this._equals(beamString, normalizedTargetCode[0]) && !this._equals(normalizedCode, normalizedTargetCode[0])) {
                 console.error();
                 console.error('NORMALIZATION ERROR');
                 console.error(normalizedTargetCode[0]);
@@ -350,7 +361,7 @@ class SentenceEvaluator {
             let result_string = 'ok_syntax';
 
             for (let referenceId = 0; referenceId < this._targetPrograms.length; referenceId++) {
-                if (normalizedCode === normalizedTargetCode[referenceId]) {
+                if (this._equals(normalizedCode, normalizedTargetCode[referenceId])) {
                     // we have a match!
 
                     beam_ok = true;
