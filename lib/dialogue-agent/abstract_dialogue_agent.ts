@@ -20,7 +20,7 @@
 
 import assert from 'assert';
 import * as Tp from 'thingpedia';
-import { Ast, SchemaRetriever, Builtin } from 'thingtalk';
+import { Ast, SchemaRetriever, Builtin, Type } from 'thingtalk';
 
 import * as I18n from '../i18n';
 import { cleanKind } from '../utils/misc-utils';
@@ -404,7 +404,18 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 value.value = resolved.value;
                 value.display = resolved.name;
             } else {
-                const candidates = await this.lookupEntityCandidates(value.type, value.display!, hints);
+                let candidates = await this.lookupEntityCandidates(value.type, value.display!, hints);
+                if (candidates.length === 0) {
+                    const argType = slot.arg!.type;
+                    let elemType : string;
+                    if (argType instanceof Type.Array && argType.elem instanceof Type.Entity)
+                        elemType = argType.elem.type;
+                    else if (argType instanceof Type.Entity)
+                        elemType = argType.type;
+                    else 
+                        throw new TypeError('Invalid argument type');
+                    candidates = await this.lookupEntityCandidates(elemType, value.display!, hints);
+                }
                 const resolved = getBestEntityMatch(value.display!, value.type, candidates);
                 value.value = resolved.value;
                 value.display = resolved.name;
