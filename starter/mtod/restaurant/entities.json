@@ -1,0 +1,11 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "type": "mtod.Restaurant:Restaurant",
+      "name": "Restaurant",
+      "is_well_known": false,
+      "has_ner_support": true
+    }
+  ]
+}

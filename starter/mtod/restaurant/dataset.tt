@@ -1,0 +1,12 @@
+dataset @empty {
+  action := @mtod.Restaurant.make_reservation()
+  #_[preprocessed=["book a restaurant",
+                   "make a restaurant reservation"]];
+
+  action (p_restaurant : Entity(mtod.Restaurant:Restaurant)) :=
+    @mtod.Restaurant.make_reservation(restaurant=p_restaurant)
+  #_[preprocessed=["book ${p_restaurant}",
+                   "reserve ${p_restaurant}",
+                   "make a restaurant reservation for ${p_restaurant}",
+                   "make a reservation at ${p_restaurant}"]];
+}

@@ -1,0 +1,124 @@
+class @mtod.Restaurant
+#_[name="Hong Kong Restaurants"]
+#_[description="Restaurants data used for MTOD"]
+#_[canonical="HK restaurants"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  list query Restaurant(out id : Entity(mtod.Restaurant:Restaurant)
+                        #[conflict_filter=['food', 'price_range']]
+                        #[unique=true]
+                        #[string_values="mtod.Restaurant:name"]
+                        #_[canonical={
+                          base=["name"],
+                          passive_verb=["named #", "called #"],
+                          property=["name #"]
+                        }],
+                        out cuisine : String
+                        #[string_values="mtod.Restaurant:cuisine"]
+                        #[conflict_filter=['id']]
+                        #_[prompt=["what would you like to eat", "what are you in the mood for"]]
+                        #_[canonical={
+                          default="property",
+                          base=["cuisine", "type of cuisine", "food", "type of food"],
+                          property=["# food", "# cuisine"],
+                          adjective=["#"],
+                          passive_verb=["serving #", "serving # food", "serving # cuisine"],
+                          verb=["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"],
+                          base_projection=["cuisine", "type of cuisine", "food", "type of food"],
+                          verb_projection=["serve", "offer"]
+                        }],
+                        out price_level : Enum(cheap, moderate, expensive)
+                        #[conflict_filter=['id']]
+                        #_[question=["how expensive is the restaurant"]]
+                        #_[canonical={
+                          default="adjective",
+                          base=["price", "price range", "price level"],
+                          property=["# food"],
+                          adjective=["#", "# -ly priced"],
+                          adjective_enum={ expensive=["upscale", "fancy", "fine dining"] },
+                          preposition=["in the # price range"]
+                        }],
+                        out dietary_restrictions : Enum(gluten_free, halal, kosher, vegan, vegetarian_friendly)
+                        #[conflict_filter=['id']]
+                        #_[question=["do you have any dietary restrictions"]]
+                        #_[canonical={
+                          default="base",
+                          base=["dietary restrictions", "dietary options"],
+                          property=["# food"]
+                        }],
+                        out rating : Number
+                        #[min_number=1]
+                        #[max_number=10]
+                        #_[question=["what is its rating"]]
+                        #_[canonical={
+                          default="adjective",
+                          base=["rating"],
+                          property=["# rating", "# stars rating", "# star rating"],
+                          adjective=["# star", "# -star"],
+                          projection_pronoun=["what is the rating"],
+                          verb=["have"]
+                        }],
+                        out location : String
+                        #[string_values="mtod.Restaurant:location"]
+                        #[filterable=false]
+                        #_[canonical={
+                          default="base",
+                          base=["address", "location"],
+                          passive_verb=["located at #"],
+                          preposition=["at #"]
+                        }]
+                        )
+  #[minimal_projection=["id"]]
+  #_[canonical=["restaurant", "food place", "place to eat", "place to dine", "good restaurant", "nice restaurant", "place to eat in the city"]]
+  #_[confirmation="restaurants"]
+  #[confirm=false];
+
+  action make_reservation(in req restaurant : Entity(mtod.Restaurant:Restaurant)
+                          #[string_values="mtod.Restaurant:name"]
+                          #_[prompt="what restaurant would you like to book?"],
+                          in req time : Time
+                          #_[prompt=["what time is your reservation for",
+                                     "what time do you need your reservation for",
+                                     "at what time is your reservation"]]
+                          #_[canonical={
+                            default="preposition",
+                            base=["time", "reservation time"],
+                            preposition=["at #"]
+                          }],
+                          in req date : String
+                          #[string_values="mtod.Restaurant:date"]
+                          #[string_values="mtod.Restaurant:date"]
+                          #_[prompt=["what day is your reservation for",
+                                     "what day do you need your reservation for",
+                                     "on which day do you want your reservation"]]
+                          #_[canonical={
+                            default="preposition",
+                            base=["day", "date"],
+                            preposition=["for #", "on #"]
+                          }],
+                          in req number_of_people : Number
+                          #[min_number=1]
+                          #[max_number=7]
+                          #_[prompt=["how many people is your reservation for",
+                                     "for how many people do you need a reservation",
+                                     "how many people"]]
+                          #_[canonical={
+                            default="preposition",
+                            base=["number of people"],
+                            preposition=["for # people", "for #"]
+                          }],
+                          out user_name : String
+                          #[string_values="mtod.Restaurant:user_name"]
+                          #_[canonical={
+                            default="base",
+                            base=["name", "user name"]
+                          }])
+  #_[confirmation="make a reservation at ${restaurant}"]
+  #[confirm=false]
+  #_[on_error={
+     no_slot_available=["there are no tables available on ${date} for ${time}",
+                        "all slots are taken at ${time} on ${date}"]
+  }];
+}
