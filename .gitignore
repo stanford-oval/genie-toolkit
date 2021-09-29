@@ -48,3 +48,6 @@ genie-??????
 *.bin
 !data/**/*.tsv
 !data/**/*.csv
+
+starter/**/*.txt
+starter/**/*.tsv
