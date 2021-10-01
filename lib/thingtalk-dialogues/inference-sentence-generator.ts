@@ -72,7 +72,7 @@ export default class InferenceTimeSentenceGenerator {
     constructor(options : InferenceTimeSentenceGeneratorOptions) {
         this._options = options;
         this._langPack = I18n.get(options.locale);
-        this._entityAllocator = new Syntax.SequentialEntityAllocator({});
+        this._entityAllocator = new Syntax.SequentialEntityAllocator({}, { timezone: options.timezone });
 
         this._sentenceGenerator = null;
         this._generatorOptions = null;

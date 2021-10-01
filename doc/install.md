@@ -12,12 +12,13 @@ The following OS packages are required to build and run Genie:
 - zip
 - GraphicsMagick (only for `genie assistant` command)
 - unzip (only for `genie assistant` command)
+- python
 
 The following commands can be used to install all the dependencies on common Linux distributions:
 
 ```bash
 dnf -y install nodejs make gcc-c++ gettext GraphicsMagick zip unzip # Fedora/RHEL
-apt -y install nodejs build-essential make g++ gettext graphicsmagick zip unzip # Ubuntu/Debian
+apt -y install nodejs build-essential make g++ gettext graphicsmagick zip unzip python # Ubuntu/Debian
 ```
 
 ## Option 1: "git" install
@@ -44,8 +45,7 @@ You can also install Genie using:
 npm install genie-toolkit
 ```
 
-This method will install Genie as a library, not as a command-line tool. It is
-suitable for integrating Genie in a larger project (such as Almond).
+This method will install Genie as a library, not as a command-line tool. It is suitable for integrating Genie in a larger project (such as Almond). 
 
 ## Training
 

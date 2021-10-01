@@ -35,6 +35,7 @@ export default async function worker(args : any, shard : string) {
     return new DatasetAugmenter(schemaRetriever, constProvider, tpClient, {
         rng: seedrandom.alea(args.random_seed + ':' + shard),
         locale: args.locale,
+        timezone: args.timezone,
         paramLocale: args.param_locale,
         debug: args.debug,
 

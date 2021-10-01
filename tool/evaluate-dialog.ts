@@ -70,6 +70,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 'en-US',
         help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
     });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
+    });
     parser.add_argument('-t', '--target-language', {
         required: false,
         default: 'thingtalk',
@@ -125,6 +130,7 @@ export async function execute(args : any) {
         .pipe(new DialogueParser())
         .pipe(new DialogueEvaluatorStream(parser, {
             locale: args.locale,
+            timezone: args.timezone,
             targetLanguage: args.target_language,
             thingpediaClient: tpClient,
             tokenized: args.tokenized,

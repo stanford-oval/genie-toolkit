@@ -24,8 +24,8 @@ import * as fs from 'fs';
 import * as util from 'util';
 import * as ThingTalk from 'thingtalk';
 
-async function loadClassDef(thingpedia : string) : Promise<ThingTalk.Ast.ClassDef> {
-    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
+async function loadClassDef(thingpedia : string, options : ThingTalk.Syntax.ParseOptions) : Promise<ThingTalk.Ast.ClassDef> {
+    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }), ThingTalk.Syntax.SyntaxType.Normal, options);
     assert(library instanceof ThingTalk.Ast.Library && library.classes.length === 1);
     return library.classes[0];
 }
@@ -82,6 +82,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
         description: "Find the canonical annotation difference between two classes; return annotations existed " +
             "in the first one that is not available in the second."
     });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
+    });
     parser.add_argument('--thingpedia1', {
         required: true,
         help: 'Path to the first ThingTalk file containing class definitions.'
@@ -97,8 +107,8 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 export async function execute(args : any) {
-    const classDef1 = await loadClassDef(args.thingpedia1);
-    const classDef2 = await loadClassDef(args.thingpedia2);
+    const classDef1 = await loadClassDef(args.thingpedia1, { locale: args.locale, timezone: args.timezone });
+    const classDef2 = await loadClassDef(args.thingpedia2, { locale: args.locale, timezone: args.timezone });
 
     const queries = args.queries ? args.queries.split(',') : Object.keys(classDef1.queries);
     const diff : Record<string, Record<string, Record<string, string[]>>> = {};

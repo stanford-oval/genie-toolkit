@@ -79,6 +79,7 @@ export default class LocalParserClient {
         this._tokenizer = this._langPack.getTokenizer();
         this._predictor = new Predictor(modeldir, options);
 
+        this._platform = platform;
         this._exactmatcher = exactmatcher;
         this._tpClient = tpClient;
     }
@@ -222,6 +223,7 @@ export default class LocalParserClient {
 
             result2 = (await Promise.all(result2.map(async (c) => {
                 const parsed = await ThingTalkUtils.parsePrediction(c.code, entities, {
+                    timezone: this._platform?.timezone,
                     thingpediaClient: this._tpClient,
                     schemaRetriever: schemas
                 });
@@ -230,6 +232,7 @@ export default class LocalParserClient {
                     return {
                         code: ThingTalkUtils.serializePrediction(parsed, tokens, entities, {
                             locale: this._locale,
+                            timezone: this._platform?.timezone,
                             compatibility: options.thingtalk_version,
                             ignoreSentence: true
                         }),

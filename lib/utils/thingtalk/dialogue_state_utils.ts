@@ -91,6 +91,8 @@ export function computePrediction(oldState : Ast.DialogueState|null, newState : 
     // this is incorrect: newState will have .confirm === 'confirmed',
     // and we need to reset it back to 'accepted' for auto-confirm statements
 
+    // note: we explicitly do not clone annotations here
+    // annotations are never exposed to the neural model and are not part of the prediction
     const deltaState = new Ast.DialogueState(null, newState.policy, newState.dialogueAct, newState.dialogueActParam, []);
 
     // walk forward the state of oldState and newState
@@ -125,6 +127,9 @@ export function computePrediction(oldState : Ast.DialogueState|null, newState : 
     // all new state items after i are part of the delta
     deltaState.history = newState.history.slice(i).map((item) => {
         // shallow clone so we can change the "confirm" bit
+
+        // note: we explicitly do not clone annotations here
+        // annotations are never exposed to the neural model and are not part of the prediction
         return new Ast.DialogueHistoryItem(null, item.stmt, item.results, item.confirm);
     });
 
@@ -149,7 +154,10 @@ export function computePrediction(oldState : Ast.DialogueState|null, newState : 
 }
 
 export function computeNewState(state : Ast.DialogueState|null, prediction : Ast.DialogueState, forTarget : 'user'|'agent') {
-    const clone = new Ast.DialogueState(null, prediction.policy, prediction.dialogueAct, prediction.dialogueActParam, []);
+    const clone = new Ast.DialogueState(null, prediction.policy, prediction.dialogueAct, prediction.dialogueActParam, [], {
+        nl: state?.nl_annotations,
+        impl: state?.impl_annotations,
+    });
 
     // append all history elements that were confirmed
     if (state !== null) {
@@ -177,6 +185,8 @@ const MAX_CONTEXT_ITEMS = 2;
 export function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget : 'user'|'agent') : Ast.DialogueState|null {
     if (context === null)
         return null;
+    // note: we explicitly do not clone annotations here
+    // annotations are never exposed to the neural model
     const clone = new Ast.DialogueState(null, context.policy, context.dialogueAct, context.dialogueActParam, []);
 
     // walk through all items in the history, find the last in each sequence of "compatible" item with results
@@ -202,6 +212,12 @@ export function prepareContextForPrediction(context : Ast.DialogueState|null, fo
     for (const lastItem of lastItems) {
         // clone
         const cloneItem = lastItem.clone();
+
+        // remove annotations
+        // annotations are never exposed to the neural model
+        cloneItem.nl_annotations = {};
+        cloneItem.impl_annotations = {};
+
         if (forTarget === 'user' && cloneItem.results!.results.length > 1)
             cloneItem.results!.results.length = 1;
         else if (cloneItem.results!.results.length > 3)
@@ -249,7 +265,10 @@ export function prepareContextForPrediction(context : Ast.DialogueState|null, fo
         // this assertion has caught other problems in the past
         assert(item.confirm !== 'confirmed');
 
-        clone.history.push(item);
+        // note: we explicitly do not clone annotations here
+        // annotations are never exposed to the neural model
+        const cloneItem = new Ast.DialogueHistoryItem(item.location, item.stmt, item.results, item.confirm);
+        clone.history.push(cloneItem);
     }
 
     return clone;

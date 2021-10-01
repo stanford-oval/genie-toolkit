@@ -29,6 +29,7 @@ export * from './list-proposal';
 export * from './recommendation';
 export * from './refinement';
 export * from './related-questions';
+export * from './reminders';
 export * from './results';
 export * from './search-questions';
 export * from './slot-fill';

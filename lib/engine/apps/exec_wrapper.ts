@@ -118,6 +118,24 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
     get program_id() {
         return this._programId;
     }
+    /**
+     * Retrieve the unique ID of the conversation associated with this execution
+     * environment.
+     *
+     * This roughly corresponds to the ID of the session or speaker where the user
+     * is issuing the command.
+     */
+    get conversation() {
+        return this.app.metadata.conversation;
+    }
+
+    get locale() {
+        return this.engine.platform.locale;
+    }
+
+    get timezone() {
+        return this.engine.platform.timezone;
+    }
 
     endProgram() {
         if (this._trigger)
@@ -154,7 +172,7 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
     }
 
     invokeAtTimer(time : ThingTalk.Builtin.Time[], expiration_date : Date|undefined) : AsyncIterator<{ __timestamp : number }> {
-        const trigger = new AtTimer(time, expiration_date);
+        const trigger = new AtTimer(time, expiration_date, this.timezone);
         this._trigger = trigger;
         trigger.start();
         return this._wrapClearCache(trigger);
@@ -251,7 +269,7 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
 
         for (const device of devices) {
             const outputType = recursivelyComputeOutputType(device.kind, command.expression);
-            for await (const result of device.query(query, this))
+            for await (const result of await device.query(query, this))
                 yield [outputType, result];
         }
     }

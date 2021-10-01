@@ -52,6 +52,7 @@ export interface Statistics {
 
 class ParaphraseValidator {
     private _locale : string;
+    private _timezone : string;
     private _schemas : SchemaRetriever;
     private _tokenizer : I18n.BaseTokenizer;
     private _noIdea : string[];
@@ -73,10 +74,12 @@ class ParaphraseValidator {
                 langPack : I18n.LanguagePack,
                 tokenizer : I18n.BaseTokenizer,
                 locale : string,
+                timezone : string,
                 row : MTurkParaphraseExample,
                 counter : Statistics,
                 debug : boolean) {
         this._locale = locale;
+        this._timezone = timezone;
         this._schemas = schemaRetriever;
         this._tokenizer = tokenizer;
         this._noIdea = langPack.NO_IDEA;
@@ -135,7 +138,8 @@ class ParaphraseValidator {
         // this will automatically trigger entity assignment in ThingTalk
         try {
             const target_code = ThingTalkUtils.serializePrediction(this.ast!, this.preprocessed, this.entities, {
-                locale: this._locale
+                locale: this._locale,
+                timezone: this._timezone,
             });
             this.target_preprocessed = target_code;
 
@@ -189,6 +193,7 @@ type ValidationCountMap = Map<string, {
 
 interface ParaphraseValidatorFilterOptions {
     locale : string;
+    timezone : string;
     debug : boolean;
     validationCounts ?: ValidationCountMap;
     validationThreshold ?: number;
@@ -197,6 +202,7 @@ interface ParaphraseValidatorFilterOptions {
 class ParaphraseValidatorFilter extends Stream.Transform {
     private _schemas : SchemaRetriever;
     private _locale : string;
+    private _timezone : string;
     private _langPack : I18n.LanguagePack;
     private _tokenizer : I18n.BaseTokenizer;
     private _counter : Statistics;
@@ -214,6 +220,7 @@ class ParaphraseValidatorFilter extends Stream.Transform {
         this._schemas = schemaRetriever;
 
         this._locale = options.locale;
+        this._timezone = options.timezone;
         this._langPack = I18n.get(options.locale);
         this._tokenizer = this._langPack.getTokenizer();
         this._counter = {
@@ -232,7 +239,7 @@ class ParaphraseValidatorFilter extends Stream.Transform {
 
     private async _validate(row : MTurkParaphraseExample) : Promise<MTurkParaphraseExample|null> {
         const paraphrase = new ParaphraseValidator(this._schemas, this._langPack, this._tokenizer, this._locale,
-            row, this._counter, this._debug);
+            this._timezone, row, this._counter, this._debug);
 
         try {
             await paraphrase.clean();

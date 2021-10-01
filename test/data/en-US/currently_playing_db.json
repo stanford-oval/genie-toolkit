@@ -1,0 +1,25 @@
+[{
+    "id":{
+        "value":"spotify:track:4sPmO7WMQUAf45kwMOtONw",
+        "display":"Hello"
+    },
+    "artists":[
+        {
+            "value":"spotify:artist:4dpARuHxo51G3z768sgnrY",
+            "display":"Adele"
+        }
+    ],
+    "album":{
+        "value":"spotify:album:0K4pIOOsfJ9lK8OjrZfXzd",
+        "display":"25"
+    },
+    "genres":[
+        "british soul",
+        "pop",
+        "uk pop"
+    ],
+    "release_date":"2016-06-24",
+    "popularity":72,
+    "energy":45,
+    "danceability":48
+}]

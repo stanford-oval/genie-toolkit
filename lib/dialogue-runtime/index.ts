@@ -43,3 +43,4 @@ export {
 } from './conversation';
 export * as Protocol from './protocol';
 export * from './errors';
+export { default as AudioController } from './audio/controller';

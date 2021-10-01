@@ -85,7 +85,7 @@ class MockAppExecutor {
 
     async execute() {
         const overrides = new Map;
-        const generator = new ResultGenerator(this._rng, overrides);
+        const generator = new ResultGenerator(this._rng, 'America/Los_Angeles', overrides);
         for (let slot of this._program.iterateSlots2()) {
             if (slot instanceof Ast.DeviceSelector)
                 continue;
@@ -149,6 +149,10 @@ class MockDevice {
 
     queryInterface() {
         return null;
+    }
+
+    serialize() {
+        return { kind: this.kind };
     }
 }
 
@@ -333,10 +337,13 @@ class MockDeviceDatabase extends events.EventEmitter {
     addSerialized(blob) {
         if (blob.kind === 'com.bing') {
             console.log('MOCK: Loading bing');
-            return Promise.resolve(this._devices['com.bing'] = new MockBingDevice());
+            this._devices['com.bing'] = new MockBingDevice();
+            this.emit('device-added', this._devices['com.bing']);
+            return Promise.resolve();
         } else {
             console.log('MOCK: Loading device ' + JSON.stringify(blob));
             const device = new MockUnknownDevice(blob.kind);
+            this.emit('device-added', device);
             return Promise.resolve(this._devices[device.uniqueId] = device);
         }
     }
@@ -545,6 +552,8 @@ class MockAbstractDatabase {
     }
 }
 
+class MockActivityMonitor extends events.EventEmitter {}
+
 export function createMockEngine(thingpedia, rng, database) {
     const platform = new TestPlatform();
     const schemas = new SchemaRetriever(thingpedia, null, true);
@@ -559,6 +568,7 @@ export function createMockEngine(thingpedia, rng, database) {
         audio: new MockAudioController(),
         assistant: new MockAssistantDispatcher(),
         db : new MockAbstractDatabase(),
+        activityMonitor : new MockActivityMonitor(),
 
         createApp(program, options = {}) {
             return this.apps.createApp(program, options);
@@ -575,7 +585,9 @@ export function createMockEngine(thingpedia, rng, database) {
 
         createDevice(blob) {
             return this.devices.addSerialized(blob);
-        }
+        },
+
+        updateActivity() {}
     };
     engine.gettext = function(string) {
         return gettext.dgettext('genie-toolkit', string);

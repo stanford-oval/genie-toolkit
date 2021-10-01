@@ -39,7 +39,9 @@ async function processOne(id, preprocessed, code) {
     const entities = Utils.makeDummyEntities(preprocessed);
 
     try {
-        const program = Syntax.parse(code.split(' '), Syntax.SyntaxType.Tokenized, entities);
+        const program = Syntax.parse(code.split(' '), Syntax.SyntaxType.Tokenized, entities, {
+            timezone: 'America/Los_Angeles'
+        });
         await program.typecheck(_schemaRetriever);
     } catch(e) {
         console.error(code);
@@ -55,6 +57,7 @@ async function main() {
     const generatorOptions = {
         rng,
         locale: 'en-US',
+        timezone: 'America/Los_Angeles',
         templateFiles: ['single-command.genie'],
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,

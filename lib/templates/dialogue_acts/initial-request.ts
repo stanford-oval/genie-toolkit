@@ -142,11 +142,16 @@ function adjustStatementsForInitialRequest(loader : ThingpediaLoader,
             assert(newTable === null);
 
             const query = loader.idQueries.get(type.type)!;
+            const invoInputParam = [];
+            for (const i of query.iterateArguments()) {
+                if (i.is_input && i.required)
+                    invoInputParam.push(new Ast.InputParam(null, i.name, new Ast.UndefinedValue()));
+            }
             newTable = new Ast.InvocationExpression(null,
                     new Ast.Invocation(null,
                         new Ast.DeviceSelector(null, query.class!.name, null, null),
                         query.name,
-                        [],
+                        invoInputParam,
                         query),
                     query);
 
@@ -168,7 +173,7 @@ function adjustStatementsForInitialRequest(loader : ThingpediaLoader,
     return newStatements.map(C.adjustDefaultParameters);
 }
 
-function initialRequest(loader : ThingpediaLoader, stmt : Ast.Expression) {
+export function initialRequest(loader : ThingpediaLoader, stmt : Ast.Expression) {
     const newStatements = adjustStatementsForInitialRequest(loader, C.toChainExpression(stmt));
     if (newStatements === null)
         return null;
@@ -181,7 +186,7 @@ function getStatementDevice(stmt : Ast.ChainExpression) {
     return stmt.last.schema!.class!.name;
 }
 
-function startNewRequest(loader : ThingpediaLoader, ctx : ContextInfo, expr : Ast.Expression) {
+export function startNewRequest(loader : ThingpediaLoader, ctx : ContextInfo, expr : Ast.Expression) {
     const stmt = C.toChainExpression(expr);
 
     if (loader.flags.strict_multidomain && ctx.current && getStatementDevice(ctx.current.stmt.expression) === getStatementDevice(stmt))
@@ -195,7 +200,7 @@ function startNewRequest(loader : ThingpediaLoader, ctx : ContextInfo, expr : As
     return addNewItem(ctx, 'execute', null, 'accepted', ...newItems);
 }
 
-function addInitialDontCare(expr : Ast.Expression, dontcare : C.FilterSlot) : Ast.Expression|null {
+export function addInitialDontCare(expr : Ast.Expression, dontcare : C.FilterSlot) : Ast.Expression|null {
     const chain = C.toChainExpression(expr);
     const table = chain.lastQuery;
     if (!table)
@@ -224,9 +229,3 @@ function addInitialDontCare(expr : Ast.Expression, dontcare : C.FilterSlot) : As
     filterExpression.filter = new Ast.BooleanExpression.And(null, [filterExpression.filter, dontcare.ast]).optimize();
     return clone;
 }
-
-export {
-    initialRequest,
-    startNewRequest,
-    addInitialDontCare
-};

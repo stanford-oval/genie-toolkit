@@ -39,7 +39,7 @@ async function processOne(id, sentence, code) {
         const entities = makeDummyEntities(sentence);
         const program = Syntax.parse(code.split(' '), Syntax.SyntaxType.Tokenized, (token) => {
             return assignedEntities[token] = entities[token];
-        });
+        }, { timezone: 'America/Los_Angeles' });
         await program.typecheck(_schemaRetriever);
 
         const usedEntities = new Set;
@@ -69,6 +69,7 @@ async function doTestBasic(filename) {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
         locale: 'en-US',
+        timezone: 'America/Los_Angeles',
         templateFiles: [filename],
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
@@ -80,7 +81,8 @@ async function doTestBasic(filename) {
             undefined_filter: true,
             timer: true,
             projection: true,
-            projection_with_filter: true
+            projection_with_filter: true,
+            dialogues: true,
         },
         targetPruningSize: 20,
         maxDepth: 8,
@@ -137,6 +139,7 @@ async function doTestDialogue(onlyDevices = null) {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
         locale: 'en-US',
+        timezone: 'America/Los_Angeles',
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
         flags: {

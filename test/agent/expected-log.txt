@@ -1025,7 +1025,9 @@ UT: @com.spotify.play(playable="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spoti
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play(playable="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:playable("Hello"))
 C: #[results=[]]
-C: #[error=enum no_active_device];
+C: #[error=enum no_active_device]
+C: #[error_detail="No Spotify device is active"]
+C: #[error_stack="Error: No Spotify device is active"];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry, you must open the Spotify app first.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
@@ -1046,7 +1048,9 @@ UT: @com.spotify.play(playable="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spoti
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play(playable="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:playable("Hello"))
 C: #[results=[]]
-C: #[error=enum E_some_other_error];
+C: #[error=enum E_some_other_error]
+C: #[error_detail="Some other error occurred"]
+C: #[error_stack="Error: Some other error occurred"];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
@@ -1566,7 +1570,9 @@ UT: @org.thingpedia.weather.current(location=new Location(90, 0, "North Pole"));
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.weather.current(location=new Location(90, 0, "North Pole"))
 C: #[results=[]]
-C: #[error="unexpected weather error"];
+C: #[error="unexpected weather error"]
+C: #[error_detail="unexpected weather error"]
+C: #[error_stack="Error: unexpected weather error"];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
@@ -2472,6 +2478,206 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Your request was completed successfully.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: maybe turn on the lights?
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Did you mean set on the lights?
+A: You do not have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: maybe turn on the lights?
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
+C: null
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Did you mean set on the lights?
+A: Sorry I couldn't help on that.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_clarify;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Say");
+U: ontimer(date=[new Date("2021-09-30T17:30:00.000Z")]) => @org.thingpedia.builtin.thingengine.builtin.say(message="my reminder")
+U: #[results=[
+U:   { message_output="my reminder" }
+U: ]];
+UT: $dialogue @org.thingpedia.dialogue.transaction.notification("Say");
+UT: ontimer(date=[new Date("2021-09-30T17:30:00.000Z")]) => @org.thingpedia.builtin.thingengine.builtin.say(message="my reminder")
+UT: #[results=[
+UT:   { message_output="my reminder" }
+UT: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.notification("Say");
+C: ontimer(date=[new Date("2021-09-30T17:30:00.000Z")]) => @org.thingpedia.builtin.thingengine.builtin.say(message="my reminder")
+C: #[results=[
+C:   { message_output="my reminder" }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Reminder: my reminder.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Say");
+U: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.say(message="my reminder")
+U: #[results=[
+U:   { message_output="my reminder" }
+U: ]];
+UT: $dialogue @org.thingpedia.dialogue.transaction.notification("Say");
+UT: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.say(message="my reminder")
+UT: #[results=[
+UT:   { message_output="my reminder" }
+UT: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.notification("Say");
+C: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.say(message="my reminder")
+C: #[results=[
+C:   { message_output="my reminder" }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Reminder: my reminder.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.builtin.thingengine.builtin.alert();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.builtin.thingengine.builtin.alert();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.builtin.thingengine.builtin.alert()
+C: #[results=[
+C:   { time=new Time(17, 50) }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: It is 5:50 PM.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Alert");
+U: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.alert()
+U: #[results=[
+U:   { time=new Time(17, 50) }
+U: ]];
+UT: $dialogue @org.thingpedia.dialogue.transaction.notification("Alert");
+UT: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.alert()
+UT: #[results=[
+UT:   { time=new Time(17, 50) }
+UT: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.notification("Alert");
+C: ontimer(date=[$now + 10min]) => @org.thingpedia.builtin.thingengine.builtin.alert()
+C: #[results=[
+C:   { time=new Time(17, 50) }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Alert: it is 5:50 PM.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @com.spotify.get_currently_playing();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.get_currently_playing();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).get_currently_playing()
+C: #[results=[
+C:   { id="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"), artists=["spotify:artist:4dpARuHxo51G3z768sgnrY"^^com.spotify:artist("Adele")], album="spotify:album:0K4pIOOsfJ9lK8OjrZfXzd"^^com.spotify:album("25"), genres=["british soul", "pop", "uk pop"], release_date=new Date("2016-06-24T00:00:00.000Z"), popularity=72, energy=45, danceability=48 }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Currently playing Hello.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t [artists] of @com.spotify.get_currently_playing();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [artists] of @com.spotify.get_currently_playing();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).get_currently_playing()
+C: #[results=[
+C:   { id="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"), artists=["spotify:artist:4dpARuHxo51G3z768sgnrY"^^com.spotify:artist("Adele")], album="spotify:album:0K4pIOOsfJ9lK8OjrZfXzd"^^com.spotify:album("25"), genres=["british soul", "pop", "uk pop"], release_date=new Date("2016-06-24T00:00:00.000Z"), popularity=72, energy=45, danceability=48 }
+C: ]];
+C: [artists] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).get_currently_playing()
+C: #[results=[
+C:   { id="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"), artists=["spotify:artist:4dpARuHxo51G3z768sgnrY"^^com.spotify:artist("Adele")] }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: The artist is Adele.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t [artists] of @com.spotify.get_currently_playing();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [artists] of @com.spotify.get_currently_playing();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [artists] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).get_currently_playing()
+C: #[results=[
+C:   { id="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"), artists=["spotify:artist:4dpARuHxo51G3z768sgnrY"^^com.spotify:artist("Adele")] }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Currently playing Hello. The artist is Adele.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional

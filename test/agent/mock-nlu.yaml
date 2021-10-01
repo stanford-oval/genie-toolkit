@@ -87,3 +87,14 @@
     command: 0.2
     other: 0.8
     ignore: 0
+
+-
+  utterance: 'maybe turn on the lights?'
+  candidates:
+    - code: ['$dialogue', '@org.thingpedia.dialogue.transaction', '.', 'execute', ';',
+             '@org.thingpedia.iot.light-bulb', '.', 'set_power', '(', 'power', '=', 'enum', 'on', ')', ';']
+      score: 0.3
+  intent:
+    command: 1
+    other: 0
+    ignore: 0

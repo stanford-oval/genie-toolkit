@@ -111,7 +111,9 @@ export default class AppDatabase extends events.EventEmitter {
         if (!description) {
             // if we don't have a description already, compute one using
             // the Describer
-            const allocator = new ThingTalk.Syntax.SequentialEntityAllocator({});
+            const allocator = new ThingTalk.Syntax.SequentialEntityAllocator({}, {
+                timezone: this._platform.timezone
+            });
             const describer = new Describer(this._platform.locale, this._platform.timezone, allocator);
 
             // retrieve the relevant primitive templates
@@ -243,5 +245,11 @@ export default class AppDatabase extends events.EventEmitter {
 
     hasApp(id : string) : boolean {
         return this._apps[id] !== undefined;
+    }
+
+    isEmpty() : boolean {
+        for (const _ in this._apps)
+            return false;
+        return true;
     }
 }

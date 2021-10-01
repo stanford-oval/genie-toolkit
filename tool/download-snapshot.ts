@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as ThingTalk from 'thingtalk';
 import * as argparse from 'argparse';
 import * as fs from 'fs';
 import * as Tp from 'thingpedia';
@@ -67,7 +68,7 @@ export async function execute(args : any) {
     if (!args.developer_key)
         args.developer_key = await getConfig('thingpedia.developer-key', process.env.THINGPEDIA_DEVELOPER_KEY || null);
 
-    let deviceUrl = args.thingpedia_url + '/api/v3/snapshot/' + args.snapshot + '?meta=1&locale=' + args.locale;
+    let deviceUrl = `${args.thingpedia_url}/api/v3/snapshot/${args.snapshot}?meta=1&locale=${args.locale}&thingtalk_version=${ThingTalk.version}`;
     if (args.developer_key)
         deviceUrl += '&developer_key=' + args.developer_key;
     const devices = await Tp.Helpers.Http.get(deviceUrl, { accept: 'application/x-thingtalk' });
@@ -75,7 +76,7 @@ export async function execute(args : any) {
     await StreamUtils.waitFinish(args.output);
 
     if (args.entities) {
-        let entityUrl = args.thingpedia_url + '/api/v3/entities/all?snapshot=' + args.snapshot + '&locale=' + args.locale;
+        let entityUrl = `${args.thingpedia_url}/api/v3/entities/all?snapshot=${args.snapshot}&locale=${args.locale}&thingtalk_version=${ThingTalk.version}`;
         if (args.developer_key)
             entityUrl += '&developer_key=' + args.developer_key;
 

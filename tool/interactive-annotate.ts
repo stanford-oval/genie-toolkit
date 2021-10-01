@@ -63,6 +63,7 @@ interface AnnotatorOptions {
 class Annotator extends events.EventEmitter {
     private _rl : readline.Interface;
     private _locale : string;
+    private _timezone : string;
     private _rng : () => number;
     private _platform : Tp.BasePlatform;
     private _tpClient : Tp.BaseClient;
@@ -88,6 +89,7 @@ class Annotator extends events.EventEmitter {
         this._rl = rl;
 
         this._locale = options.locale;
+        this._timezone = options.timezone;
         this._rng = seedrandom.alea(options.random_seed);
         this._parser = ParserClient.get(options.nlu_server, options.locale);
 
@@ -116,7 +118,7 @@ class Annotator extends events.EventEmitter {
             this._executor = new SimulationThingTalkExecutor(simulatorOptions);
         } else {
             this._engine = new Engine(this._platform);
-            this._executor = new InferenceTimeThingTalkExecutor(this._engine, undefined, false);
+            this._executor = new InferenceTimeThingTalkExecutor(this._engine, this, false);
             this._schemas = this._engine.schemas;
         }
         this._agent = new InferenceTimeDialogue({
@@ -131,6 +133,7 @@ class Annotator extends events.EventEmitter {
             rng: this._rng,
             debug: 0,
             anonymous: false,
+            useConfidence: false,
             extraFlags: {},
         });
 
@@ -207,34 +210,13 @@ class Annotator extends events.EventEmitter {
         });
     }
 
-    // implementation of the abstract dialogue loop interface, which the
-    // execution dialogue agent calls sometimes
-
-    get _() {
-        return (x : string) => x;
+    // implementation of the abstract conversation interface, which the
+    // inference time executor calls sometimes
+    get id() {
+        return 'main';
     }
-    get icon() {
-        return null;
-    }
-    set icon(v : string|null) {
+    async sendNewProgram() {
         // do nothing
-    }
-    get isAnonymous() {
-        return false;
-    }
-    get platformData() {
-        return {};
-    }
-    get conversation() {
-        return {
-            getState() {
-                return {
-                    history: [],
-                    dialogueState: {},
-                    expected: null
-                };
-            }
-        };
     }
 
     interpolate(msg : string, args : Record<string, unknown>) : string {
@@ -322,7 +304,8 @@ class Annotator extends events.EventEmitter {
 
             // check that the entities are correct by serializing the program once
             ThingTalkUtils.serializePrediction(newState, this._preprocessed!, this._entities!, {
-                locale: this._locale
+                locale: this._locale,
+                timezone: this._timezone,
             }).join(' ');
         } catch(e) {
             console.log(`${e.name}: ${e.message}`);
@@ -459,6 +442,7 @@ class Annotator extends events.EventEmitter {
         this._preprocessed = parsed.tokens.join(' ');
         this._entities = parsed.entities;
         const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+            timezone: this._timezone,
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
             loadMetadata: true
@@ -495,8 +479,8 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('--timezone', {
         required: false,
-        default: process.env.TZ || 'America/Los_Angeles',
-        help: `Timezone to use to print dates and times (defaults to ${process.env.TZ || 'America/Los_Angeles'}).`
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--thingpedia-url', {
         required: false,

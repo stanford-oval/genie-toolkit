@@ -34,6 +34,7 @@ import './computation.genie';
 import './who_questions.genie';
 import './commands.genie';
 import './stream_tables.genie';
+import './joins.genie';
 
 $root : Ast.Input = {
     p:thingpedia_complete_program => C.makeProgram($loader, p);

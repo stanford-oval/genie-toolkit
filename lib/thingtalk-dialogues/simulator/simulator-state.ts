@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import { Temporal } from '@js-temporal/polyfill';
 import assert from 'assert';
 
 import {
@@ -56,6 +56,7 @@ type ExecutionResult = [Ast.DialogueHistoryResultList, RawExecutionResult];
 
 export class ThingTalkSimulatorState {
     private _locale : string;
+    private _timezone : string;
     private _schemas : SchemaRetriever;
     private _rng : () => number;
     private _database : SimulationDatabase|undefined;
@@ -64,6 +65,7 @@ export class ThingTalkSimulatorState {
 
     constructor(options : SimulatorOptions) {
         this._locale = options.locale;
+        this._timezone = options.timezone || Temporal.Now.timeZone().id;
         this._schemas = options.schemaRetriever;
         this._rng = options.rng;
         this._database = options.database;
@@ -103,7 +105,7 @@ export class ThingTalkSimulatorState {
         const results : Ast.DialogueHistoryResultItem[] = [];
         const rawResults : RawExecutionResult = [];
         let error : Ast.Value|null = null;
-        const generator = new ResultGenerator(this._rng, this._overrides);
+        const generator = new ResultGenerator(this._rng, this._timezone, this._overrides);
         for (const slot of stmt.iterateSlots2()) {
             if (slot instanceof Ast.DeviceSelector)
                 continue;

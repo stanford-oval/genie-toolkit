@@ -124,6 +124,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
         simulator : SimulationDialogueAgent,
         policy : PolicyModule,
         locale : string,
+        timezone : string|undefined,
         schemaRetriever : SchemaRetriever,
         rng : () => number
     }) {

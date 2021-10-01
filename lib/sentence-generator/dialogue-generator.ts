@@ -98,6 +98,7 @@ class MinibatchDialogueGenerator {
                 policy: policy,
                 simulator: simulator,
                 locale: options.locale,
+                timezone: options.timezone,
                 schemaRetriever: options.schemaRetriever,
                 rng: options.rng
             }));
@@ -352,7 +353,7 @@ export default class DialogueGenerator extends stream.Readable {
             rng: options.rng,
             thingpediaClient: options.thingpediaClient,
             schemaRetriever: options.schemaRetriever,
-            entityAllocator: new Syntax.SequentialEntityAllocator({}),
+            entityAllocator: new Syntax.SequentialEntityAllocator({}, { timezone: options.timezone }),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList,
         };
@@ -375,7 +376,7 @@ export default class DialogueGenerator extends stream.Readable {
             rng: options.rng,
             thingpediaClient: options.thingpediaClient,
             schemaRetriever: options.schemaRetriever,
-            entityAllocator: new Syntax.SequentialEntityAllocator({}),
+            entityAllocator: new Syntax.SequentialEntityAllocator({}, { timezone: options.timezone }),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList,
         };

@@ -25,7 +25,6 @@ import assert from 'assert';
 import {
     Ast,
     Type,
-    Syntax,
     SchemaRetriever,
     Operators
 } from 'thingtalk';
@@ -47,6 +46,7 @@ import {
     makeFilter,
     makeAndFilter,
     makeDateRangeFilter,
+    makeSelfJoinCondition,
     isHumanEntity,
     interrogativePronoun,
 } from './utils';
@@ -101,11 +101,6 @@ interface CanonicalForm {
     projection : SentenceGeneratorRuntime.Phrase[];
 }
 
-// FIXME this info needs to be in Thingpedia
-interface ExtendedEntityRecord extends Tp.BaseClient.EntityTypeRecord {
-    subtype_of ?: string|string[]|null;
-}
-
 type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
 
 export interface ParsedPlaceholderPhrase {
@@ -147,7 +142,7 @@ export default class ThingpediaLoader {
     private _options : GrammarOptions;
     private _describer : ThingTalkUtils.Describer;
 
-    private _entities : Record<string, ExtendedEntityRecord>
+    private _entities : Record<string, Tp.BaseClient.EntityTypeRecord>
     // cached annotations extracted from Thingpedia, for use at inference time
     private _errorMessages : Map<string, Record<string, ParsedPlaceholderPhrase[]>>;
     private _resultPhrases : Map<string, NormalizedResultPhraseList>;
@@ -258,6 +253,10 @@ export default class ThingpediaLoader {
 
     get locale() {
         return this._langPack.locale;
+    }
+
+    get timezone() {
+        return this._options.timezone;
     }
 
     get flags() {
@@ -410,7 +409,7 @@ export default class ThingpediaLoader {
         if (!ptypestr)
             return;
         const pslot : ParamSlot = { schema, name: pname, type: ptype,
-            filterable: false, ast: new Ast.Value.VarRef(pname) };
+            filterable: false, symmetric: false, ast: new Ast.Value.VarRef(pname) };
         this.params.push(pslot);
 
         // compound types are handled by recursing into their fields through iterateArguments()
@@ -505,8 +504,9 @@ export default class ThingpediaLoader {
             return;
 
         const filterable = arg.getImplementationAnnotation<boolean>('filterable') ?? true;
+        const symmetric = arg.getImplementationAnnotation<boolean>('symmetric') ?? false;
         const pslot : ParamSlot = { schema, name: pname, type: ptype,
-            filterable, ast: new Ast.Value.VarRef(pname) };
+            filterable, symmetric, ast: new Ast.Value.VarRef(pname) };
         this.params.push(pslot);
 
         if (ptype.isCompound)
@@ -601,6 +601,8 @@ export default class ThingpediaLoader {
         const constant = this._getConstantNT(vtype, 'value');
         const corefconst = new SentenceGeneratorRuntime.NonTerminal('coref_constant', 'value');
         const both_prefix = new SentenceGeneratorRuntime.NonTerminal('both_prefix');
+        const pronoun_the_second = new SentenceGeneratorRuntime.NonTerminal('pronoun_the_second');
+        const each_other = new SentenceGeneratorRuntime.NonTerminal('each_other');
         const constant_pairs = new SentenceGeneratorRuntime.NonTerminal('constant_pairs', 'values');
         const constant_date_range = new SentenceGeneratorRuntime.NonTerminal('constant_date_range', 'value');
 
@@ -631,6 +633,12 @@ export default class ThingpediaLoader {
                     this._addRule(pos + '_filter', [both_prefix, constant_pairs], pairexpansion, (_both, values : [Ast.Value, Ast.Value]) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
                 if (ptype.isDate)
                     this._addRule(pos + '_filter', [constant_date_range], expansion, (values : [Ast.Value, Ast.Value]) => makeDateRangeFilter(this, pslot, values), keyfns.filterKeyFn, attributes);
+
+                const joinexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${pronoun_the_second}') + '}';
+                this._addRule(pos + '_join_condition', [pronoun_the_second], joinexpansion, () => makeSelfJoinCondition(this, pslot), keyfns.filterKeyFn, attributes);
+                const symmetric_joinexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${each_other}') + '}';
+                if (pslot.symmetric)
+                    this._addRule(pos + '_symmetric_join_condition', [each_other], symmetric_joinexpansion, () => makeSelfJoinCondition(this, pslot), keyfns.filterKeyFn, attributes);
             }
 
             const argminforms = this._collectByPOS(canonical.argmin);
@@ -830,7 +838,7 @@ export default class ThingpediaLoader {
 
         // template #2: replace placeholders with whole queries or streams
         // TODO: enable this for table joins with param passing
-        if (grammarCat === 'action' || (this._options.flags.dialogues && grammarCat === 'action_past'))
+        if (grammarCat === 'action' || (this._options.contextual && grammarCat === 'action_past'))
             this._addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat, parsed, nonTerminals, names, options, example);
 
         // template #3: coreferences
@@ -1043,6 +1051,7 @@ export default class ThingpediaLoader {
             shortCanonical = canonical;
         const tmpl = '{' + shortCanonical.join('|') + '}';
         this._addRule('base_table', [], tmpl, () => table, keyfns.expressionKeyFn);
+        this._addRule('base_table_hidden', [], '', () => table, keyfns.expressionKeyFn);
         this._addRule('base_noun_phrase', [], tmpl, () => q, keyfns.functionDefKeyFn);
 
         this._addRule('generic_anything_noun_phrase', [], this._langPack._("{anything|one|something}"), () => table, keyfns.expressionKeyFn);
@@ -1359,7 +1368,7 @@ export default class ThingpediaLoader {
                 subTypeOf = entity.extends.map((e) =>
                     e.includes(':') ? e : classDef.kind + ':' + e);
             }
-            const entityRecord : ExtendedEntityRecord = {
+            const entityRecord : Tp.BaseClient.EntityTypeRecord = {
                 type: classDef.kind + ':' + entity.name,
                 name: entity.getImplementationAnnotation<string>('description')||'',
                 has_ner_support: hasNer,
@@ -1386,7 +1395,7 @@ export default class ThingpediaLoader {
         await Promise.all(actions.map((name) => classDef.actions[name]).map(this._loadFunction.bind(this)));
     }
 
-    private _loadEntityType(entityType : string, typeRecord : ExtendedEntityRecord) {
+    private _loadEntityType(entityType : string, typeRecord : Tp.BaseClient.EntityTypeRecord) {
         this._entities[entityType] = typeRecord;
         if (typeRecord.subtype_of) {
             const subTypeOf = typeof
@@ -1449,7 +1458,7 @@ export default class ThingpediaLoader {
     }
 
     private async _loadMetadata() {
-        const entityTypes : ExtendedEntityRecord[] = await this._tpClient.getAllEntityTypes();
+        const entityTypes : Tp.BaseClient.EntityTypeRecord[] = await this._tpClient.getAllEntityTypes();
 
         let devices;
         if (this._options.onlyDevices)
@@ -1473,16 +1482,12 @@ export default class ThingpediaLoader {
             }));
         } else {
             const code = await this._tpClient.getAllExamples();
-            let parsed;
-            try {
-                parsed = Syntax.parse(code);
-            } catch(e) {
-                if (e.name !== 'SyntaxError')
-                    throw e;
-                // try parsing using legacy syntax too in case we're talking
-                // to an old Thingpedia that has not been migrated
-                parsed = Syntax.parse(code, Syntax.SyntaxType.Legacy);
-            }
+            const parsed = await ThingTalkUtils.parse(code, {
+                locale: this._langPack.locale,
+                timezone: this._options.timezone,
+                thingpediaClient: this._tpClient,
+                schemaRetriever: this._schemas
+            });
             assert(parsed instanceof Ast.Library);
             datasets = parsed.datasets;
             this._describer.setFullDataset(datasets);

@@ -42,6 +42,7 @@ import { maybeCreateReadStream, readAllLines } from './lib/argutils';
 
 interface DialogueToTurnStreamOptions {
     locale : string;
+    timezone : string;
     debug : boolean;
     side : string;
     flags : string;
@@ -54,6 +55,7 @@ interface DialogueToTurnStreamOptions {
 
 class DialogueToTurnStream extends Stream.Transform {
     private _locale : string;
+    private _timezone : string;
     private _options : DialogueToTurnStreamOptions;
     private _side : string;
     private _flags : string;
@@ -67,6 +69,7 @@ class DialogueToTurnStream extends Stream.Transform {
         super({ objectMode: true });
 
         this._locale = options.locale;
+        this._timezone = options.timezone;
 
         this._options = options;
         this._side = options.side;
@@ -110,7 +113,8 @@ class DialogueToTurnStream extends Stream.Transform {
 
         const { tokens, entities } = this._preprocess(turn.agent!, contextEntities);
         const agentCode = await ThingTalkUtils.serializePrediction(agentTarget, tokens, entities, {
-            locale: this._locale
+            locale: this._locale,
+            timezone: this._timezone,
         });
 
         if (this._dedupe) {
@@ -161,7 +165,8 @@ class DialogueToTurnStream extends Stream.Transform {
         const userTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
         assert(userTarget instanceof ThingTalk.Ast.DialogueState);
         const code = await ThingTalkUtils.serializePrediction(userTarget, tokens, entities, {
-            locale: this._locale
+            locale: this._locale,
+            timezone: this._timezone,
         });
 
         if (this._dedupe) {
@@ -221,6 +226,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: false,
         default: 'en-US',
         help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--tokenized', {
         action: 'store_true',
@@ -301,6 +311,7 @@ export async function execute(args : any) {
         .pipe(counter)
         .pipe(new DialogueToTurnStream({
             locale: args.locale,
+            timezone: args.timezone,
             thingpediaClient: tpClient!,
             flags: args.flags,
             idPrefix: args.id_prefix,

@@ -22,18 +22,15 @@ import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as TT from 'thingtalk';
 import * as stream from 'stream';
+import { Temporal } from '@js-temporal/polyfill';
 
-import ExecWrapper from '../../apps/exec_wrapper';
-import AssistantEngine from '../..';
+import CustomError from '../../../utils/custom_error';
+import * as ThingTalkUtils from '../../../utils/thingtalk';
+
+import type ExecWrapper from '../../apps/exec_wrapper';
+import type AssistantEngine from '../..';
 
 import FAQ from './faq.json';
-
-class CustomError extends Error {
-    constructor(public code : string,
-                message : string) {
-        super(message);
-    }
-}
 
 // A placeholder object for builtin triggers/queries/actions that
 // don't have any better place to live, such as those related to
@@ -56,14 +53,15 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     get_get_date() {
-        const today = new Date;
-        today.setHours(0, 0, 0);
-        return [{ date: today }];
+        const today = Temporal.Now.zonedDateTime('iso8601', this.platform.timezone).withPlainTime({
+            hour: 0, minute: 0, second: 0
+        });
+        // convert back to a JS date for compatibility
+        return [{ date: new Date(today.epochMilliseconds) }];
     }
     get_get_time() {
-        const now = new Date;
-        // FIXME convert to the right timezone...
-        return [{ time: new Tp.Value.Time(now.getHours(), now.getMinutes(), now.getSeconds()) }];
+        const now = Temporal.Now.zonedDateTime('iso8601', this.platform.timezone);
+        return [{ time: Tp.Value.Time.fromTemporal(now.toPlainTime()) }];
     }
     get_get_random_between({ low, high } : { low : number|null|undefined, high : number|null|undefined }) {
         if ((low === null || low === undefined) && (high === null || high === undefined)) {
@@ -172,17 +170,12 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
             dataset = this.engine.thingpedia.getAllExamples();
 
         const code = await dataset;
-        let parsed;
-        try {
-            parsed = TT.Syntax.parse(code);
-        } catch(e) {
-            if (e.name !== 'SyntaxError')
-                throw e;
-            // try parsing using legacy syntax too in case we're talking
-            // to an old Thingpedia that has not been migrated
-            parsed = TT.Syntax.parse(code, TT.Syntax.SyntaxType.Legacy);
-        }
-        await parsed.typecheck(this.engine.schemas, false);
+        const parsed = await ThingTalkUtils.parse(code, {
+            locale: this.platform.locale,
+            timezone: this.platform.timezone,
+            thingpediaClient: this.engine.thingpedia,
+            schemaRetriever: this.engine.schemas
+        });
         assert(parsed instanceof TT.Ast.Library);
 
         return parsed.datasets[0].examples.map((ex) => {
@@ -227,11 +220,11 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     do_alert() {
-        const now = new Date;
-        return { time: new Tp.Value.Time(now.getHours(), now.getMinutes()) };
+        const now = Temporal.Now.zonedDateTime('iso8601', this.platform.timezone);
+        return { time: Tp.Value.Time.fromTemporal(now.toPlainTime()) };
     }
 
-    do_timer_expire(env : ExecWrapper) {
+    do_timer_expire(params : unknown, env : ExecWrapper) {
         const now = new Date;
         const duration = now.getTime() - env.app.metadata.startTime;
 
@@ -286,24 +279,21 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         throw new CustomError('unsupported', `not supported`);
     }
 
-    do_set_voice_output({ status } : { status : 'on'|'off' }) {
-        const platform = this.platform;
-        if (!platform.hasCapability('sound'))
-            throw new CustomError('unsupported', `not supported`);
-        const prefs = platform.getSharedPreferences();
-        // TODO this does not quite work because SpeechHandler doesn't listen
-        // to preference changes
-        prefs.set('enable-voice-output', status === 'on');
-    }
+    do_set_voice_output({ status } : { status : 'on'|'off' }, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
 
-    do_set_voice_input({ status } : { status : 'on'|'off' }) {
-        const platform = this.platform;
-        if (!platform.hasCapability('sound'))
-            throw new CustomError('unsupported', `not supported`);
-        const prefs = platform.getSharedPreferences();
-        // TODO this does not quite work because SpeechHandler doesn't listen
-        // to preference changes
-        prefs.set('enable-voice-input', status === 'on');
+        return player.setVoiceOutput(status === 'on');
+    }
+    do_set_voice_input({ status } : { status : 'on'|'off' }, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.setVoiceInput(status === 'on');
     }
 
     do_set_name({ name } : { name : string }) {
@@ -323,5 +313,56 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         const platform = this.platform;
         const prefs = platform.getSharedPreferences();
         prefs.set('preferred-temperature', unit[0].toUpperCase());
+    }
+
+    do_stop(params : unknown, env : ExecWrapper) {
+        return (this.engine as AssistantEngine).audio.stopAudio(env.conversation);
+    }
+    do_pause(params : unknown, env : ExecWrapper) {
+        return (this.engine as AssistantEngine).audio.pauseAudio(env.conversation);
+    }
+    do_resume(params : unknown, env : ExecWrapper) {
+        return (this.engine as AssistantEngine).audio.resumeAudio(env.conversation);
+    }
+
+    do_raise_volume(params : unknown, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.adjustVolume(+10);
+    }
+    do_lower_volume(params : unknown, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.adjustVolume(-10);
+    }
+    do_set_volume({ volume } : { volume : number }, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.setVolume(volume);
+    }
+    do_mute(params : unknown, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.setMute(true);
+    }
+    do_unmute(params : unknown, env : ExecWrapper) {
+        const engine = this.engine as AssistantEngine;
+        const player = engine.audio.getPlayer(env.conversation);
+        if (!player)
+            throw new CustomError('unsupported', 'The current conversation does not support the audio control protocol');
+
+        return player.setMute(false);
     }
 }

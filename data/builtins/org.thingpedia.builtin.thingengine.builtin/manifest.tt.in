@@ -1,4 +1,4 @@
-class @org.thingpedia.builtin.thingengine.builtin
+class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume-control
 #_[thingpedia_name="Miscellaneous Interfaces"]
 #_[thingpedia_description="Time, random numbers, and other commands not specific to any skill."]
 #_[name="Miscellaneous Interfaces"]
@@ -199,7 +199,7 @@ class @org.thingpedia.builtin.thingengine.builtin
                  #_[canonical=["time"]])
   #_[result="It is ${time}"]
   #_[formatted=[
-    { type="sound", name="alarm-clock-elapsed", exclusive=false }
+    { type="sound", name="alarm-clock-elapsed", exclusive=false, before=true }
   ]]
   #_[canonical="alert"]
   #[doc="makes Genie show/play a generic alert"]
@@ -209,7 +209,7 @@ class @org.thingpedia.builtin.thingengine.builtin
                       #_[canonical="duration"])
   #_[result="It has been ${duration}"]
   #_[formatted=[
-    { type="sound", name="alarm-clock-elapsed", exclusive=true }
+    { type="sound", name="alarm-clock-elapsed", exclusive=false, before=true }
   ]]
   #_[canonical="timer expire"]
   #[doc="makes Genie play a generic alert and show/say the elapsed time"]
@@ -369,4 +369,46 @@ class @org.thingpedia.builtin.thingengine.builtin
                 "set the default temperature unit"]]
   #[doc="change the user's preferred temperature unit (a setting)"]
   #[confirm=false];
+
+  action stop()
+  #_[canonical=["stop audio",
+                "stop playing",
+                "stop playback"]]
+  #[doc="pause the currently playing skill"]
+  #[confirm=false];
+
+  action pause()
+  #_[canonical=["pause",
+                "pause audio",
+                "pause playback",
+                "pause playing"]]
+  #[doc="pause the currently playing skill"]
+  #[confirm=false];
+
+  action resume()
+  #_[canonical=["resume",
+                "resume audio",
+                "resume playback",
+                "resume playing",
+                "start playing again",
+                "continue playback",
+                "continue playing"]]
+  #[doc="resume the currently playing skill"]
+  #[confirm=false]
+  #_[on_error={
+    unsupported=["the current skill does not support resuming audio. please report this issue to the skill developer."],
+    no_device_playing=["nothing is currently playing yet. to play music, you can say play music."],
+  }];
+
+  /*
+  action next()
+  #_[canonical=["next"]]
+  #[doc="go next for the currently playing skill"]
+  #[confirm=false];
+
+  action previous()
+  #_[canonical=["previous"]]
+  #[doc="go previous for the currently playing skill"]
+  #[confirm=false];
+  */
 }

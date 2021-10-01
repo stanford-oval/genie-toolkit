@@ -4,6 +4,7 @@ com.spotify:playable	spotify_song_db.json
 com.spotify:artist	spotify_artist_db.json
 com.spotify:album	spotify_album_db.json
 com.spotify:play	spotify_play_song.json
+com.spotify:get_currently_playing	currently_playing_db.json
 org.thingpedia.weather:current	weather_db.json
 com.icanhazdadjoke:get	joke_db.json
 org.thingpedia.covid-vaccine:appointment	appointment_db.json

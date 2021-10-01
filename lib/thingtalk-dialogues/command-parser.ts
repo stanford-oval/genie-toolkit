@@ -145,27 +145,36 @@ export interface ThingTalkCommandAnalysisType {
  * and also recognizes all the different ThingTalk special command types.
  */
 export class CommandParser {
+    private readonly _locale : string;
+    private readonly _timezone : string;
     private readonly _thingpedia : Tp.BaseClient;
     private readonly _schemas : SchemaRetriever;
     private readonly _policy : PolicyModule;
     private readonly _generator : InferenceTimeSentenceGenerator;
     private readonly _nlu : ParserClient.ParserClient;
     private readonly _debug : number;
+    private readonly _useConfidence : boolean;
 
     constructor(options : {
+        locale : string;
+        timezone : string;
         thingpediaClient : Tp.BaseClient,
         schemaRetriever : SchemaRetriever,
         generator : InferenceTimeSentenceGenerator,
         nlu : ParserClient.ParserClient,
         policy : PolicyModule,
+        useConfidence : boolean,
         debug : number,
     }) {
+        this._locale = options.locale;
+        this._timezone = options.timezone;
         this._nlu = options.nlu;
         this._policy = options.policy;
         this._generator = options.generator;
         this._thingpedia = options.thingpediaClient;
         this._schemas = options.schemaRetriever;
         this._debug = options.debug;
+        this._useConfidence = options.useConfidence;
     }
 
     private _checkPolicy(policyName : string) {
@@ -308,8 +317,9 @@ export class CommandParser {
             choices: options.choices,
         });
 
-        if (nluResult.intent.command < nluResult.intent.ignore ||
-            nluResult.intent.command < nluResult.intent.other) {
+        if (this._useConfidence &&
+            (nluResult.intent.command < nluResult.intent.ignore ||
+             nluResult.intent.command < nluResult.intent.other)) {
             if (this._debug >= LogLevel.INFO)
                 console.log('ThingTalk confidence analyzed as out-of-domain command');
             const parsed = new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'ood'));
@@ -328,6 +338,8 @@ export class CommandParser {
             let parsed;
             try {
                 parsed = await ThingTalkUtils.parsePrediction(candidate.code, nluResult.entities, {
+                    locale: this._locale,
+                    timezone: this._timezone,
                     thingpediaClient: this._thingpedia,
                     schemaRetriever: this._schemas,
                     loadMetadata: true,
@@ -359,7 +371,7 @@ export class CommandParser {
             if (this._debug >= LogLevel.INFO)
                 console.log('Failed to analyze message as ThingTalk');
             //this._loop.conversation.stats.hit('sabrina-failure');
-        } else if (choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
+        } else if (this._useConfidence && choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
             type = CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;
             if (this._debug >= LogLevel.INFO)
                 console.log('Dubiously analyzed message into ' + choice.parsed.prettyprint());

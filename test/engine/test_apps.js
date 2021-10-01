@@ -32,6 +32,24 @@ async function collectOutputs(app) {
     return into;
 }
 
+async function testActivityMonitor(engine) {
+    const app = await engine.createApp('timer(base=$now,interval=10s) => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+            { icon: 'org.foo', uniqueId: 'uuid-timer-foo', name: 'some app', description: 'some app description' });
+    let idle = false;
+    engine.activityMonitor.on('idle', () => idle = true);
+
+    // inactivity timers should not start when there are apps
+    await delay(2000);
+    assert(engine.apps.hasApp(app.uniqueId));
+    assert.strictEqual(idle, false);
+    engine.apps.removeApp(app);
+    assert.strictEqual(engine.apps.getAllApps().length, 0);
+
+    // idle timers should start when there are no apps
+    await delay(1000);
+    assert.strictEqual(idle, true);
+}
+
 async function testSimpleDo(engine) {
     const test = engine.devices.getDevice('org.thingpedia.builtin.test');
     const originaldo = test.do_eat_data;
@@ -591,7 +609,7 @@ async function testAtTimer(engine, conversation) {
     };
     engine.assistant.addNotificationOutput(delegate);
 
-    const app = await engine.createApp(`attimer(time=[new Time(${now.getHours()+2},${now.getMinutes()})]) => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
+    const app = await engine.createApp(`attimer(time=[new Time(${(now.getHours()+2)%24},${now.getMinutes()})]) => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
         { icon: 'org.foo', uniqueId: 'uuid-attimer-foo', name: 'some app', description: 'some app description' });
     assert.strictEqual(app.icon, 'org.foo');
     assert.strictEqual(app.uniqueId, 'uuid-attimer-foo');
@@ -760,6 +778,7 @@ function delay(ms) {
 export default async function testApps(engine) {
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
 
+    await testActivityMonitor(engine);
     await testLoadAppNotCompilable(engine);
     await testSimpleDo(engine);
     await testDoError(engine);

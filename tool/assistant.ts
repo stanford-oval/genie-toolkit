@@ -20,6 +20,7 @@
 
 import * as argparse from 'argparse';
 import * as readline from 'readline';
+import * as Tp from 'thingpedia';
 
 import Engine from '../lib/engine';
 import Platform from './lib/cmdline-platform';
@@ -37,7 +38,7 @@ class CommandLineDelegate {
         this._rl = rl;
     }
 
-    setHypothesis(hypothesis : string) {
+    async setHypothesis(hypothesis : string) {
         // go to beginning of line
         this._rl.write('', { ctrl: true, name: 'a' });
         // erase line
@@ -45,8 +46,11 @@ class CommandLineDelegate {
         // write the new hypothesis
         this._rl.write(hypothesis);
     }
-    setExpected(expect : string) {
+    async setExpected(expect : string) {
         console.log('>> expecting: ' + expect);
+    }
+    async addDevice(uniqueId : string, state : Tp.BaseDevice.DeviceState) {
+        // nothing to do
     }
 
     async addMessage(msg : Message) {

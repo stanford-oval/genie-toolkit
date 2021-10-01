@@ -47,7 +47,7 @@ import MultiJSONDatabase from './lib/multi_json_database';
 
 interface AnnotatorOptions {
     locale : string;
-    timezone : string|undefined;
+    timezone : string;
     thingpedia : string;
     user_nlu_server : string;
     agent_nlu_server : string;
@@ -69,6 +69,7 @@ class Annotator extends events.EventEmitter {
     private _onlyIds : Set<string>|undefined;
     private _maxTurns : number|undefined;
     private _locale : string;
+    private _timezone : string;
     private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _userParser : ParserClient.ParserClient;
@@ -108,6 +109,7 @@ class Annotator extends events.EventEmitter {
         this._maxTurns = options.max_turns;
 
         this._locale = options.locale;
+        this._timezone = options.timezone;
         this._tpClient = new Tp.FileClient(options);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
         this._userParser = ParserClient.get(options.user_nlu_server, options.locale);
@@ -135,7 +137,8 @@ class Annotator extends events.EventEmitter {
             policy: TransactionPolicy,
             executor: this._simulator,
             dispatcher: new SimpleCommandDispatcher(io),
-            locale: 'en-US',
+            locale: this._locale,
+            timezone: this._timezone,
             schemaRetriever: this._schemas,
             simulated: false,
             interactive: false,
@@ -291,7 +294,8 @@ class Annotator extends events.EventEmitter {
 
             // check that the entities are correct by serializing the program once
             ThingTalkUtils.serializePrediction(program, this._preprocessed!, this._entities!, {
-                locale: this._locale
+                locale: this._locale,
+                timezone: this._timezone,
             }).join(' ');
         } catch(e) {
             console.log(`${e.name}: ${e.message}`);
@@ -592,6 +596,7 @@ class Annotator extends events.EventEmitter {
         this._preprocessed = parsed.tokens.join(' ');
         this._entities = parsed.entities;
         const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+            timezone: this._timezone,
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas
         }) as ThingTalk.Ast.DialogueState[];
@@ -646,7 +651,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--timezone', {
         required: false,
         default: undefined,
-        help: `Timezone to use to print dates and times (defaults to the current timezone).`
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--thingpedia', {
         required: true,

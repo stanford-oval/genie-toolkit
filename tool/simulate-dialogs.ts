@@ -63,7 +63,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--timezone', {
         required: false,
         default: undefined,
-        help: `Timezone to use to print dates and times (defaults to the current timezone).`
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--thingpedia', {
         required: true,
@@ -181,6 +181,7 @@ class SimulatorStream extends Stream.Transform {
             nlg: this._parser!,
             extraFlags: this._flags,
             anonymous: false,
+            useConfidence: false,
             debug: 0,
             rng: this._rng
         });
@@ -208,6 +209,7 @@ class SimulatorStream extends Stream.Transform {
             });
 
             const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+                timezone: this._timezone,
                 thingpediaClient: this._tpClient,
                 schemaRetriever: this._schemas,
                 loadMetadata: true
@@ -221,10 +223,12 @@ class SimulatorStream extends Stream.Transform {
             }
             const normalizedUserTarget : string = ThingTalkUtils.serializePrediction(userTarget, parsed.tokens, parsed.entities, {
                 locale: this._locale,
+                timezone: this._timezone,
                 ignoreSentence: true
             }).join(' ');
             const normalizedGoldUserTarget : string = ThingTalkUtils.serializePrediction(goldUserTarget, parsed.tokens, parsed.entities, {
                 locale: this._locale,
+                timezone: this._timezone,
                 ignoreSentence: true
             }).join(' ');
 

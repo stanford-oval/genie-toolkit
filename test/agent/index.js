@@ -32,6 +32,7 @@ import * as seedrandom from 'seedrandom';
 import { DialogueParser } from '../../lib';
 import * as StreamUtils from '../../lib/utils/stream-utils';
 import Conversation from '../../lib/dialogue-agent/conversation';
+import { WebSocketConnection as ConversationWebSocketConnection } from '../../lib/dialogue-agent/protocol';
 
 import MockThingpediaClient from './mock_thingpedia_client';
 import * as MockEngine from './mock_engine';
@@ -88,18 +89,33 @@ function checkIcon(msg) {
 class TestDelegate {
     constructor(testRunner) {
         this._testRunner = testRunner;
+        this._connection = new ConversationWebSocketConnection(testRunner.conversation, this._receiveMessage.bind(this), { syncDevices: true });
     }
 
-    setHypothesis(hypothesis) {
-        // do nothing
-    }
-    setExpected(expect, context) {
-        this._testRunner.writeLine('>> context = ' + context.code.join(' ') + ' // ' + JSON.stringify(context.entities));
-        this._testRunner.writeLine('>> expecting = ' + expect);
+    start() {
+        return this._connection.start();
     }
 
-    addMessage(msg) {
+    _receiveMessage(msg) {
         switch (msg.type) {
+        case 'id':
+            console.log('received conversation ID', msg.id);
+            assert.strictEqual(msg.id, 'test');
+            break;
+
+        case 'hypothesis':
+            // do nothing
+            break;
+
+        case 'new-device':
+            console.log('new-device ' + msg.uniqueId + ', state = ' + JSON.stringify(msg.state));
+            break;
+
+        case 'askSpecial':
+            this._testRunner.writeLine('>> context = ' + msg.context.code.join(' ') + ' // ' + JSON.stringify(msg.context.entities));
+            this._testRunner.writeLine('>> expecting = ' + msg.ask);
+            break;
+
         case 'text':
             checkIcon(msg);
             this._testRunner.writeLine(msg.text);
@@ -113,6 +129,16 @@ class TestDelegate {
         case 'picture':
             checkIcon(msg);
             this._testRunner.writeLine('picture: ' + msg.url);
+            break;
+
+        case 'sound':
+            checkIcon(msg);
+            this._testRunner.writeLine('sound: ' + msg.name);
+            break;
+
+        case 'audio':
+            checkIcon(msg);
+            this._testRunner.writeLine('audio: ' + msg.url);
             break;
 
         case 'rdl':
@@ -261,9 +287,6 @@ async function main(onlyIds) {
     const tpClient = new MockThingpediaClient(testRunner);
     const engine = MockEngine.createMockEngine(tpClient, rng, database);
 
-    // intercept createApp
-    const delegate = new TestDelegate(testRunner);
-
     const nluServerUrl = 'https://nlp-staging.almond.stanford.edu';
     const conversation = new Conversation(engine, 'test', {
         nluServerUrl: nluServerUrl,
@@ -273,6 +296,7 @@ async function main(onlyIds) {
         showWelcome: true,
         anonymous: false,
         rng: rng,
+        syncDevices: true,
 
         faqModels: {
             'covid-faq': {
@@ -283,11 +307,13 @@ async function main(onlyIds) {
     conversation.startRecording();
     testRunner.conversation = conversation;
     await mockNLU(conversation);
-    await conversation.addOutput(delegate);
+    const delegate = new TestDelegate(testRunner);
+    delegate.start();
     await conversation.start();
 
     // test the welcome message (and the context at the start)
-    expect(testRunner, `
+    expect(testRunner, `>> context = null // {}
+>> expecting = null
 Hello! How can I help you?
 >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_greet ; // {}
 >> expecting = generic
@@ -307,7 +333,8 @@ Hello! How can I help you?
     const log = (await readLog(conversation))
         .replace(/^#! timestamp: 202[1-9]-[01][0-9]-[0123][0-9]T[012][0-9]:[0-5][0-9]:[0-5][0-9](\.[0-9]+)Z$/gm,
                  '#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ')
-        .replace(/^# test\/[0-9a-f-]{36}$/gm, '# test');
+        .replace(/^# test\/[0-9a-f-]{36}$/gm, '# test')
+        .replace(/#\[error_stack="([^\\]*)\\n[^"]*"\]/gm, '#[error_stack="$1"]');
     //fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
     const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
     assert(log === expectedLog);

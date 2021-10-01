@@ -24,6 +24,7 @@ import * as path from 'path';
 import Gettext from 'node-gettext';
 import * as gettextParser from 'gettext-parser';
 import * as Units from 'thingtalk-units';
+import { Temporal, toTemporalInstant } from '@js-temporal/polyfill';
 
 import BaseTokenizer from './tokenizer/base';
 
@@ -498,30 +499,30 @@ export default class LanguagePack {
      * @param {Date} date - the time to display
      * @return {string} the formatted time
      */
-    private _dateToString(date : Date, format : string, timezone : string) : string {
-        const now = new Date;
+    private _dateToString(date : Temporal.ZonedDateTime, format : string, timezone : string) : string {
+        const now = Temporal.Now.zonedDateTime('iso8601', timezone);
         if (format !== 'absolute') {
-            if (date.getDate() === now.getDate() &&
-                date.getMonth() === now.getMonth() &&
-                date.getFullYear() === now.getFullYear())
+            if (date.day === now.day &&
+                date.month === now.month &&
+                date.year === now.year)
                 return this._("today");
 
-            const yesterday = new Date(now.getTime() - 86400 * 1000);
-            if (date.getDate() === yesterday.getDate() &&
-                date.getMonth() === yesterday.getMonth() &&
-                date.getFullYear() === yesterday.getFullYear())
+            const yesterday = now.subtract({ days: 1 });
+            if (date.day === yesterday.day &&
+                date.month === yesterday.month &&
+                date.year === yesterday.year)
                 return this._("yesterday");
 
-            const tomorrow = new Date(now.getTime() + 86400 * 1000);
-            if (date.getDate() === tomorrow.getDate() &&
-                date.getMonth() === tomorrow.getMonth() &&
-                date.getFullYear() === tomorrow.getFullYear())
+            const tomorrow = now.add({ days: 1 });
+            if (date.day === tomorrow.day &&
+                date.month === tomorrow.month &&
+                date.year === tomorrow.year)
                 return this._("tomorrow");
 
-            // same week
-            if (Math.abs(date.getTime() - now.getTime()) <= 7 * 86400 * 1000) {
+            // less than a week apart
+            if (Math.abs(date.epochMilliseconds - now.epochMilliseconds) <= 7 * 86400 * 1000) {
                 const weekday = date.toLocaleString(this.locale, { weekday: 'long' });
-                return (date.getTime() < now.getTime() ? this._("last ${weekday}") : this._("next ${weekday}")).replace('${weekday}',  weekday);
+                return (date.epochMilliseconds < now.epochMilliseconds ? this._("last ${weekday}") : this._("next ${weekday}")).replace('${weekday}',  weekday);
             }
         }
 
@@ -530,10 +531,10 @@ export default class LanguagePack {
             weekday: undefined,
             day: 'numeric',
             month: 'long',
-            year: date.getFullYear() === now.getFullYear() ? undefined : 'numeric',
+            year: date.year === now.year ? undefined : 'numeric',
             timeZone: timezone
         };
-        return date.toLocaleDateString(this.locale, options);
+        return date.toPlainDate().toLocaleString(this.locale, options);
     }
 
     /**
@@ -542,7 +543,7 @@ export default class LanguagePack {
      * @param {Date} date - the time to display
      * @return {string} the formatted time
      */
-    private _timeToString(date : Date, format : string, timezone : string) : string {
+    private _timeToString(date : Temporal.PlainTime, format : string, timezone : string) : string {
         const options : Intl.DateTimeFormatOptions = {
             hour: 'numeric',
             minute: '2-digit',
@@ -550,7 +551,7 @@ export default class LanguagePack {
             timeZoneName: undefined,
             timeZone: timezone
         };
-        return date.toLocaleTimeString(this.locale, options);
+        return date.toLocaleString(this.locale, options);
     }
 
     /**
@@ -559,10 +560,10 @@ export default class LanguagePack {
      * @param {Date} date - the time to display
      * @return {string} the formatted time
      */
-    private _dateAndTimeToString(date : Date, format : string, timezone : string) : string {
+    private _dateAndTimeToString(date : Temporal.ZonedDateTime, format : string, timezone : string) : string {
         return this._("${date} at ${time}")
             .replace('${date}', this._dateToString(date, format, timezone))
-            .replace('${time}', this._timeToString(date, format, timezone));
+            .replace('${time}', this._timeToString(date.toPlainTime(), format, timezone));
     }
 
     getDefaultTemperatureUnit() : string {
@@ -622,22 +623,28 @@ export default class LanguagePack {
 
         if (token.startsWith('TIME_')) {
             const entity = entityValue as TimeEntity;
-            const time = new Date;
-            time.setHours(entity.hour);
-            time.setMinutes(entity.minute);
-            time.setSeconds(entity.second);
-            time.setMilliseconds(0);
+            const time = new Temporal.PlainTime(entity.hour, entity.minute, entity.second);
             return this._timeToString(time, format, delegate.timezone);
         }
 
         if (token.startsWith('DATE_')) {
-            const date = entityValue as Date;
+            let datetz;
+            if (entityValue instanceof Date) {
+                datetz = toTemporalInstant.call(entityValue).toZonedDateTime({
+                    timeZone: delegate.timezone,
+                    calendar: 'iso8601'
+                });
+            } else {
+                assert(entityValue instanceof Temporal.ZonedDateTime);
+                datetz = entityValue;
+            }
+            const dateutc = datetz.withTimeZone('UTC');
             // check for midnight local, and midnight UTC, to mean date without time
-            if ((date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) ||
-                (date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0))
-                return this._dateToString(date, format, delegate.timezone);
+            if ((datetz.hour === 0 && datetz.minute === 0 && datetz.second === 0) ||
+                (dateutc.hour === 0 && dateutc.minute === 0 && dateutc.second === 0))
+                return this._dateToString(datetz, format, delegate.timezone);
             else
-                return this._dateAndTimeToString(date, format, delegate.timezone);
+                return this._dateAndTimeToString(datetz, format, delegate.timezone);
         }
 
         if (token.startsWith('LOCATION_')) {

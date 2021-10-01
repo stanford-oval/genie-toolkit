@@ -234,8 +234,7 @@ function mapCompound(prefix : string, schema : Ast.FunctionDef, object : Record<
     return new Ast.Value.Object(result);
 }
 
-export interface ErrorWithCode {
-    message : string;
+export interface ErrorWithCode extends Error {
     code ?: string;
 }
 

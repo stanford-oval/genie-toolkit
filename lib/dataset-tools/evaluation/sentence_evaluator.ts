@@ -228,6 +228,7 @@ class SentenceEvaluator {
             const parsed = await ThingTalkUtils.parsePrediction(firstTargetCode, entities, this._options, true);
             normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                locale: this._locale,
+               timezone: this._options.timezone,
             }).join(' '));
         } catch(e) {
             // if the target_code did not parse due to missing functions in thingpedia, ignore it
@@ -249,6 +250,7 @@ class SentenceEvaluator {
                 const parsed = await ThingTalkUtils.parsePrediction(this._targetPrograms[i], entities, this._options);
                 normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                    locale: this._locale,
+                   timezone: this._options.timezone,
                 }).join(' '));
             } catch(e) {
                 console.error(this._id, this._preprocessed, this._targetPrograms);
@@ -324,6 +326,7 @@ class SentenceEvaluator {
             // get creative in copying, and we don't want to crash here)
             const normalized = ThingTalkUtils.serializePrediction(parsed, tokens, entities, {
                locale: this._locale,
+               timezone: this._options.timezone,
                ignoreSentence: true
             });
             const normalizedCode = normalized.join(' ');

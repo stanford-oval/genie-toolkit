@@ -154,6 +154,7 @@ export class DialogueInterface {
     private readonly _policy : PolicyModule;
     private readonly _parent : DialogueInterface|null;
     private readonly _langPack : I18n.LanguagePack;
+    private readonly _timezone : string|undefined;
     private readonly _schemas : SchemaRetriever;
     private readonly _deterministic : boolean;
     private readonly _io : AbstractCommandIO;
@@ -196,6 +197,7 @@ export class DialogueInterface {
                     dispatcher : CommandDispatcher,
                     synthesizer ?: Synthesizer,
                     locale : string,
+                    timezone : string|undefined,
                     schemaRetriever : SchemaRetriever,
                     simulated : boolean,
                     interactive : boolean,
@@ -215,6 +217,7 @@ export class DialogueInterface {
         this._schemas = options.schemaRetriever;
         this._langPack = I18n.get(options.locale);
         this._ = this._langPack._;
+        this._timezone = options.timezone;
         this._deterministic = options.deterministic;
         this._io = options.io;
         this._executor = options.executor;
@@ -645,7 +648,8 @@ export class DialogueInterface {
             executor: this._executor,
             dispatcher: withDispatcher,
             synthesizer: this._synthesizer,
-            locale: this.locale,
+            locale: this._langPack.locale,
+            timezone: this._timezone,
             schemaRetriever: this._schemas,
             simulated: this.simulated,
             interactive: this.interactive,
@@ -781,7 +785,10 @@ export class DialogueInterface {
         }
         code += tmpls.raw[tmpls.raw.length-1];
 
-        const parsed = Syntax.parse(code);
+        const parsed = Syntax.parse(code, Syntax.SyntaxType.Normal, {
+            locale: this._langPack.locale,
+            timezone: this._timezone,
+        });
         await parsed.typecheck(this._schemas, true);
         return parsed;
     }

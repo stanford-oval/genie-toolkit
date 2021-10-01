@@ -297,6 +297,7 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
     }
 
     private async _saveDevice(device : Tp.BaseDevice) {
+        this.emit('device-changed', device);
         if (device.isTransient)
             return;
         const state = device.serialize();

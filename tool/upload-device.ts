@@ -34,6 +34,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
         add_help: true,
         description: "Upload a device to Thingpedia."
     });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
+    });
     parser.add_argument('--thingpedia-url', {
         required: false,
         help: `base URL of Thingpedia server to contact; defaults to '${DEFAULT_THINGPEDIA_URL}'`
@@ -80,7 +90,7 @@ export async function execute(args : any) {
     let manifest = await pfs.readFile(args.manifest, { encoding: 'utf8' });
     let parsed;
     try {
-        parsed = ThingTalk.Syntax.parse(manifest);
+        parsed = ThingTalk.Syntax.parse(manifest, ThingTalk.Syntax.SyntaxType.Normal, { locale: args.locale, timezone: args.timezone });
     } catch(e) {
         throw new Error(`Error parsing manifest.tt: ${e.message}`);
     }
@@ -124,12 +134,12 @@ export async function execute(args : any) {
     const dataset = await pfs.readFile(args.dataset, { encoding: 'utf8' });
     // sanitiy check it locally
     try {
-        ThingTalk.Syntax.parse(dataset);
+        ThingTalk.Syntax.parse(dataset, ThingTalk.Syntax.SyntaxType.Normal, { locale: args.locale, timezone: args.timezone });
     } catch(e1) {
         if (e1.name !== 'SyntaxError')
             throw e1;
         try {
-            ThingTalk.Syntax.parse(dataset, ThingTalk.Syntax.SyntaxType.Legacy);
+            ThingTalk.Syntax.parse(dataset, ThingTalk.Syntax.SyntaxType.Legacy, { locale: args.locale, timezone: args.timezone });
             console.log('WARNING: dataset.tt uses legacy syntax, you should migrate to ThingTalk 2.0');
         } catch(e2) {
             if (e2.name !== 'SyntaxError')

@@ -30,6 +30,7 @@ import * as path from 'path';
 import * as child_process from 'child_process';
 import * as util from 'util';
 import Gettext from 'node-gettext';
+import { Temporal } from '@js-temporal/polyfill';
 
 const _unzipApi : Tp.Capabilities.UnzipApi = {
     unzip(zipPath : string, dir : string) {
@@ -97,7 +98,7 @@ export default class Platform extends Tp.BasePlatform {
         this._gettext = new Gettext();
         this._gettext.setLocale(this._locale);
 
-        this._timezone = process.env.TZ || '';
+        this._timezone = Temporal.Now.timeZone().id;
 
         if (homedir) {
             this._filesDir = path.resolve(homedir);

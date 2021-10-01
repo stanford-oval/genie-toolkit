@@ -54,17 +54,20 @@ export enum CommandAnalysisType {
     DEBUG,
 
     // some sort of command
+    EXACT_IN_DOMAIN_COMMAND,
     CONFIDENT_IN_DOMAIN_COMMAND,
     NONCONFIDENT_IN_DOMAIN_COMMAND,
+    EXACT_IN_DOMAIN_FOLLOWUP,
     CONFIDENT_IN_DOMAIN_FOLLOWUP,
     NONCONFIDENT_IN_DOMAIN_FOLLOWUP,
     OUT_OF_DOMAIN_COMMAND,
 }
 
-const enum Confidence {
+export const enum Confidence {
     NO,
-    MAYBE,
-    YES
+    LOW,
+    HIGH,
+    ABSOLUTE
 }
 
 export interface CommandAnalysisResult {
@@ -136,7 +139,9 @@ export class DialogueLoop {
                     nluServerUrl : string|undefined;
                     nlgServerUrl : string|undefined;
                     policy : string|undefined;
+                    useConfidence : boolean;
                     debug : boolean;
+                    rng : () => number;
                     faqModels : Record<string, {
                         url : string;
                         highConfidence ?: number;
@@ -160,6 +165,7 @@ export class DialogueLoop {
             locale: engine.platform.locale,
             timezone: engine.platform.timezone,
             policy: options.policy,
+            useConfidence: options.useConfidence,
             executor: this._agent,
             nlu: this._nlu,
             nlg: this._nlg,
@@ -258,92 +264,19 @@ export class DialogueLoop {
 
     private async _analyzeCommand(command : UserInput) : Promise<[DialogueHandler<any, any>|undefined, CommandAnalysisResult]> {
         try {
-            let best : DialogueHandler<any, any>|undefined, bestanalysis : CommandAnalysisResult|undefined;
-            let bestconfidence = Confidence.NO;
-
             // This algorithm will choose the dialogue handlers that reports:
             // - the highest confidence
             // - if a tie, the highest priority
             // - if a tie, the current handler
             // - if a tie, the first handler that reports any confidence at all
 
-            for (const handler of this._iterateDialogueHandlers()) {
+            const handlers = [...this._iterateDialogueHandlers()];
+            const handlerCandidates = await Promise.all(handlers.map(async (handler) => {
                 const analysis = await handler.analyzeCommand(command);
+                return {handler: handler, analysis: analysis};
+            }));
 
-                this.debug(`Handler ${handler.uniqueId} reports ${CommandAnalysisType[analysis.type]}`);
-
-                switch (analysis.type) {
-                case CommandAnalysisType.STOP:
-                case CommandAnalysisType.DEBUG:
-                case CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND:
-                    // choose if either
-                    // - we're higher priority
-                    // - we're more confident
-                    // - we're the current dialogue and we have the same priority
-                    if (best === undefined ||
-                        handler.priority > best.priority ||
-                        bestconfidence < Confidence.YES ||
-                        (this._currentHandler === handler &&
-                         handler.priority >= best.priority)) {
-                        best = handler;
-                        bestanalysis = analysis;
-                        bestconfidence = Confidence.YES;
-                    }
-                    break;
-
-                case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND:
-                    // choose if both:
-                    // - we're higher priority (same if we're the current dialogue)
-                    // - we're as confident
-                    if (best === undefined ||
-                        ((handler.priority > best.priority ||
-                         (this._currentHandler === handler &&
-                         handler.priority >= best.priority)) &&
-                        bestconfidence <= Confidence.MAYBE)) {
-                        best = handler;
-                        bestanalysis = analysis;
-                        bestconfidence = Confidence.MAYBE;
-                    }
-                    break;
-
-                case CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP:
-                    // choose if handler is the current handler and either
-                    // - we're same priority
-                    // - we're more confident
-                    if (this._currentHandler === handler &&
-                        (best === undefined ||
-                         handler.priority >= best.priority ||
-                         bestconfidence < Confidence.YES)) {
-                        best = handler;
-                        bestanalysis = analysis;
-                        bestconfidence = Confidence.YES;
-                    }
-                    break;
-
-                case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_FOLLOWUP:
-                    // choose if handler is the current handler and either
-                    // - we're same priority
-                    // - we're as confident
-                    if (this._currentHandler === handler &&
-                        (best === undefined ||
-                         (handler.priority >= best.priority &&
-                          bestconfidence <= Confidence.MAYBE))) {
-                        best = handler;
-                        bestanalysis = analysis;
-                        bestconfidence = Confidence.YES;
-                    }
-                    break;
-
-                default:
-                    // ignore this handler, which decided the command is out of domain
-                }
-            }
-
-            return [best, bestanalysis || {
-                type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND,
-                utterance: command.type === 'command' ? command.utterance : command.parsed.prettyprint(),
-                user_target: '$failed;',
-            }];
+            return pickHandler(this._currentHandler, handlerCandidates, command);
         } catch(e) {
             if (e.code === 'EHOSTUNREACH' || e.code === 'ETIMEDOUT') {
                 await this.reply(this._("Sorry, I cannot contact the Genie service. Please check your Internet connection and try again later."), null);
@@ -362,7 +295,7 @@ export class DialogueLoop {
         case CommandAnalysisType.STOP:
             // stop means cancel, but without a failure message + stopping audio
             if (this.engine.audio)
-                await this.engine.audio.stopAudio();
+                await this.engine.audio.stopAudio(this.conversation.id);
             throw new CancellationError();
 
         case CommandAnalysisType.DEBUG:
@@ -644,4 +577,121 @@ export class DialogueLoop {
 
         return promise;
     }
+}
+
+export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResult, any> | null,
+                            handlerCandidates : Array<{ handler : DialogueHandler<CommandAnalysisResult, any>; analysis : CommandAnalysisResult; }>,
+                            command : UserInput) : [DialogueHandler<any, any>|undefined, CommandAnalysisResult]  {
+    let best : DialogueHandler<any, any>|undefined = undefined;
+    let bestanalysis : CommandAnalysisResult|undefined = undefined;
+    let bestconfidence = Confidence.NO;
+
+    for (const handlerItem of handlerCandidates) {
+        const handler = handlerItem.handler;
+        const analysis = handlerItem.analysis;
+
+        // console.log(`Handler ${handler.uniqueId} reports ${CommandAnalysisType[analysis.type]}`);
+
+        switch (analysis.type) {
+            case CommandAnalysisType.STOP:
+            case CommandAnalysisType.DEBUG:
+            case CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND:
+                // choose if either
+                // - we're higher priority
+                // - we're more confident
+                if (best === undefined ||
+                    (
+                        bestconfidence < Confidence.ABSOLUTE ||
+                        handler.priority > best.priority ||
+                        (currentHandler === handler && handler.priority >= best.priority)
+                    )) {
+                    best = handler;
+                    bestanalysis = analysis;
+                    bestconfidence = Confidence.ABSOLUTE;
+                }
+                break;
+
+            case CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND:
+                // choose if either
+                // - we're higher priority
+                // - we're more confident
+                // - we're the current dialogue and we have the same priority
+                if (best === undefined ||
+                    (
+                        bestconfidence < Confidence.HIGH ||
+                        (bestconfidence <= Confidence.HIGH && handler.priority > best.priority) ||
+                        (bestconfidence <= Confidence.HIGH && handler.priority >= best.priority && currentHandler === handler)
+                    )) {
+                    best = handler;
+                    bestanalysis = analysis;
+                    bestconfidence = Confidence.HIGH;
+                }
+                break;
+
+            case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND:
+                // choose if both:
+                // - we're higher priority (same if we're the current dialogue)
+                // - we're as confident
+                if (best === undefined ||
+                    ((handler.priority > best.priority ||
+                    (currentHandler === handler &&
+                    handler.priority >= best.priority)) &&
+                    bestconfidence <= Confidence.LOW)) {
+                    best = handler;
+                    bestanalysis = analysis;
+                    bestconfidence = Confidence.LOW;
+                }
+                break;
+
+            case CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP:
+                if (currentHandler === handler &&
+                    (
+                        best === undefined ||
+                        bestconfidence < Confidence.ABSOLUTE ||
+                        handler.priority > best.priority
+                    )) {
+                    best = handler;
+                    bestanalysis = analysis;
+                    bestconfidence = Confidence.ABSOLUTE;
+                }
+                break;
+
+            case CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP:
+                // choose if handler is the current handler and either
+                // - we're same priority
+                // - we're more confident
+                if (currentHandler === handler &&
+                    (best === undefined ||
+                    handler.priority >= best.priority ||
+                    bestconfidence < Confidence.HIGH)) {
+                    best = handler;
+                    bestanalysis = analysis;
+                    bestconfidence = Confidence.HIGH;
+                }
+                break;
+
+            case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_FOLLOWUP:
+                // choose if handler is the current handler and either
+                // - we're same priority
+                // - we're as confident
+                if (currentHandler === handler &&
+                    (best === undefined ||
+                    (handler.priority >= best.priority && bestconfidence <= Confidence.LOW))) {
+                    best = handler;
+                    bestanalysis = analysis;
+                    bestconfidence = Confidence.HIGH;
+                }
+                break;
+
+            default:
+            // ignore this handler, which decided the command is out of domain
+        }
+    }
+
+
+    return [best,
+            bestanalysis ||
+            { type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND,
+              utterance: command.type === 'command' ? command.utterance : command.parsed.prettyprint(),
+              user_target: '$failed;'}];
 }

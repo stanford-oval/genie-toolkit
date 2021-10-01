@@ -33,6 +33,7 @@ import type Engine from '../engine';
 import { DialogueSerializer, DialogueTurn } from "../dataset-tools/parsers";
 import AppExecutor from '../engine/apps/app_executor';
 import ConversationLogger from './logging';
+import { ConversationStateRow, LocalTable } from "../engine/db";
 
 const DummyStatistics = {
     hit() {
@@ -53,6 +54,7 @@ export interface ConversationOptions {
     deleteWhenInactive ?: boolean;
     log ?: boolean;
     dialogueFlags ?: Record<string, boolean>;
+    useConfidence ?: boolean;
     faqModels ?: Record<string, {
         url : string;
         highConfidence ?: number;
@@ -65,20 +67,19 @@ interface Statistics {
     hit(key : string) : void;
 }
 
-interface Context {
-    code : string[];
-    entities : EntityMap;
-}
-
 export interface ConversationDelegate {
-    setHypothesis(hyp : string) : void;
-    setExpected(expect : string|null, ctx : Context) : void;
+    setHypothesis(hyp : string) : Promise<void>;
+    setExpected(expect : string|null, ctx : {
+        code : string[];
+        entities : EntityMap;
+    }) : Promise<void>;
     addMessage(msg : Message) : Promise<void>;
 }
 
 export interface ConversationState {
     history : Message[];
     dialogueState : Record<string, unknown>;
+    lastMessageId : number;
 }
 
 export interface NewProgramRecord {
@@ -112,8 +113,12 @@ export default class Conversation extends events.EventEmitter {
 
     private _loop : DialogueLoop;
     private _expecting : ValueCategory|null;
-    private _context : Context;
+    private _context : {
+        code : string[];
+        entities : EntityMap;
+    };
 
+    private _started : boolean;
     private _delegates : Set<ConversationDelegate>;
     private _history : Message[];
     private _nextMsgId : number;
@@ -123,12 +128,14 @@ export default class Conversation extends events.EventEmitter {
     private _contextResetTimeoutSec : number;
 
     private _log : ConversationLogger;
+    private readonly _conversationStateDB : LocalTable<ConversationStateRow>;
 
     constructor(engine : Engine,
                 conversationId : string,
                 options : ConversationOptions = {}) {
         super();
         this._engine = engine;
+        this._conversationStateDB = this._engine.db.getLocalTable('conversation_state');
 
         this._conversationId = conversationId;
         this._locale = this._engine.platform.locale;
@@ -150,14 +157,17 @@ export default class Conversation extends events.EventEmitter {
             nluServerUrl: options.nluServerUrl,
             nlgServerUrl: options.nlgServerUrl,
             faqModels: options.faqModels || {},
+            useConfidence: options.useConfidence ?? true,
             debug: this._debug,
             policy: options.policy,
+            rng: this.rng,
         });
         this._expecting = null;
         this._context = { code: ['null'], entities: {} };
         this._delegates = new Set;
         this._history = [];
         this._nextMsgId = 0;
+        this._started = false;
 
         this._inactivityTimeout = null;
         this._inactivityTimeoutSec = options.inactivityTimeout || DEFAULT_CONVERSATION_TTL;
@@ -212,17 +222,24 @@ export default class Conversation extends events.EventEmitter {
         return this._loop.dispatchNotifyError(app, error);
     }
 
-    setExpected(expecting : ValueCategory|null, context : Context) : void {
+    setExpected(expecting : ValueCategory|null, context : {
+        code : string[];
+        entities : EntityMap;
+    }) : void {
         this._expecting = expecting;
         this._context = context;
     }
 
     async start(state ?: ConversationState) : Promise<void> {
         this._resetInactivityTimeout();
+
         if (state) {
             for (const msg of state.history)
                 await this.addMessage(msg);
+            this._nextMsgId = state.lastMessageId+1;
         }
+        this._started = true;
+
         return this._loop.start(!!this._options.showWelcome,
             state ? state.dialogueState : null);
     }
@@ -257,29 +274,33 @@ export default class Conversation extends events.EventEmitter {
         this._delegates.add(out);
         if (replayHistory) {
             for (const msg of this._history) {
-                try {
-                    await out.addMessage(msg);
-                } catch(e) {
-                    // delegate disappeared immediately (race condition)
-                    this._delegates.delete(out);
+                if (!await this._callDelegate(out, (out) => out.addMessage(msg)))
                     return;
-                }
             }
+        }
+
+        if (this._started) {
+            const what = ValueCategory.toString(this._expecting);
+            await this._callDelegate(out, (out) => out.setExpected(what, this._context));
         }
     }
     async removeOutput(out : ConversationDelegate) {
         this._delegates.delete(out);
     }
 
+    private async _callDelegate(out : ConversationDelegate, fn : (out : ConversationDelegate) => unknown) {
+        try {
+            await fn(out);
+            return true;
+        } catch(e) {
+            // delegate disappeared (likely a disconnected websocket)
+            this._delegates.delete(out);
+            return false;
+        }
+    }
+
     private _callDelegates(fn : (out : ConversationDelegate) => unknown) {
-        return Promise.all(Array.from(this._delegates).map(async (out) => {
-            try {
-                await fn(out);
-            } catch(e) {
-                // delegate disappeared (likely a disconnected websocket)
-                this._delegates.delete(out);
-            }
-        }));
+        return Promise.all(Array.from(this._delegates).map((out) => this._callDelegate(out, fn)));
     }
 
     async setHypothesis(hypothesis : string) : Promise<void> {
@@ -313,6 +334,18 @@ export default class Conversation extends events.EventEmitter {
         if (this._history.length > 30)
             this._history.shift();
         await this._callDelegates((out) => out.addMessage(msg));
+
+        await this.saveState(msg.id);
+    }
+
+    async saveState(lastMessageId : number) {
+        const conversationState = this.getState();
+        const row = {
+            history: JSON.stringify(/* FIXME conversationState.history */ []),
+            dialogueState: JSON.stringify(conversationState.dialogueState),
+            lastMessageId: lastMessageId,
+        };
+        await this._conversationStateDB.insertOne(this._conversationId, row);
     }
 
     /**
@@ -322,13 +355,17 @@ export default class Conversation extends events.EventEmitter {
      * and transfer the conversation state between engines.
      */
     getState() : ConversationState {
+        const history = this._history.slice();
+        const lastMessageId = history.length > 0 ? history[history.length-1].id : null;
         return {
-            history: this._history.slice(),
+            history: history,
             dialogueState: this._loop.getState(),
+            lastMessageId: lastMessageId ? lastMessageId : 0
         };
     }
 
     async handleCommand(command : string, platformData : PlatformData = {}) : Promise<void> {
+        this._engine.updateActivity();
         // if the command is just whitespace, ignore it without even adding it to the history
         if (!command.trim())
             return;
@@ -344,6 +381,7 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async handleParsedCommand(root : any, title ?: string, platformData : PlatformData = {}) : Promise<void> {
+        this._engine.updateActivity();
         const command = `\\r ${typeof root === 'string' ? root : JSON.stringify(root)}`;
         this.stats.hit('sabrina-parsed-command');
         this.emit('active');
@@ -374,6 +412,7 @@ export default class Conversation extends events.EventEmitter {
         }
 
         const parsed = await ThingTalkUtils.parsePrediction(code, entities, {
+            timezone: this._engine.platform.timezone,
             thingpediaClient: this._engine.thingpedia,
             schemaRetriever: this._engine.schemas,
             loadMetadata: true
@@ -382,6 +421,7 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async handleThingTalk(program : string, platformData : PlatformData = {}) : Promise<void> {
+        this._engine.updateActivity();
         const command = `\\t ${program}`;
         this.stats.hit('sabrina-thingtalk-command');
         this.emit('active');
@@ -391,6 +431,7 @@ export default class Conversation extends events.EventEmitter {
             console.log('Received ThingTalk program');
 
         const parsed = await ThingTalkUtils.parse(program, {
+            timezone: this._engine.platform.timezone,
             thingpediaClient: this._engine.thingpedia,
             schemaRetriever: this._engine.schemas,
             loadMetadata: true

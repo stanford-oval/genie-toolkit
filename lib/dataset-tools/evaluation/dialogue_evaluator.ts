@@ -39,6 +39,7 @@ interface DialogueEvaluatorOptions {
     thingpediaClient : Tp.BaseClient;
     schemaRetriever ?: SchemaRetriever;
     locale : string;
+    timezone : string;
     targetLanguage : string;
     tokenized : boolean;
     database ?: SimulationDatabase;
@@ -73,6 +74,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
     private _tokenizer : I18n.BaseTokenizer;
     private _options : DialogueEvaluatorOptions;
     private _locale : string;
+    private _timezone : string;
     private _debug : boolean;
     private _tokenized : boolean;
     private _slotExtractor : SlotExtractor;
@@ -89,6 +91,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
 
         this._options = options;
         this._locale = options.locale;
+        this._timezone = options.timezone;
         this._debug = !!options.debug;
         this._tokenized = options.tokenized;
         if (!options.schemaRetriever)
@@ -144,6 +147,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
 
         const targetCode = ThingTalkUtils.serializePrediction(goldUserTarget, tokens, entities, {
            locale: this._locale,
+           timezone: this._timezone,
         }).join(' ');
 
         let answer = undefined;
@@ -197,6 +201,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         // get creative in copying, and we don't want to crash here)
         const normalized = ThingTalkUtils.serializePrediction(predictedUserTarget, tokens, entities, {
            locale: this._locale,
+           timezone: this._timezone,
            ignoreSentence: true
         }).join(' ');
 

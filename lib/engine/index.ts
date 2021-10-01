@@ -29,26 +29,28 @@ import { AbstractDatabase, createDB } from './db';
 import DeviceDatabase from './devices/database';
 import SyncManager from './sync/manager';
 import PairedEngineManager from './sync/pairing';
-import Builtins from './devices/builtins';
-import AudioController from './audio_controller';
+import * as Builtins from './devices/builtins';
 
 import AppDatabase from './apps/database';
 import AppRunner from './apps/runner';
 import type AppExecutor from './apps/app_executor';
 
+import AudioController from '../dialogue-runtime/audio/controller';
 import AssistantDispatcher from '../dialogue-runtime/assistant_dispatcher';
 import { NotificationConfig } from '../dialogue-runtime/notifications';
 import NotificationFormatter from '../dialogue-runtime/notifications/formatter';
 
 import * as Config from '../config';
+import  { ActivityMonitor, ActivityMonitorStatus } from './activity_monitor';
 
 export {
     DB,
     DeviceDatabase,
     SyncManager,
-    AudioController,
     AppDatabase,
-    AppExecutor
+    AppExecutor,
+    ActivityMonitor,
+    ActivityMonitorStatus
 };
 
 interface EngineModule {
@@ -182,7 +184,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
     private _devices : DeviceDatabase;
     private _appdb : AppDatabase;
     private _assistant : AssistantDispatcher;
-    private _audio : AudioController|null;
+    private _audio : AudioController;
+    private _activityMonitor : ActivityMonitor;
 
     private _running : boolean;
     private _stopCallback : (() => void)|null;
@@ -199,6 +202,10 @@ export default class AssistantEngine extends Tp.BaseEngine {
         nluModelUrl ?: string;
         thingpediaUrl ?: string;
         notifications ?: NotificationConfig;
+        activityMonitorOptions ?: {
+            idleTimeoutMillis ?: number;
+            quiesceTimeoutMillis ?: number;
+        }
     } = {}) {
         super(platform, options);
 
@@ -211,7 +218,16 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._modules = [];
 
-        const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, Builtins);
+        const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, Builtins.modules);
+
+        // inject the abstract interfaces used by the builtin devices into the schema retriever
+        for (const kind in Builtins.interfaces) {
+            const iface = Builtins.interfaces[kind];
+            const classDef = ThingTalk.Syntax.parse(iface, ThingTalk.Syntax.SyntaxType.Normal, { locale: platform.locale, timezone: 'UTC' });
+            assert(classDef instanceof ThingTalk.Ast.Library);
+            this._schemas.injectClass(classDef.classes[0]);
+        }
+
         this._devices = new DeviceDatabase(platform, this._db, this._sync,
                                            deviceFactory, this._schemas);
 
@@ -219,10 +235,9 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._assistant = new AssistantDispatcher(this, options.nluModelUrl, options.notifications||{});
 
-        if (platform.hasCapability('sound'))
-            this._audio = new AudioController(this._devices);
-        else
-            this._audio = null;
+        this._audio = new AudioController(this._devices);
+
+        this._activityMonitor = new ActivityMonitor(this._appdb, options.activityMonitorOptions);
 
         // in loading order
         this._modules = [this._sync,
@@ -233,9 +248,15 @@ export default class AssistantEngine extends Tp.BaseEngine {
             this._modules.push(this._audio);
         this._modules.push(this._assistant,
                            new AppRunner(this._appdb));
+        this._modules.push(this._activityMonitor);
 
         this._running = false;
         this._stopCallback = null;
+    }
+
+    get platform() : Tp.BasePlatform {
+        this.updateActivity();
+        return this._platform;
     }
 
     get langPack() {
@@ -243,6 +264,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
     }
 
     get db() {
+        this.updateActivity();
         return this._db;
     }
 
@@ -262,6 +284,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * Access the device database of this engine.
      */
     get devices() {
+        this.updateActivity();
         return this._devices;
     }
 
@@ -269,6 +292,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * Access the app database of this engine.
      */
     get apps() {
+        this.updateActivity();
         return this._appdb;
     }
 
@@ -276,6 +300,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * Access the assistant dispatcher of this engine.
      */
     get assistant() {
+        this.updateActivity();
         return this._assistant;
     }
 
@@ -283,7 +308,20 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * Access the audio controller to coordinate access to audio.
      */
     get audio() {
+        this.updateActivity();
         return this._audio;
+    }
+
+    /**
+     * Access the activity monitor for this engine.
+     */
+    get activityMonitor() {
+        return this._activityMonitor;
+    }
+
+    updateActivity() {
+        if (this._activityMonitor)
+            this._activityMonitor.updateActivity();
     }
 
     private async _openSequential(modules : EngineModule[]) {
@@ -337,7 +375,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
      */
     run() : Promise<void> {
         this._running = true;
-
         return new Promise((callback, errback) => {
             if (!this._running) {
                 callback();
@@ -590,7 +627,10 @@ export default class AssistantEngine extends Tp.BaseEngine {
     }) : Promise<AppExecutor> {
         let program : ThingTalk.Ast.Program;
         if (typeof programOrString === 'string') {
-            const parsed = await ThingTalk.Syntax.parse(programOrString).typecheck(this.schemas, true);
+            const parsed = await ThingTalk.Syntax.parse(programOrString, ThingTalk.Syntax.SyntaxType.Normal, {
+                locale: this._platform.locale,
+                timezone: this._platform.timezone
+            }).typecheck(this.schemas, true);
             assert(parsed instanceof ThingTalk.Ast.Program);
             program = parsed;
         } else {

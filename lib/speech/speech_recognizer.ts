@@ -25,6 +25,9 @@ import WebSocket from 'ws';
 
 const URL = 'https://almond-nl.stanford.edu';
 
+// 20 chunks * 320 bytes (160 S16LE samples) * 16kHz = 0.20 seconds
+const DEFAULT_VAD_THRESHOLD = 20;
+
 class SpeechRequest extends Stream.Writable {
     private _stream : Stream.Readable;
     private _endDetected : boolean;
@@ -51,7 +54,7 @@ class SpeechRequest extends Stream.Writable {
 
         //this._debugFile = fs.createWriteStream('out_' + process.pid + '_' + (i++) + '.wav');
         this._vad = vad;
-        this.silenceThreshold = process.env.VAD_THRESHOLD ? parseInt(process.env.VAD_THRESHOLD) : 96;
+        this.silenceThreshold = process.env.VAD_THRESHOLD ? parseInt(process.env.VAD_THRESHOLD) : DEFAULT_VAD_THRESHOLD;
         this.consecutiveSilence = 0;
 
         // all chunks received before the connection is ready are buffered here

@@ -87,6 +87,7 @@ interface InferenceTimeDialogueOptions {
     policy : string|undefined,
     extraFlags : Record<string, boolean>,
     anonymous : boolean,
+    useConfidence : boolean,
     debug : number,
     rng : () => number
 }
@@ -239,6 +240,8 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
                 const parsed = await ThingTalkUtils.parse(initialState, {
                     schemaRetriever: this._schemas,
                     thingpediaClient: this._thingpedia,
+                    locale: this._options.locale,
+                    timezone: this._options.timezone,
                 });
                 assert(parsed instanceof Ast.DialogueState);
                 this._dlg.state = parsed;
@@ -351,6 +354,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
      * @param expectingType what type to expect from the user after this reply
      */
     private async _sendReply(expectingType : Type|null, raw : boolean) {
+        const before : ReplacedAgentMessage[] = [];
         const messages : ReplacedAgentMessage[] = [];
         let agent_target : string, end : boolean;
 
@@ -361,7 +365,12 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             for (const result of this._dlg.lastResult) {
                 for (const [outputType, outputValue] of result.rawResults.slice(0, this._nextReply.numResults)) {
                     const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
-                    messages.push(...formatted);
+                    for (const msg of formatted) {
+                        if (msg.type === 'sound' && (msg as any).before)
+                            before.push(msg);
+                        else
+                            messages.push(msg);
+                    }
                 }
             }
             end = this._nextReply.end;
@@ -393,7 +402,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
 
         assert(this._continuePromise !== null);
         this._continueResolve!({
-            messages,
+            messages : before.concat(messages),
             expecting,
             context: this._dlg.state ? this._dlg.state.prettyprint() : '',
             agent_target,

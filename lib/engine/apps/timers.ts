@@ -2,7 +2,7 @@
 //
 // This file is part of Genie
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020-2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>, Swee Kiat Lim <sweekiat@stanford.edu>
+
+import { Temporal } from '@js-temporal/polyfill';
 
 import * as ThingTalk from 'thingtalk';
 import AsyncQueue from 'consumer-queue';
@@ -252,12 +254,14 @@ class Timer extends BaseTimer {
 class AtTimer extends BaseTimer {
     private _times : ThingTalk.Builtin.Time[];
     private _expiration_date : Date|null|undefined;
+    private _timezone : string;
 
-    constructor(times : ThingTalk.Builtin.Time[], expiration_date : Date|null|undefined) {
+    constructor(times : ThingTalk.Builtin.Time[], expiration_date : Date|null|undefined, timezone : string) {
         super();
 
         this._times = times;
         this._expiration_date = expiration_date;
+        this._timezone = timezone;
     }
 
     toString() {
@@ -265,10 +269,10 @@ class AtTimer extends BaseTimer {
     }
 
     protected _nextTimeout() {
-        const now = new Date;
+        const now = Temporal.Now.zonedDateTime('iso8601', this._timezone);
 
-        if (this._expiration_date !== undefined && this._expiration_date !== null
-            && this._expiration_date < now) {
+        if (this._expiration_date !== undefined && this._expiration_date !== null &&
+            this._expiration_date.getTime() < now.epochMilliseconds) {
             console.log('AtTimer to the times ' + this._times + ': has hit expiration date of ' + this._expiration_date);
             this.end();
             return 86400000;
@@ -276,9 +280,9 @@ class AtTimer extends BaseTimer {
 
         let interval = 86400000; // Tomorrow
         for (let i = 0; i < this._times.length; i++) {
-            const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
-                this._times[i].hour, this._times[i].minute, this._times[i].second, 0);
-            const newInterval = target.getTime() - now.getTime();
+            const target = now.withPlainTime(new Temporal.PlainTime(this._times[i].hour,
+                this._times[i].minute, this._times[i].second, 0));
+            const newInterval = target.epochMilliseconds - now.epochMilliseconds;
             if (newInterval < interval && newInterval >= 0)
                 interval = newInterval;
         }
@@ -293,7 +297,7 @@ class OnTimer extends BaseTimer {
 
     constructor(dates : Date[]) {
         super();
-        
+
         this._dates = dates;
     }
 
@@ -312,7 +316,7 @@ class OnTimer extends BaseTimer {
                 target = temp;
         }
         const interval = target.getTime() - now.getTime();
-        if (interval > 0) 
+        if (interval > 0)
             return interval;
 
         this.end();

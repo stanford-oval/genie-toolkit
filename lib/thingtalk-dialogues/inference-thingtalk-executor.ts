@@ -29,7 +29,7 @@ import { cleanKind } from '../utils/misc-utils';
 import { ReplacedList, ReplacedConcatenation } from '../utils/template-string';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import ValueCategory from '../dialogue-runtime/value-category';
-import type { ConversationState, NewProgramRecord } from '../dialogue-runtime/conversation';
+import type { NewProgramRecord } from '../dialogue-runtime/conversation';
 import { CancellationError } from '../dialogue-runtime/errors';
 import { EntityRecord } from './entity-linking/entity-finder';
 import { Contact } from './entity-linking/contact_search';
@@ -41,7 +41,7 @@ import { DialogueInterface } from './interface';
 import { TemplatePlaceholderMap } from '../sentence-generator/types';
 
 interface AbstractConversation {
-    getState() : ConversationState;
+    id : string;
     sendNewProgram(newProgram : NewProgramRecord) : Promise<void>
 }
 
@@ -57,11 +57,11 @@ const PAGE_SIZE = 10;
  */
 export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExecutor {
     readonly _ : (x : string) => string;
-    private _conversation : AbstractConversation|undefined;
+    private _conversation : AbstractConversation;
     private _engine : Engine;
     private _platform : Tp.BasePlatform;
 
-    constructor(engine : Engine, conversation ?: AbstractConversation, debug = true) {
+    constructor(engine : Engine, conversation : AbstractConversation, debug = true) {
         super(engine.thingpedia, engine.schemas, {
             debug: debug,
             locale: engine.platform.locale,
@@ -77,22 +77,18 @@ export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExe
     private async _iterateResults(app : AppExecutor,
                                   schema : Ast.FunctionDef,
                                   into : Ast.DialogueHistoryResultItem[],
-                                  intoRaw : RawExecutionResult) : Promise<[boolean, string|undefined, string|undefined]> {
+                                  intoRaw : RawExecutionResult) : Promise<[boolean, ThingTalkUtils.ErrorWithCode|undefined]> {
         let count = 0;
         if (app === null)
-            return [false, undefined, undefined];
+            return [false, undefined];
 
-        let errorCode, errorMessage;
+        let error : ThingTalkUtils.ErrorWithCode|undefined;
         for await (const value of app.mainOutput) {
             if (count >= MORE_SIZE)
-                return [true, errorCode, errorMessage];
+                return [true, error];
 
             if (value instanceof Error) {
-                const err : ThingTalkUtils.ErrorWithCode = value;
-                if (typeof err.code === 'string') // error codes starting with E are reserved for system errors
-                    errorCode = err.code;
-                if (!errorMessage)
-                    errorMessage = value.message;
+                error = value;
             } else {
                 const mapped = await ThingTalkUtils.mapResult(schema, value.outputValue);
                 into.push(mapped);
@@ -102,11 +98,11 @@ export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExe
         }
 
         // if we get here, we iterated all results from the app, so we can stop
-        return [false, errorCode, errorMessage];
+        return [false, error];
     }
 
     async execute(dlg : DialogueInterface, program : Ast.Program, notifications : NotificationConfig|undefined) : Promise<ExecutionResult[]> {
-        const app = await this._engine.createApp(program, { notifications });
+        const app = await this._engine.createApp(program, { notifications, conversation: this._conversation.id });
         if (program.statements.length > 1)
             throw new Error(`not implemented yet: program with multiple statements`);
         if (!(program.statements[0] instanceof Ast.ExpressionStatement))
@@ -117,22 +113,31 @@ export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExe
         assert(stmt.expression.schema);
         const results : Ast.DialogueHistoryResultItem[] = [];
         const rawResults : RawExecutionResult = [];
-        const [more, errorCode, errorMessage] = await this._iterateResults(app, stmt.expression.schema, results, rawResults);
+        const [more, error] = await this._iterateResults(app, stmt.expression.schema, results, rawResults);
+
+        const annotations : Ast.AnnotationMap = {};
+        let errorValue;
+        if (error) {
+            if (error.code)
+                errorValue = new Ast.Value.Enum(error.code);
+            else
+                errorValue = new Ast.Value.String(error.message);
+            annotations.error_detail = new Ast.Value.String(error.message);
+            if (error.stack)
+                annotations.error_stack = new Ast.Value.String(error.stack);
+        }
 
         const resultList = new Ast.DialogueHistoryResultList(null, results.slice(0, PAGE_SIZE),
-            new Ast.Value.Number(results.length), more,
-            (errorCode ? new Ast.Value.Enum(errorCode) :
-             (errorMessage ? new Ast.Value.String(errorMessage) : null)));
+            new Ast.Value.Number(results.length), more, errorValue);
         const newProgramRecord = {
             uniqueId: app.uniqueId!,
             name: app.name,
             code: program.prettyprint(),
             results: rawResults.map((r) => r[1]),
-            errors: errorCode ? [errorCode] : errorMessage ? [errorMessage] : [],
+            errors: errorValue ? [errorValue.toJS()] : [],
             icon: app.icon,
         };
-        if (this._conversation)
-            await this._conversation.sendNewProgram(newProgramRecord);
+        await this._conversation.sendNewProgram(newProgramRecord);
         return [{ stmt, results: resultList, rawResults }];
     }
 
