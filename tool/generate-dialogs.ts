@@ -33,7 +33,7 @@ import { ActionSetFlag } from './lib/argutils';
 
 const DIALOG_SERIALIZERS : Record<string, () => NodeJS.ReadWriteStream> = {
     json() {
-        return JSONStream.stringify(undefined, undefined, undefined, 2);
+        return JSONStream.stringify();
     },
 
     txt() {

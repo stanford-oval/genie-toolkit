@@ -31,6 +31,7 @@ import * as D from './dialogue_acts';
 export * as Templates from './dialogue.genie.out';
 import { $load } from './dialogue.genie.out';
 import { DialogueInterface } from '../thingtalk-dialogues/interface';
+import { PolicyStartMode, UnexpectedCommandError } from '../thingtalk-dialogues';
 export {
     $load as initializeTemplates
 };
@@ -146,13 +147,9 @@ export const MANIFEST = {
     terminalAct: 'sys_end'
 } as const;
 
-function simpleDialogueState(dialogueAct : string) {
-    return new Ast.DialogueState(null, S.POLICY_NAME, dialogueAct, null, []);
-}
-
 function greet(dlg : DialogueInterface) {
     dlg.say(dlg._("{hello|hi}{!|,} {how can i help you|what are you interested in|what can i do for you}?"),
-        simpleDialogueState('sys_greet'));
+        S.makeSimpleTargetState(null, 'sys_greet'));
 }
 
 /**
@@ -160,27 +157,59 @@ function greet(dlg : DialogueInterface) {
  *
  * @param dlg the interface to use to interact with the user
  */
-export async function policy(dlg : DialogueInterface) {
+export async function policy(dlg : DialogueInterface, startMode : PolicyStartMode) {
     // TODO call "expect" here a bunch of times to register the templates
     dlg.expect([
-        ["TODO user", {}, (state) => simpleDialogueState('cancel')]
+        ["TODO user", {}, (state) => S.makeSimpleTargetState(state, 'cancel')]
     ]);
 
-    greet(dlg);
+    switch (startMode) {
+    case PolicyStartMode.NORMAL:
+        greet(dlg);
+        break;
+    case PolicyStartMode.NO_WELCOME:
+        break;
+    case PolicyStartMode.RESUME:
+        throw new Error('TODO resume existing dialogue');
+        break;
+    case PolicyStartMode.USER_FIRST_TIME:
+        throw new Error(`first time for the user`);
+        break;
+    }
 
     for (;;) {
-        const cmd = await dlg.get();
+        try {
+            const cmd = await dlg.get({
+                expecting: null,
 
-        switch (cmd.type) {
-        case 'cancel':
-            dlg.say(dlg._("alright, let me know if I can help you with anything else!"), simpleDialogueState('sys_end'));
-            return;
+                acceptActs: ['*'],
+                acceptQueries: ['*'],
+                acceptActions: ['*']
+            });
 
-        default:
-            // all other cases
+            // execute the command immediately regardless of dialogue act
+            // this will update dlg.state to the dialogue state after the user speaks
+            await dlg.execute(cmd.meaning);
+
+            switch (cmd.type) {
+            case POLICY_NAME + '.greet':
+                greet(dlg);
+                break;
+
+            case POLICY_NAME + '.cancel':
+                dlg.say(dlg._("alright, let me know if I can help you with anything else!"), S.makeSimpleTargetState(dlg.state, 'sys_end'));
+                return;
+
+            default:
+                // all other cases
+                dlg.say(dlg._("TODO agent"), S.makeSimpleTargetState(dlg.state, 'sys_todo'));
+            }
+        } catch(e) {
+            if (!(e instanceof UnexpectedCommandError))
+                throw e;
+
+            dlg.say(dlg._("Sorry, I did not understand that. Can you rephrase it?"), S.makeSimpleTargetState(dlg.state, 'sys_unexpected'));
         }
-
-        dlg.say(dlg._("TODO agent"), simpleDialogueState('sys_todo'));
     }
 }
 

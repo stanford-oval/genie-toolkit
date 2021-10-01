@@ -84,6 +84,7 @@ export type ReplyMessage = string|Tp.FormatObjects.FormattedObject|{
 export interface ReplyResult {
     messages : ReplyMessage[];
     expecting : ValueCategory|null;
+    end : boolean;
 
     // used in the conversation logs
     context : string;
@@ -101,7 +102,6 @@ export interface DialogueHandler<AnalysisType extends CommandAnalysisResult, Sta
 
     analyzeCommand(command : UserInput) : Promise<AnalysisType>;
     getReply(command : AnalysisType) : Promise<ReplyResult>;
-    //getFollowUp() : Promise<ReplyResult|null>;
 }
 
 export class DialogueLoop {
@@ -165,7 +165,7 @@ export class DialogueLoop {
             nlg: this._nlg,
             extraFlags: {},
             anonymous: conversation.isAnonymous,
-            debug: options.debug ? LogLevel.GENERATION : LogLevel.INFO,
+            debug: options.debug ? LogLevel.DUMP_TEMPLATES : LogLevel.INFO,
             rng: Math.random
         });
         this._faqHandlers = {};
@@ -427,6 +427,8 @@ export class DialogueLoop {
             // (requiring a wakeword again to continue) and start
             // processing notifications again
 
+            if (reply.end)
+                throw new CancellationError();
             if (this.expecting === null)
                 return;
             command = await this.nextCommand();
@@ -532,6 +534,8 @@ export class DialogueLoop {
     async replyGeneric(message : ReplyMessage, icon ?: string|null) {
         if (typeof message === 'string')
             await this.reply(message, icon);
+        else if (message.type === 'text')
+            await this.reply(message.text, icon);
         else if (message.type === 'picture' || message.type === 'audio' || message.type === 'video')
             await this.conversation.sendMedia(message.type, message.url, message.alt, icon || this.icon);
         else if (message.type === 'rdl')

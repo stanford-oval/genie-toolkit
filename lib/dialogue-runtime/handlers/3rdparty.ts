@@ -62,7 +62,8 @@ export default class ThingpediaDialogueHandler<AnalysisType extends Tp.DialogueH
             expecting: result.expecting ? ValueCategory.fromType(result.expecting) : null,
             messages: result.messages,
             context: result.context,
-            agent_target: result.agent_target
+            agent_target: result.agent_target,
+            end: false,
         };
     }
     private _mapConfidence(confidence : Tp.DialogueHandler.Confidence) : CommandAnalysisType {

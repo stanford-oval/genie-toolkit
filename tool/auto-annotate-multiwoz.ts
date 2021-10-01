@@ -37,6 +37,7 @@ import * as ThingTalkUtils from '../lib/utils/thingtalk';
 import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation-thingtalk-executor';
 import { DialogueInterface } from '../lib/thingtalk-dialogues';
 import { DummyCommandIO, SimpleCommandDispatcher } from '../lib/thingtalk-dialogues/cmd-dispatch';
+import  * as TransactionPolicy from '../lib/templates/transactions';
 
 function undoTradePreprocessing(sentence : string) : string {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');
@@ -307,6 +308,7 @@ class Converter extends stream.Readable {
         const io = new DummyCommandIO();
         this._dlg = new DialogueInterface(null, {
             io,
+            policy: TransactionPolicy,
             executor: this._simulator,
             dispatcher: new SimpleCommandDispatcher(io),
             locale: 'en-US',

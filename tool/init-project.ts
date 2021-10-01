@@ -18,6 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+/// <reference types="./lice-js" />
+
 import * as argparse from 'argparse';
 import { promises as pfs } from 'fs';
 import * as path from 'path';

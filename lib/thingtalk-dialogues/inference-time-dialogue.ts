@@ -73,6 +73,7 @@ type ReplacedAgentMessage = Tp.FormatObjects.FormattedObject | {
 
 interface ExtendedAgentReplyRecord extends AgentReplyRecord {
     messages : ReplacedAgentMessage[];
+    end : boolean;
 }
 
 interface InferenceTimeDialogueOptions {
@@ -113,8 +114,8 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
     private readonly _schemas : SchemaRetriever;
     private readonly _langPack : I18n.LanguagePack;
     private readonly _executor : AbstractThingTalkExecutor;
-    private readonly _dlg : DialogueInterface;
     private readonly _nlg : ParserClient.ParserClient;
+    private _dlg ! : DialogueInterface;
     private _policy ! : PolicyModule;
     private _agentGenerator ! : InferenceTimeSentenceGenerator;
     private _nlu ! : CommandParser;
@@ -148,6 +149,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
 
     private readonly _commandQueue : AsyncQueue<Command>;
     private _nextReply : ExtendedAgentReplyRecord|null;
+    private _policyRunning = 0;
     private _continuePromise : Promise<ReplyResult>|null;
     private _continueResolve : ((reply : ReplyResult) => void)|null;
 
@@ -160,14 +162,6 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         this._executor = options.executor;
         this._cardFormatter = new CardFormatter(options.locale, options.timezone, options.schemaRetriever);
         this._debug = options.debug;
-        this._dlg = new DialogueInterface(null, {
-            io: this,
-            dispatcher: new SimpleCommandDispatcher(this),
-            simulated: true,
-            interactive: false,
-            deterministic: false,
-            ...options
-        });
         this._commandQueue = new AsyncQueue();
 
         this._raw = false;
@@ -221,6 +215,15 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
     async initialize(initialState : string | undefined, showWelcome : boolean) : Promise<ReplyResult|null> {
         if (!this._policy)
             this._policy = await loadPolicy(this._options.policy);
+        this._dlg = new DialogueInterface(null, {
+            io: this,
+            dispatcher: new SimpleCommandDispatcher(this),
+            simulated: true,
+            interactive: false,
+            deterministic: false,
+            ...this._options,
+            policy: this._policy
+        });
         this._agentGenerator = new InferenceTimeSentenceGenerator({ ...this._options, policy: this._policy });
         this._nlu = new CommandParser({
             ...this._options,
@@ -247,7 +250,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         // TODO handle user first time
 
         const promise = this._waitReply();
-        this._startPolicy(startMode);
+        this._runPolicy(startMode);
 
         const reply = await promise;
         if (reply.messages.length === 0)
@@ -263,14 +266,23 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         return this._continuePromise;
     }
 
-    private _startPolicy(startMode : PolicyStartMode) {
-        this._policy.policy(this._dlg, startMode).catch((e) => {
-            if (!(e instanceof TerminatedDialogueError) && !(e instanceof UnexpectedCommandError))
-                throw e;
-        }).then(() => {
-            // TODO
-            throw new Error('not implemented: terminating dialogues');
-        });
+    private async _runPolicy(startMode : PolicyStartMode) {
+        this._policyRunning ++;
+        try {
+            try {
+                await this._policy.policy(this._dlg, startMode);
+            } catch(e) {
+                if (!(e instanceof TerminatedDialogueError) && !(e instanceof UnexpectedCommandError))
+                    throw e;
+            }
+            // dialogue terminated, send the final message
+            await this._dlg.flush();
+            if (this._nextReply)
+                this._nextReply.end = true;
+            await this._sendReply(null, false);
+        } finally {
+            this._policyRunning --;
+        }
     }
 
     getState() : string {
@@ -278,9 +290,14 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
     }
 
     reset() : void {
-        this._commandQueue.cancelWait(new TerminatedDialogueError());
+        // if we're already running a policy, cancel it with a terminated dialogue error
+        // (which will bubble up)
+        // note that policyRunning is a number not a boolean because we're concurrently
+        // starting the new policy function, which will change policyRunning
+        if (this._policyRunning > 0)
+            this._commandQueue.cancelWait(new TerminatedDialogueError());
         this._dlg.state = null;
-        this._startPolicy(PolicyStartMode.RESUME);
+        this._runPolicy(PolicyStartMode.NO_WELCOME);
     }
 
     analyzeCommand(command : UserInput) {
@@ -335,7 +352,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
      */
     private async _sendReply(expectingType : Type|null, raw : boolean) {
         const messages : ReplacedAgentMessage[] = [];
-        let agent_target : string;
+        let agent_target : string, end : boolean;
 
         if (this._nextReply) {
             agent_target = this._nextReply.meaning.prettyprint();
@@ -347,10 +364,12 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
                     messages.push(...formatted);
                 }
             }
+            end = this._nextReply.end;
         } else {
             if (this._debug >= LogLevel.INFO)
                 console.log(`Agent did not produce a reply in-between calls to get()`);
             agent_target = '';
+            end = false;
         }
 
         let expecting : ValueCategory|null;
@@ -377,13 +396,15 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             messages,
             expecting,
             context: this._dlg.state ? this._dlg.state.prettyprint() : '',
-            agent_target
+            agent_target,
+            end
         });
         this._continuePromise = null;
     }
 
     async get(expectingType : Type|null, raw = false) : Promise<Command> {
-        await this._sendReply(expectingType, raw);
+        if (this._continuePromise !== null)
+            await this._sendReply(expectingType, raw);
 
         return this._commandQueue.pop();
     }
@@ -496,7 +517,8 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
 
         this._nextReply = {
             messages,
-            ...meaning
+            ...meaning,
+            end: false
         };
     }
 

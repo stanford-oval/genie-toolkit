@@ -31,7 +31,7 @@ import { Derivation, NonTerminal, Replaceable } from '../sentence-generator/runt
 import { PolicyModule } from './policy';
 
 const MAX_DEPTH = 8;
-const TARGET_PRUNING_SIZES = [15, 50, 100, 200];
+const TARGET_PRUNING_SIZE = 15;
 
 function arrayEqual<T>(a : T[], b : T[]) : boolean {
     if (a.length !== b.length)
@@ -138,7 +138,7 @@ export default class InferenceTimeSentenceGenerator {
             onlyDevices: forDevices,
             maxDepth: MAX_DEPTH,
             maxConstants: 5,
-            targetPruningSize: TARGET_PRUNING_SIZES[0],
+            targetPruningSize: TARGET_PRUNING_SIZE,
         };
         const sentenceGenerator = new SentenceGenerator(this._generatorOptions);
         this._sentenceGenerator = sentenceGenerator;
@@ -163,23 +163,13 @@ export default class InferenceTimeSentenceGenerator {
         return deviceArray;
     }
 
-    generate(state : Ast.DialogueState|null, contextPhrases : ContextPhrase[], nonTerm : string) {
-        // try with a low pruning size first, because that's faster, and then increase
-        // the pruning size if we don't find anything useful
-        for (const pruningSize of TARGET_PRUNING_SIZES) {
-            this._generatorOptions!.targetPruningSize = pruningSize;
-            this._sentenceGenerator!.reset(true);
-
-            this._entityAllocator.reset();
-            if (state !== null) {
-                const constants = ThingTalkUtils.extractConstants(state, this._entityAllocator);
-                this._sentenceGenerator!.addConstantsFromContext(constants);
-            }
-            const derivation : Derivation<AgentReplyRecord>|undefined = this._sentenceGenerator!.generateOne(contextPhrases, nonTerm);
-            if (derivation !== undefined)
-                return derivation;
+    generate(state : Ast.DialogueState|null, contextPhrases : ContextPhrase[], nonTerm : string) : Derivation<AgentReplyRecord>|undefined {
+        this._entityAllocator.reset();
+        if (state !== null) {
+            const constants = ThingTalkUtils.extractConstants(state, this._entityAllocator);
+            this._sentenceGenerator!.addConstantsFromContext(constants);
         }
-        return undefined;
+        return this._sentenceGenerator!.generateOne(contextPhrases, nonTerm);
     }
 
     /*

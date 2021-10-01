@@ -39,7 +39,7 @@ import {
     ParallelCommandDispatcher,
     AbstractCommandIO
 } from './cmd-dispatch';
-import { PolicyFunction, PolicyStartMode } from './policy';
+import { PolicyFunction, PolicyModule, PolicyStartMode } from './policy';
 import AbstractThingTalkExecutor, {
     ExecutionResult,
     NotificationConfig
@@ -151,7 +151,7 @@ export class DialogueInterface {
      */
     readonly rng : () => number;
 
-    //private readonly _policy : PolicyModule;
+    private readonly _policy : PolicyModule;
     private readonly _parent : DialogueInterface|null;
     private readonly _langPack : I18n.LanguagePack;
     private readonly _schemas : SchemaRetriever;
@@ -190,7 +190,7 @@ export class DialogueInterface {
 
     constructor(parent : DialogueInterface|null,
                 options : {
-                    //policy : PolicyModule,
+                    policy : PolicyModule,
                     io : AbstractCommandIO,
                     executor : AbstractThingTalkExecutor,
                     dispatcher : CommandDispatcher,
@@ -211,7 +211,7 @@ export class DialogueInterface {
         this.state = null;
         this.command = null;
         this._parent = parent;
-        //this._policy = options.policy;
+        this._policy = options.policy;
         this._schemas = options.schemaRetriever;
         this._langPack = I18n.get(options.locale);
         this._ = this._langPack._;
@@ -274,6 +274,13 @@ export class DialogueInterface {
                         yield [tag, tmpl];
                 }
             }());
+        }
+
+        if (options.acceptActs) {
+            for (let i = 0; i < options.acceptActs.length; i++) {
+                if (!options.acceptActs[i].includes('.'))
+                    options.acceptActs[i] = this._policy.MANIFEST.name + '.' + options.acceptActs[i];
+            }
         }
 
         this.command = await this._dispatcher.get(options);
@@ -574,13 +581,13 @@ export class DialogueInterface {
                 remaining.push(item);
         }
 
-        const program = new Ast.Program(null, [], [], toExecute);
-
         // if we have a stream, we'll trigger notifications
         // configure them if necessary
         let notificationConfig : NotificationConfig|undefined = undefined;
-        if (program.statements.some((stmt) => stmt instanceof Ast.ExpressionStatement && stmt.stream))
+        if (toExecute.some((stmt) => stmt instanceof Ast.ExpressionStatement && stmt.stream))
             notificationConfig = await this._executor.configureNotifications(this);
+
+        const program = new Ast.Program(null, [], [], toExecute);
         return [program, remaining, notificationConfig] as const;
     }
 
@@ -594,9 +601,6 @@ export class DialogueInterface {
         // so we slot-fill eagerly
 
         const [program, remaining, notificationConfig] = await this._prepareForExecution(statements);
-        if (program === null)
-            return [];
-
         const executionResults = await this._doExecute(program, notificationConfig);
         this._lastResult = executionResults;
 
@@ -626,6 +630,8 @@ export class DialogueInterface {
     }
 
     private async _doExecute(program : Ast.Program, notificationConfig : NotificationConfig|undefined) : Promise<ExecutionResult[]> {
+        if (program.statements.length === 0)
+            return [];
         if (this._parent)
             return this._parent._doExecute(program, notificationConfig);
 
@@ -634,7 +640,7 @@ export class DialogueInterface {
 
     private clone(withDispatcher : CommandDispatcher) : DialogueInterface {
         const clone = new DialogueInterface(this, {
-            //policy: this._policy,
+            policy: this._policy,
             io: this._io,
             executor: this._executor,
             dispatcher: withDispatcher,

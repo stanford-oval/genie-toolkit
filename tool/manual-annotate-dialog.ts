@@ -40,6 +40,7 @@ import {
 import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation-thingtalk-executor';
 import { DialogueInterface } from '../lib/thingtalk-dialogues';
 import { DummyCommandIO, SimpleCommandDispatcher } from '../lib/thingtalk-dialogues/cmd-dispatch';
+import  * as TransactionPolicy from '../lib/templates/transactions';
 
 import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
@@ -131,6 +132,7 @@ class Annotator extends events.EventEmitter {
         const io = new DummyCommandIO();
         this._dlg = new DialogueInterface(null, {
             io,
+            policy: TransactionPolicy,
             executor: this._simulator,
             dispatcher: new SimpleCommandDispatcher(io),
             locale: 'en-US',

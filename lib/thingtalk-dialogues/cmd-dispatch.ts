@@ -220,7 +220,7 @@ export class SimpleCommandDispatcher implements CommandDispatcher {
 
     constructor(io : AbstractCommandIO) {
         this._io = io;
-        this._inGet = true;
+        this._inGet = false;
     }
 
     async get(options : GetCommandOptions) {
