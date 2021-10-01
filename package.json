@@ -80,7 +80,7 @@
     "pegjs": "^0.10.0",
     "source-map-support": "^0.5.20",
     "ts-node": "^10.2.1",
-    "typedoc": "^0.21.9"
+    "typedoc": "^0.22.4"
   },
   "scripts": {
     "update-pot": "./po/update-pot.sh",
