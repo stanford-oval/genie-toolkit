@@ -1,0 +1,52 @@
+# 654
+U: hi ! make reservation .
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @mtod.Restaurant.Restaurant();
+UT: @mtod.Restaurant.make_reservation();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @mtod.Restaurant.Restaurant()
+C: #[results=[
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="str:QUOTED_STRING::17:", price_level=enum moderate, dietary_restrictions=enum kosher, rating=2, location="str:QUOTED_STRING::33:" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum expensive, dietary_restrictions=enum vegan, rating=9, location="mtod.Restaurant" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum expensive, dietary_restrictions=enum kosher, rating=2, location="mtod.Restaurant" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum cheap, dietary_restrictions=enum vegetarian_friendly, rating=2, location="mtod.Restaurant" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum moderate, dietary_restrictions=enum gluten_free, rating=2, location="mtod.Restaurant" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="str:QUOTED_STRING::39:", price_level=enum moderate, dietary_restrictions=enum gluten_free, rating=3, location="str:QUOTED_STRING::14:" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum expensive, dietary_restrictions=enum vegan, rating=2, location="str:QUOTED_STRING::9:" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="str:QUOTED_STRING::3:", price_level=enum moderate, dietary_restrictions=enum halal, rating=2, location="str:QUOTED_STRING::45:" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum moderate, dietary_restrictions=enum halal, rating=8, location="str:QUOTED_STRING::20:" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum expensive, dietary_restrictions=enum kosher, rating=3, location="str:QUOTED_STRING::34:" }
+C: ]]
+C: #[count=50]
+C: #[more=true];
+C: @mtod.Restaurant.make_reservation();
+A: i have GENERIC_ENTITY_mtod.Restaurant:Restaurant_0 or GENERIC_ENTITY_mtod.Restaurant:Restaurant_0 .
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
+AT: @mtod.Restaurant.make_reservation();
+U: what 's your favorite ?
+UT: $dialogue @org.thingpedia.dialogue.transaction.ask_recommend;
+UT: @mtod.Restaurant.make_reservation();
+C: $dialogue @org.thingpedia.dialogue.transaction.ask_recommend;
+C: @mtod.Restaurant.Restaurant()
+C: #[results=[
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="str:QUOTED_STRING::17:", price_level=enum moderate, dietary_restrictions=enum kosher, rating=2, location="str:QUOTED_STRING::33:" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum expensive, dietary_restrictions=enum vegan, rating=9, location="mtod.Restaurant" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum expensive, dietary_restrictions=enum kosher, rating=2, location="mtod.Restaurant" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum cheap, dietary_restrictions=enum vegetarian_friendly, rating=2, location="mtod.Restaurant" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum moderate, dietary_restrictions=enum gluten_free, rating=2, location="mtod.Restaurant" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="str:QUOTED_STRING::39:", price_level=enum moderate, dietary_restrictions=enum gluten_free, rating=3, location="str:QUOTED_STRING::14:" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum expensive, dietary_restrictions=enum vegan, rating=2, location="str:QUOTED_STRING::9:" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="str:QUOTED_STRING::3:", price_level=enum moderate, dietary_restrictions=enum halal, rating=2, location="str:QUOTED_STRING::45:" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum moderate, dietary_restrictions=enum halal, rating=8, location="str:QUOTED_STRING::20:" },
+C:   { id="str:ENTITY_mtod.Restaurant:Restaurant::0:"^^mtod.Restaurant:Restaurant, cuisine="mtod.Restaurant", price_level=enum expensive, dietary_restrictions=enum kosher, rating=3, location="str:QUOTED_STRING::34:" }
+C: ]]
+C: #[count=50]
+C: #[more=true];
+C: @mtod.Restaurant.make_reservation();
+A: i see GENERIC_ENTITY_mtod.Restaurant:Restaurant_0 , GENERIC_ENTITY_mtod.Restaurant:Restaurant_0 , GENERIC_ENTITY_mtod.Restaurant:Restaurant_0 , GENERIC_ENTITY_mtod.Restaurant:Restaurant_0 , GENERIC_ENTITY_mtod.Restaurant:Restaurant_0 , GENERIC_ENTITY_mtod.Restaurant:Restaurant_0 , GENERIC_ENTITY_mtod.Restaurant:Restaurant_0 , GENERIC_ENTITY_mtod.Restaurant:Restaurant_0 , GENERIC_ENTITY_mtod.Restaurant:Restaurant_0 , or GENERIC_ENTITY_mtod.Restaurant:Restaurant_0 .
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_many;
+AT: @mtod.Restaurant.make_reservation();
+U: i would like to see its type of food .
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [cuisine] of @mtod.Restaurant.Restaurant();
+UT: @mtod.Restaurant.make_reservation();
