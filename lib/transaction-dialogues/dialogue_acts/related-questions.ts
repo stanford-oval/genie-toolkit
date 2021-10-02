@@ -23,8 +23,8 @@ import { Ast, } from 'thingtalk';
 
 import * as C from '../../templates/ast_manip';
 
+import { ContextInfo } from '../context-info';
 import {
-    ContextInfo,
     addQuery,
 } from '../state_manip';
 import {

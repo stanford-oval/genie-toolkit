@@ -17,9 +17,7 @@
 // limitations under the License.
 
 import { Ast, } from 'thingtalk';
-import {
-    ContextInfo,
-} from '../state_manip';
+import { ContextInfo } from '../context-info';
 
 export function checkIsReminder(ctx : ContextInfo, fname : string) : ContextInfo|null {
     if (ctx.currentFunction!.qualifiedName !== ('org.thingpedia.builtin.thingengine.builtin.' + fname))

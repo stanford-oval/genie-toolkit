@@ -23,10 +23,11 @@ import assert from 'assert';
 
 import { Ast, Type } from 'thingtalk';
 
+import type ThingpediaLoader from '../../templates/load-thingpedia';
 import * as C from '../../templates/ast_manip';
 
+import { ContextInfo } from '../context-info';
 import {
-    ContextInfo,
     makeAgentReply,
     makeSimpleState,
     mergeParameters,
@@ -148,7 +149,7 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
     return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }
 
-function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputParamSlot) {
+function impreciseSlotFillAnswer(ctx : ContextInfo, loader : ThingpediaLoader, answer : Ast.Value|C.InputParamSlot) {
     const questions = ctx.state.dialogueActParam as string[];
     assert(Array.isArray(questions) && questions.length > 0 && questions.every((q) => typeof q === 'string'));
     if (questions.length !== 1)
@@ -159,7 +160,7 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
         assert(questions.length === 1);
 
         const ptype = ctx.nextFunction!.getArgType(questions[0])!;
-        if (!Type.isAssignable(answer.getType(), ptype, {}, ctx.loader.entitySubTypeMap))
+        if (!Type.isAssignable(answer.getType(), ptype, {}, loader.entitySubTypeMap))
             return null;
         ipslot = {
             schema: ctx.nextFunction!,
@@ -181,7 +182,7 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
     const clone = fastSemiShallowClone(ctx.next);
     const newAction = C.getInvocation(clone);
     assert(newAction instanceof Ast.Invocation);
-    if (!C.checkInvocationInputParam(ctx.loader, newAction, ipslot))
+    if (!C.checkInvocationInputParam(loader, newAction, ipslot))
         return null;
 
     // modify in place

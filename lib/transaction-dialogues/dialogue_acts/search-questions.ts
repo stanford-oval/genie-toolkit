@@ -23,10 +23,11 @@ import assert from 'assert';
 
 import { Ast, } from 'thingtalk';
 
+import type ThingpediaLoader from '../../templates/load-thingpedia';
 import * as C from '../../templates/ast_manip';
 
+import { ContextInfo } from '../context-info';
 import {
-    ContextInfo,
     makeAgentReply,
     makeSimpleState,
     addQuery,
@@ -112,6 +113,7 @@ function checkFilterPairForDisjunctiveQuestion(ctx : ContextInfo,
 }
 
 export function checkFilterPairForDisjunctiveQuestionWithConstant(ctx : ContextInfo,
+                                                                  loader : ThingpediaLoader,
                                                                   f1 : C.FilterSlot,
                                                                   c : Ast.Value) : C.ParamSlot|null {
     if (!(f1.ast instanceof Ast.AtomBooleanExpression))
@@ -122,7 +124,7 @@ export function checkFilterPairForDisjunctiveQuestionWithConstant(ctx : ContextI
         .getImplementationAnnotation<boolean>('symmetric') ?? false;
     const pslot = { schema: f1.schema, name: f1.ast.name, type: f1.ptype, filterable, symmetric,
         ast: new Ast.Value.VarRef(f1.ast.name) };
-    const f2 = C.makeFilter(ctx.loader, pslot, f1.ast.operator, c);
+    const f2 = C.makeFilter(loader, pslot, f1.ast.operator, c);
     if (!f2)
         return null;
     return checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
@@ -219,7 +221,7 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
 }
 
 
-function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : C.FilterSlot|Ast.Value|'dontcare') {
+function impreciseSearchQuestionAnswer(ctx : ContextInfo, loader : ThingpediaLoader, answer : C.FilterSlot|Ast.Value|'dontcare') {
     const questions = ctx.state.dialogueActParam as string[];
     if (questions === null || questions.length !== 1)
         return null;
@@ -243,7 +245,7 @@ function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : C.FilterSlot|
             symmetric: arg.getImplementationAnnotation<boolean>('symmetric') ?? false,
             name: questions[0],
             ast: new Ast.Value.VarRef(questions[0]) };
-        const newFilter = C.makeFilter(ctx.loader, pslot, '==', answer);
+        const newFilter = C.makeFilter(loader, pslot, '==', answer);
         if (newFilter === null)
             return null;
         answerFilter = newFilter;

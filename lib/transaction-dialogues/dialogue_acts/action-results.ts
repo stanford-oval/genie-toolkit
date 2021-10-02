@@ -26,8 +26,8 @@ import { Ast } from 'thingtalk';
 import * as C from '../../templates/ast_manip';
 
 import { SlotBag } from '../../templates/slot_bag';
+import { ContextInfo } from '../context-info';
 import {
-    ContextInfo,
     makeAgentReply,
     makeSimpleState,
     setOrAddInvocationParam,

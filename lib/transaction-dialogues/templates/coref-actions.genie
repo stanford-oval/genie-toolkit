@@ -25,7 +25,6 @@ import { Ast, } from 'thingtalk';
 import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 import * as D from '../dialogue_acts';
-import * as S from '../state_manip';
 
 coref_action_phrase : Ast.Invocation = {
     ( action:action_coref_context

@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+export { ContextInfo, contextKeyFn } from '../context-info';
 export * from './action-confirm';
 export * from './action-results';
 export * from './aggregation-results';
@@ -34,3 +35,4 @@ export * from './results';
 export * from './search-questions';
 export * from './slot-fill';
 export * from './streams';
+export * from './types';

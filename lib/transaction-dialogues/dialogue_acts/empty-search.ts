@@ -20,10 +20,11 @@
 
 import { Ast, } from 'thingtalk';
 
+import ThingpediaLoader from '../../templates/load-thingpedia';
 import * as C from '../../templates/ast_manip';
 
+import { ContextInfo } from '../context-info';
 import {
-    ContextInfo,
     makeAgentReply,
     makeSimpleState,
     addNewStatement,
@@ -128,6 +129,7 @@ export function preciseEmptySearchChangeRequest(ctx : ContextInfo,
  * The table is inferred from the context.
  */
 export function impreciseEmptySearchChangeRequest(ctx : ContextInfo,
+                                                  loader : ThingpediaLoader,
                                                   answer : Ast.Value|C.FilterSlot) {
     const [base, param] = ctx.aux as EmptySearch;
     // because we're imprecise, we're only valid if the agent asked a specific question
@@ -135,7 +137,7 @@ export function impreciseEmptySearchChangeRequest(ctx : ContextInfo,
         return null;
     let answerFilter : C.FilterSlot|null;
     if (answer instanceof Ast.Value)
-        answerFilter = C.makeFilter(ctx.loader, param, '==', answer);
+        answerFilter = C.makeFilter(loader, param, '==', answer);
     else
         answerFilter = answer;
     if (answerFilter === null || !(answerFilter instanceof Ast.AtomBooleanExpression))

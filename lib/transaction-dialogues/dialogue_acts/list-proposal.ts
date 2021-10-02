@@ -28,16 +28,16 @@ import * as ThingTalkUtils from '../../utils/thingtalk';
 import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 
+import { ContextInfo } from '../context-info';
 import {
     AgentReplyOptions,
-    ContextInfo,
-    NameList,
     makeAgentReply,
     makeSimpleState,
     addActionParam,
     addAction,
     addQuery,
 } from '../state_manip';
+import { NameList } from './types';
 import {
     isInfoPhraseCompatibleWithResult,
     findChainParam

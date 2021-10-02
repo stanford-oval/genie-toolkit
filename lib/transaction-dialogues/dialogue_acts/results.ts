@@ -23,9 +23,7 @@ import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 
 import * as C from '../../templates/ast_manip';
-import {
-    ContextInfo
-} from '../state_manip';
+import { ContextInfo } from '../context-info';
 import { SlotBag } from '../../templates/slot_bag';
 
 import {

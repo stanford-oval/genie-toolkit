@@ -118,14 +118,14 @@ action_notification_phrase : S.AgentReplyRecord = {
         => D.makeGenericActionSuccessPhrase(ctx);
 }
 
-short_action_error_message : S.ContextInfo = {
+short_action_error_message : D.ContextInfo = {
     ctx:ctx_completed_action_error msg:ctx_thingpedia_error_message '.' [priority=5]
         => D.checkThingpediaErrorMessage(ctx, msg);
 
     ctx:ctx_completed_action_error 'there was an unexpected error with your command . please try again later or report this issue to my developers' => ctx;
 }
 
-long_action_error_message : S.ContextInfo = {
+long_action_error_message : D.ContextInfo = {
     ('i could not' | 'it was not possible to') action:action_description_phrase (':' | 'because') ctx:short_action_error_message
         => D.checkActionErrorMessage(ctx, action);
 }

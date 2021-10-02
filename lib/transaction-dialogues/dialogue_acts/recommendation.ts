@@ -29,9 +29,9 @@ import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 
 import { SlotBag } from '../../templates/slot_bag';
+import { ContextInfo } from '../context-info';
 import {
     AgentReplyOptions,
-    ContextInfo,
     makeAgentReply,
     makeSimpleState,
     addActionParam,

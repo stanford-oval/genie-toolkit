@@ -44,10 +44,7 @@ import AbstractThingTalkExecutor, {
     ExecutionResult,
     NotificationConfig
 } from './abstract-thingtalk-executor';
-import { shouldAutoConfirmStatement } from '../utils/thingtalk';
-
-// FIXME we should not import this here
-import * as S from '../transaction-dialogues/state_manip';
+import { shouldAutoConfirmStatement, StateM } from '../utils/thingtalk';
 
 /**
  * A callback that computes all the relevant templates to use for synthesis
@@ -409,7 +406,7 @@ export class DialogueInterface {
         if (this._synthesizer)
             return;
 
-        const state = S.makeSimpleTargetState(this.state, 'answer_choice', [new Ast.Value.Number(idx)]);
+        const state = StateM.makeSimpleTargetState(this.state, this._policy.MANIFEST.name, 'answer_choice', [new Ast.Value.Number(idx)]);
         this._sayBuffer.push({
             type: 'button',
             args: {},
@@ -457,7 +454,7 @@ export class DialogueInterface {
      * @deprecated This function should not be used. Instead, use helpers in {@link TransactionPolicy}.
      */
     async ask(tmpl : string, args : TemplatePlaceholderMap, agentDialogueAct : string, agentDialogueActParam : Array<string|Ast.Value>, expectedType : Type, getOptions : GetOptions = {}) {
-        const dialogueState = S.makeSimpleTargetState(this.state, agentDialogueAct, agentDialogueActParam);
+        const dialogueState = StateM.makeSimpleTargetState(this.state, this._policy.MANIFEST.name, agentDialogueAct, agentDialogueActParam);
 
         this.say(tmpl, args, () => dialogueState);
 
@@ -469,7 +466,7 @@ export class DialogueInterface {
                     followUp: [
                         ['${v}', {
                             v: ''
-                        }, (state : Ast.DialogueState, v : Ast.Value) => S.makeSimpleTargetState(state, 'answer', [v])]
+                        }, (state : Ast.DialogueState, v : Ast.Value) => StateM.makeSimpleTargetState(state, this._policy.MANIFEST.name, 'answer', [v])]
                     ],
                     ...getOptions
                 });
@@ -490,7 +487,7 @@ export class DialogueInterface {
     }
 
     async askChoices(tmpl : string, args : TemplatePlaceholderMap, agentDialogueAct : string, choices : string[], getOptions : GetOptions = {}) {
-        const dialogueState = S.makeSimpleTargetState(this.state, agentDialogueAct, choices.map((c) => new Ast.Value.String(c)));
+        const dialogueState = StateM.makeSimpleTargetState(this.state, this._policy.MANIFEST.name, agentDialogueAct, choices.map((c) => new Ast.Value.String(c)));
 
         this.say(tmpl, args, () => dialogueState);
         for (let idx = 0; idx < choices.length; idx++)

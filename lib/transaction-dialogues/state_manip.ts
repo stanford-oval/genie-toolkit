@@ -23,15 +23,15 @@ import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
 
-import * as SentenceGeneratorRuntime from '../sentence-generator/runtime';
 import * as SentenceGeneratorTypes from '../sentence-generator/types';
 export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord;
-import * as ThingTalkUtils from '../utils/thingtalk';
 
 import * as C from '../templates/ast_manip';
-import * as keyfns from '../templates/keyfns';
-import { SlotBag } from '../templates/slot_bag';
-import ThingpediaLoader, { ParsedPlaceholderPhrase } from '../templates/load-thingpedia';
+import ThingpediaLoader from '../templates/load-thingpedia';
+
+import { ContextInfo, ResultInfo } from './context-info';
+import { ContextPhraseCreator, makeContextPhrase } from './context-phrases';
+import { POLICY_NAME } from './metadata';
 
 // NOTE: this version of arraySubset uses ===
 // the one in array_utils uses .equals()
@@ -60,387 +60,6 @@ function arraySubset<T>(small : T[], big : T[]) : boolean {
 // hence we hard-code the policy name here, and check it before doing anything
 // in the templates
 // templates can be combined though
-
-export const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
-
-const LARGE_RESULT_THRESHOLD = 50;
-function isLargeResultSet(result : Ast.DialogueHistoryResultList) : boolean {
-    return result.more || !(result.count instanceof Ast.Value.Number) || result.count.value >= LARGE_RESULT_THRESHOLD;
-}
-
-function invertDirection(dir : 'asc'|'desc') : 'asc'|'desc' {
-    if (dir === 'asc')
-        return 'desc';
-    else
-        return 'asc';
-}
-
-function getSortName(value : Ast.Value) : string {
-    if (value instanceof Ast.VarRefValue)
-        return value.name;
-    return C.getScalarExpressionName(value);
-}
-
-function getTableArgMinMax(table : Ast.Expression) : [string, string]|null {
-    while (table instanceof Ast.ProjectionExpression)
-        table = table.expression;
-
-    // either an index of a sort, where the index is exactly 1 or -1
-    // or a slice of a sort, with a base of 1 or -1, and a limit of 1
-    // (both are equivalent and get normalized, but sometimes we don't run the normalization)
-    if (table instanceof Ast.IndexExpression && table.expression instanceof Ast.SortExpression && table.indices.length === 1) {
-        const index = table.indices[0];
-        if (index instanceof Ast.Value.Number &&
-            (index.value === 1 || index.value === -1))
-            return [getSortName(table.expression.value), index.value === -1 ? invertDirection(table.expression.direction) : table.expression.direction];
-    }
-
-    if (table instanceof Ast.SliceExpression && table.expression instanceof Ast.SortExpression) {
-        const { base, limit } = table;
-        if (base instanceof Ast.Value.Number && (base.value === 1 || base.value === -1) &&
-            limit instanceof Ast.Value.Number && limit.value === 1)
-        return [getSortName(table.expression.value), base.value === -1 ? invertDirection(table.expression.direction) : table.expression.direction];
-    }
-
-    return null;
-}
-
-export class ResultInfo {
-    hasStream : boolean;
-    isTable : boolean;
-    isQuestion : boolean;
-    isAggregation : boolean;
-    isList : boolean;
-    argMinMaxField : [string, string]|null;
-    projection : string[]|null;
-    hasError : boolean;
-    hasEmptyResult : boolean;
-    hasSingleResult : boolean;
-    hasLargeResult : boolean;
-    idType : Type|null;
-
-    constructor(state : Ast.DialogueState,
-                item : Ast.DialogueHistoryItem) {
-        assert(item.results !== null);
-
-        const stmt = item.stmt;
-        this.hasStream = stmt.stream !== null;
-
-        this.isTable = stmt.last.schema!.functionType === 'query' &&
-            (!this.hasStream || state.dialogueAct === 'notification');
-
-        if (this.isTable) {
-            const table = stmt.lastQuery!;
-            this.isQuestion = !!(table instanceof Ast.ProjectionExpression
-                || table instanceof Ast.IndexExpression
-                || table instanceof Ast.AggregationExpression);
-            this.isAggregation = table instanceof Ast.AggregationExpression;
-            this.isList = stmt.expression.schema!.is_list;
-            this.argMinMaxField = getTableArgMinMax(table);
-            assert(this.argMinMaxField === null || this.isQuestion);
-            this.projection = table instanceof Ast.ProjectionExpression ?
-                C.getProjectionArguments(table) : null;
-            if (this.projection)
-                this.projection.sort();
-        } else {
-            this.isQuestion = false;
-            this.isAggregation = false;
-            this.isList = false;
-            this.argMinMaxField = null;
-            this.projection = null;
-            if (state.dialogueAct === 'action_question')
-                this.projection = state.dialogueActParam as string[];
-        }
-        this.hasError = item.results.error !== null;
-        this.hasEmptyResult = !this.hasStream && item.results.results.length === 0;
-        this.hasSingleResult = item.results.results.length === 1;
-        this.hasLargeResult = isLargeResultSet(item.results);
-
-        const id = stmt.last.schema!.getArgument('id');
-        this.idType = id && !id.is_input ? id.type : null;
-    }
-}
-
-export class NextStatementInfo {
-    isAction : boolean;
-    chainParameter : string|null;
-    chainParameterFilled : boolean;
-    isComplete : boolean;
-
-    constructor(currentItem : Ast.DialogueHistoryItem|null,
-                resultInfo : ResultInfo|null,
-                nextItem : Ast.DialogueHistoryItem) {
-        const nextstmt = nextItem.stmt;
-
-        this.isAction = !nextstmt.lastQuery;
-
-        this.chainParameter = null;
-        this.chainParameterFilled = false;
-        this.isComplete = nextItem.isExecutable();
-
-        if (!this.isAction)
-            return;
-
-        assert(nextItem.stmt.expression.expressions.length === 1);
-        const action = nextItem.stmt.first;
-        assert(action instanceof Ast.InvocationExpression);
-
-        if (!currentItem || !resultInfo || !resultInfo.isTable)
-            return;
-
-        const currentstmt = currentItem.stmt;
-        const tableschema = currentstmt.expression.schema!;
-        const idType = tableschema.getArgType('id');
-        if (!idType)
-            return;
-
-        const invocation = action.invocation;
-        const actionschema = invocation.schema!;
-        for (const arg of actionschema.iterateArguments()) {
-            if (!arg.is_input)
-                continue;
-            if (arg.type.equals(idType)) {
-                this.chainParameter = arg.name;
-                break;
-            }
-        }
-
-        if (this.chainParameter === null)
-            return;
-
-        for (const in_param of invocation.in_params) {
-            if (in_param.name === this.chainParameter && !in_param.value.isUndefined) {
-                this.chainParameterFilled = true;
-                break;
-            }
-        }
-    }
-}
-
-function toID(value : Ast.Value|undefined) {
-    if (value === undefined)
-        return null;
-    const jsValue = value.toJS();
-    if (typeof jsValue === 'number')
-        return jsValue;
-    else if (jsValue === null || jsValue === undefined)
-        return null;
-    else
-        return String(jsValue);
-}
-
-export class ContextInfo {
-    loader : ThingpediaLoader;
-    contextTable : SentenceGeneratorTypes.ContextTable;
-
-    state : Ast.DialogueState;
-    currentFunction : Ast.FunctionDef|null;
-    currentTableFunction : Ast.FunctionDef|null;
-    resultInfo : ResultInfo|null;
-    isMultiDomain : boolean;
-    previousDomainIdx : number|null;
-    currentIdx : number|null;
-    nextFunction : Ast.FunctionDef|null;
-    nextIdx : number|null;
-    nextInfo : NextStatementInfo|null;
-    aux : any;
-
-    key : {
-        currentFunction : string|null;
-        nextFunction : string|null;
-        currentTableFunction : string|null;
-
-        // type of ID parameter of current result
-        // this is usually the same as currentFunction, but can be null
-        // the current function doesn't return an ID, and can be different
-        // if the current function is not the primary query for this ID type
-        // it is used to match names and contexts
-        idType : Type|null;
-
-        // IDs of the top 3 results (entity values or numeric IDs)
-        id0 : string|number|null;
-        id1 : string|number|null;
-        id2 : string|number|null;
-
-        // number of results
-        resultLength : number;
-
-        // aggregation result (for count)
-        aggregationCount : number|null;
-
-        is_monitorable : boolean;
-    };
-
-    constructor(loader : ThingpediaLoader,
-                contextTable : SentenceGeneratorTypes.ContextTable,
-                state : Ast.DialogueState,
-                currentTableSchema : Ast.FunctionDef|null,
-                currentFunctionSchema : Ast.FunctionDef|null,
-                resultInfo : ResultInfo|null,
-                previousDomainIdx : number|null,
-                currentIdx : number|null,
-                nextIdx : number|null,
-                nextFunctionSchema : Ast.FunctionDef|null,
-                nextInfo : NextStatementInfo|null,
-                aux : any = null) {
-        this.loader = loader;
-        this.contextTable = contextTable;
-        this.state = state;
-
-        assert(currentFunctionSchema === null || currentFunctionSchema instanceof Ast.FunctionDef);
-        this.currentFunction = currentFunctionSchema;
-        assert(currentTableSchema === null || currentTableSchema instanceof Ast.FunctionDef);
-        this.currentTableFunction = currentTableSchema;
-
-        this.resultInfo = resultInfo;
-        this.isMultiDomain = previousDomainIdx !== null;
-        this.previousDomainIdx = previousDomainIdx;
-        this.currentIdx = currentIdx;
-
-        assert(nextFunctionSchema === null || nextFunctionSchema instanceof Ast.FunctionDef);
-        this.nextFunction = nextFunctionSchema;
-        this.nextIdx = nextIdx;
-        this.nextInfo = nextInfo;
-        this.aux = aux;
-
-        this.key = {
-            currentFunction: this.currentFunction ? this.currentFunction.qualifiedName : null,
-            nextFunction: this.nextFunction ? this.nextFunction.qualifiedName : null,
-            currentTableFunction: this.currentTableFunction ? this.currentTableFunction.qualifiedName : null,
-
-            idType: null,
-            id0: null,
-            id1: null,
-            id2: null,
-            resultLength: 0,
-
-            aggregationCount: null,
-
-            is_monitorable: this.currentFunction ? this.currentFunction.is_monitorable : false
-        };
-        if (this.resultInfo) {
-            this.key.idType = this.resultInfo.idType;
-
-            const results = this.results!;
-            this.key.resultLength = results.length;
-            if (results.length > 0)
-                this.key.id0 = toID(results[0].value.id);
-            if (results.length > 1)
-                this.key.id1 = toID(results[1].value.id);
-            if (results.length > 2)
-                this.key.id2 = toID(results[2].value.id);
-
-            if (this.resultInfo.isAggregation) {
-                const count = results[0].value.count;
-                if (count)
-                    this.key.aggregationCount = count.toJS() as number;
-            }
-        }
-    }
-
-    toString() : string {
-        return `ContextInfo(${this.state.prettyprint()})`;
-    }
-
-    get results() {
-        if (this.currentIdx !== null)
-            return this.state.history[this.currentIdx].results!.results;
-        return null;
-    }
-
-    get error() {
-        if (this.currentIdx !== null)
-            return this.state.history[this.currentIdx].results!.error;
-        return null;
-    }
-
-    get previousDomain() {
-        return this.previousDomainIdx !== null ? this.state.history[this.previousDomainIdx] : null;
-    }
-
-    get current() {
-        return this.currentIdx !== null ? this.state.history[this.currentIdx] : null;
-    }
-
-    get next() {
-        return this.nextIdx !== null ? this.state.history[this.nextIdx] : null;
-    }
-
-    clone() {
-        return new ContextInfo(
-            this.loader,
-            this.contextTable,
-            this.state.clone(),
-            this.currentTableFunction,
-            this.currentFunction,
-            this.resultInfo,
-            this.previousDomainIdx, this.currentIdx,
-            this.nextIdx, this.nextFunction, this.nextInfo,
-            this.aux
-        );
-    }
-}
-
-export function contextKeyFn(ctx : ContextInfo) {
-    return ctx.key;
-}
-
-export function initialContextInfo(loader : ThingpediaLoader, contextTable : SentenceGeneratorTypes.ContextTable) {
-    return new ContextInfo(loader, contextTable,
-        new Ast.DialogueState(null, POLICY_NAME, 'sys_init', [], []),
-        null, null, null, null, null, null, null, null);
-}
-
-export function getContextInfo(loader : ThingpediaLoader,
-                               state : Ast.DialogueState,
-                               contextTable : SentenceGeneratorTypes.ContextTable) : ContextInfo {
-    let nextItemIdx = null, nextInfo = null, currentFunction = null, currentTableFunction = null,
-        nextFunction = null, currentDevice = null, currentResultInfo = null,
-        previousDomainItemIdx = null, currentItemIdx = null;
-    let proposedSkip = 0;
-    for (let idx = 0; idx < state.history.length; idx ++) {
-        const item = state.history[idx];
-        const itemschema = item.stmt.expression.schema!;
-        const device = itemschema.class ? itemschema.class.name : null;
-        if (currentDevice && device && device !== currentDevice)
-            previousDomainItemIdx = currentItemIdx;
-        if (item.confirm === 'proposed') {
-            proposedSkip ++;
-            continue;
-        }
-        if (item.results === null) {
-            nextItemIdx = idx;
-            nextFunction = itemschema;
-            nextInfo = new NextStatementInfo(
-                currentItemIdx !== null ? state.history[currentItemIdx] : null,
-                currentResultInfo, item);
-            break;
-        }
-
-        // proposed items must come after the current item
-        // (but they can come before or after the next item, depending on what we're proposing)
-        assert(proposedSkip === 0);
-
-        currentDevice = device;
-        currentFunction = itemschema;
-
-        const stmt = item.stmt;
-        const lastQuery = stmt.lastQuery;
-        if (lastQuery)
-            currentTableFunction = lastQuery.schema;
-        currentItemIdx = idx;
-        currentResultInfo = new ResultInfo(state, item);
-    }
-    if (nextItemIdx !== null)
-        assert(nextInfo);
-    if (nextItemIdx !== null && currentItemIdx !== null)
-        assert(nextItemIdx === currentItemIdx + 1 + proposedSkip);
-    if (previousDomainItemIdx !== null)
-        assert(currentItemIdx !== null && previousDomainItemIdx <= currentItemIdx);
-
-    return new ContextInfo(loader, contextTable, state, currentTableFunction, currentFunction, currentResultInfo,
-        previousDomainItemIdx, currentItemIdx, nextItemIdx, nextFunction, nextInfo);
-}
 
 export function isUserAskingResultQuestion(ctx : ContextInfo) : boolean {
     // is the user asking a question about the result (or a specific element), or refining a search?
@@ -552,6 +171,9 @@ function propagateDeviceIDs(ctx : ContextInfo,
     });
 }
 
+/**
+ * @deprecated
+ */
 function addNewItem(ctx : ContextInfo,
                     dialogueAct : string,
                     dialogueActParam : string|null,
@@ -606,6 +228,9 @@ function addNewItem(ctx : ContextInfo,
     return newState;
 }
 
+/**
+ * @deprecated
+ */
 export function addNewStatement(ctx : ContextInfo,
                                 dialogueAct : string,
                                 dialogueActParam : string|null,
@@ -616,6 +241,9 @@ export function addNewStatement(ctx : ContextInfo,
     return addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newItems);
 }
 
+/**
+ * @deprecated
+ */
 export function acceptAllProposedStatements(ctx : ContextInfo) {
     if (!ctx.state.history.some((item) => item.confirm === 'proposed'))
         return null;
@@ -628,6 +256,9 @@ export function acceptAllProposedStatements(ctx : ContextInfo) {
     }));
 }
 
+/**
+ * @deprecated
+ */
 function makeSimpleState(ctx : ContextInfo,
                          dialogueAct : string,
                          dialogueActParam : Array<string|Ast.Value>|null) : Ast.DialogueState {
@@ -644,28 +275,7 @@ function makeSimpleState(ctx : ContextInfo,
     return newState;
 }
 
-/**
- * Construct an agent or user target that only change the dialogue act.
- *
- * The resulting agent target carries over all the accepted items and not executed items
- * from the current state.
- *
- * This is the new form of {@link makeSimpleState} that returns a target state instead of
- * a full state.
- */
-export function makeSimpleTargetState(state : Ast.DialogueState|null, dialogueAct : string, dialogueActParam : Array<string|Ast.Value> = []) {
-    const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
-    if (state === null)
-        return newState;
 
-    for (let i = 0; i < state.history.length; i++) {
-        if (state.history[i].confirm === 'proposed' || state.history[i].results !== null)
-            continue;
-        newState.history.push(state.history[i]);
-    }
-
-    return newState;
-}
 
 function sortByName(p1 : Ast.InputParam, p2 : Ast.InputParam) : -1|0|1 {
     if (p1.name < p2.name)
@@ -703,6 +313,9 @@ function mergeParameters(toInvocation : Ast.Invocation,
     return toInvocation;
 }
 
+/**
+ * @deprecated
+ */
 function addActionParam(ctx : ContextInfo,
                         dialogueAct : string,
                         action : Ast.Invocation,
@@ -782,6 +395,9 @@ function addActionParam(ctx : ContextInfo,
     return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
 }
 
+/**
+ * @deprecated
+ */
 function addAction(ctx : ContextInfo,
                    dialogueAct : string,
                    action : Ast.Invocation,
@@ -827,6 +443,9 @@ function addAction(ctx : ContextInfo,
     return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
 }
 
+/**
+ * @deprecated
+ */
 function addQuery(ctx : ContextInfo,
                   dialogueAct : string,
                   newTable : Ast.Expression,
@@ -838,6 +457,9 @@ function addQuery(ctx : ContextInfo,
     return addNewItem(ctx, dialogueAct, null, confirm === 'accepted' ? 'accepted-query' : 'proposed-query', newHistoryItem);
 }
 
+/**
+ * @deprecated
+ */
 function addQueryAndAction(ctx : ContextInfo,
                            dialogueAct : string,
                            newTable : Ast.Expression,
@@ -854,27 +476,6 @@ function addQueryAndAction(ctx : ContextInfo,
     return addNewItem(ctx, dialogueAct, null, confirm, newTableHistoryItem, newActionHistoryItem);
 }
 
-export function makeContextPhrase(symbol : number,
-                                  value : ContextInfo,
-                                  utterance : SentenceGeneratorRuntime.ReplacedResult = SentenceGeneratorRuntime.ReplacedResult.EMPTY,
-                                  priority = 0) : SentenceGeneratorTypes.ContextPhrase {
-    return { symbol, utterance, value, priority, context: value, key: value.key };
-}
-export function makeExpressionContextPhrase(context : ContextInfo,
-                                            symbol : number,
-                                            value : Ast.Expression,
-                                            utterance : SentenceGeneratorRuntime.ReplacedResult = SentenceGeneratorRuntime.ReplacedResult.EMPTY,
-                                            priority = 0) : SentenceGeneratorTypes.ContextPhrase {
-    return { symbol, utterance, value, priority, context, key: keyfns.expressionKeyFn(value) };
-}
-export function makeValueContextPhrase(context : ContextInfo,
-                                       symbol : number,
-                                       value : Ast.Value,
-                                       utterance : SentenceGeneratorRuntime.ReplacedResult = SentenceGeneratorRuntime.ReplacedResult.EMPTY,
-                                       priority = 0) : SentenceGeneratorTypes.ContextPhrase {
-    return { symbol, utterance, value, priority, context, key: keyfns.valueKeyFn(value) };
-}
-
 export interface AgentReplyOptions {
     end ?: boolean;
     raw ?: boolean;
@@ -889,14 +490,14 @@ export interface AgentReplyOptions {
  * - the agent reply tags (a list of strings that define the context tags on the user side)
  * - the interaction state (the expected type of the reply, if any, and a boolean indicating raw mode)
  * - extra information for the new context
+ *
+ * @deprecated
  */
 function makeAgentReply(ctx : ContextInfo,
                         state : Ast.DialogueState,
                         aux : unknown = null,
                         expectedType : ThingTalk.Type|null = null,
                         options : AgentReplyOptions = {}) : AgentReplyRecord {
-    const contextTable = ctx.contextTable;
-
     assert(state instanceof Ast.DialogueState);
     assert(state.dialogueAct.startsWith('sys_'));
     assert(expectedType === null || expectedType instanceof ThingTalk.Type);
@@ -919,21 +520,21 @@ function makeAgentReply(ctx : ContextInfo,
             state.history.every((item) => item.results !== null);
     }
 
-    if (ctx.loader.flags.inference) {
-        // at inference time, we don't need to compute any of the auxiliary info
-        // necessary to synthesize the new utterance, so we take a shortcut
-        // here and skip a whole bunch of computation
+    // if (ctx.loader.flags.inference) {
+    //     // at inference time, we don't need to compute any of the auxiliary info
+    //     // necessary to synthesize the new utterance, so we take a shortcut
+    //     // here and skip a whole bunch of computation
 
-        return {
-            meaning: state /* FIXME */,
+    //     return {
+    //         meaning: state /* FIXME */,
 
-            // the number of results we're describing at this turn
-            // (this affects the number of result cards to show)
-            numResults: options.numResults || 0,
-        };
-    }
+    //         // the number of results we're describing at this turn
+    //         // (this affects the number of result cards to show)
+    //         numResults: options.numResults || 0,
+    //     };
+    // }
 
-    const newContext = getContextInfo(ctx.loader, state, contextTable);
+    const newContext = ContextInfo.get(state);
     // set the auxiliary information, which is used by the semantic functions of the user
     // to see if the continuation is compatible with the specific reply from the agent
     newContext.aux = aux;
@@ -961,6 +562,9 @@ function makeAgentReply(ctx : ContextInfo,
     };
 }
 
+/**
+ * @deprecated
+ */
 function setEndBit(reply : AgentReplyRecord, value : boolean) : AgentReplyRecord {
     const newReply = {} as AgentReplyRecord;
     Object.assign(newReply, reply);
@@ -974,9 +578,7 @@ function actionShouldHaveResult(ctx : ContextInfo) : boolean {
     return C.countInputOutputParams(schema).output > 0;
 }
 
-export function tagContextForAgent(ctx : ContextInfo) : number[] {
-    const contextTable = ctx.contextTable;
-
+export function tagContextForAgent(ctx : ContextInfo, contextTable : SentenceGeneratorTypes.ContextTable) : number[] {
     switch (ctx.state.dialogueAct) {
     case 'end':
         // no continuations are possible after explicit "end" (which means the user said
@@ -1107,600 +709,24 @@ function ctxCanHaveRelatedQuestion(ctx : ContextInfo) : boolean {
     return !!(related && related.length);
 }
 
-function tryReplacePlaceholderPhrase(phrase : ParsedPlaceholderPhrase,
-                                     getParam : (name : string) => SentenceGeneratorRuntime.PlaceholderReplacement|undefined|null) : SentenceGeneratorRuntime.ReplacedResult|null {
-    const replacements : Array<SentenceGeneratorRuntime.PlaceholderReplacement|undefined> = [];
-    for (const param of phrase.names) {
-        const replacement = getParam(param);
-        if (replacement === null)
-            replacements.push(undefined);
-        else
-            replacements.push(replacement);
-    }
-    const replacementCtx = { replacements, constraints: {} };
-    return phrase.replaceable.replace(replacementCtx);
-}
-
-function getDeviceName(describer : ThingTalkUtils.Describer,
-                       resultItem : Ast.DialogueHistoryResultItem|undefined,
-                       invocation : Ast.Invocation|Ast.FunctionCallExpression) {
-    if (resultItem) {
-        // check in the result first
-        // until ThingTalk is fixed, this will be present only if there was no
-        // projection and the compiler did not get in the way
-        // FIXME we should fix the ThingTalk compiler though...
-        if (resultItem.value.__device) {
-            const entity = resultItem.value.__device;
-            const description = describer.describeArg(entity, {});
-            if (description)
-                return { value: entity, text: description };
-        }
-    }
-    if (!(invocation instanceof Ast.Invocation))
-        return undefined;
-
-    let name;
-    for (const in_param of invocation.selector.attributes) {
-        if (in_param.name === 'name') {
-            name = in_param.value;
-            break;
-        }
-    }
-    if (!name)
-        return undefined;
-
-    const entity = new Ast.EntityValue(invocation.selector.id, 'tt:device_id', name.toJS() as string);
-    const description = describer.describeArg(entity, {});
-    if (!description)
-        return undefined;
-    return { value: entity, text: description };
-}
-
-function makeErrorContextPhrase(ctx : ContextInfo,
-                                error : Ast.EnumValue) {
-    const contextTable = ctx.contextTable;
-    const describer = ctx.loader.describer;
-
-    const currentFunction = ctx.currentFunction!;
-    const phrases = ctx.loader.getErrorMessages(currentFunction.qualifiedName)[error.value];
-    if (!phrases)
-        return [];
-
-    const action = C.getInvocation(ctx.current!);
-
-    const output = [];
-    for (const candidate of phrases) {
-        const bag = new SlotBag(currentFunction);
-        const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
-            if (param === '__device')
-                return getDeviceName(describer, undefined, action);
-
-            let value = null;
-            for (const in_param of action.in_params) {
-                if (in_param.name === param) {
-                    value = in_param.value;
-                    break;
-                }
-            }
-            if (!value)
-                return null;
-            const text = describer.describeArg(value);
-            if (text === null)
-                return null;
-            bag.set(param, value);
-            return { value: value.isConstant() ? value.toJS() : value, text };
-        });
-
-        if (utterance) {
-            const value : C.ErrorMessage = { code: error.value, bag };
-            output.push({
-                symbol: contextTable.ctx_thingpedia_error_message,
-                utterance,
-                value,
-                priority: 0,
-                context: ctx,
-                key: keyfns.errorMessageKeyFn(value)
-            });
-
-            // in inference mode, we're done
-            if (ctx.loader.flags.inference)
-                return output;
-        }
-    }
-
-    return output;
-}
-
-function makeListResultContextPhrase(ctx : ContextInfo,
-                                     allResults : Ast.DialogueHistoryResultItem[],
-                                     phrases : ParsedPlaceholderPhrase[]) {
-    const contextTable = ctx.contextTable;
-    const describer = ctx.loader.describer;
-
-    const currentFunction = ctx.currentFunction!;
-    const action = C.getInvocation(ctx.current!);
-
-    const output = [];
-
-    // list result, concatenate all parameters into each placeholder
-    for (const candidate of phrases) {
-        const bag = new SlotBag(currentFunction);
-
-        const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
-            if (param === '__device')
-                return getDeviceName(describer, undefined, action);
-
-            const arg = currentFunction.getArgument(param);
-            // check if the argument was projected out, in which case we can't
-            // use this result phrase
-            if (!arg)
-                return null;
-            if (arg.is_input) {
-                // use the top result value only
-                const topResult = allResults[0];
-                const value = topResult.value[param];
-                if (!value)
-                    return null;
-                const text = describer.describeArg(value);
-                if (text === null)
-                    return null;
-                bag.set(param, value);
-                return { value: value.toJS(), text };
-            } else {
-                const arrayValue = new Ast.ArrayValue([]);
-                for (const result of allResults) {
-                    const value = result.value[param];
-                    if (!value)
-                        return null;
-                    arrayValue.value.push(value);
-                }
-                const text = describer.describeArg(arrayValue);
-                if (text === null)
-                    return null;
-                bag.set(param, arrayValue);
-                return { value: arrayValue.toJS(), text };
-            }
-        });
-
-        if (utterance) {
-            const value = [ctx, bag];
-            output.push({
-                symbol: contextTable.ctx_thingpedia_list_result,
-                utterance,
-                value,
-                priority: 0,
-                context: ctx,
-                key: keyfns.slotBagKeyFn(bag)
-            });
-
-            // in inference mode, we're done
-            if (ctx.loader.flags.inference)
-                return output;
-        }
-    }
-
-    return output;
-}
-
-const MAX_LIST_LENGTH = 5;
-
-function makeListConcatResultContextPhrase(ctx : ContextInfo,
-                                           allResults : Ast.DialogueHistoryResultItem[],
-                                           phrases : ParsedPlaceholderPhrase[]) {
-    const contextTable = ctx.contextTable;
-    const describer = ctx.loader.describer;
-
-    const currentFunction = ctx.currentFunction!;
-    const action = C.getInvocation(ctx.current!);
-
-    const output = [];
-
-    // list_concat result: concatenate phrases made from each result
-
-    // don't concatenate too many phrases
-    allResults = allResults.slice(0, MAX_LIST_LENGTH);
-
-    outer: for (const candidate of phrases) {
-        const bag = new SlotBag(currentFunction);
-
-        const utterance = [];
-        for (let resultIdx = 0; resultIdx < allResults.length; resultIdx++) {
-            const result = allResults[resultIdx];
-            const piece = tryReplacePlaceholderPhrase(candidate, (param) => {
-                if (param === '__index')
-                    return { value: resultIdx+1, text: new SentenceGeneratorRuntime.ReplacedConcatenation([String(resultIdx+1)], {}, {}) };
-
-                // FIXME this should be extracted from the result instead
-                // so we can show different names for different devices
-                if (param === '__device')
-                    return getDeviceName(describer, result, action);
-
-                // set the bag to the array value, if we haven't already
-                if (!bag.has(param)) {
-                    const arrayValue = new Ast.ArrayValue([]);
-                    for (const result of allResults) {
-                        const value = result.value[param];
-                        if (!value)
-                            return null;
-                        arrayValue.value.push(value);
-                    }
-                    bag.set(param, arrayValue);
-                }
-
-                // then pick the current result
-                const value = result.value[param];
-                if (!value)
-                    return null;
-                const text = describer.describeArg(value);
-                if (text === null)
-                    return null;
-                return { value: value.toJS(), text };
-            });
-            if (piece === null)
-                continue outer;
-            utterance.push(piece);
-        }
-
-        if (utterance) {
-            const value = [ctx, bag];
-            output.push({
-                symbol: contextTable.ctx_thingpedia_list_result,
-                utterance: new SentenceGeneratorRuntime.ReplacedList(utterance, ctx.loader.locale, '.'),
-                value,
-                priority: 0,
-                context: ctx,
-                key: keyfns.slotBagKeyFn(bag)
-            });
-
-            // in inference mode, we're done
-            if (ctx.loader.flags.inference)
-                return output;
-        }
-    }
-
-    return output;
-}
-
-function makeTopResultContextPhrase(ctx : ContextInfo,
-                                    topResult : Ast.DialogueHistoryResultItem,
-                                    phrases : ParsedPlaceholderPhrase[]) {
-    const contextTable = ctx.contextTable;
-    const describer = ctx.loader.describer;
-
-    const currentFunction = ctx.currentFunction!;
-    const action = C.getInvocation(ctx.current!);
-
-    const output = [];
-
-    // top result
-    for (const candidate of phrases) {
-        const bag = new SlotBag(currentFunction);
-
-        const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
-            if (param === '__device')
-                return getDeviceName(describer, topResult, action);
-
-            const value = topResult.value[param];
-            if (!value)
-                return null;
-            const text = describer.describeArg(value);
-            if (text === null)
-                return null;
-            bag.set(param, value);
-            return { value: value.toJS(), text };
-        });
-
-        if (utterance) {
-            output.push({
-                symbol: contextTable.ctx_thingpedia_result,
-                utterance,
-                value: bag,
-                priority: 0,
-                context: ctx,
-                key: keyfns.slotBagKeyFn(bag)
-            });
-
-            // in inference mode, we're done
-            if (ctx.loader.flags.inference)
-                return output;
-        }
-    }
-
-    return output;
-}
-
-// exported for tests
-export function makeResultContextPhrase(ctx : ContextInfo,
-                                        topResult : Ast.DialogueHistoryResultItem,
-                                        allResults : Ast.DialogueHistoryResultItem[]) {
-    // note: this is not the same as ctx.currentFunction (aka ctx.current!.stmt.expression.schema!)
-    // because the value of is_list will be different if the last function is not
-    // a list query but it is invoked in a chain with a list function
-    const currentFunction = ctx.current!.stmt.last.schema!;
-    const phrases = ctx.loader.getResultPhrases(currentFunction.qualifiedName);
-
-    const output = [];
-
-    // if we have multiple results, we prefer, in order:
-    // - list result
-    // - list_concat result
-    // - top result
-    //
-    // if we have one result, we prefer, in order:
-    // - top result
-    // - list_concat result
-    // - list result
-
-    if (allResults.length > 1) {
-        output.push(...makeListResultContextPhrase(ctx, allResults, phrases.list));
-        if (ctx.loader.flags.inference && output.length > 0)
-            return output;
-
-        output.push(...makeListConcatResultContextPhrase(ctx, allResults, phrases.list_concat));
-        if (ctx.loader.flags.inference && output.length > 0)
-            return output;
-
-        if (!currentFunction.is_list) {
-            // if the function is not a list, but we're getting multiple
-            // results, it means it was invoked over multiple devices, or multiple
-            // times in a row using a chain expression
-            // concatenates all the result phrases as if they were of "list_concat"
-            // type, because "list_concat" does not make sense for a non-list
-            // function
-            output.push(...makeListConcatResultContextPhrase(ctx, allResults, phrases.top));
-        } else {
-            output.push(...makeTopResultContextPhrase(ctx, topResult, phrases.top));
-        }
-    } else {
-        output.push(...makeTopResultContextPhrase(ctx, topResult, phrases.top));
-        if (ctx.loader.flags.inference && output.length > 0)
-            return output;
-
-        output.push(...makeListConcatResultContextPhrase(ctx, allResults, phrases.list_concat));
-        if (ctx.loader.flags.inference && output.length > 0)
-            return output;
-
-        output.push(...makeListResultContextPhrase(ctx, allResults, phrases.list));
-    }
-
-    return output;
-}
-
-export function makeEmptyResultContextPhrase(ctx : ContextInfo) {
-    const currentFunction = ctx.currentFunction!;
-    const contextTable = ctx.contextTable;
-    const describer = ctx.loader.describer;
-    const phrases = ctx.loader.getResultPhrases(currentFunction.qualifiedName);
-
-    const action = C.getInvocation(ctx.current!);
-    const isAction = currentFunction.functionType === 'action';
-
-    const output = [];
-    for (const candidate of (isAction ? phrases.top : phrases.empty)) {
-        const bag = new SlotBag(currentFunction);
-        const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
-            let value = null;
-            for (const in_param of action.in_params) {
-                if (in_param.name === param) {
-                    value = in_param.value;
-                    break;
-                }
-            }
-            if (!value)
-                return null;
-            const text = describer.describeArg(value);
-            if (text === null)
-                return null;
-            bag.set(param, value);
-            return { value: value.toJS(), text };
-        });
-
-        if (utterance) {
-            output.push({
-                symbol: isAction ? contextTable.ctx_thingpedia_result : contextTable.ctx_thingpedia_empty_result,
-                utterance,
-                value: bag,
-                priority: 0,
-                context: ctx,
-                key: keyfns.slotBagKeyFn(bag)
-            });
-
-            // in inference mode, we're done
-            if (ctx.loader.flags.inference)
-                return output;
-        }
-    }
-
-    return output;
-}
-
-export interface NameList {
-    ctx : ContextInfo;
-    results : Ast.DialogueHistoryResultItem[];
-}
-
-export function nameListKeyFn(list : NameList) {
-    const schema = list.ctx.currentFunction!;
-    return {
-        functionName: schema.qualifiedName,
-        idType: schema.getArgType('id')!,
-        length: list.results.length,
-
-        id0: list.ctx.key.id0,
-        id1: list.ctx.key.id1,
-        id2: list.ctx.key.id2,
-    };
-}
-
-function makeOneNameListContextPhrase(ctx : ContextInfo,
-                                      descriptions : SentenceGeneratorRuntime.ReplacedResult[],
-                                      length : number) {
-    const utterance = new SentenceGeneratorRuntime.ReplacedList(descriptions.slice(0, length), ctx.loader.locale, undefined);
-    const value : NameList = { ctx, results: ctx.results!.slice(0, length) };
-    return {
-        symbol: ctx.contextTable.ctx_result_name_list,
-        utterance,
-        value,
-        priority: length === 2 || length === 3 ? length : 0,
-        context: ctx,
-        key: nameListKeyFn(value)
-    };
-}
-
-export interface ContextName {
-    ctx : ContextInfo;
-    name : Ast.Value;
-}
-
-export function contextNameKeyFn(name : ContextName) {
-    return {
-        currentFunction: name.ctx.key.currentFunction
-    };
-}
-
-function makeNameContextPhrase(ctx : ContextInfo,
-                               utterance : SentenceGeneratorRuntime.ReplacedResult,
-                               name : Ast.Value) {
-    const value = { ctx, name };
-    return {
-        symbol: ctx.contextTable.ctx_result_name,
-        utterance,
-        value,
-        priority: 0,
-        context: ctx,
-        key: contextNameKeyFn(value)
-    };
-}
-
-export function makeNameListContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
-    const describer = ctx.loader.describer;
-
+export function getUserContextPhrases(ctx : ContextInfo, contextTable : SentenceGeneratorTypes.ContextTable) : SentenceGeneratorTypes.ContextPhrase[] {
     const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
 
-    const descriptions : SentenceGeneratorRuntime.ReplacedResult[] = [];
-
-    const results = ctx.results!;
-    for (let index = 0; index < results.length; index++) {
-        const value = results[index].value.id;
-        if (!value)
-            break;
-        const description = describer.describeArg(value);
-        if (!description)
-            break;
-        descriptions.push(description);
-    }
-
-    phrases.push(...descriptions.slice(0, 3).map((d, i) => makeNameContextPhrase(ctx, d, results[i].value.id)));
-
-    if (descriptions.length <= 1)
-        return phrases;
-
-    // add a name list of size 2, one of size 3, and one that includes all
-    // names in the list
-    // the last one will be used to support arbitrary slices
-    if (descriptions.length > 2)
-        phrases.push(makeOneNameListContextPhrase(ctx, descriptions, 2));
-    if (descriptions.length > 3)
-        phrases.push(makeOneNameListContextPhrase(ctx, descriptions, 3));
-    phrases.push(makeOneNameListContextPhrase(ctx, descriptions, descriptions.length));
-
+    getContextPhrasesCommon(ctx, contextTable, phrases);
     return phrases;
 }
 
-function getQuery(expr : Ast.Expression) : Ast.Expression|null {
-    if (expr instanceof Ast.ChainExpression)
-        return getQuery(expr.last);
+export function getAgentContextPhrases(ctx : ContextInfo,
+                                       tpLoader : ThingpediaLoader,
+                                       contextTable : SentenceGeneratorTypes.ContextTable) : SentenceGeneratorTypes.ContextPhrase[] {
+    const creator = new ContextPhraseCreator(ctx, tpLoader, contextTable);
+    const phrases = creator.make();
 
-    if (expr.schema!.functionType === 'query')
-        return expr;
-
-    if (expr instanceof Ast.ProjectionExpression ||
-        expr instanceof Ast.FilterExpression ||
-        expr instanceof Ast.MonitorExpression)
-        return getQuery(expr.expression);
-
-    return null;
-}
-
-const _warned = new Set<string>();
-
-export function getUserContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
-    const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
-
-    getContextPhrasesCommon(ctx, phrases);
+    getContextPhrasesCommon(ctx, contextTable, phrases);
     return phrases;
 }
 
-export function getAgentContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
-    const contextTable = ctx.contextTable;
-
-    const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
-    const describer = ctx.loader.describer;
-
-    if (ctx.state.dialogueAct === 'notification') {
-        if (ctx.state.dialogueActParam) {
-            const appName = ctx.state.dialogueActParam[0];
-            assert(appName instanceof Ast.StringValue);
-            phrases.push(makeValueContextPhrase(ctx,
-                contextTable.ctx_notification_app_name, appName, describer.describeArg(appName)!));
-        }
-    }
-
-    // make phrases that describe the current and next action
-    // these are used by the agent to form confirmations
-    const current = ctx.current;
-    if (current) {
-        const description = describer.describeExpressionStatement(current.stmt);
-        if (description !== null) {
-            phrases.push(makeContextPhrase(contextTable.ctx_current_statement, ctx, description));
-        } else {
-            const code = current.stmt.prettyprint();
-            if (!_warned.has(code)) {
-                console.error(`WARNING: failed to generate description for ${code}`);
-                _warned.add(code);
-            }
-        }
-
-        const lastQuery = current.stmt.lastQuery ? getQuery(current.stmt.lastQuery) : null;
-        if (lastQuery) {
-            let description = describer.describeQuery(lastQuery);
-            if (description !== null)
-                description = description.constrain('plural', 'other');
-            if (description !== null) {
-                phrases.push(makeExpressionContextPhrase(ctx,
-                                                         contextTable.ctx_current_query, lastQuery,
-                                                         description));
-            }
-        }
-
-        if (current.results!.error instanceof Ast.EnumValue) {
-            phrases.push(...makeErrorContextPhrase(ctx, current.results!.error));
-        } else {
-            const results = current.results!.results;
-            if (results.length > 0) {
-                const topResult = results[0];
-                phrases.push(...makeResultContextPhrase(ctx, topResult, results));
-                phrases.push(...makeNameListContextPhrases(ctx));
-            } else if (!current.results!.error) {
-                phrases.push(...makeEmptyResultContextPhrase(ctx));
-            }
-        }
-    }
-
-    const next = ctx.next;
-    if (next) {
-        const description = describer.describeExpressionStatement(next.stmt);
-        if (description !== null)
-            phrases.push(makeContextPhrase(contextTable.ctx_next_statement, ctx, description));
-    }
-
-    getContextPhrasesCommon(ctx, phrases);
-    return phrases;
-}
-
-function getContextPhrasesCommon(ctx : ContextInfo, phrases : SentenceGeneratorTypes.ContextPhrase[]) {
-    const contextTable = ctx.contextTable;
-
+function getContextPhrasesCommon(ctx : ContextInfo, contextTable : SentenceGeneratorTypes.ContextTable, phrases : SentenceGeneratorTypes.ContextPhrase[]) {
     if (ctx.state.dialogueAct === 'notification')
         phrases.push(makeContextPhrase(contextTable.ctx_with_notification, ctx));
 

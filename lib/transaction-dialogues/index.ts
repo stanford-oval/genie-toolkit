@@ -2,7 +2,7 @@
 //
 // This file is part of Genie
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020-2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import { Ast } from 'thingtalk';
 import { ContextTable } from '../sentence-generator/types';
 import ThingpediaLoader from '../templates/load-thingpedia';
 import * as C from '../templates/ast_manip';
+import { StateM } from '../utils/thingtalk';
 
 import * as S from './state_manip';
 import * as D from './dialogue_acts';
@@ -32,9 +33,13 @@ export * as Templates from './templates/index.genie.out';
 import { $load } from './templates/index.genie.out';
 import { DialogueInterface } from '../thingtalk-dialogues/interface';
 import { PolicyStartMode, UnexpectedCommandError } from '../thingtalk-dialogues';
+import { ContextInfo } from './context-info';
 export {
     $load as initializeTemplates
 };
+export * from './metadata';
+import { POLICY_NAME } from './metadata';
+import { makeContextPhrase } from './context-phrases';
 
 /**
  * This module defines the basic logic of transaction dialogues: how
@@ -42,114 +47,9 @@ export {
  * the agent follows up.
  */
 
-/**
- * The name of the dialogue policy
- */
-export const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
-
-/**
- * Metadata about this dialogue policy
- */
-export const MANIFEST = {
-    name: POLICY_NAME,
-
-    dialogueActs: {
-        user: [
-            // user says hi!
-            'greet',
-            // user says they want to do something else (same as greet but without the "hi" part)
-            'reinit',
-            // user issues a ThingTalk program
-            'execute',
-            // user wants to see the result of the previous program (in reply to a generic search question)
-            'ask_recommend',
-            // user insists in reiterating the same search after an empty search error
-            'insist',
-            // user wants to see more output from the previous result
-            'learn_more',
-            // user asks to see an output parameter from the previous result
-            'action_question',
-            // user says closes the dialogue mid-way (in the middle of a search)
-            'cancel',
-            // user terminates the dialogue after the agent asked if there is anything
-            // else the user wants
-            // "end" is a terminal state, it has no continuations
-            // (the agent replies with sys_goodbye which itself generates no user reply)
-            'end',
-            // pseudo state used to enter the dialogue state machine for notifications
-            'notification',
-            // pseudo state used to enter the dialogue state machine before the first turn
-            'init',
-
-            // pseudo states used to answer legacy questions and questions outside the state machine
-            'answer',
-            'answer_choice',
-        ],
-        agent: [
-            // agent says hi back
-            'sys_greet',
-            // agent asks a question to refine a query (with or without a parameter)
-            'sys_search_question',
-            'sys_generic_search_question',
-            // agent asks a question to slot fill a program
-            'sys_slot_fill',
-            // agent recommends one, two, three, four, or more results from the program (with or without an action)
-            'sys_recommend_one',
-            'sys_recommend_two',
-            'sys_recommend_three',
-            'sys_recommend_four',
-            'sys_recommend_many',
-            // agent displays the result of a non-list query (incl. aggregation)
-            'sys_display_result',
-            // agent proposes a refined query
-            'sys_propose_refined_query',
-            // agent asks the user what they would like to hear
-            'sys_learn_more_what',
-            // agent informs that the search is empty (with and without a slot-fill question)
-            'sys_empty_search_question',
-            'sys_empty_search',
-            // agent confirms the action before executing it
-            'sys_confirm_action',
-            // agent executed the action successfully (and shows the result of the action)
-            'sys_action_success',
-            // agent had an error in executing the action (with and without a slot-fill question)
-            'sys_action_error_question',
-            'sys_action_error',
-            // agent started a rule (command with stream) successfully
-            'sys_rule_enable_success',
-            // agent asks if anything else is needed
-            'sys_anything_else',
-            // agent says good bye
-            'sys_end',
-            // agent asks the user a free-form command
-            'sys_record_command',
-
-
-            // profile resolution dialogue acts (semi-legacy)
-            'sys_resolve_contact',
-            'sys_resolve_device',
-            'sys_ask_phone_number',
-            'sys_ask_email_address',
-            'sys_resolve_location',
-            'sys_resolve_time',
-            'sys_configure_notifications',
-        ],
-        withParam: [
-            'action_question',
-            'notification',
-            'sys_search_question',
-            'sys_slot_fill',
-            'sys_empty_search_question',
-            'sys_action_error_question'
-        ],
-    },
-
-    terminalAct: 'sys_end'
-} as const;
-
 function greet(dlg : DialogueInterface) {
     dlg.say(dlg._("{hello|hi}{!|,} {how can i help you|what are you interested in|what can i do for you}?"),
-        S.makeSimpleTargetState(null, 'sys_greet'));
+        StateM.makeSimpleTargetState(dlg.state, POLICY_NAME, 'sys_greet'));
 }
 
 /**
@@ -160,7 +60,7 @@ function greet(dlg : DialogueInterface) {
 export async function policy(dlg : DialogueInterface, startMode : PolicyStartMode) {
     // TODO call "expect" here a bunch of times to register the templates
     dlg.expect([
-        ["TODO user", {}, (state) => S.makeSimpleTargetState(state, 'cancel')]
+        ["TODO user", {}, (state) => StateM.makeSimpleTargetState(state, POLICY_NAME, 'cancel')]
     ]);
 
     switch (startMode) {
@@ -190,6 +90,7 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
             // execute the command immediately regardless of dialogue act
             // this will update dlg.state to the dialogue state after the user speaks
             await dlg.execute(cmd.meaning);
+            const ctx = ContextInfo.get(dlg.state);
 
             switch (cmd.type) {
             case POLICY_NAME + '.greet':
@@ -197,18 +98,18 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
                 break;
 
             case POLICY_NAME + '.cancel':
-                dlg.say(dlg._("alright, let me know if I can help you with anything else!"), S.makeSimpleTargetState(dlg.state, 'sys_end'));
+                dlg.say(dlg._("alright, let me know if I can help you with anything else!"), StateM.makeSimpleTargetState(ctx.state, POLICY_NAME, 'sys_end'));
                 return;
 
             default:
                 // all other cases
-                dlg.say(dlg._("TODO agent"), S.makeSimpleTargetState(dlg.state, 'sys_todo'));
+                dlg.say(dlg._("TODO agent"), StateM.makeSimpleTargetState(ctx.state, POLICY_NAME, 'sys_todo'));
             }
         } catch(e) {
             if (!(e instanceof UnexpectedCommandError))
                 throw e;
 
-            dlg.say(dlg._("Sorry, I did not understand that. Can you rephrase it?"), S.makeSimpleTargetState(dlg.state, 'sys_unexpected'));
+            dlg.say(dlg._("Sorry, I did not understand that. Can you rephrase it?"), StateM.makeSimpleTargetState(dlg.state, POLICY_NAME, 'sys_unexpected'));
         }
     }
 }
@@ -217,29 +118,24 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
  * Extract all the relevant context phrases for the given state.
  *
  * The context phrases will be used to generate the agent reply,
- * and are mapped to the context non-terminals defined in dialogue.genie.
- *
- * At a high-level, this function maps a concrete dialogue state
- * (produced by the simulation or the neural network)
- * to an abstract dialogue state defined in the state machine, and extracts
- * auxiliary phrases used to construct the reply.
+ * and are mapped to the context non-terminals defined in templates/index.genie.
  */
 export function getContextPhrasesForState(state : Ast.DialogueState|null,
                                           tpLoader : ThingpediaLoader,
                                           contextTable : ContextTable) {
     if (state === null)
-        return [S.makeContextPhrase(contextTable.ctx_init, S.initialContextInfo(tpLoader, contextTable))];
+        return [makeContextPhrase(contextTable.ctx_init, ContextInfo.initial())];
 
     assert(state instanceof Ast.DialogueState, `expected a dialogue state Ast node`);
-    if (state.policy !== S.POLICY_NAME)
-        return null;
-    const ctx = S.getContextInfo(tpLoader, state, contextTable);
+    if (state.policy !== POLICY_NAME)
+        return [];
+    const ctx = ContextInfo.get(state);
     // get the main context tags for this context (the abstract state, in paper terminology)
-    const tags = S.tagContextForAgent(ctx);
+    const tags = S.tagContextForAgent(ctx, contextTable);
 
-    const phrases = tags.map((tag) => S.makeContextPhrase(tag, ctx));
+    const phrases = tags.map((tag) => makeContextPhrase(tag, ctx));
     // add auxiliary context non-terminals used for pruning and to simplify generation
-    phrases.push(...S.getAgentContextPhrases(ctx));
+    phrases.push(...S.getAgentContextPhrases(ctx, tpLoader, contextTable));
     return phrases;
 }
 
@@ -253,7 +149,7 @@ export function interpretAnswer(state : Ast.DialogueState,
                                 answer : Ast.Value,
                                 tpLoader : ThingpediaLoader,
                                 contextTable : ContextTable) : Ast.DialogueState|null {
-    const ctx = S.getContextInfo(tpLoader, state, contextTable);
+    const ctx = ContextInfo.get(state);
 
     // if the agent proposed something and the user says "yes", we accept the proposal
     if (state.history.length > 0 && state.history[state.history.length-1].confirm === 'proposed'
@@ -292,9 +188,9 @@ export function interpretAnswer(state : Ast.DialogueState,
         return null;
 
     case 'sys_slot_fill':
-        return D.impreciseSlotFillAnswer(ctx, answer);
+        return D.impreciseSlotFillAnswer(ctx, tpLoader, answer);
     case 'sys_search_question':
-        return D.impreciseSearchQuestionAnswer(ctx, answer);
+        return D.impreciseSearchQuestionAnswer(ctx, tpLoader, answer);
     case 'sys_confirm_action':
         if (answer instanceof Ast.BooleanValue) {
             if (answer.value)
@@ -326,7 +222,7 @@ export function notification(appName : string|null, program : Ast.Program, resul
     const stmt = program.statements[0];
     assert(stmt instanceof Ast.ExpressionStatement);
 
-    return new Ast.DialogueState(null, S.POLICY_NAME, 'notification', appName ? [new Ast.Value.String(appName)] : null,
+    return new Ast.DialogueState(null, POLICY_NAME, 'notification', appName ? [new Ast.Value.String(appName)] : null,
         [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [result], new Ast.NumberValue(1), false), 'confirmed')]);
 }
 
@@ -335,7 +231,7 @@ export function notifyError(appName : string|null, program : Ast.Program, error 
     const stmt = program.statements[0];
     assert(stmt instanceof Ast.ExpressionStatement);
 
-    return new Ast.DialogueState(null, S.POLICY_NAME, 'notification', appName ? [new Ast.Value.String(appName)] : null,
+    return new Ast.DialogueState(null, POLICY_NAME, 'notification', appName ? [new Ast.Value.String(appName)] : null,
         [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [], new Ast.NumberValue(1), false, error), 'confirmed')]);
 }
 
@@ -357,7 +253,7 @@ export function initialState(tpLoader : ThingpediaLoader) {
 
     const stmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null,
         invocation, initialFunction));
-    return new Ast.DialogueState(null, S.POLICY_NAME, 'init', null, [new Ast.DialogueHistoryItem(null, stmt, null, 'accepted')]);
+    return new Ast.DialogueState(null, POLICY_NAME, 'init', null, [new Ast.DialogueHistoryItem(null, stmt, null, 'accepted')]);
 }
 
 /**
@@ -368,7 +264,7 @@ export function initialState(tpLoader : ThingpediaLoader) {
 export function getFollowUp(state : Ast.DialogueState,
                             tpLoader : ThingpediaLoader,
                             contextTable : ContextTable) {
-    const ctx = S.getContextInfo(tpLoader, state, contextTable);
+    const ctx = ContextInfo.get(state);
     if (ctx.next)
         return null;
 

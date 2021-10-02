@@ -29,6 +29,7 @@ export * from './dialogue_state_utils';
 // reexport clean, tokenizeExample from misc-utils
 import { clean, tokenizeExample } from '../misc-utils';
 import { PolicyModule } from '../../thingtalk-dialogues';
+export * as StateM from './state-manipulation';
 
 export { clean, tokenizeExample };
 

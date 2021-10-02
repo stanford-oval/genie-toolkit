@@ -24,10 +24,9 @@ import { Ast, } from 'thingtalk';
 
 import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
-import * as S from '../state_manip';
 import * as D from '../dialogue_acts';
 
-notification_preamble : S.ContextInfo = {
+notification_preamble : D.ContextInfo = {
     ["reminder:", priority=1] : (ctx : ctx_with_notification) => D.checkIsReminder(ctx, 'say'),
     ["alert:", priority=1] : (ctx : ctx_with_notification) => D.checkIsReminder(ctx, 'alert'),
     ["alert:", priority=1] : (ctx : ctx_with_notification) => D.checkIsReminder(ctx, 'timer_expire'),
@@ -38,7 +37,7 @@ notification_preamble : S.ContextInfo = {
     ["", priority=-1] : (ctx : ctx_with_notification) => ctx.state.dialogueActParam === null ? ctx : null,
 }
 
-notification_error_preamble : S.ContextInfo = {
+notification_error_preamble : D.ContextInfo = {
     ["${sorry} {there was an error in|an error occurred in} ${app}:"] : (sorry : sorry_preamble, ctx : ctx_with_notification, app : ctx_notification_app_name) => ctx,
 
     // empty preamble if we don't have the app name

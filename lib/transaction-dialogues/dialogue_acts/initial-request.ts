@@ -28,8 +28,8 @@ import * as ThingTalkUtils from '../../utils/thingtalk';
 import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 
+import { ContextInfo } from '../context-info';
 import {
-    ContextInfo,
     addNewItem,
 } from '../state_manip';
 import {

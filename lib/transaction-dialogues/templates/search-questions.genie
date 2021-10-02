@@ -29,7 +29,6 @@ import { Ast, } from 'thingtalk';
 import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 import * as D from '../dialogue_acts';
-import * as S from '../state_manip';
 
 one_param_direct_search_question : C.ParamSlot[] = {
     ( 'what' p:out_param_Any with { filterable = true } prefer_question_phrase '?'
@@ -104,7 +103,7 @@ question_npp_filter_pair : C.ParamSlot = {
     ctx:ctx_with_result_noquestion f1:npp_filter with { functionName = ctx.currentFunction } 'or' f2:npp_filter with { functionName = ctx.currentFunction } =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
     ctx:ctx_with_result_noquestion f1:npp_filter with { functionName = ctx.currentFunction } 'or' c:constant_Any with { type = f1.type } =>
-        D.checkFilterPairForDisjunctiveQuestionWithConstant(ctx, f1, c);
+        D.checkFilterPairForDisjunctiveQuestionWithConstant(ctx, $loader, f1, c);
 }
 question_apv_filter_pair : C.ParamSlot = {
     ctx:ctx_with_result_noquestion f1:apv_filter with { functionName = ctx.currentFunction } 'or' f2:apv_filter with { functionName = ctx.currentFunction } =>
@@ -112,7 +111,7 @@ question_apv_filter_pair : C.ParamSlot = {
 }
 question_avp_filter_pair : C.ParamSlot = {
     ctx:ctx_with_result_noquestion f1:avp_filter with { functionName = ctx.currentFunction } 'or' c:constant_Any with { type = f1.type } =>
-        D.checkFilterPairForDisjunctiveQuestionWithConstant(ctx, f1, c);
+        D.checkFilterPairForDisjunctiveQuestionWithConstant(ctx, $loader, f1, c);
 }
 question_preposition_filter_pair : C.ParamSlot = {
     ctx:ctx_with_result_noquestion f1:preposition_filter with { functionName = ctx.currentFunction } 'or' f2:preposition_filter with { functionName = ctx.currentFunction } =>

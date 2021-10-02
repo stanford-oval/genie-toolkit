@@ -27,9 +27,9 @@ import * as D from '../dialogue_acts';
 
 // Declare key functions for contextual stuff
 keyfn = {
-    S.ContextInfo : S.contextKeyFn,
-    S.NameList : S.nameListKeyFn,
-    S.ContextName : S.contextNameKeyFn,
+    D.ContextInfo : D.contextKeyFn,
+    D.NameList : D.nameListKeyFn,
+    D.ContextName : D.contextNameKeyFn,
     D.ActionSuccessPhraseWithResult : D.actionSuccessPhraseWithResultKeyFn,
     D.Recommendation : D.recommendationKeyFn,
     D.ListProposal : D.listProposalKeyFn,
@@ -74,7 +74,7 @@ import './slot-fill.genie';
 import './streams.genie';
 
 // declare contexts
-context : S.ContextInfo = {
+context : D.ContextInfo = {
     // context tags applied to both agent and user contexts
     // these should be returned by S.getContextTags()
     ctx_init,
@@ -160,17 +160,17 @@ context : D.ThingpediaListProposal = {
 context : C.ErrorMessage = {
     ctx_thingpedia_error_message
 };
-context : S.NameList = {
+context : D.NameList = {
     ctx_result_name_list
 };
-context : S.ContextName = {
+context : D.ContextName = {
     ctx_result_name
 };
 context : Ast.Value = {
     ctx_notification_app_name
 };
 
-initial_request_preamble : S.ContextInfo = {
+initial_request_preamble : D.ContextInfo = {
     ["{hello|hi}! i can help you {find a ${table[plural=one]}|{find|search for} ${table[plural=other]}}.", priority=10]: (ctx : ctx_init, table : base_table<functionName = ctx.nextFunction>) => ctx,
 
     ["{hello|hi}! i can help you ${action}.", priority=10]: (ctx : ctx_init, action : complete_action<functionName = ctx.nextFunction>) => {
@@ -338,7 +338,7 @@ $user : Ast.DialogueState = {
     ctx:ctx_sys_empty_search req:precise_empty_search_change_request with { functionName = ctx.currentTableFunction }
         => D.preciseEmptySearchChangeRequest(ctx, req);
     ctx:ctx_sys_empty_search req:imprecise_empty_search_change_request
-        => D.impreciseEmptySearchChangeRequest(ctx, req);
+        => D.impreciseEmptySearchChangeRequest(ctx, $loader, req);
     ctx:ctx_sys_empty_search accept_phrase
         => D.acceptEmptySearchOffer(ctx);
 
@@ -346,13 +346,13 @@ $user : Ast.DialogueState = {
     ctx:ctx_sys_search_question answer:precise_search_question_answer with { functionName = ctx.currentFunction }
         => D.preciseSearchQuestionAnswer(ctx, answer);
     ctx:ctx_sys_search_question answer:imprecise_search_question_answer [weight=0.2]
-        => D.impreciseSearchQuestionAnswer(ctx, answer);
+        => D.impreciseSearchQuestionAnswer(ctx, $loader, answer);
 
     // slot fill questions
     ctx:ctx_sys_slot_fill answer:precise_slot_fill_answer with { functionName = ctx.nextFunction }
         => D.preciseSlotFillAnswer(ctx, answer);
     ctx:ctx_sys_slot_fill answer:imprecise_slot_fill_answer
-        => D.impreciseSlotFillAnswer(ctx, answer);
+        => D.impreciseSlotFillAnswer(ctx, $loader, answer);
 
     // asking for a recommendation
     ?multiwoz {

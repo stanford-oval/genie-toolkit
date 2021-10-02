@@ -33,7 +33,7 @@ import ThingpediaLoader from '../../templates/load-thingpedia';
 import * as D from '../dialogue_acts';
 import * as S from '../state_manip';
 
-search_result_preamble : S.ContextInfo = {
+search_result_preamble : D.ContextInfo = {
     ["{there are|i can see|i have found|i can recommend} {many|several} ${base[plural=other]} {matching your request|matching your constraints|with those characteristics|like that|}."]: (ctx:ctx_search_command, base:base_noun_phrase<functionName = ctx.currentFunction>)
         => D.checkSearchResultPreamble(ctx, base, null, false),
 
