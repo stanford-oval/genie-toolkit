@@ -32,7 +32,7 @@ import type { SentenceGeneratorOptions } from '../sentence-generator/generator';
 import { DialogueInterface  } from './interface';
 
 import type ThingpediaLoader from '../templates/load-thingpedia';
-import * as TransactionPolicy from '../templates/transactions';
+import * as TransactionPolicy from '../transaction-dialogues';
 
 /**
  * A callback that implements the logic of the agent.

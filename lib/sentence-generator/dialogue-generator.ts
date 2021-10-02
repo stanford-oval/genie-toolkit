@@ -29,8 +29,8 @@ import { coin, ReservoirSampler, } from '../utils/random';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { DialogueTurn } from '../dataset-tools/parsers';
 import { SimulationDatabase } from '../thingtalk-dialogues/simulator/types';
-import * as TransactionPolicy from '../templates/transactions';
 import SimulationDialogueAgent from '../thingtalk-dialogues/simulator/simulation-thingtalk-executor';
+import * as TransactionPolicy from '../transaction-dialogues';
 
 import SentenceGenerator, { SentenceGeneratorOptions } from './generator';
 import SynthesisDialogue, {

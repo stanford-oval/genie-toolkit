@@ -47,7 +47,7 @@ import AbstractThingTalkExecutor, {
 import { shouldAutoConfirmStatement } from '../utils/thingtalk';
 
 // FIXME we should not import this here
-import * as S from '../templates/state_manip';
+import * as S from '../transaction-dialogues/state_manip';
 
 /**
  * A callback that computes all the relevant templates to use for synthesis

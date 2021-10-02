@@ -21,7 +21,7 @@
 import { Ast } from 'thingtalk';
 
 import { PlatformData } from '../dialogue-runtime/protocol';
-import { POLICY_NAME as TRANSACTION_POLICY } from '../templates/transactions';
+import { POLICY_NAME as TRANSACTION_POLICY } from '../transaction-dialogues';
 
 /**
  * Coarse classification of the kind of command issued by a user.
