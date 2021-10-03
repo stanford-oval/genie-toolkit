@@ -151,14 +151,14 @@ class LocalWorker extends events.EventEmitter {
         this._requests.clear();
     }
 
-    request(task : string, minibatch : Example[]) : Promise<RawPredictionCandidate[][]> {
+    request(task : string, minibatch : Example[], options : Record<string, any>) : Promise<RawPredictionCandidate[][]> {
         const id = this._nextId ++;
 
         return new Promise((resolve, reject) => {
             this._requests.set(id, { resolve, reject });
             //console.error(`${this._requests.size} pending requests`);
 
-            this._stream!.write({ id, task, instances: minibatch }, (err : Error | undefined | null) => {
+            this._stream!.write({ id, task, instances: minibatch, options: options }, (err : Error | undefined | null) => {
                 if (err) {
                     console.error(err);
                     reject(err);
@@ -179,10 +179,11 @@ class RemoteWorker extends events.EventEmitter {
     start() {}
     stop() {}
 
-    async request(task : string, minibatch : Example[]) : Promise<RawPredictionCandidate[][]> {
+    async request(task : string, minibatch : Example[], options : Record<string, any>) : Promise<RawPredictionCandidate[][]> {
         const response = await Tp.Helpers.Http.post(this._url, JSON.stringify({
             task,
-            instances: minibatch
+            instances: minibatch,
+            options: options
         }), { dataContentType: 'application/json', accept: 'application/json' });
         return JSON.parse(response).predictions.map((instance : any) : RawPredictionCandidate[] => {
             if (instance.candidates) {
@@ -209,6 +210,7 @@ export default class Predictor {
     private _maxLatency : number;
 
     private _minibatchTask = '';
+    private _minitbatchOptions = {};
     private _minibatch : Example[] = [];
     private _minibatchStartTime = 0;
 
@@ -225,13 +227,14 @@ export default class Predictor {
     private _flushRequest() {
         const minibatch = this._minibatch;
         const task = this._minibatchTask;
+        const options = this._minitbatchOptions;
+
         this._minibatch = [];
         this._minibatchTask = '';
+        this._minitbatchOptions = {};
         this._minibatchStartTime = 0;
 
-        //console.error(`minibatch: ${minibatch.length} instances`);
-
-        this._worker!.request(task, minibatch).then((candidates) => {
+        this._worker!.request(task, minibatch, options).then((candidates) => {
             assert(candidates.length === minibatch.length);
             for (let i = 0; i < minibatch.length; i++)
                 minibatch[i].resolve(candidates[i]);
@@ -241,10 +244,11 @@ export default class Predictor {
         });
     }
 
-    private _startRequest(ex : Example, task : string, now : number) {
+    private _startRequest(ex : Example, task : string, options : Record<string, any>, now : number) {
         assert(this._minibatch.length === 0);
         this._minibatch.push(ex);
         this._minibatchTask = task;
+        this._minitbatchOptions = options;
         this._minibatchStartTime = now;
 
         setTimeout(() => {
@@ -253,23 +257,21 @@ export default class Predictor {
         }, this._maxLatency);
     }
 
-    private _addRequest(ex : Example, task : string) {
+    private _addRequest(ex : Example, task : string, options : Record<string, any>) {
         const now = Date.now();
         if (this._minibatch.length === 0) {
-            this._startRequest(ex, task, now);
+            this._startRequest(ex, task, options, now);
         } else if (this._minibatchTask === task &&
             (now - this._minibatchStartTime < this._maxLatency) &&
             this._minibatch.length < this._minibatchSize) {
             this._minibatch.push(ex);
         } else {
             this._flushRequest();
-            this._startRequest(ex, task, now);
+            this._startRequest(ex, task, options, now);
         }
     }
 
-    predict(context : string, question = DEFAULT_QUESTION, answer ?: string, task = 'almond', example_id ?: string) : Promise<RawPredictionCandidate[]> {
-        assert(typeof context === 'string');
-        assert(typeof question === 'string');
+    predict(context : string, question : string = DEFAULT_QUESTION, answer ?: string, task = 'almond', example_id ?: string, options : Record<string, any> = {}) : Promise<RawPredictionCandidate[]> {
 
         // ensure we have a worker, in case it recently died
         if (!this._worker)
@@ -281,7 +283,7 @@ export default class Predictor {
             resolve = _resolve;
             reject = _reject;
         });
-        this._addRequest({ context, question, answer, resolve, reject }, task);
+        this._addRequest({ context, question, answer, example_id, resolve, reject }, task, options);
 
         return promise;
     }

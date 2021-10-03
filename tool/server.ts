@@ -39,6 +39,7 @@ interface Backend {
     tokenizer : I18n.BaseTokenizer;
     nlu : LocalParserClient;
     nlg ?: LocalParserClient;
+    translator ?: LocalParserClient;
 }
 
 declare global {
@@ -148,6 +149,53 @@ async function queryNLG(params : Record<string, string>,
     });
 }
 
+
+interface TranslationData {
+    input : string;
+    tgt_locale : string
+    entities ?: EntityMap;
+    limit ?: string;
+    alignment ?: boolean;
+    src_locale ?: string;
+}
+const Translation_PARAMS = {
+    input: 'string',
+    tgt_locale: 'string',
+    entities: '?object',
+    limit: '?number',
+    alignment: '?boolean',
+    src_locale: '?string',
+};
+
+async function queryTranslate(params : Record<string, string>,
+                            data : TranslationData,
+                            res : express.Response) {
+    const app = res.app;
+
+    if (params.locale !== app.args.locale) {
+        res.status(400).json({ error: 'Unsupported language' });
+        return;
+    }
+
+    if (! data.src_locale)
+        data.src_locale = 'en-US';
+
+    const translationOptions : Record<string, any> = {
+                                                        'do_alignment': data.alignment,
+                                                        'align_remove_output_quotation': true,
+                                                        'src_locale': data.src_locale,
+                                                        'tgt_locale': data.tgt_locale
+    };
+
+    const result = await res.app.backend.translator!.translateUtterance(
+        data.input.split(' '), data.entities, translationOptions);
+    res.json({
+        candidates: result.slice(0, data.limit ? parseInt(data.limit) : undefined),
+    });
+}
+
+
+
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('server', {
         add_help: true,
@@ -159,12 +207,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 8400,
     });
     parser.add_argument('--nlu-model', {
-        required: true,
+        required: false,
         help: "Path to the NLU model, pointing to a model directory.",
     });
     parser.add_argument('--nlg-model', {
         required: false,
         help: "Path to the NLG model, pointing to a model directory.",
+    });
+    parser.add_argument('--translation-model', {
+        required: false,
+        help: "Path to the Translation model, pointing to a model directory.",
     });
     parser.add_argument('--thingpedia', {
         required: true,
@@ -199,12 +251,19 @@ export async function execute(args : any) {
         tokenizer: i18n.getTokenizer(),
         nlu: new LocalParserClient(args.nlu_model, args.locale, undefined, undefined, tpClient)
     };
-    app.backend.nlu.start();
+
+    if (args.nlu_model)
+        app.backend.nlu.start();
     if (args.nlg_model && args.nlg_model !== args.nlu_model) {
         app.backend.nlg = new LocalParserClient(args.nlg_model, args.locale, undefined, undefined, tpClient);
         app.backend.nlg.start();
     } else {
         app.backend.nlg = app.backend.nlu;
+    }
+
+    if (args.translation_model) {
+        app.backend.translator = new LocalParserClient(args.translation_model, args.locale, undefined, undefined, tpClient);
+        app.backend.translator.start();
     }
 
     app.args = args;
@@ -227,6 +286,10 @@ export async function execute(args : any) {
         queryNLG(req.params, req.body, res).catch(next);
     });
 
+    app.post('/:locale/translate', qv.validatePOST(Translation_PARAMS, { accept: 'application/json' }), (req, res, next) => {
+        queryTranslate(req.params, req.body, res).catch(next);
+    });
+
     app.post('/:locale/tokenize', qv.validatePOST({ q: 'string', entities: '?object' }, { accept: 'application/json' }), (req, res, next) => {
         tokenize(req.params, req.body, res).catch(next);
     });
@@ -246,8 +309,11 @@ export async function execute(args : any) {
         process.on('SIGTERM', resolve);
     });
 
-    await app.backend.nlu.stop();
+    if (app.backend.nlu)
+        await app.backend.nlu.stop();
     if (app.backend.nlg !== app.backend.nlu)
         await app.backend.nlg.stop();
+    if (app.backend.translator)
+        await app.backend.translator.stop();
     server.close();
 }
