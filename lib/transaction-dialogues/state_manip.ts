@@ -24,7 +24,7 @@ import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
 
 import * as SentenceGeneratorTypes from '../sentence-generator/types';
-export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord;
+import { setOrAddInvocationParam, StateM } from '../utils/thingtalk';
 
 import * as C from '../templates/ast_manip';
 import ThingpediaLoader from '../templates/load-thingpedia';
@@ -104,215 +104,6 @@ export function isUserAskingResultQuestion(ctx : ContextInfo) : boolean {
     return !arraySubset(currentProjection, previousResultInfo.projection);
 }
 
-class CollectDeviceIDVisitor extends Ast.NodeVisitor {
-    collection = new Map<string, string>();
-
-    visitDeviceSelector(selector : Ast.DeviceSelector) {
-        if (selector.all) {
-            this.collection.set(selector.kind, 'all');
-            return false;
-        }
-        if (!selector.id)
-            return false;
-        this.collection.set(selector.kind, selector.id);
-        return false;
-    }
-}
-
-class ApplyDeviceIDVisitor extends Ast.NodeVisitor {
-    constructor(private collection : Map<string, string>) {
-        super();
-    }
-
-    visitDeviceSelector(selector : Ast.DeviceSelector) {
-        if (selector.attributes.length > 0 || selector.all)
-            return false;
-        if (selector.id)
-            return false;
-
-        const existing = this.collection.get(selector.kind);
-        if (existing === 'all')
-            selector.all = true;
-        else if (existing)
-            selector.id = existing;
-        return false;
-    }
-}
-
-function propagateDeviceIDs(ctx : ContextInfo,
-                            newHistoryItems : Ast.DialogueHistoryItem[]) {
-    const visitor = new CollectDeviceIDVisitor();
-
-    // here we used to traverse the whole state and collect all device IDs from
-    // all turns
-    // this is not correct though: we cannot propagate a device ID older
-    // than MAX_CONTEXT_ITEMS ago because it won't be seen in the neural context
-    //
-    // instead, we only ask the neural model to propagate the current item, if we have
-    // it, and any item newer than that
-    // propagation from older item will happen in prepareForExecution
-    //
-    // we need to have the neural model propagate from the next item and subsequent
-    // because next items are replaced and gone before prepareForExecution so the
-    // info has to be carried forward by the neural model output
-    const currentIdx = ctx.currentIdx ?? -1;
-    if (currentIdx >= 0)
-        ctx.state.history[currentIdx].visit(visitor);
-    for (let i = currentIdx+1; i < ctx.state.history.length; i++)
-        ctx.state.history[i].visit(visitor);
-
-    const applyVisitor = new ApplyDeviceIDVisitor(visitor.collection);
-    return newHistoryItems.map((item) => {
-        // clone the item just to be sure
-        // FIXME we might be able to skip this clone in some cases
-        item = item.clone();
-        item.visit(applyVisitor);
-        return item;
-    });
-}
-
-/**
- * @deprecated
- */
-function addNewItem(ctx : ContextInfo,
-                    dialogueAct : string,
-                    dialogueActParam : string|null,
-                    confirm : 'accepted-query'|'accepted'|'proposed'|'proposed-query'|'confirmed',
-                    ...newHistoryItem : Ast.DialogueHistoryItem[]) : Ast.DialogueState {
-    newHistoryItem = propagateDeviceIDs(ctx, newHistoryItem);
-
-    for (const item of newHistoryItem) {
-        C.adjustDefaultParameters(item);
-        item.results = null;
-        item.confirm = confirm === 'accepted-query' ? 'accepted' :
-            confirm  === 'proposed-query' ? 'proposed' : confirm;
-    }
-
-    const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
-
-    if (confirm === 'proposed') {
-        // find the first item that was not confirmed or accepted, and replace everything after that
-
-        for (let i = 0; i < ctx.state.history.length; i++) {
-            if (ctx.state.history[i].confirm === 'proposed')
-                break;
-            newState.history.push(ctx.state.history[i]);
-        }
-        newState.history.push(...newHistoryItem);
-    } else if (confirm === 'accepted-query' || confirm === 'proposed-query') {
-        // add the new history item right after the current one, keep
-        // all the accepted items, and remove all proposed items
-
-        if (ctx.currentIdx !== null) {
-            for (let i = 0; i <= ctx.currentIdx; i++)
-                newState.history.push(ctx.state.history[i]);
-        }
-        newState.history.push(...newHistoryItem);
-        if (ctx.currentIdx !== null) {
-            for (let i = ctx.currentIdx + 1; i < ctx.state.history.length; i++) {
-                if (ctx.state.history[i].confirm === 'proposed')
-                    continue;
-                newState.history.push(ctx.state.history[i]);
-            }
-        }
-    } else {
-        // wipe everything from state after the current program
-        // this will remove all previously accepted and/or proposed actions
-        if (ctx.currentIdx !== null) {
-            for (let i = 0; i <= ctx.currentIdx; i++)
-                newState.history.push(ctx.state.history[i]);
-        }
-        newState.history.push(...newHistoryItem);
-    }
-
-    return newState;
-}
-
-/**
- * @deprecated
- */
-export function addNewStatement(ctx : ContextInfo,
-                                dialogueAct : string,
-                                dialogueActParam : string|null,
-                                confirm : 'accepted'|'proposed'|'confirmed',
-                                ...newExpression : Ast.Expression[]) {
-    const newItems = newExpression.map((expr) =>
-        new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, expr), null, confirm));
-    return addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newItems);
-}
-
-/**
- * @deprecated
- */
-export function acceptAllProposedStatements(ctx : ContextInfo) {
-    if (!ctx.state.history.some((item) => item.confirm === 'proposed'))
-        return null;
-
-    return new Ast.DialogueState(null, POLICY_NAME, 'execute', null, ctx.state.history.map((item) => {
-        if (item.confirm === 'proposed')
-            return new Ast.DialogueHistoryItem(null, item.stmt, null, 'accepted');
-        else
-            return item;
-    }));
-}
-
-/**
- * @deprecated
- */
-function makeSimpleState(ctx : ContextInfo,
-                         dialogueAct : string,
-                         dialogueActParam : Array<string|Ast.Value>|null) : Ast.DialogueState {
-    // a "simple state" carries the current executed/confirmed/accepted items, but not the
-    // proposed ones
-
-    const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
-    for (let i = 0; i < ctx.state.history.length; i++) {
-        if (ctx.state.history[i].confirm === 'proposed')
-            break;
-        newState.history.push(ctx.state.history[i]);
-    }
-
-    return newState;
-}
-
-
-
-function sortByName(p1 : Ast.InputParam, p2 : Ast.InputParam) : -1|0|1 {
-    if (p1.name < p2.name)
-        return -1;
-    if (p1.name > p2.name)
-        return 1;
-    return 0;
-}
-
-function setOrAddInvocationParam(newInvocation : Ast.Invocation,
-                                 pname : string,
-                                 value : Ast.Value) : void {
-    let found = false;
-    for (const in_param of newInvocation.in_params) {
-        if (in_param.name === pname) {
-            found = true;
-            in_param.value = value;
-            break;
-        }
-    }
-    if (!found) {
-        newInvocation.in_params.push(new Ast.InputParam(null, pname, value));
-        newInvocation.in_params.sort(sortByName);
-    }
-}
-
-function mergeParameters(toInvocation : Ast.Invocation,
-                         fromInvocation : Ast.Invocation) : Ast.Invocation {
-    for (const in_param of fromInvocation.in_params) {
-        if (in_param.value.isUndefined)
-            continue;
-        setOrAddInvocationParam(toInvocation, in_param.name, in_param.value);
-    }
-
-    return toInvocation;
-}
-
 /**
  * @deprecated
  */
@@ -340,10 +131,10 @@ function addActionParam(ctx : ContextInfo,
             //
             // to carry over parameters, we actually clone the statement and set the parameter
             // if confirm == "proposed":
-            //   addNewItem() will add at the end, after the currently accepted
+            //   makeTargetState() will add at the end, after the currently accepted
             //   item, and we'll have two actions (one "accepted" and one "proposed"), or just one "proposed" action
             // if confirm == "accepted":
-            //   addNewItem() will wipe everything and we'll only one
+            //   makeTargetState() will wipe everything and we'll only one
 
             newHistoryItem = next.clone();
             const newInvocation = C.getInvocation(newHistoryItem);
@@ -392,7 +183,7 @@ function addActionParam(ctx : ContextInfo,
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
-    return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
+    return StateM.makeTargetState(ctx.state, POLICY_NAME, dialogueAct, [], confirm, newHistoryItem);
 }
 
 /**
@@ -440,7 +231,7 @@ function addAction(ctx : ContextInfo,
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
-    return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
+    return StateM.makeTargetState(ctx.state, POLICY_NAME, dialogueAct, [], confirm, newHistoryItem);
 }
 
 /**
@@ -454,7 +245,7 @@ function addQuery(ctx : ContextInfo,
     const newStmt = new Ast.ExpressionStatement(null, newTable);
     const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
-    return addNewItem(ctx, dialogueAct, null, confirm === 'accepted' ? 'accepted-query' : 'proposed-query', newHistoryItem);
+    return StateM.makeTargetState(ctx.state, POLICY_NAME, dialogueAct, [], confirm === 'accepted' ? 'accepted-query' : 'proposed-query', newHistoryItem);
 }
 
 /**
@@ -473,7 +264,7 @@ function addQueryAndAction(ctx : ContextInfo,
     const newActionStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null, newAction, newAction.schema));
     const newActionHistoryItem = new Ast.DialogueHistoryItem(null, newActionStmt, null, confirm);
 
-    return addNewItem(ctx, dialogueAct, null, confirm, newTableHistoryItem, newActionHistoryItem);
+    return StateM.makeTargetState(ctx.state, POLICY_NAME, dialogueAct, [], confirm, newTableHistoryItem, newActionHistoryItem);
 }
 
 export interface AgentReplyOptions {
@@ -497,7 +288,7 @@ function makeAgentReply(ctx : ContextInfo,
                         state : Ast.DialogueState,
                         aux : unknown = null,
                         expectedType : ThingTalk.Type|null = null,
-                        options : AgentReplyOptions = {}) : AgentReplyRecord {
+                        options : AgentReplyOptions = {}) : SentenceGeneratorTypes.AgentReplyRecord {
     assert(state instanceof Ast.DialogueState);
     assert(state.dialogueAct.startsWith('sys_'));
     assert(expectedType === null || expectedType instanceof ThingTalk.Type);
@@ -565,8 +356,8 @@ function makeAgentReply(ctx : ContextInfo,
 /**
  * @deprecated
  */
-function setEndBit(reply : AgentReplyRecord, value : boolean) : AgentReplyRecord {
-    const newReply = {} as AgentReplyRecord;
+function setEndBit(reply : SentenceGeneratorTypes.AgentReplyRecord, value : boolean) : SentenceGeneratorTypes.AgentReplyRecord {
+    const newReply = {} as SentenceGeneratorTypes.AgentReplyRecord;
     Object.assign(newReply, reply);
     // TODO
     // newReply.end = value;
@@ -779,13 +570,8 @@ export {
     setEndBit,
 
     // manipulate states to create new states
-    sortByName,
-    makeSimpleState,
-    addNewItem,
     addActionParam,
     addAction,
     addQuery,
     addQueryAndAction,
-    mergeParameters,
-    setOrAddInvocationParam,
 };

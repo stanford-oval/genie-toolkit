@@ -23,16 +23,14 @@ import assert from 'assert';
 
 import { Ast, Type } from 'thingtalk';
 
+import { mergeParameters, setOrAddInvocationParam, StateM } from '../../utils/thingtalk';
 import type ThingpediaLoader from '../../templates/load-thingpedia';
 import * as C from '../../templates/ast_manip';
 
+import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
     makeAgentReply,
-    makeSimpleState,
-    mergeParameters,
-    setOrAddInvocationParam,
-    addNewItem,
 } from '../state_manip';
 
 
@@ -88,9 +86,9 @@ function makeSlotFillQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
         const type = arg.type;
 
         const raw = useRawModeForSlotFill(arg);
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', questions.map((q) => q.name)), null, type, { raw });
+        return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_slot_fill', questions.map((q) => q.name)), null, type, { raw });
     }
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', questions.map((q) => q.name)));
+    return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_slot_fill', questions.map((q) => q.name)));
 }
 
 /**
@@ -146,7 +144,7 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
     // modify in place
     mergeParameters(newInvocation, answer);
 
-    return addNewItem(ctx, 'execute', null, 'accepted', clone);
+    return StateM.makeTargetState(ctx.state, POLICY_NAME, 'execute', [], 'accepted', clone);
 }
 
 function impreciseSlotFillAnswer(ctx : ContextInfo, loader : ThingpediaLoader, answer : Ast.Value|C.InputParamSlot) {
@@ -187,7 +185,7 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, loader : ThingpediaLoader, a
 
     // modify in place
     setOrAddInvocationParam(newAction, ipslot.ast.name, ipslot.ast.value);
-    return addNewItem(ctx, 'execute', null, 'accepted', clone);
+    return StateM.makeTargetState(ctx.state, POLICY_NAME, 'execute', [], 'accepted', clone);
 }
 
 export {

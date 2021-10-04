@@ -24,14 +24,13 @@ import assert from 'assert';
 import { Ast } from 'thingtalk';
 
 import * as C from '../../templates/ast_manip';
+import { setOrAddInvocationParam, StateM } from '../../utils/thingtalk';
 
 import { SlotBag } from '../../templates/slot_bag';
+import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
     makeAgentReply,
-    makeSimpleState,
-    setOrAddInvocationParam,
-    addNewItem,
 } from '../state_manip';
 import {
     isInfoPhraseCompatibleWithResult
@@ -49,7 +48,7 @@ function makeThingpediaActionSuccessPhrase(ctx : ContextInfo, info : SlotBag) {
     // we don't need to check anything here, we know the context matches
     // because the generation enforces that, and we know that the result phrase
     // is correct by construction
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), info, null, { numResults: 1 });
+    return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_action_success'), info, null, { numResults: 1 });
 }
 
 function checkSelector(ctxSelector : Ast.DeviceSelector, actionSelector : Ast.DeviceSelector) : boolean {
@@ -164,11 +163,11 @@ function makeCompleteActionSuccessPhrase(ctx : ContextInfo, action : Ast.Express
             return null;
     }
 
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), info, null, { numResults: 1 });
+    return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_action_success'), info, null, { numResults: 1 });
 }
 
 function makeGenericActionSuccessPhrase(ctx : ContextInfo) {
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), null, null, { numResults: 0 });
+    return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_action_success'), null, null, { numResults: 0 });
 }
 
 export interface ErrorMessage {
@@ -230,13 +229,13 @@ function makeActionErrorPhrase(ctx : ContextInfo, questions : C.ParamSlot[]) {
     assert(Array.isArray(questions));
 
     if (questions.length === 0)
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_error', null));
+        return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_action_error'));
 
     if (questions.length === 1) {
         const type = schema.getArgType(questions[0].name)!;
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_error_question', questions.map((q) => q.name)), null, type);
+        return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_action_error_question', questions.map((q) => q.name)), null, type);
     }
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_error_question', questions.map((q) => q.name)));
+    return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_action_error_question', questions.map((q) => q.name)));
 }
 
 function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputParamSlot) {
@@ -268,7 +267,7 @@ function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputPar
     if (!action || !(action instanceof Ast.Invocation))
         return null;
     setOrAddInvocationParam(action, ipslot.ast.name, ipslot.ast.value);
-    return addNewItem(ctx, 'execute', null, 'accepted', clone);
+    return StateM.makeTargetState(ctx.state, POLICY_NAME, 'execute', [], 'accepted', clone);
 }
 
 function actionSuccessQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
@@ -282,7 +281,7 @@ function actionSuccessQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
         if (!arg || arg.is_input)
             return null;
     }
-    return makeSimpleState(ctx, 'action_question', questions.map((q) => q.name));
+    return StateM.makeSimpleState(ctx.state, POLICY_NAME, 'action_question', questions.map((q) => q.name));
 }
 
 export {

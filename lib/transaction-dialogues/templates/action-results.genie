@@ -28,7 +28,6 @@ import { Ast, } from 'thingtalk';
 import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 import * as D from '../dialogue_acts';
-import * as S from '../state_manip';
 
 import { SlotBag } from '../../templates/slot_bag';
 
@@ -77,7 +76,7 @@ action_success_phrase_with_result : D.ActionSuccessPhraseWithResult = {
         => [action, result.info];
 }
 
-action_success_phrase : S.AgentReplyRecord = {
+action_success_phrase : D.AgentReplyRecord = {
     ctx:ctx_completed_action_success generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
         => D.makeThingpediaActionSuccessPhrase(ctx, result);
 
@@ -98,7 +97,7 @@ action_success_phrase : S.AgentReplyRecord = {
 
 }
 
-action_notification_phrase : S.AgentReplyRecord = {
+action_notification_phrase : D.AgentReplyRecord = {
     ctx:ctx_action_notification notification_preamble generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
         => D.makeThingpediaActionSuccessPhrase(ctx, result);
 
@@ -153,7 +152,7 @@ two_param_try_different_param_question : C.ParamSlot[] = {
     };
 }
 
-action_error_phrase : S.AgentReplyRecord = {
+action_error_phrase : D.AgentReplyRecord = {
     ctx:short_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
 
     !inference {

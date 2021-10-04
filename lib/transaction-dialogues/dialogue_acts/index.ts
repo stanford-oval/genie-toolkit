@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 export { ContextInfo, contextKeyFn } from '../context-info';
+export * from './common';
 export * from './action-confirm';
 export * from './action-results';
 export * from './aggregation-results';

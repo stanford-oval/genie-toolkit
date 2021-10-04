@@ -49,7 +49,7 @@ import { makeContextPhrase } from './context-phrases';
 
 function greet(dlg : DialogueInterface) {
     dlg.say(dlg._("{hello|hi}{!|,} {how can i help you|what are you interested in|what can i do for you}?"),
-        StateM.makeSimpleTargetState(dlg.state, POLICY_NAME, 'sys_greet'));
+        StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_greet'));
 }
 
 /**
@@ -60,7 +60,7 @@ function greet(dlg : DialogueInterface) {
 export async function policy(dlg : DialogueInterface, startMode : PolicyStartMode) {
     // TODO call "expect" here a bunch of times to register the templates
     dlg.expect([
-        ["TODO user", {}, (state) => StateM.makeSimpleTargetState(state, POLICY_NAME, 'cancel')]
+        ["TODO user", {}, (state) => StateM.makeSimpleState(state, POLICY_NAME, 'cancel')]
     ]);
 
     switch (startMode) {
@@ -98,18 +98,18 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
                 break;
 
             case POLICY_NAME + '.cancel':
-                dlg.say(dlg._("alright, let me know if I can help you with anything else!"), StateM.makeSimpleTargetState(ctx.state, POLICY_NAME, 'sys_end'));
+                dlg.say(dlg._("alright, let me know if I can help you with anything else!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
                 return;
 
             default:
                 // all other cases
-                dlg.say(dlg._("TODO agent"), StateM.makeSimpleTargetState(ctx.state, POLICY_NAME, 'sys_todo'));
+                dlg.say(dlg._("TODO agent"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_todo'));
             }
         } catch(e) {
             if (!(e instanceof UnexpectedCommandError))
                 throw e;
 
-            dlg.say(dlg._("Sorry, I did not understand that. Can you rephrase it?"), StateM.makeSimpleTargetState(dlg.state, POLICY_NAME, 'sys_unexpected'));
+            dlg.say(dlg._("Sorry, I did not understand that. Can you rephrase it?"), StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_unexpected'));
         }
     }
 }
@@ -155,21 +155,21 @@ export function interpretAnswer(state : Ast.DialogueState,
     if (state.history.length > 0 && state.history[state.history.length-1].confirm === 'proposed'
         && answer instanceof Ast.BooleanValue) {
         if (answer.value) // yes accepts
-            return S.acceptAllProposedStatements(ctx);
+            return D.acceptAllProposedStatements(state);
         else // no is cancel
-            return S.makeSimpleState(ctx, 'cancel', null);
+            return StateM.makeSimpleState(state, POLICY_NAME, 'cancel');
     }
 
     switch (state.dialogueAct) {
     case 'sys_record_command':
-        return S.makeSimpleState(ctx, 'end', null);
+        return StateM.makeSimpleState(state, POLICY_NAME, 'end');
 
     case 'sys_anything_else':
         if (answer instanceof Ast.BooleanValue) {
             if (answer.value)
-                return S.makeSimpleState(ctx, 'reinit', null);
+                return StateM.makeSimpleState(state, POLICY_NAME, 'reinit');
             else
-                return S.makeSimpleState(ctx, 'end', null);
+                return StateM.makeSimpleState(state, POLICY_NAME, 'end');
         }
         return null;
     case 'sys_recommend_one':
@@ -179,12 +179,12 @@ export function interpretAnswer(state : Ast.DialogueState,
         // "yes" to a recommendation (without a proposed action) is an answer to
         // "would you like to learn more"
         if (answer instanceof Ast.BooleanValue && answer.value === true)
-            return S.makeSimpleState(ctx, 'learn_more', null);
+            return StateM.makeSimpleState(state, POLICY_NAME, 'learn_more');
         // fallthrough
     case 'sys_display_result':
         // "no" to a recommendation or display result is cancel
         if (answer instanceof Ast.BooleanValue && answer.value === false)
-            return S.makeSimpleState(ctx, 'cancel', null);
+            return StateM.makeSimpleState(state, POLICY_NAME, 'cancel');
         return null;
 
     case 'sys_slot_fill':
@@ -206,7 +206,7 @@ export function interpretAnswer(state : Ast.DialogueState,
     case 'sys_resolve_location':
     case 'sys_resolve_time':
     case 'sys_configure_notifications':
-        return S.makeSimpleState(ctx, 'answer', [answer]);
+        return StateM.makeSimpleState(state, POLICY_NAME, 'answer', [answer]);
     default:
         return null;
     }
@@ -336,6 +336,6 @@ export function getFollowUp(state : Ast.DialogueState,
             invocation.in_params.push(new Ast.InputParam(null, followUpArg.name, new Ast.UndefinedValue(true)));
     }
 
-    return S.addNewStatement(ctx, 'execute', null, 'accepted', new Ast.InvocationExpression(null,
+    return StateM.addNewStatement(ctx.state, POLICY_NAME, 'execute', [], 'accepted', new Ast.InvocationExpression(null,
         invocation, followUp.schema));
 }

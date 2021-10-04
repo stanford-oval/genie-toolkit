@@ -23,9 +23,8 @@
 // the action failed, and we give the user an option to try again
 
 import * as D from '../dialogue_acts';
-import * as S from '../state_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 
-action_confirm_phrase : S.AgentReplyRecord = {
+action_confirm_phrase : D.AgentReplyRecord = {
     ["{ok , do you want me to ${stmt}?|ok, {i am going to|you want to|you would like to} ${stmt}. {do you confirm|is that it|is that correct|is that right}?}"]: (stmt:ctx_next_statement) => D.makeActionConfirmationPhrase(stmt),
 }

@@ -21,6 +21,7 @@
 import { Ast } from 'thingtalk';
 
 import { ContextInfo } from '../context-info';
+export { AgentReplyRecord } from '../../sentence-generator/types';
 
 export interface NameList {
     ctx : ContextInfo;

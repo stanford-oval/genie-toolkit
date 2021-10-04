@@ -21,11 +21,12 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../../templates/ast_manip';
+import { StateM } from '../../utils/thingtalk';
 
 import { ContextInfo } from '../context-info';
+import { POLICY_NAME } from '../metadata';
 import {
     makeAgentReply,
-    makeSimpleState,
 } from '../state_manip';
 
 export function makeCountAggregationReply(ctx : ContextInfo, table : Ast.Expression, mustFilter : boolean) {
@@ -52,7 +53,7 @@ export function makeCountAggregationReply(ctx : ContextInfo, table : Ast.Express
             return null;
     }
 
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null));
+    return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_display_result'));
 }
 
 export function makeOtherAggregationReply(ctx : ContextInfo, op : string, param : C.ParamSlot, value : Ast.Value) {
@@ -70,5 +71,5 @@ export function makeOtherAggregationReply(ctx : ContextInfo, op : string, param 
         return null;
     if (!value.equals(results[0].value[param.name]))
         return null;
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null));
+    return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_display_result'));
 }

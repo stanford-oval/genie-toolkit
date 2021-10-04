@@ -18,39 +18,33 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-import assert from 'assert';
-
 import { Ast, Type } from 'thingtalk';
 
 import * as C from '../../templates/ast_manip';
+import { setOrAddInvocationParam, StateM } from '../../utils/thingtalk';
 
+import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
     makeAgentReply,
-    makeSimpleState,
-    setOrAddInvocationParam,
-    addNewItem,
 } from '../state_manip';
 
 
 function makeActionConfirmationPhrase(ctx : ContextInfo) {
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_confirm_action', null), null, Type.Boolean);
+    return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_confirm_action'), null, Type.Boolean);
 }
 
 function actionConfirmAcceptPhrase(ctx : ContextInfo) {
-    const clone = ctx.clone();
-    assert(clone.next!.confirm === 'accepted');
-    clone.next!.confirm = 'confirmed';
-    clone.state.dialogueAct = 'execute';
-    clone.state.dialogueActParam = null;
-    return clone.state;
+    const state = new Ast.DialogueState(null, POLICY_NAME, 'execute', null,
+        ctx.state.history.filter((item) => item.results === null && item.confirm !== 'proposed').map((item) => item.clone()));
+    state.next!.confirm = 'confirmed';
+    return state;
 }
 
 function actionConfirmRejectPhrase(ctx : ContextInfo) {
     const clone = ctx.clone();
     clone.next!.confirm = 'proposed';
-    return makeSimpleState(clone, 'cancel', null);
+    return StateM.makeSimpleState(clone.state, POLICY_NAME, 'cancel');
 }
 
 function actionConfirmChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputParamSlot) {
@@ -70,7 +64,7 @@ function actionConfirmChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputP
     if (!action || !(action instanceof Ast.Invocation)) return null;
 
     setOrAddInvocationParam(action, answer.ast.name, answer.ast.value);
-    return addNewItem(ctx, 'execute', null, 'confirmed', clone);
+    return StateM.makeTargetState(ctx.state, POLICY_NAME, 'execute', [], 'confirmed', clone);
 }
 
 export {

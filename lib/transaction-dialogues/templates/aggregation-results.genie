@@ -25,9 +25,8 @@ import { Ast, } from 'thingtalk';
 import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 import * as D from '../dialogue_acts';
-import * as S from '../state_manip';
 
-count_aggregation_reply : S.AgentReplyRecord = {
+count_aggregation_reply : D.AgentReplyRecord = {
     ["{there ${ctx.aggregationCount:plural:one{is}other{are}}|i see|i have} ${ctx.aggregationCount} ${ctx.aggregationCount:plural:one{${table[plural=one]}}other{${table[plural=other]}}} {like that|with those characteristics}"]: (ctx:ctx_with_aggregation_result, table:base_table<functionName = ctx.currentFunction>)
         => D.makeCountAggregationReply(ctx, table, false),
 
@@ -47,7 +46,7 @@ agg_operator_for_reply : 'min'|'max'|'avg'|'sum' = {
     'total' => 'sum';
 }
 
-other_aggregation_reply : S.AgentReplyRecord = {
+other_aggregation_reply : D.AgentReplyRecord = {
     ctx:ctx_with_aggregation_result 'the' op:agg_operator_for_reply p:out_param_Any 'is' c:constant_Any
         => D.makeOtherAggregationReply(ctx, op, p, c);
 }

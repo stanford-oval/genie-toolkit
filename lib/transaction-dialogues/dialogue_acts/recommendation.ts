@@ -24,18 +24,18 @@ import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
 import * as ThingTalkUtils from '../../utils/thingtalk';
+import { StateM } from '../../utils/thingtalk';
 
 import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 
 import { SlotBag } from '../../templates/slot_bag';
+import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
     AgentReplyOptions,
     makeAgentReply,
-    makeSimpleState,
     addActionParam,
-    addNewItem,
 } from '../state_manip';
 import {
     isInfoPhraseCompatibleWithResult,
@@ -299,7 +299,7 @@ function makeRecommendationReply(ctx : ContextInfo, proposal : Recommendation) {
     if (action || hasLearnMore)
         options.end = false;
     if (action === null) {
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_recommend_one', null), proposal, null, options);
+        return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one'), proposal, null, options);
     } else {
         const chainParam = findChainParam(topResult, action);
         if (!chainParam)
@@ -316,7 +316,7 @@ function makeDisplayResultReply(ctx : ContextInfo, proposal : Recommendation) {
     };
     if (action || hasAnythingElse)
         options.end = false;
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
+    return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_display_result'), proposal, null, options);
 }
 
 export function makeDisplayResultReplyFromList(ctx : ContextInfo, proposal : ListProposal) {
@@ -326,7 +326,7 @@ export function makeDisplayResultReplyFromList(ctx : ContextInfo, proposal : Lis
     };
     if (action || hasLearnMore)
         options.end = false;
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
+    return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_display_result'), proposal, null, options);
 }
 
 function negativeRecommendationReply(ctx : ContextInfo, [preamble, request] : [Ast.Expression|null, Ast.Expression|null]) {
@@ -398,7 +398,7 @@ function recommendationCancelReply(ctx : ContextInfo, valid : boolean) {
     // we cannot close the dialogue if we have pending actions
     if (ctx.next)
         return null;
-    return makeSimpleState(ctx, 'cancel', null);
+    return StateM.makeSimpleState(ctx.state, POLICY_NAME, 'cancel');
 }
 
 function recommendationLearnMoreReply(ctx : ContextInfo, name : Ast.Value|null) {
@@ -406,7 +406,7 @@ function recommendationLearnMoreReply(ctx : ContextInfo, name : Ast.Value|null) 
     const { topResult, } = proposal;
     if (name !== null && (!topResult.value.id || !topResult.value.id.equals(name)))
         return null;
-    return makeSimpleState(ctx, 'learn_more', null);
+    return StateM.makeSimpleState(ctx.state, POLICY_NAME, 'learn_more');
 }
 
 function repeatCommandReply(ctx : ContextInfo) {
@@ -419,7 +419,7 @@ function repeatCommandReply(ctx : ContextInfo) {
     const clone = current.clone();
     clone.results = null;
     clone.confirm = 'accepted';
-    return addNewItem(ctx, 'execute', null, 'accepted', clone);
+    return StateM.makeTargetState(ctx.state, POLICY_NAME, 'execute', [], 'accepted', clone);
 }
 
 export {

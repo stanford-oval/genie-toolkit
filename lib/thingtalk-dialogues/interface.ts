@@ -406,7 +406,7 @@ export class DialogueInterface {
         if (this._synthesizer)
             return;
 
-        const state = StateM.makeSimpleTargetState(this.state, this._policy.MANIFEST.name, 'answer_choice', [new Ast.Value.Number(idx)]);
+        const state = StateM.makeSimpleState(this.state, this._policy.MANIFEST.name, 'answer_choice', [new Ast.Value.Number(idx)]);
         this._sayBuffer.push({
             type: 'button',
             args: {},
@@ -454,7 +454,7 @@ export class DialogueInterface {
      * @deprecated This function should not be used. Instead, use helpers in {@link TransactionPolicy}.
      */
     async ask(tmpl : string, args : TemplatePlaceholderMap, agentDialogueAct : string, agentDialogueActParam : Array<string|Ast.Value>, expectedType : Type, getOptions : GetOptions = {}) {
-        const dialogueState = StateM.makeSimpleTargetState(this.state, this._policy.MANIFEST.name, agentDialogueAct, agentDialogueActParam);
+        const dialogueState = StateM.makeSimpleState(this.state, this._policy.MANIFEST.name, agentDialogueAct, agentDialogueActParam);
 
         this.say(tmpl, args, () => dialogueState);
 
@@ -466,7 +466,7 @@ export class DialogueInterface {
                     followUp: [
                         ['${v}', {
                             v: ''
-                        }, (state : Ast.DialogueState, v : Ast.Value) => StateM.makeSimpleTargetState(state, this._policy.MANIFEST.name, 'answer', [v])]
+                        }, (state : Ast.DialogueState, v : Ast.Value) => StateM.makeSimpleState(state, this._policy.MANIFEST.name, 'answer', [v])]
                     ],
                     ...getOptions
                 });
@@ -487,7 +487,7 @@ export class DialogueInterface {
     }
 
     async askChoices(tmpl : string, args : TemplatePlaceholderMap, agentDialogueAct : string, choices : string[], getOptions : GetOptions = {}) {
-        const dialogueState = StateM.makeSimpleTargetState(this.state, this._policy.MANIFEST.name, agentDialogueAct, choices.map((c) => new Ast.Value.String(c)));
+        const dialogueState = StateM.makeSimpleState(this.state, this._policy.MANIFEST.name, agentDialogueAct, choices.map((c) => new Ast.Value.String(c)));
 
         this.say(tmpl, args, () => dialogueState);
         for (let idx = 0; idx < choices.length; idx++)

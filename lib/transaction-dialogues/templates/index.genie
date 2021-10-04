@@ -20,10 +20,12 @@
 
 import { Ast, } from 'thingtalk';
 
+import { StateM } from '../../utils/thingtalk';
 import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 import * as S from '../state_manip';
 import * as D from '../dialogue_acts';
+import { POLICY_NAME } from '../metadata';
 
 // Declare key functions for contextual stuff
 keyfn = {
@@ -186,22 +188,22 @@ initial_request_preamble : D.ContextInfo = {
  *
  * This non-terminal contains the entire reply of the agent.
  */
-$agent : S.AgentReplyRecord = {
+$agent : D.AgentReplyRecord = {
     ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-    ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null), null, null, { end: false }),
+    ) => S.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_greet'), null, null, { end: false }),
 
     ?anything_else {
         ctx:ctx_cancel anything_else_phrase
-            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null), null, null, { end: false }),
+            => S.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_anything_else'), null, null, { end: false }),
 
         ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
-            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
+            => S.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end')),
     }
     !anything_else {
         ctx:ctx_cancel 'alright, let me know if I can help you with anything else!'
-            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
+            => S.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end')),
     }
 
     // action results
@@ -249,10 +251,10 @@ $agent : S.AgentReplyRecord = {
 
     // learn more
     ctx:ctx_learn_more system_learn_more
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null), null, null, { end: false });
+        => S.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_learn_more_what'), null, null, { end: false });
 
     ["${preamble} I {will|am going to} ${stmt}"]: (ctx : ctx_rule_enable_success, preamble : generic_excitement2_phrase, stmt : ctx_current_statement)
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_rule_enable_success', null));
+        => S.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_rule_enable_success'));
 
     // notification
     ctx:ctx_list_notification notification_preamble proposal:system_recommendation
@@ -270,7 +272,7 @@ $agent : S.AgentReplyRecord = {
  */
 $user : Ast.DialogueState = {
     ctx:ctx_init greeting [weight=0.01, expandchoice=false]
-        => S.makeSimpleState(ctx, 'greet', null);
+        => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'greet');
     ( ctx:ctx_init stmt:initial_command [weight=0.5]
     | ctx:ctx_init greeting stmt:initial_command [weight=0.5]
     | ctx:ctx_sys_greet stmt:initial_command
@@ -279,14 +281,14 @@ $user : Ast.DialogueState = {
     // do you need anything else?
     ( ctx:ctx_sys_anything_else no_thanks_phrase ('goodbye !' | '') [weight=0.01]
     | ctx:ctx_sys_anything_else thanks_phrase ('goodbye !' | '') [weight=0.01]
-    ) => S.makeSimpleState(ctx, 'end', null);
+    ) => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'end');
 
     ( ctx:ctx_sys_anything_else stmt:initial_command
     | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
     ) => D.startNewRequest($loader, ctx, stmt);
 
     ctx:ctx_sys_anything_else yes_please_phrase
-        => S.makeSimpleState(ctx, 'reinit', null);
+        => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'reinit');
 
     // action confirmations
     ctx:ctx_sys_confirm_action accept_phrase [weight=0.9]
@@ -299,7 +301,7 @@ $user : Ast.DialogueState = {
     // action and non-list query results
     ( ctx:ctx_sys_action_success thanks_phrase ('goodbye !' | '')
     | ctx:ctx_sys_display_result thanks_phrase ('goodbye !' | '')
-    ) => S.makeSimpleState(ctx, 'cancel', null);
+    ) => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'cancel');
     ctx:ctx_sys_action_success questions:simple_user_search_question
         => D.actionSuccessQuestion(ctx, questions);
 
@@ -326,7 +328,7 @@ $user : Ast.DialogueState = {
 
     ( ctx:ctx_sys_action_error no_thanks_phrase
     | ctx:ctx_sys_action_error nevermind_phrase
-    ) => S.makeSimpleState(ctx, 'cancel', null);
+    ) => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'cancel');
 
     /*
     FIXME this template is too slow, so it is temporarily commented out
@@ -357,9 +359,9 @@ $user : Ast.DialogueState = {
     // asking for a recommendation
     ?multiwoz {
         ctx:ctx_sys_recommend_many ask_recommend_phrase
-            => S.makeSimpleState(ctx, 'ask_recommend', null);
+            => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'ask_recommend');
         ctx:ctx_sys_search_question ask_recommend_phrase
-            => S.makeSimpleState(ctx, 'ask_recommend', null);
+            => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'ask_recommend');
     }
 
     // refinement from a query proposal

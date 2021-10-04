@@ -24,15 +24,16 @@ import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
 import * as ThingTalkUtils from '../../utils/thingtalk';
+import { StateM } from '../../utils/thingtalk';
 
 import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 
+import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
     AgentReplyOptions,
     makeAgentReply,
-    makeSimpleState,
     addActionParam,
     addAction,
     addQuery,
@@ -243,7 +244,7 @@ function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
         dialogueAct = 'sys_recommend_many';
     }
     if (action === null)
-        return makeAgentReply(ctx, makeSimpleState(ctx, dialogueAct, null), proposal, null, options);
+        return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, dialogueAct), proposal, null, options);
     else
         return makeAgentReply(ctx, addAction(ctx, dialogueAct, action, 'proposed'), proposal, null, options);
 }

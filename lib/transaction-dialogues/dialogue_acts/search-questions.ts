@@ -23,13 +23,14 @@ import assert from 'assert';
 
 import { Ast, } from 'thingtalk';
 
+import { StateM } from '../../utils/thingtalk';
 import type ThingpediaLoader from '../../templates/load-thingpedia';
 import * as C from '../../templates/ast_manip';
 
+import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
     makeAgentReply,
-    makeSimpleState,
     addQuery,
     addQueryAndAction,
 } from '../state_manip';
@@ -135,15 +136,15 @@ function makeSearchQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
         return null;
 
     if (questions.length === 0)
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_generic_search_question', null));
+        return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_generic_search_question'));
 
     if (questions.length === 1) {
         const currentStmt = ctx.current!.stmt;
         const type = currentStmt.lastQuery!.schema!.getArgument(questions[0].name)!.type;
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_search_question', questions.map((q) => q.name)), null, type);
+        return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_search_question', questions.map((q) => q.name)), null, type);
     }
 
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_search_question', questions.map((q) => q.name)));
+    return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_search_question', questions.map((q) => q.name)));
 }
 
 class AnswersQuestionVisitor extends Ast.NodeVisitor {

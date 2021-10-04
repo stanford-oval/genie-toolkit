@@ -25,11 +25,10 @@ import { Ast, } from 'thingtalk';
 
 import * as C from '../../templates/ast_manip';
 import { arraySubset } from '../../templates/array_utils';
-import {
-    setOrAddInvocationParam,
-} from '../state_manip';
-import { SlotBag } from '../../templates/slot_bag';
+import { setOrAddInvocationParam } from '../../utils/thingtalk';
 
+import { SlotBag } from '../../templates/slot_bag';
+import { POLICY_NAME } from '../metadata';
 
 function isFilterCompatibleWithInfo(info : SlotBag, filter : Ast.BooleanExpression) : boolean {
     assert(filter instanceof Ast.BooleanExpression);
@@ -215,6 +214,24 @@ function findChainParam(topResult : Ast.DialogueHistoryResultItem, action : Ast.
 
 export function isSimpleFilterExpression(table : Ast.Expression) : table is Ast.FilterExpression {
     return table instanceof Ast.FilterExpression && table.expression instanceof Ast.InvocationExpression;
+}
+
+/**
+ * Create a new dialogue state that corresponds to accepting all proposed
+ * statements in the given state.
+ */
+export function acceptAllProposedStatements(state : Ast.DialogueState) {
+    if (!state.history.some((item) => item.confirm === 'proposed'))
+        return null;
+
+    return new Ast.DialogueState(null, POLICY_NAME, 'execute', null, state.history.flatMap((item) => {
+        if (item.results !== null)
+            return [];
+        if (item.confirm === 'proposed')
+            return new Ast.DialogueHistoryItem(null, item.stmt, null, 'accepted');
+        else
+            return item;
+    }));
 }
 
 export {

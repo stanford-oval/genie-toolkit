@@ -21,12 +21,10 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../../templates/ast_manip';
+import { StateM } from '../../utils/thingtalk';
 
+import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
-import {
-    addNewStatement,
-} from '../state_manip';
-
 
 export function makeMonitor(ctx : ContextInfo) {
     const currentExpression = ctx.current!.stmt.expression;
@@ -37,7 +35,7 @@ export function makeMonitor(ctx : ContextInfo) {
         return null;
 
     // throw away any planned action that we have
-    return addNewStatement(ctx, 'execute', null, 'accepted', stream);
+    return StateM.addNewStatement(ctx.state, POLICY_NAME, 'execute', [], 'accepted', stream);
 }
 
 export function addStream(ctx : ContextInfo, stream : Ast.Expression) {
@@ -49,6 +47,6 @@ export function addStream(ctx : ContextInfo, stream : Ast.Expression) {
     if (C.isSameFunction(currentExpression.schema!, stream.schema!))
         return null;
 
-    return addNewStatement(ctx, 'execute', null, 'accepted',
+    return StateM.addNewStatement(ctx.state, POLICY_NAME, 'execute', [], 'accepted',
         new Ast.ChainExpression(null, [stream, currentExpression], C.resolveChain([stream, currentExpression])));
 }

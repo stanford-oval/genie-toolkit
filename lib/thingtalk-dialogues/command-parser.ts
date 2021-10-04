@@ -53,10 +53,7 @@ export async function inputToDialogueState(policy : PolicyModule,
                 await generator.initialize(context);
                 if (!policy.interpretAnswer)
                     return null;
-                const handled = policy.interpretAnswer(context, value, generator.tpLoader, generator.contextTable);
-                if (!handled)
-                    return null;
-                return ThingTalkUtils.computePrediction(context, handled, 'user');
+                return policy.interpretAnswer(context, value, generator.tpLoader, generator.contextTable);
             }
             case 'nevermind':
             case 'stop':
@@ -76,10 +73,7 @@ export async function inputToDialogueState(policy : PolicyModule,
             await generator.initialize(context);
             if (!policy.interpretAnswer)
                 return null;
-            const handled = policy.interpretAnswer(context, input.intent.value, generator.tpLoader, generator.contextTable);
-            if (!handled)
-                return null;
-            return ThingTalkUtils.computePrediction(context, handled, 'user');
+            return policy.interpretAnswer(context, input.intent.value, generator.tpLoader, generator.contextTable);
         }
 
         throw new TypeError(`Unrecognized bookkeeping intent`);

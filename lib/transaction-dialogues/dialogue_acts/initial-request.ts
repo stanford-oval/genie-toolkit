@@ -27,11 +27,10 @@ import * as ThingTalkUtils from '../../utils/thingtalk';
 
 import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
+import { StateM } from '../../utils/thingtalk';
 
+import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
-import {
-    addNewItem,
-} from '../state_manip';
 import {
     findOrMakeFilterExpression
 } from './refinement-helpers';
@@ -197,7 +196,7 @@ export function startNewRequest(loader : ThingpediaLoader, ctx : ContextInfo, ex
         return null;
 
     const newItems = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
-    return addNewItem(ctx, 'execute', null, 'accepted', ...newItems);
+    return StateM.makeTargetState(ctx.state, POLICY_NAME, 'execute', [], 'accepted', ...newItems);
 }
 
 export function addInitialDontCare(expr : Ast.Expression, dontcare : C.FilterSlot) : Ast.Expression|null {

@@ -22,14 +22,13 @@ import { Ast, } from 'thingtalk';
 
 import ThingpediaLoader from '../../templates/load-thingpedia';
 import * as C from '../../templates/ast_manip';
+import { StateM } from '../../utils/thingtalk';
 
+import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
     makeAgentReply,
-    makeSimpleState,
-    addNewStatement,
     addQuery,
-    acceptAllProposedStatements
 } from '../state_manip';
 import {
     queryRefinement,
@@ -37,6 +36,7 @@ import {
     RefineFilterCallback
 } from './refinement-helpers';
 import {
+    acceptAllProposedStatements,
     isValidSearchQuestion
 } from './common';
 
@@ -64,15 +64,15 @@ export function makeEmptySearchError(ctx : ContextInfo, [base, question, offerMo
         if (!arg)
             return null;
         type = arg.type;
-        state = makeSimpleState(ctx, 'sys_empty_search_question', [question.name]);
+        state = StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_empty_search_question', [question.name]);
     } else if (offerMonitor) {
         const monitor = C.tableToStream(ctx.current!.stmt.lastQuery!);
         if (!monitor)
             return null;
-        state = addNewStatement(ctx, 'sys_empty_search', null, 'proposed', monitor);
+        state = StateM.addNewStatement(ctx.state, POLICY_NAME, 'sys_empty_search', [], 'proposed', monitor);
     } else {
         type = null;
-        state = makeSimpleState(ctx, 'sys_empty_search', null);
+        state = StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_empty_search');
     }
     return makeAgentReply(ctx, state, [base, question], type);
 }
@@ -155,5 +155,5 @@ export function impreciseEmptySearchChangeRequest(ctx : ContextInfo,
  * the user accepts the statement.
  */
 export function acceptEmptySearchOffer(ctx : ContextInfo) {
-    return acceptAllProposedStatements(ctx);
+    return acceptAllProposedStatements(ctx.state);
 }

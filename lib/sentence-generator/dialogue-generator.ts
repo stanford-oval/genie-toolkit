@@ -30,6 +30,7 @@ import * as ThingTalkUtils from '../utils/thingtalk';
 import { DialogueTurn } from '../dataset-tools/parsers';
 import { SimulationDatabase } from '../thingtalk-dialogues/simulator/types';
 import SimulationDialogueAgent from '../thingtalk-dialogues/simulator/simulation-thingtalk-executor';
+import { StateValidator } from '../thingtalk-dialogues/state-validator';
 import * as TransactionPolicy from '../transaction-dialogues';
 
 import SentenceGenerator, { SentenceGeneratorOptions } from './generator';
@@ -54,7 +55,7 @@ class MinibatchDialogueGenerator {
     private _agentGenerator : SentenceGenerator;
     private _userGenerator : SentenceGenerator;
     private _langPack : I18n.LanguagePack;
-    private _stateValidator : ThingTalkUtils.StateValidator;
+    private _stateValidator : StateValidator;
     private _minibatchSize : number;
     private _rng : () => number;
     private _options : DialogueGeneratorOptions;
@@ -73,7 +74,7 @@ class MinibatchDialogueGenerator {
                 langPack : I18n.LanguagePack,
                 policy : PolicyModule,
                 simulator : SimulationDialogueAgent,
-                stateValidator : ThingTalkUtils.StateValidator,
+                stateValidator : StateValidator,
                 options : DialogueGeneratorOptions,
                 minibatchIdx : number) {
         this._agentGenerator = agentGenerator;
@@ -298,7 +299,7 @@ export default class DialogueGenerator extends stream.Readable {
     private _agentGenerator ! : SentenceGenerator;
     private _userGenerator ! : SentenceGenerator;
     private _policyModule ! : PolicyModule;
-    private _stateValidator ! : ThingTalkUtils.StateValidator;
+    private _stateValidator ! : StateValidator;
     private _simulator : SimulationDialogueAgent;
 
     private _initialized : boolean;
@@ -384,7 +385,7 @@ export default class DialogueGenerator extends stream.Readable {
         await this._userGenerator.initialize();
         await this._policyModule.initializeTemplates(agentOptions, this._userGenerator.langPack, this._userGenerator, this._userGenerator.tpLoader);
 
-        this._stateValidator = new ThingTalkUtils.StateValidator(this._policyModule.MANIFEST);
+        this._stateValidator = new StateValidator(this._policyModule.MANIFEST);
     }
 
     private async _generateMinibatch() {
