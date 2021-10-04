@@ -101,6 +101,7 @@ class MinibatchDialogueGenerator {
                 locale: options.locale,
                 timezone: options.timezone,
                 schemaRetriever: options.schemaRetriever,
+                flags: options.flags,
                 rng: options.rng
             }));
         }

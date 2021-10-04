@@ -126,6 +126,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
         locale : string,
         timezone : string|undefined,
         schemaRetriever : SchemaRetriever,
+        flags : Record<string, boolean>,
         rng : () => number
     }) {
         this._id = partialDialogueID++;

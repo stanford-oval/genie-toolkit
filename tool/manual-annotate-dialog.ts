@@ -144,6 +144,7 @@ class Annotator extends events.EventEmitter {
             interactive: false,
             deterministic: false,
             anonymous: false,
+            flags: { dialogues: true },
             rng: simulatorOptions.rng
         });
 

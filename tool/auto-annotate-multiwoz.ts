@@ -320,6 +320,7 @@ class Converter extends stream.Readable {
             interactive: false,
             deterministic: false,
             anonymous: false,
+            flags: { dialogues: true, multiwoz: true },
             rng: simulatorOptions.rng
         });
 

@@ -49,10 +49,9 @@ interface InferenceTimeSentenceGeneratorOptions {
     schemaRetriever : SchemaRetriever;
     locale : string;
     timezone : string|undefined;
-    extraFlags : Record<string, boolean>;
-    anonymous : boolean;
     policy : PolicyModule;
 
+    flags : Record<string, boolean>;
     rng : () => number;
     debug : number;
 }
@@ -116,9 +115,19 @@ export default class InferenceTimeSentenceGenerator {
         const devices = this._extractDevices(state);
         if (this._generatorDevices && arrayEqual(this._generatorDevices, devices)) {
             this._sentenceGenerator!.reset(true);
+            this._extractConstants(state);
             return;
         }
         await this._initializeGenerator(devices);
+        this._extractConstants(state);
+    }
+
+    private _extractConstants(state : Ast.DialogueState|Ast.Program|null) {
+        this._entityAllocator.reset();
+        if (state !== null) {
+            const constants = ThingTalkUtils.extractConstants(state, this._entityAllocator);
+            this._sentenceGenerator!.addConstantsFromContext(constants);
+        }
     }
 
     private async _initializeGenerator(forDevices : string[]) {
@@ -128,12 +137,6 @@ export default class InferenceTimeSentenceGenerator {
             ...this._options,
             contextual: true,
             forSide: 'agent',
-            flags: {
-                dialogues: true,
-                inference: true,
-                anonymous: this._options.anonymous,
-                ...this._options.extraFlags
-            },
             entityAllocator: this._entityAllocator,
             onlyDevices: forDevices,
             maxDepth: MAX_DEPTH,
@@ -163,12 +166,7 @@ export default class InferenceTimeSentenceGenerator {
         return deviceArray;
     }
 
-    generate(state : Ast.DialogueState|null, contextPhrases : ContextPhrase[], nonTerm : string) : Derivation<AgentReplyRecord>|undefined {
-        this._entityAllocator.reset();
-        if (state !== null) {
-            const constants = ThingTalkUtils.extractConstants(state, this._entityAllocator);
-            this._sentenceGenerator!.addConstantsFromContext(constants);
-        }
+    generateOne(contextPhrases : ContextPhrase[], nonTerm : string) : Derivation<AgentReplyRecord>|undefined {
         return this._sentenceGenerator!.generateOne(contextPhrases, nonTerm);
     }
 

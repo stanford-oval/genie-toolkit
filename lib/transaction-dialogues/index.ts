@@ -22,6 +22,7 @@ import assert from 'assert';
 import { Ast } from 'thingtalk';
 
 import { ContextTable } from '../sentence-generator/types';
+import { NonTerminal } from '../sentence-generator/runtime';
 import ThingpediaLoader from '../templates/load-thingpedia';
 import * as C from '../templates/ast_manip';
 import { StateM } from '../utils/thingtalk';
@@ -32,7 +33,7 @@ import * as D from './dialogue_acts';
 export * as Templates from './templates/index.genie.out';
 import { $load } from './templates/index.genie.out';
 import { DialogueInterface } from '../thingtalk-dialogues/interface';
-import { PolicyStartMode, UnexpectedCommandError } from '../thingtalk-dialogues';
+import { CommandType, PolicyStartMode, UnexpectedCommandError } from '../thingtalk-dialogues';
 import { ContextInfo } from './context-info';
 export {
     $load as initializeTemplates
@@ -47,9 +48,139 @@ import { makeContextPhrase } from './context-phrases';
  * the agent follows up.
  */
 
+ function actionShouldHaveResult(ctx : ContextInfo) : boolean {
+    const schema = ctx.currentFunction!;
+    return C.countInputOutputParams(schema).output > 0;
+}
+
 function greet(dlg : DialogueInterface) {
     dlg.say(dlg._("{hello|hi}{!|,} {how can i help you|what are you interested in|what can i do for you}?"),
         StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_greet'));
+}
+
+function TODO(dlg : DialogueInterface, what : string) {
+    dlg.say(dlg._("TODO agent ${what}"), { what }, () => StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_todo'));
+}
+
+async function ctxNotification(dlg : DialogueInterface, ctx : ContextInfo) {
+    assert(ctx.nextInfo === null);
+    assert(ctx.resultInfo, `expected result info`);
+
+    if (ctx.resultInfo.hasError) {
+        TODO(dlg, 'ctx_notification_error');
+        return;
+    }
+
+    if (!ctx.resultInfo.isTable)
+        TODO(dlg, 'ctx_action_notification');
+    else if (ctx.resultInfo.isList)
+        TODO(dlg, 'ctx_list_notification');
+    else
+        TODO(dlg, 'ctx_nonlist_notification');
+}
+
+async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) {
+    // treat an empty execute like greet
+    if (ctx.state.history.length === 0) {
+        greet(dlg);
+        return;
+    }
+
+    if (ctx.nextInfo !== null) {
+        // we have an action we want to execute, or a query that needs confirmation
+        if (ctx.nextInfo.chainParameter === null || ctx.nextInfo.chainParameterFilled) {
+            // we don't need to fill any parameter from the current query
+
+            if (ctx.nextInfo.isComplete)
+                TODO(dlg, 'ctx_confirm_action');
+            else
+                TODO(dlg, 'ctx_incomplete_action_after_search');
+            return;
+        }
+    }
+
+    // we must have a result
+    assert(ctx.resultInfo, `expected result info`);
+    if (ctx.resultInfo.hasError) {
+        TODO(dlg, 'ctx_completed_action_error');
+        return;
+    }
+    if (ctx.resultInfo.hasStream) {
+        TODO(dlg, 'ctx_rule_enable_success');
+        return;
+    }
+
+    if (!ctx.resultInfo.isTable) {
+        if (ctx.resultInfo.hasEmptyResult && actionShouldHaveResult(ctx))
+            TODO(dlg, 'ctx_empty_search_command');
+        else
+            await D.ctxCompletedActionSuccess(dlg, ctx);
+        return;
+    }
+
+    if (ctx.resultInfo.hasEmptyResult) {
+        // note: aggregation cannot be empty (it would be zero)
+        TODO(dlg, 'ctx_empty_search_command');
+        return;
+    }
+
+    if (!ctx.resultInfo.isList) {
+        if (ctx.results!.length === 1)
+            dlg.say(new NonTerminal('system_nonlist_result'), (result : D.Recommendation) => D.makeDisplayResultReply(ctx, result));
+        else
+            TODO(dlg, 'makeDisplayResultReplyFromList');
+    } else if (ctx.resultInfo.isQuestion) {
+        if (ctx.resultInfo.isAggregation) {
+            // "how many restaurants nearby have more than 500 reviews?"
+            TODO(dlg, 'ctx_aggregation_question');
+        } else if (ctx.resultInfo.argMinMaxField !== null) {
+            // these are treated as single result questions, but
+            // the context is tagged as ctx_with_result_argminmax instead of
+            // ctx_with_result_noquestion
+            // so the answer is worded differently
+            await dlg.either([
+                async () => TODO(dlg, 'ctx_single_result_search_command'),
+                async () => TODO(dlg, 'ctx_complete_search_command')
+            ]);
+        } else if (ctx.resultInfo.hasSingleResult) {
+            // "what is the rating of Terun?"
+            // FIXME if we want to answer differently, we need to change this one
+            await dlg.either([
+                async () => TODO(dlg, 'ctx_single_result_search_command'),
+                async () => TODO(dlg, 'ctx_complete_search_command')
+            ]);
+        } else if (ctx.resultInfo.hasLargeResult) {
+            // "what's the food and price range of restaurants nearby?"
+            // we treat these the same as "find restaurants nearby", but we make sure
+            // that the necessary fields are computed
+            await dlg.either([
+                async () => TODO(dlg, 'ctx_search_command'),
+                async () => TODO(dlg, 'ctx_complete_search_command')
+            ]);
+        } else {
+            // "what's the food and price range of restaurants nearby?"
+            // we treat these the same as "find restaurants nearby", but we make sure
+            // that the necessary fields are computed
+            TODO(dlg, 'ctx_complete_search_command');
+        }
+    } else {
+        if (ctx.resultInfo.hasSingleResult) {
+            // we can recommend
+            await dlg.either([
+                async () => TODO(dlg, 'ctx_single_result_search_command'),
+                async () => TODO(dlg, 'ctx_complete_search_command')
+            ]);
+        } else if (ctx.resultInfo.hasLargeResult && ctx.state.dialogueAct !== 'ask_recommend') {
+            // we can refine
+            await dlg.either([
+                async () => TODO(dlg, 'ctx_search_command'),
+                async () => TODO(dlg, 'ctx_complete_search_command')
+            ]);
+        } else {
+            TODO(dlg, 'ctx_complete_search_command');
+        }
+    }
+
 }
 
 /**
@@ -93,17 +224,45 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
             const ctx = ContextInfo.get(dlg.state);
 
             switch (cmd.type) {
+            case POLICY_NAME + '.end':
+                dlg.say(dlg._("alright, {bye|good bye}!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
+                return;
+
             case POLICY_NAME + '.greet':
+            case POLICY_NAME + '.reinit':
                 greet(dlg);
                 break;
 
+            case POLICY_NAME + '.action_question':
+                await D.ctxCompletedActionSuccess(dlg, ctx);
+                break;
+
+            case POLICY_NAME + '.learn_more':
+                dlg.say(new NonTerminal('system_learn_more'), () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_learn_more_what'));
+                break;
+
             case POLICY_NAME + '.cancel':
-                dlg.say(dlg._("alright, let me know if I can help you with anything else!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
+                if (dlg.flags.anything_else)
+                    dlg.say(new NonTerminal('anything_else_phrase'), () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
+                else
+                    dlg.say(dlg._("alright, let me know if I can help you with anything else!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
                 return;
 
+            case POLICY_NAME + '.notification':
+                await ctxNotification(dlg, ctx);
+
+            case POLICY_NAME + '.init':
+            case POLICY_NAME + '.insist':
+            case POLICY_NAME + '.execute':
+            case POLICY_NAME + '.ask_recommend':
+            case CommandType.THINGTALK_ACTION:
+            case CommandType.THINGTALK_QUERY:
+            case CommandType.THINGTALK_STREAM:
+                await ctxExecute(dlg, ctx);
+                break;
+
             default:
-                // all other cases
-                dlg.say(dlg._("TODO agent"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_todo'));
+                throw new Error(`Unexpected user dialogue act ${ctx.state.dialogueAct}`);
             }
         } catch(e) {
             if (!(e instanceof UnexpectedCommandError))
@@ -130,13 +289,7 @@ export function getContextPhrasesForState(state : Ast.DialogueState|null,
     if (state.policy !== POLICY_NAME)
         return [];
     const ctx = ContextInfo.get(state);
-    // get the main context tags for this context (the abstract state, in paper terminology)
-    const tags = S.tagContextForAgent(ctx, contextTable);
-
-    const phrases = tags.map((tag) => makeContextPhrase(tag, ctx));
-    // add auxiliary context non-terminals used for pruning and to simplify generation
-    phrases.push(...S.getAgentContextPhrases(ctx, tpLoader, contextTable));
-    return phrases;
+    return S.getAgentContextPhrases(ctx, tpLoader, contextTable);
 }
 
 /**
@@ -147,8 +300,7 @@ export function getContextPhrasesForState(state : Ast.DialogueState|null,
  */
 export function interpretAnswer(state : Ast.DialogueState,
                                 answer : Ast.Value,
-                                tpLoader : ThingpediaLoader,
-                                contextTable : ContextTable) : Ast.DialogueState|null {
+                                tpLoader : ThingpediaLoader) : Ast.DialogueState|null {
     const ctx = ContextInfo.get(state);
 
     // if the agent proposed something and the user says "yes", we accept the proposal

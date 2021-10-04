@@ -850,7 +850,7 @@ export default class SentenceGenerator extends events.EventEmitter {
             for (const [symbolId, keyFunction] of this._constantMap.get(token)) {
                 for (const constant of constants[token]) {
                     this._addRuleInternal(symbolId, [], new Phrase(constant.token), () => constant.value, keyFunction, attributes);
-                    if (this._options.debug >= LogLevel.EVERYTHING)
+                    if (this._options.debug >= LogLevel.DUMP_TEMPLATES)
                         this.log(`added temporary rule NT[${this._nonTermList[symbolId]}] -> ${constant.token}`);
                 }
             }

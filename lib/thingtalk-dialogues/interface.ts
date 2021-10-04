@@ -45,6 +45,7 @@ import AbstractThingTalkExecutor, {
     NotificationConfig
 } from './abstract-thingtalk-executor';
 import { shouldAutoConfirmStatement, StateM } from '../utils/thingtalk';
+import { NonTerminal } from '../sentence-generator/runtime';
 
 /**
  * A callback that computes all the relevant templates to use for synthesis
@@ -148,6 +149,11 @@ export class DialogueInterface {
      */
     readonly rng : () => number;
 
+    /**
+     * Custom boolean flags to influence the policy behavior.
+     */
+    readonly flags : Record<string, boolean>;
+
     private readonly _policy : PolicyModule;
     private readonly _parent : DialogueInterface|null;
     private readonly _langPack : I18n.LanguagePack;
@@ -200,12 +206,14 @@ export class DialogueInterface {
                     interactive : boolean,
                     deterministic : boolean,
                     anonymous : boolean,
+                    flags : Record<string, boolean>,
                     rng : () => number
                 }) {
         this.locale = options.locale;
         this.simulated = options.simulated;
         this.interactive = options.interactive;
         this.anonymous = options.anonymous;
+        this.flags = options.flags;
         this.rng = options.rng;
         this.state = null;
         this.command = null;
@@ -325,27 +333,40 @@ export class DialogueInterface {
      * output of that semantic action will be used as the formal meaning of the turn.
      * The semantic action receives as input the specified values of the placeholders
      */
+    say(tmpl : NonTerminal, semantics ?: SemanticAction<[any], Ast.DialogueState|AgentReplyRecord>) : void;
     say(tmpl : string, args ?: TemplatePlaceholderMap) : void;
     say(tmpl : string, semantics : Ast.DialogueState) : void;
     say(tmpl : string, args : TemplatePlaceholderMap, semantics : SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) : void;
-    say(tmpl : string, argsOrState ?: TemplatePlaceholderMap|Ast.DialogueState, semantics ?: SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) {
+    say(arg1 : string|NonTerminal, arg2 ?: TemplatePlaceholderMap|Ast.DialogueState|SemanticAction<[any], Ast.DialogueState|AgentReplyRecord>, arg3 ?: SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) {
+        let tmpl : string;
         let args : TemplatePlaceholderMap;
-        let state : Ast.DialogueState|undefined;
-        if (argsOrState instanceof Ast.DialogueState) {
-            state = argsOrState;
-            args = {};
-        } else if (argsOrState) {
-            state = undefined;
-            args = argsOrState;
+        let semantics : SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>|undefined;
+        if (arg1 instanceof NonTerminal) {
+            const name = arg1.name ?? arg1.symbol;
+            tmpl = '${' + name + '}';
+            args = { [name]: arg1 };
+            if (typeof arg2 === 'function')
+                semantics = arg2;
         } else {
-            state = undefined;
-            args = {};
-        }
+            tmpl = arg1;
+            let state : Ast.DialogueState|undefined;
+            if (arg2 instanceof Ast.DialogueState) {
+                state = arg2;
+                args = {};
+            } else if (arg2) {
+                state = undefined;
+                assert(typeof arg2 === 'object');
+                args = arg2;
+            } else {
+                state = undefined;
+                args = {};
+            }
 
-        if (state) {
-            // assign to a local variable to remove "|undefined" from the type
-            const s2 = state;
-            semantics = () => s2;
+            if (state) {
+                // assign to a local variable to remove "|undefined" from the type
+                const s2 = state;
+                semantics = () => s2;
+            }
         }
 
         this._sayBuffer.push({
@@ -652,6 +673,7 @@ export class DialogueInterface {
             interactive: this.interactive,
             deterministic: this._deterministic,
             anonymous: this.anonymous,
+            flags: this.flags,
             rng: this.rng
         });
         clone.state = this.state;

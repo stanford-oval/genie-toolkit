@@ -23,6 +23,8 @@ import assert from 'assert';
 
 import { Ast } from 'thingtalk';
 
+import { DialogueInterface } from '../../thingtalk-dialogues';
+import { NonTerminal } from '../../sentence-generator/runtime';
 import * as C from '../../templates/ast_manip';
 import { setOrAddInvocationParam, StateM } from '../../utils/thingtalk';
 
@@ -35,6 +37,7 @@ import {
 import {
     isInfoPhraseCompatibleWithResult
 } from './common';
+import { AgentReplyRecord } from './types';
 
 export type ActionSuccessPhraseWithResult = [Ast.Expression|null, SlotBag];
 
@@ -282,6 +285,24 @@ function actionSuccessQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
             return null;
     }
     return StateM.makeSimpleState(ctx.state, POLICY_NAME, 'action_question', questions.map((q) => q.name));
+}
+
+export async function ctxCompletedActionSuccess(dlg : DialogueInterface, ctx : ContextInfo) {
+    if (dlg.flags.anything_else) {
+        await dlg.either([
+            async () => {
+                dlg.say(new NonTerminal('action_success_phrase'), (phrase : AgentReplyRecord) => phrase);
+            },
+            async () => {
+                dlg.say(dlg._("${p1} ${p2}"), {
+                    p1: new NonTerminal('action_success_phrase'),
+                    p2: new NonTerminal('anything_else_phrase')
+                }, (p1 : AgentReplyRecord) => p1);
+            }
+        ]);
+    } else {
+        dlg.say(new NonTerminal('action_success_phrase'), (phrase : AgentReplyRecord) => phrase);
+    }
 }
 
 export {

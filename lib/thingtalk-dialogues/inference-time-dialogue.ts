@@ -122,6 +122,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
     private _nlu ! : CommandParser;
     private readonly _cardFormatter : CardFormatter;
     private readonly _debug : number;
+    private readonly _flags : Record<string, boolean>;
 
     /**
      * Whether the dialogue is currently in raw mode (i.e. any command
@@ -164,6 +165,12 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         this._cardFormatter = new CardFormatter(options.locale, options.timezone, options.schemaRetriever);
         this._debug = options.debug;
         this._commandQueue = new AsyncQueue();
+        this._flags = {
+            dialogues: true,
+            inference: true,
+            anonymous: this._options.anonymous,
+            ...this._options.extraFlags
+        };
 
         this._raw = false;
         this._expecting = null;
@@ -222,10 +229,11 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             simulated: true,
             interactive: false,
             deterministic: false,
+            flags: this._flags,
             ...this._options,
             policy: this._policy
         });
-        this._agentGenerator = new InferenceTimeSentenceGenerator({ ...this._options, policy: this._policy });
+        this._agentGenerator = new InferenceTimeSentenceGenerator({ ...this._options, flags: this._flags, policy: this._policy });
         this._nlu = new CommandParser({
             ...this._options,
             generator: this._agentGenerator,
@@ -423,7 +431,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         const [tmpl, placeholders, semantics] = reply;
         addTemplate(this._agentGenerator, [], tmpl, placeholders, semantics);
 
-        return this._agentGenerator.generate(this._dlg.state, contextPhrases, '$dynamic');
+        return this._agentGenerator.generateOne(contextPhrases, '$dynamic');
     }
 
     private _getMainAgentContextPhrase() : ContextPhrase {
@@ -518,6 +526,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             const result = await this._nlg.generateUtterance(contextCode, contextEntities, targetAct);
             utterance = result[0].answer;
         }
+
         utterance = this._langPack.postprocessNLG(utterance, this._agentGenerator.entities, this._executor);
         messages.unshift({
             type: 'text',
