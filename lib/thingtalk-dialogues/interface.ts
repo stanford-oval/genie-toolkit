@@ -177,6 +177,7 @@ export class DialogueInterface {
 
     private _lastResult : ExecutionResult[];
     private _inGet : boolean;
+    private _nested : 'either'|'nest'|'par'|'any'|null = null;
 
     /**
      * Functions to use for synthesis of the user turn.
@@ -680,6 +681,12 @@ export class DialogueInterface {
         return clone;
     }
 
+    private _checkNesting(towhat : 'either'|'nest'|'par'|'any') {
+        if (this._nested !== null)
+            throw new Error(`Cannot call ${towhat} inside a call to ${this._nested}`);
+        this._nested = towhat;
+    }
+
     /**
      * Take a non-deterministic action.
      *
@@ -699,22 +706,27 @@ export class DialogueInterface {
      * @param actions - possible actions to execute
      */
     async either(actions : Iterable<PolicyFunction>) {
-        if (this._deterministic) {
-            const first = actions[Symbol.iterator]().next();
-            if (first.done)
-                return;
-            await first.value(this, PolicyStartMode.NORMAL);
-            await this.flush();
-        } else {
-            const state = this.state;
-            const initialEitherTag = this._eitherTag;
-            for (const action of actions) {
-                this.state = state;
-                this._eitherTag ++;
-                await action(this, PolicyStartMode.NORMAL);
+        this._checkNesting('either');
+        try {
+            if (this._deterministic) {
+                const first = actions[Symbol.iterator]().next();
+                if (first.done)
+                    return;
+                await first.value(this, PolicyStartMode.NORMAL);
                 await this.flush();
+            } else {
+                const state = this.state;
+                const initialEitherTag = this._eitherTag;
+                for (const action of actions) {
+                    this.state = state;
+                    this._eitherTag ++;
+                    await action(this, PolicyStartMode.NORMAL);
+                    await this.flush();
+                }
+                this._eitherTag = initialEitherTag;
             }
-            this._eitherTag = initialEitherTag;
+        } finally {
+            this._nested = null;
         }
     }
 
@@ -726,9 +738,14 @@ export class DialogueInterface {
      * by calls to {@link DialogueInterface.use})
      */
     async nest(fn : PolicyFunction) : Promise<void> {
-        const nested = this.clone(this._dispatcher);
-        await fn(nested, PolicyStartMode.NORMAL);
-        this.state = nested.state;
+        this._checkNesting('nest');
+        try {
+            const nested = this.clone(this._dispatcher);
+            await fn(nested, PolicyStartMode.NORMAL);
+            this.state = nested.state;
+        } finally {
+            this._nested = null;
+        }
     }
 
     /**
@@ -742,20 +759,25 @@ export class DialogueInterface {
      * with an exception. This is similar to the behavior of `Promise.allSettled`.
      */
     async par(...fns : PolicyFunction[]) : Promise<void> {
-        const parallel = new ParallelCommandDispatcher(this._io, fns.length, {
-            deterministic: this._deterministic,
-            rng: this.rng
-        });
-        const results = await Promise.allSettled(fns.map(async (fn, i) => {
-            const nested = this.clone(parallel.getDispatcher(i));
-            await fn(nested, PolicyStartMode.NORMAL);
-        }));
+        this._checkNesting('par');
+        try {
+            const parallel = new ParallelCommandDispatcher(this._io, fns.length, {
+                deterministic: this._deterministic,
+                rng: this.rng
+            });
+            const results = await Promise.allSettled(fns.map(async (fn, i) => {
+                const nested = this.clone(parallel.getDispatcher(i));
+                await fn(nested, PolicyStartMode.NORMAL);
+            }));
 
-        for (const result of results) {
-            if (result.status === 'rejected' &&
-                !(result.reason instanceof UnexpectedCommandError ||
-                result.reason instanceof TerminatedDialogueError))
-                throw result.reason;
+            for (const result of results) {
+                if (result.status === 'rejected' &&
+                    !(result.reason instanceof UnexpectedCommandError ||
+                    result.reason instanceof TerminatedDialogueError))
+                    throw result.reason;
+            }
+        } finally {
+            this._nested = null;
         }
     }
 
@@ -772,25 +794,30 @@ export class DialogueInterface {
      * the {@link TerminatedDialogueError} and does not exit, this call will not resolve.
      */
     async any(...fns : PolicyFunction[]) : Promise<void> {
-        const parallel = new ParallelCommandDispatcher(this._io, fns.length, {
-            deterministic: this._deterministic,
-            rng: this.rng
-        });
-        const results = await Promise.allSettled(fns.map(async (fn, i) => {
-            const nested = this.clone(parallel.getDispatcher(i));
-            try {
-                await fn(nested, PolicyStartMode.NORMAL);
-            } finally {
-                parallel.terminate();
-            }
-            // TODO terminate the command dispatcher here
-        }));
+        this._checkNesting('any');
+        try {
+            const parallel = new ParallelCommandDispatcher(this._io, fns.length, {
+                deterministic: this._deterministic,
+                rng: this.rng
+            });
+            const results = await Promise.allSettled(fns.map(async (fn, i) => {
+                const nested = this.clone(parallel.getDispatcher(i));
+                try {
+                    await fn(nested, PolicyStartMode.NORMAL);
+                } finally {
+                    parallel.terminate();
+                }
+                // TODO terminate the command dispatcher here
+            }));
 
-        for (const result of results) {
-            if (result.status === 'rejected' &&
-                !(result.reason instanceof UnexpectedCommandError ||
-                result.reason instanceof TerminatedDialogueError))
-                throw result.reason;
+            for (const result of results) {
+                if (result.status === 'rejected' &&
+                    !(result.reason instanceof UnexpectedCommandError ||
+                    result.reason instanceof TerminatedDialogueError))
+                    throw result.reason;
+            }
+        } finally {
+            this._nested = null;
         }
     }
 
