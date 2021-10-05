@@ -31,7 +31,7 @@ import { MockPlatform } from '../unit/mock_utils';
 import {
     ResultGenerator,
     SimulationExecEnvironment,
-} from '../../lib/dialogue-agent/simulator/simulation_exec_environment';
+} from '../../lib/thingtalk-dialogues/simulator/simulation_exec_environment';
 
 
 class QueueOutputDelegate {

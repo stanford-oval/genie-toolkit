@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as Tp from 'thingpedia';
-import { SchemaRetriever, Syntax, Ast } from 'thingtalk';
+import { SchemaRetriever, Syntax, Ast, Type } from 'thingtalk';
 
 import { Hashable } from '../utils/hashmap';
 import { PlaceholderReplacement, ReplacedResult } from '../utils/template-string';
@@ -178,6 +178,9 @@ export type AgentReply = AgentMessage[];
 
 /**
  * Formally represent a single concrete action taken by the agent at this turn.
+ *
+ * @deprecated This is a transitional type while the existing transaction model
+ *   is ported to dialogue PL. New code should return the dialogue state directly.
  */
 export interface AgentReplyRecord {
     /**
@@ -192,4 +195,24 @@ export interface AgentReplyRecord {
      * associated with this agent turn.
      */
     numResults : number;
+
+    /**
+     * What the agent expects at this turn.
+     *
+     * This property exists to allow different replies to expect different
+     * values, even though they don't correspond to different dialogue PL code paths.
+     *
+     * @deprecated Use the appropriate option to {@link DialogueInterface.get} instead.
+     */
+    expecting ?: Type;
+
+    /**
+     * Whether to use raw mode at this turn or not.
+     *
+     * This property exists to allow different replies to expect different
+     * values, even though they don't correspond to different dialogue PL code paths.
+     *
+     * @deprecated Use the appropriate option to {@link DialogueInterface.get} instead.
+     */
+    raw ?: boolean;
 }

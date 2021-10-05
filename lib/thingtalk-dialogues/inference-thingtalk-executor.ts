@@ -22,6 +22,7 @@ import assert from 'assert';
 import * as Tp from 'thingpedia';
 import { Ast, Type, } from 'thingtalk';
 
+import * as I18n from '../i18n';
 import type Engine from '../engine';
 import type { AppExecutor, DeviceInfo } from '../engine';
 
@@ -68,7 +69,7 @@ export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExe
             timezone: engine.platform.timezone
         });
 
-        this._ = engine.langPack._;
+        this._ = I18n.get(engine.platform.locale)._;
         this._engine = engine;
         this._platform = engine.platform;
         this._conversation = conversation;

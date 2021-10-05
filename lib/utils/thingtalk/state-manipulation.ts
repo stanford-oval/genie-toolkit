@@ -27,7 +27,7 @@ import { adjustDefaultParameters } from './ast-utils';
  * The resulting agent target carries over all the accepted items and not executed items
  * from the current state.
  */
- export function makeSimpleState(state : Ast.DialogueState|null, policyName : string, dialogueAct : string, dialogueActParam : Array<string|Ast.Value> = []) {
+ export function makeSimpleState(state : Ast.DialogueState|null, policyName : string, dialogueAct : string, dialogueActParam : Array<string|Ast.Value>|null = null) {
     const newState = new Ast.DialogueState(null, policyName, dialogueAct, dialogueActParam, []);
     if (state === null)
         return newState;
@@ -154,7 +154,7 @@ export function makeTargetState(state : Ast.DialogueState,
             confirm  === 'proposed-query' ? 'proposed' : confirm;
     }
 
-    const newState = new Ast.DialogueState(null, policy, dialogueAct, dialogueActParam, []);
+    const newState = new Ast.DialogueState(null, policy, dialogueAct, dialogueActParam.length ? dialogueActParam : null /* FIXME */, []);
 
     if (confirm === 'proposed') {
         // find the first item that was not confirmed or accepted, and replace everything after that
