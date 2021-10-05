@@ -98,10 +98,17 @@ export interface AbstractCommandIO {
      * to produce multiple potential replies. At inference time, this must be paired
      * with a single call to {@link get} exactly.
      *
+     * The method returns `false` if a message cannot be sent to the user, because
+     * either:
+     * - the reply is empty or lacks a text component
+     * - expanding the templates in the reply fails
+     * - the semantic function for the reply returns null
+     *
      * @param reply - the reply from the agent
      * @param tag - a tag to use at synthesis time to identify this specific reply
+     * @returns whether a message was actually sent to the user or not
      */
-    emit(reply : AgentReply, tag : number) : Promise<void>;
+    emit(reply : AgentReply, tag : number) : Promise<boolean>;
 }
 
 export class DummyCommandIO implements AbstractCommandIO {
@@ -109,8 +116,9 @@ export class DummyCommandIO implements AbstractCommandIO {
         throw new Error(`No command available`);
     }
 
-    async emit() {
+    async emit() : Promise<boolean> {
         // discard
+        return true;
     }
 }
 

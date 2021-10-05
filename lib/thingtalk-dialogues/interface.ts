@@ -556,11 +556,16 @@ export class DialogueInterface {
      *
      * This method has no effect if {@link say} has not been called since the last
      * flush.
+     *
+     * @returns whether a message was actually sent to the user or not
      */
-    async flush() {
+    async flush() : Promise<boolean>{
         if (this._sayBuffer.length > 0) {
-            await this._io.emit(this._sayBuffer, this._eitherTag);
+            const ok = await this._io.emit(this._sayBuffer, this._eitherTag);
             this._sayBuffer = [];
+            return ok;
+        } else {
+            return false;
         }
     }
 
@@ -709,11 +714,11 @@ export class DialogueInterface {
         this._checkNesting('either');
         try {
             if (this._deterministic) {
-                const first = actions[Symbol.iterator]().next();
-                if (first.done)
-                    return;
-                await first.value(this, PolicyStartMode.NORMAL);
-                await this.flush();
+                for (const action of actions) {
+                    await action(this, PolicyStartMode.NORMAL);
+                    if (await this.flush())
+                        return;
+                }
             } else {
                 const state = this.state;
                 const initialEitherTag = this._eitherTag;

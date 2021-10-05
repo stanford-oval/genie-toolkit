@@ -226,9 +226,9 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         this._dlg = new DialogueInterface(null, {
             io: this,
             dispatcher: new SimpleCommandDispatcher(this),
-            simulated: true,
-            interactive: false,
-            deterministic: false,
+            simulated: false,
+            interactive: true,
+            deterministic: true,
             flags: this._flags,
             ...this._options,
             policy: this._policy
@@ -463,7 +463,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         return false;
     }
 
-    async emit(replies : AgentReply) : Promise<void> {
+    async emit(replies : AgentReply) : Promise<boolean> {
         this.icon = this._dlg.state ? getProgramIcon(this._dlg.state) : null;
 
         await this._agentGenerator.initialize(this._dlg.state);
@@ -514,7 +514,8 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
                 messages.push(msg);
             }
         }
-        assert(meaning);
+        if (!meaning || utterances.length === 0)
+            return false;
         this._dlg.state = ThingTalkUtils.computeNewState(this._dlg.state, meaning.meaning, 'agent').optimize();
 
         let utterance = new ReplacedConcatenation(utterances, {}, {}).chooseBest();
@@ -538,6 +539,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             ...meaning,
             end: false
         };
+        return true;
     }
 
     prepareContextForPrediction() {

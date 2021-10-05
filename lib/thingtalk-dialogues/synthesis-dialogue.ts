@@ -240,7 +240,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
      *
      * @param reply the reply from the agent
      */
-    async emit(reply : AgentReply, tag : number) : Promise<void> {
+    async emit(reply : AgentReply, tag : number) : Promise<boolean> {
         if (this._state !== PartialDialogueState.RUNNING && this._state !== PartialDialogueState.AGENT_SPEAKING)
             throw new Error(`Invalid state for emit`);
         this._state = PartialDialogueState.AGENT_SPEAKING;
@@ -263,6 +263,10 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
                 ...result
             };
         });
+
+        // unconditionally return true here
+        // the return value is only meaningful in inference (deterministic) mode
+        return true;
     }
 
     private _addDynamicUserTemplate(tag : number | null,
