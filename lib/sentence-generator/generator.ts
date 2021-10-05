@@ -686,8 +686,10 @@ export default class SentenceGenerator extends events.EventEmitter {
         const rulenumber = this._rules[symbolId].length;
         const optsentence = sentence.optimize({});
         if (optsentence === null)
-            return;
-        this._rules[symbolId].push(new Rule(rulenumber, expansion, optsentence, semanticAction, keyFunction, attributes));
+            return null;
+        const rule = new Rule(rulenumber, expansion, optsentence, semanticAction, keyFunction, attributes);
+        this._rules[symbolId].push(rule);
+        return rule;
     }
 
     addConstants(symbol : string, token : string, type : any, keyFunction : KeyFunction<any>, attributes : RuleAttributes = {}) : void {
@@ -729,15 +731,18 @@ export default class SentenceGenerator extends events.EventEmitter {
             const nonTerm = this._nonTermList[nonTermIndex];
             const rules = this._rules[nonTermIndex];
 
-            for (const rule of rules) {
-                for (const expansion of rule.expansion) {
-                    if (expansion instanceof NonTerminal) {
-                        const index = this._nonTermTable.get(expansion.symbol);
-                        if (index === undefined)
-                            throw new Error(`Non-terminal ${expansion.symbol} undefined, in ${nonTerm} = ${rule}`);
-                        expansion.index = index;
-                    }
-                }
+            for (const rule of rules)
+                this._typecheckRule(rule, nonTerm);
+        }
+    }
+
+    private _typecheckRule(rule : Rule<any[], any>, nonTerm : string) {
+        for (const expansion of rule.expansion) {
+            if (expansion instanceof NonTerminal) {
+                const index = this._nonTermTable.get(expansion.symbol);
+                if (index === undefined)
+                    throw new Error(`Non-terminal ${expansion.symbol} undefined, in ${nonTerm} = ${rule}`);
+                expansion.index = index;
             }
         }
     }
@@ -896,7 +901,7 @@ export default class SentenceGenerator extends events.EventEmitter {
      * @param nonTerm - the symbol to generate
      * @return {Derivation} - the sampled derivation
      */
-    generateOne(contexts : Iterable<ContextPhrase>, nonTerm : string) : Derivation<any>|undefined {
+    generateOne<T = any>(contexts : Iterable<ContextPhrase>, nonTerm : string) : Derivation<T>|undefined {
         this.finalize();
         assert(this._contextual);
 
@@ -969,6 +974,9 @@ export default class SentenceGenerator extends events.EventEmitter {
 
         const contexts = new Map<unknown, Context>();
         for (const phrase of contextPhrases) {
+            if (this._options.debug >= LogLevel.DUMP_TEMPLATES)
+                console.log(`context ${this._nonTermList[phrase.symbol]} = ${phrase.utterance}`);
+
             const existing = contexts.get(phrase.context);
             if (existing === undefined)
                 contexts.set(phrase.context, new Context(phrase.context));
@@ -1184,7 +1192,9 @@ export default class SentenceGenerator extends events.EventEmitter {
                                                            sentence : Replaceable,
                                                            semanticAction : SemanticAction<ArgTypes, ResultType>,
                                                            attributes : RuleAttributes = {}) : void {
-        this._addRuleInternal(this._dynamicNonTerm, expansion, sentence, semanticAction, undefined, attributes);
+        const rule = this._addRuleInternal(this._dynamicNonTerm, expansion, sentence, semanticAction, undefined, attributes);
+        if (rule)
+            this._typecheckRule(rule, '$dynamic');
     }
 
     /**

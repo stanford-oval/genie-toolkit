@@ -59,27 +59,27 @@ import type {
     NonTerminalKeyConstraint
 } from './types';
 
-const LogLevel = {
-    NONE: 0,
+export enum LogLevel {
+    NONE,
 
     // log notable events such as particularly slow templates
-    INFO: 1,
+    INFO,
 
     // log each non-empty non terminal
-    GENERATION: 2,
+    GENERATION,
 
     // log each non-empty non terminal, and additional verbose information
-    VERBOSE_GENERATION: 3,
+    VERBOSE_GENERATION,
 
     // log all templates before generation
-    DUMP_TEMPLATES: 4,
+    DUMP_TEMPLATES,
 
     // log information derived from the templates (such as the distance from the root)
-    DUMP_DERIVED: 5,
+    DUMP_DERIVED,
 
     // log a lot of very redundant information during generation (can cause slowdowns)
-    EVERYTHING: 6
-};
+    EVERYTHING
+}
 
 /**
  * A reference to a context.
@@ -93,7 +93,7 @@ const LogLevel = {
  * "value" is a value associated with the context that is only meaningful to the API caller
  * (DialogueGenerator).
  */
-class Context {
+export class Context {
     private static _nextId = 0;
     private _id;
 
@@ -132,7 +132,7 @@ export type DerivationChildTuple<ArgTypes extends unknown[]> = { [K in keyof Arg
  * A Derivation represents a sentence fragment and an intermediate value
  * that were computed at some point during the generation process.
  */
-class Derivation<ValueType> {
+export class Derivation<ValueType> {
     readonly key : DerivationKey;
     readonly value : ValueType;
     readonly context : Context|null;
@@ -204,7 +204,7 @@ class Derivation<ValueType> {
     }
 }
 
-class NonTerminal<ValueType = any> {
+export class NonTerminal<ValueType = any> {
     symbol : string;
     name : string|undefined;
     index : number;
@@ -232,6 +232,10 @@ class NonTerminal<ValueType = any> {
         return new NonTerminal(this.symbol, name, this.constantKeyConstraint ?? this.relativeKeyConstraint);
     }
 
+    withConstraint(constraint : NonTerminalKeyConstraint) {
+        return new NonTerminal(this.symbol, this.name, constraint);
+    }
+
     toString() : string {
         if (this.name !== undefined)
             return `NT[${this.name} : ${this.symbol}]`;
@@ -239,13 +243,3 @@ class NonTerminal<ValueType = any> {
             return `NT[${this.symbol}]`;
     }
 }
-
-//const everything = new Set;
-
-export {
-    LogLevel,
-
-    Derivation,
-    Context,
-    NonTerminal,
-};

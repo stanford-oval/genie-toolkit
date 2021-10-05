@@ -127,7 +127,6 @@ export class DialogueLoop {
     expecting : ValueCategory|null;
     platformData : PlatformData;
     choices : string[];
-    raw = false;
 
     private _stopped = false;
     private _mgrResolve : (() => void)|null;
@@ -443,11 +442,10 @@ export class DialogueLoop {
         throw new CancellationError();
     }
 
-    setExpected(expected : ValueCategory|null, raw = (expected === ValueCategory.RawString || expected === ValueCategory.Password)) {
+    setExpected(expected : ValueCategory|null) {
         if (expected === undefined)
             throw new TypeError();
         this.expecting = expected;
-        this.raw = raw;
         const [contextCode, contextEntities] = this._thingtalkHandler.prepareContextForPrediction();
         this.conversation.setExpected(expected, { code: contextCode, entities: contextEntities });
     }

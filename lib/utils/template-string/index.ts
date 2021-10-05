@@ -62,6 +62,10 @@ class EmptyReplacement extends ReplacedResult {
         return this;
     }
 
+    toString() {
+        return '{}';
+    }
+
     chooseSample(rng : () => number) {
         return '';
     }

@@ -26,7 +26,7 @@ import * as I18n from '../i18n';
 import * as ThingTalkUtils from '../utils/thingtalk';
 
 import SentenceGenerator, { SentenceGeneratorOptions } from '../sentence-generator/generator';
-import { AgentReplyRecord, ContextPhrase, SemanticAction } from '../sentence-generator/types';
+import { ContextPhrase, SemanticAction } from '../sentence-generator/types';
 import { Derivation, NonTerminal, Replaceable } from '../sentence-generator/runtime';
 import { PolicyModule } from './policy';
 
@@ -166,8 +166,8 @@ export default class InferenceTimeSentenceGenerator {
         return deviceArray;
     }
 
-    generateOne(contextPhrases : ContextPhrase[], nonTerm : string) : Derivation<AgentReplyRecord>|undefined {
-        return this._sentenceGenerator!.generateOne(contextPhrases, nonTerm);
+    generateOne<T>(contextPhrases : ContextPhrase[], nonTerm : string) : Derivation<T>|undefined {
+        return this._sentenceGenerator!.generateOne<T>(contextPhrases, nonTerm);
     }
 
     /*

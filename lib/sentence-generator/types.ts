@@ -122,7 +122,7 @@ export type AgentTextMessage = {
     type : 'text';
     text : string;
     args : TemplatePlaceholderMap;
-    meaning : SemanticAction<any[], AgentReplyRecord|undefined>
+    meaning ?: SemanticAction<any[], AgentReplyRecord>
 };
 
 /**

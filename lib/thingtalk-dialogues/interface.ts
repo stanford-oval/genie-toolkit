@@ -45,7 +45,7 @@ import AbstractThingTalkExecutor, {
     NotificationConfig
 } from './abstract-thingtalk-executor';
 import { shouldAutoConfirmStatement, StateM } from '../utils/thingtalk';
-import { NonTerminal } from '../sentence-generator/runtime';
+import { LogLevel, NonTerminal } from '../sentence-generator/runtime';
 
 /**
  * A callback that computes all the relevant templates to use for synthesis
@@ -154,6 +154,8 @@ export class DialogueInterface {
      */
     readonly flags : Record<string, boolean>;
 
+    readonly debug : LogLevel;
+
     private readonly _policy : PolicyModule;
     private readonly _parent : DialogueInterface|null;
     private readonly _langPack : I18n.LanguagePack;
@@ -208,6 +210,7 @@ export class DialogueInterface {
                     deterministic : boolean,
                     anonymous : boolean,
                     flags : Record<string, boolean>,
+                    debug : LogLevel,
                     rng : () => number
                 }) {
         this.locale = options.locale;
@@ -215,6 +218,7 @@ export class DialogueInterface {
         this.interactive = options.interactive;
         this.anonymous = options.anonymous;
         this.flags = options.flags;
+        this.debug = options.debug;
         this.rng = options.rng;
         this.state = null;
         this.command = null;
@@ -271,30 +275,33 @@ export class DialogueInterface {
             throw new Error(`Multiple reentrant or parallel calls to DialogueInterface.get are not allowed`);
         this._inGet = true;
 
-        if (this._synthesizer) {
-            const userTemplates = this._userTemplates;
-            this._synthesizer.synthesize(function*() : Iterable<[number|null, Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>]> {
-                if (options.followUp) {
-                    for (const tmpl of options.followUp)
-                        yield [null, tmpl];
-                }
-                for (const [tag, templates] of userTemplates) {
-                    for (const tmpl of templates)
-                        yield [tag, tmpl];
-                }
-            }());
-        }
-
-        if (options.acceptActs) {
-            for (let i = 0; i < options.acceptActs.length; i++) {
-                if (!options.acceptActs[i].includes('.'))
-                    options.acceptActs[i] = this._policy.MANIFEST.name + '.' + options.acceptActs[i];
+        try {
+            if (this._synthesizer) {
+                const userTemplates = this._userTemplates;
+                this._synthesizer.synthesize(function*() : Iterable<[number|null, Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>]> {
+                    if (options.followUp) {
+                        for (const tmpl of options.followUp)
+                            yield [null, tmpl];
+                    }
+                    for (const [tag, templates] of userTemplates) {
+                        for (const tmpl of templates)
+                            yield [tag, tmpl];
+                    }
+                }());
             }
-        }
 
-        this.command = await this._dispatcher.get(options);
-        this._inGet = false;
-        return this.command;
+            if (options.acceptActs) {
+                for (let i = 0; i < options.acceptActs.length; i++) {
+                    if (!options.acceptActs[i].includes('.'))
+                        options.acceptActs[i] = this._policy.MANIFEST.name + '.' + options.acceptActs[i];
+                }
+            }
+
+            this.command = await this._dispatcher.get(options);
+            return this.command;
+        } finally {
+            this._inGet = false;
+        }
     }
 
     /**
@@ -367,6 +374,8 @@ export class DialogueInterface {
                 // assign to a local variable to remove "|undefined" from the type
                 const s2 = state;
                 semantics = () => s2;
+            } else if (arg3) {
+                semantics = arg3;
             }
         }
 
@@ -374,7 +383,7 @@ export class DialogueInterface {
             type: 'text',
             text: tmpl,
             args,
-            meaning: semantics !== undefined ? wrapAgentReplySemantics(semantics) : (() => undefined)
+            meaning: semantics !== undefined ? wrapAgentReplySemantics(semantics) : undefined
         });
     }
 
@@ -482,7 +491,7 @@ export class DialogueInterface {
 
         for (;;) {
             try {
-                const cmd = await this.get({
+                const options : GetOptions = {
                     expecting: expectedType,
                     acceptActs: ['answer'],
                     followUp: [
@@ -491,7 +500,18 @@ export class DialogueInterface {
                         }, (state : Ast.DialogueState, v : Ast.Value) => StateM.makeSimpleState(state, this._policy.MANIFEST.name, 'answer', [v])]
                     ],
                     ...getOptions
-                });
+                };
+
+                // force the question to occur in raw mode for locations
+                // because otherwise we send it to the parser and the parser will
+                // likely misbehave as it's a state that we've never seen in training
+                if (expectedType === Type.Location) {
+                    options.rawHandler = (cmd) => {
+                        return StateM.makeSimpleState(this.state, this._policy.MANIFEST.name, 'answer', [new Ast.LocationValue(new Ast.UnresolvedLocation(cmd))]);
+                    };
+                }
+
+                const cmd = await this.get(options);
                 const value = cmd.meaning.dialogueActParam?.[0];
                 if (!(value instanceof Ast.Value) || !value.getType().equals(expectedType))
                     throw new UnexpectedCommandError(cmd);
@@ -680,6 +700,7 @@ export class DialogueInterface {
             deterministic: this._deterministic,
             anonymous: this.anonymous,
             flags: this.flags,
+            debug: this.debug,
             rng: this.rng
         });
         clone.state = this.state;

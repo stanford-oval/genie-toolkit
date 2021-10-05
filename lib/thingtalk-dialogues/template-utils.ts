@@ -31,6 +31,8 @@ import {
     ReplacementContext
 } from '../utils/template-string';
 
+import type SentenceGenerator from '../sentence-generator/generator';
+import type InferenceSentenceGenerator from './inference-sentence-generator';
 import {
     SemanticAction,
     TemplatePlaceholderMap
@@ -83,13 +85,7 @@ function processPlaceholderMap(tmpl : string, langPack : I18n.LanguagePack, nonT
     return repl;
 }
 
-interface SentenceGenerator {
-    langPack : I18n.LanguagePack;
-
-    addDynamicRule(nonTerms : NonTerminal[], repl : Replaceable, semantics : SemanticAction<any[], any>) : void;
-}
-
-export function addTemplate(generator : SentenceGenerator,
+export function addTemplate(generator : SentenceGenerator|InferenceSentenceGenerator,
                             prependNonTerminals : NonTerminal[],
                             tmpl : string,
                             placeholders : TemplatePlaceholderMap,

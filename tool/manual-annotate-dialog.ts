@@ -44,6 +44,7 @@ import  * as TransactionPolicy from '../lib/transaction-dialogues';
 
 import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
+import { LogLevel } from '../lib/sentence-generator/runtime';
 
 interface AnnotatorOptions {
     locale : string;
@@ -145,6 +146,7 @@ class Annotator extends events.EventEmitter {
             deterministic: false,
             anonymous: false,
             flags: { dialogues: true },
+            debug: LogLevel.NONE,
             rng: simulatorOptions.rng
         });
 

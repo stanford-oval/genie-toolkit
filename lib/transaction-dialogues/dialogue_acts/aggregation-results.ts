@@ -18,9 +18,11 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
 import * as C from '../../templates/ast_manip';
+import { DialogueInterface } from '../../thingtalk-dialogues';
 import { StateM } from '../../utils/thingtalk';
 
 import { ContextInfo } from '../context-info';
@@ -28,6 +30,7 @@ import { POLICY_NAME } from '../metadata';
 import {
     makeAgentReply,
 } from '../state_manip';
+import * as Templates from '../templates/index.genie.out';
 
 export function makeCountAggregationReply(ctx : ContextInfo, table : Ast.Expression, mustFilter : boolean) {
     if (!ctx.resultInfo!.isAggregation)
@@ -72,4 +75,15 @@ export function makeOtherAggregationReply(ctx : ContextInfo, op : string, param 
     if (!value.equals(results[0].value[param.name]))
         return null;
     return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_display_result'));
+}
+
+export function ctxAggregationQuestion(dlg : DialogueInterface, ctx : ContextInfo) {
+    const currentStmt = ctx.current!.stmt;
+    const currentTable = currentStmt.lastQuery!;
+    assert(currentTable instanceof Ast.AggregationExpression);
+
+    if (currentTable.operator === 'count' && currentTable.field === '*')
+        dlg.say(Templates.count_aggregation_reply, (reply) => reply);
+    else
+        dlg.say(Templates.other_aggregation_reply, (reply) => reply);
 }

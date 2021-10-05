@@ -37,7 +37,7 @@ import {
 import {
     isInfoPhraseCompatibleWithResult
 } from './common';
-import { AgentReplyRecord } from './types';
+import * as Templates from '../templates/index.genie.out';
 
 export type ActionSuccessPhraseWithResult = [Ast.Expression|null, SlotBag];
 
@@ -288,21 +288,36 @@ function actionSuccessQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
 }
 
 export async function ctxCompletedActionSuccess(dlg : DialogueInterface, ctx : ContextInfo) {
-    if (dlg.flags.anything_else) {
-        await dlg.either([
-            async () => {
-                dlg.say(new NonTerminal('action_success_phrase'), (phrase : AgentReplyRecord) => phrase);
-            },
-            async () => {
-                dlg.say(dlg._("${p1} ${p2}"), {
-                    p1: new NonTerminal('action_success_phrase'),
-                    p2: new NonTerminal('anything_else_phrase')
-                }, (p1 : AgentReplyRecord) => p1);
-            }
-        ]);
-    } else {
-        dlg.say(new NonTerminal('action_success_phrase'), (phrase : AgentReplyRecord) => phrase);
-    }
+    dlg.say(Templates.generic_excitement_phrase);
+
+    await dlg.either([
+        async () => {
+            dlg.say(dlg._("${ctx_thingpedia_result}."), {
+                ctx_thingpedia_result: new NonTerminal('ctx_thingpedia_result')
+            }, (result : SlotBag) => makeThingpediaActionSuccessPhrase(ctx, result));
+        },
+        async () => {
+            dlg.say(dlg._("i ${action}."), {
+                action: Templates.complete_past_action_phrase.withConstraint(['functionName', ctx.currentFunction!.qualifiedName])
+            }, (action : Ast.Expression) => makeCompleteActionSuccessPhrase(ctx, action, null));
+        },
+        async () => {
+            dlg.say(Templates.action_success_phrase_with_result, (phrase) => {
+                const [action, info] = phrase;
+                if (action)
+                    return makeCompleteActionSuccessPhrase(ctx, action, info);
+                else
+                    return makeThingpediaActionSuccessPhrase(ctx, info);
+            });
+        },
+        async () => {
+            // purely generic fallback, so we always say something, even if we cannot use a better template
+            dlg.say(Templates.generic_action_success_phrase, () => makeGenericActionSuccessPhrase(ctx));
+        }
+    ]);
+
+    if (dlg.flags.anything_else)
+        dlg.say(Templates.anything_else_phrase);
 }
 
 export {

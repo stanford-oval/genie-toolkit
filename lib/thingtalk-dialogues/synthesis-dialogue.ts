@@ -35,7 +35,7 @@ import {
     TemplatePlaceholderMap
 } from '../sentence-generator/types';
 import SentenceGenerator from '../sentence-generator/generator';
-import { NonTerminal } from '../sentence-generator/runtime';
+import { LogLevel, NonTerminal } from '../sentence-generator/runtime';
 
 import SimulationDialogueAgent from './simulator/simulation-thingtalk-executor';
 import {
@@ -127,6 +127,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
         timezone : string|undefined,
         schemaRetriever : SchemaRetriever,
         flags : Record<string, boolean>,
+        debug : LogLevel,
         rng : () => number
     }) {
         this._id = partialDialogueID++;
@@ -251,7 +252,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
         assert(reply[0].type === 'text');
         const { text: tmpl, args: placeholders, meaning: semantics } = reply[0];
         addTemplate(this._agentGenerator, [], tmpl, placeholders, (...args : any[]) : ExtendedAgentReplyRecord|null => {
-            const result = semantics(...args);
+            const result = semantics!(...args);
             if (result === null)
                 return null;
             if (result === undefined)

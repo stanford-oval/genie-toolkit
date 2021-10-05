@@ -22,6 +22,7 @@ import assert from 'assert';
 import { Ast } from 'thingtalk';
 
 import { ContextTable } from '../sentence-generator/types';
+import { NonTerminal } from '../sentence-generator/runtime';
 import ThingpediaLoader from '../templates/load-thingpedia';
 import * as C from '../templates/ast_manip';
 import { StateM } from '../utils/thingtalk';
@@ -58,25 +59,70 @@ function greet(dlg : DialogueInterface) {
         StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_greet'));
 }
 
-function TODO(dlg : DialogueInterface, what : string) {
-    dlg.say(dlg._("TODO agent ${what}"), { what }, () => StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_todo'));
-}
-
 async function ctxNotification(dlg : DialogueInterface, ctx : ContextInfo) {
     assert(ctx.nextInfo === null);
     assert(ctx.resultInfo, `expected result info`);
 
     if (ctx.resultInfo.hasError) {
-        TODO(dlg, 'ctx_notification_error');
+        dlg.say(Templates.notification_error_preamble);
+        dlg.say(Templates.action_error_phrase, (phrase) => phrase);
         return;
     }
 
+    dlg.say(Templates.notification_preamble);
+
     if (!ctx.resultInfo.isTable)
-        TODO(dlg, 'ctx_action_notification');
+        dlg.say(Templates.action_notification_phrase, (phrase) => phrase);
     else if (ctx.resultInfo.isList)
-        TODO(dlg, 'ctx_list_notification');
+        dlg.say(Templates.system_recommendation, (proposal) => D.makeRecommendationReply(ctx, proposal));
     else
-        TODO(dlg, 'ctx_nonlist_notification');
+        dlg.say(Templates.system_nonlist_result, (proposal) => D.makeDisplayResultReply(ctx, proposal));
+}
+
+async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextInfo) {
+    if (ctx.results!.length > 1) {
+        await dlg.either([
+            async () => {
+                dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+            },
+            async () => {
+                dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+            }
+        ]);
+    } else {
+        dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+    }
+}
+
+async function ctxIncompleteSearchCommand(dlg : DialogueInterface, ctx : ContextInfo) {
+    if (ctx.results!.length > 1) {
+        await dlg.either([
+            async () => {
+                dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+            },
+            async () => {
+                dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+            },
+            async () => {
+                dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
+            },
+            async () => {
+                dlg.say(Templates.system_generic_proposal, (prop) => prop);
+            },
+        ]);
+    } else {
+        await dlg.either([
+            async () => {
+                dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+            },
+            async () => {
+                dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
+            },
+            async () => {
+                dlg.say(Templates.system_generic_proposal, (prop) => prop);
+            },
+        ]);
+    }
 }
 
 async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) {
@@ -91,10 +137,13 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) {
         if (ctx.nextInfo.chainParameter === null || ctx.nextInfo.chainParameterFilled) {
             // we don't need to fill any parameter from the current query
 
-            if (ctx.nextInfo.isComplete)
-                TODO(dlg, 'ctx_confirm_action');
-            else
-                TODO(dlg, 'ctx_incomplete_action_after_search');
+            if (ctx.nextInfo.isComplete) {
+                // we have all the parameters but we didn't execute: we need to confirm
+                dlg.say(Templates.action_confirm_phrase, (phrase) => phrase);
+            } else {
+                // we are missing some parameter
+                dlg.say(Templates.slot_fill_question_for_action, (questions) => D.makeSlotFillQuestion(ctx, questions));
+            }
             return;
         }
     }
@@ -102,17 +151,20 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) {
     // we must have a result
     assert(ctx.resultInfo, `expected result info`);
     if (ctx.resultInfo.hasError) {
-        TODO(dlg, 'ctx_completed_action_error');
+        dlg.say(Templates.action_error_phrase, (phrase) => phrase);
         return;
     }
     if (ctx.resultInfo.hasStream) {
-        TODO(dlg, 'ctx_rule_enable_success');
+        dlg.say(dlg._("${preamble} I {will|am going to} ${stmt}"), {
+            preamble: Templates.generic_excitement2_phrase,
+            stmt: new NonTerminal('ctx_current_statement')
+        }, () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_rule_enable_success'));
         return;
     }
 
     if (!ctx.resultInfo.isTable) {
         if (ctx.resultInfo.hasEmptyResult && actionShouldHaveResult(ctx))
-            TODO(dlg, 'ctx_empty_search_command');
+            dlg.say(Templates.empty_search_error, (error) => D.makeEmptySearchError(ctx, error));
         else
             await D.ctxCompletedActionSuccess(dlg, ctx);
         return;
@@ -120,7 +172,7 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) {
 
     if (ctx.resultInfo.hasEmptyResult) {
         // note: aggregation cannot be empty (it would be zero)
-        TODO(dlg, 'ctx_empty_search_command');
+        dlg.say(Templates.empty_search_error, (error) => D.makeEmptySearchError(ctx, error));
         return;
     }
 
@@ -128,56 +180,41 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) {
         if (ctx.results!.length === 1)
             dlg.say(Templates.system_nonlist_result, (result) => D.makeDisplayResultReply(ctx, result));
         else
-            TODO(dlg, 'makeDisplayResultReplyFromList');
+            dlg.say(Templates.system_list_proposal, (result) => D.makeDisplayResultReplyFromList(ctx, result));
     } else if (ctx.resultInfo.isQuestion) {
         if (ctx.resultInfo.isAggregation) {
             // "how many restaurants nearby have more than 500 reviews?"
-            TODO(dlg, 'ctx_aggregation_question');
+            await D.ctxAggregationQuestion(dlg, ctx);
         } else if (ctx.resultInfo.argMinMaxField !== null) {
             // these are treated as single result questions, but
             // the context is tagged as ctx_with_result_argminmax instead of
             // ctx_with_result_noquestion
             // so the answer is worded differently
-            await dlg.either([
-                async () => TODO(dlg, 'ctx_single_result_search_command'),
-                async () => TODO(dlg, 'ctx_complete_search_command')
-            ]);
+            await ctxCompleteSearchCommand(dlg, ctx);
         } else if (ctx.resultInfo.hasSingleResult) {
             // "what is the rating of Terun?"
             // FIXME if we want to answer differently, we need to change this one
-            await dlg.either([
-                async () => TODO(dlg, 'ctx_single_result_search_command'),
-                async () => TODO(dlg, 'ctx_complete_search_command')
-            ]);
+            await ctxCompleteSearchCommand(dlg, ctx);
         } else if (ctx.resultInfo.hasLargeResult) {
             // "what's the food and price range of restaurants nearby?"
             // we treat these the same as "find restaurants nearby", but we make sure
             // that the necessary fields are computed
-            await dlg.either([
-                async () => TODO(dlg, 'ctx_search_command'),
-                async () => TODO(dlg, 'ctx_complete_search_command')
-            ]);
+            await ctxIncompleteSearchCommand(dlg, ctx);
         } else {
             // "what's the food and price range of restaurants nearby?"
             // we treat these the same as "find restaurants nearby", but we make sure
             // that the necessary fields are computed
-            TODO(dlg, 'ctx_complete_search_command');
+            await ctxCompleteSearchCommand(dlg, ctx);
         }
     } else {
         if (ctx.resultInfo.hasSingleResult) {
             // we can recommend
-            await dlg.either([
-                async () => TODO(dlg, 'ctx_single_result_search_command'),
-                async () => TODO(dlg, 'ctx_complete_search_command')
-            ]);
+            await ctxCompleteSearchCommand(dlg, ctx);
         } else if (ctx.resultInfo.hasLargeResult && ctx.state.dialogueAct !== 'ask_recommend') {
             // we can refine
-            await dlg.either([
-                async () => TODO(dlg, 'ctx_search_command'),
-                async () => TODO(dlg, 'ctx_complete_search_command')
-            ]);
+            await ctxIncompleteSearchCommand(dlg, ctx);
         } else {
-            TODO(dlg, 'ctx_complete_search_command');
+            await ctxCompleteSearchCommand(dlg, ctx);
         }
     }
 
@@ -194,6 +231,8 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
         ["TODO user", {}, (state) => StateM.makeSimpleState(state, POLICY_NAME, 'cancel')]
     ]);
 
+    if (dlg.interactive && dlg.debug)
+        console.log('Policy start');
     switch (startMode) {
     case PolicyStartMode.NORMAL:
         greet(dlg);
@@ -221,6 +260,8 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
             // execute the command immediately regardless of dialogue act
             // this will update dlg.state to the dialogue state after the user speaks
             await dlg.execute(cmd.meaning);
+            if (dlg.interactive && dlg.debug)
+                console.log(`After execution:`, dlg.state?.prettyprint());
             const ctx = ContextInfo.get(dlg.state);
 
             switch (cmd.type) {
@@ -250,6 +291,7 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
 
             case POLICY_NAME + '.notification':
                 await ctxNotification(dlg, ctx);
+                break;
 
             case POLICY_NAME + '.init':
             case POLICY_NAME + '.insist':

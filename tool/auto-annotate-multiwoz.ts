@@ -38,6 +38,7 @@ import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/
 import { DialogueInterface } from '../lib/thingtalk-dialogues';
 import { DummyCommandIO, SimpleCommandDispatcher } from '../lib/thingtalk-dialogues/cmd-dispatch';
 import  * as TransactionPolicy from '../lib/transaction-dialogues';
+import { LogLevel } from '../lib/sentence-generator/runtime';
 
 function undoTradePreprocessing(sentence : string) : string {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');
@@ -321,6 +322,7 @@ class Converter extends stream.Readable {
             deterministic: false,
             anonymous: false,
             flags: { dialogues: true, multiwoz: true },
+            debug: LogLevel.NONE,
             rng: simulatorOptions.rng
         });
 

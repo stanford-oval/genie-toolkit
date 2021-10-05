@@ -98,13 +98,13 @@ action_success_phrase : D.AgentReplyRecord = {
 }
 
 action_notification_phrase : D.AgentReplyRecord = {
-    ctx:ctx_action_notification notification_preamble generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
+    ctx:ctx_action_notification generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
         => D.makeThingpediaActionSuccessPhrase(ctx, result);
 
-    ctx:ctx_action_notification notification_preamble generic_excitement_phrase 'i' action:complete_past_action_phrase with { functionName = ctx.currentFunction } '.' [priority=2]
+    ctx:ctx_action_notification generic_excitement_phrase 'i' action:complete_past_action_phrase with { functionName = ctx.currentFunction } '.' [priority=2]
         => D.makeCompleteActionSuccessPhrase(ctx, action, null);
 
-    ctx:ctx_action_notification notification_preamble generic_excitement_phrase phrase:action_success_phrase_with_result => {
+    ctx:ctx_action_notification generic_excitement_phrase phrase:action_success_phrase_with_result => {
         const [action, info] = phrase;
         if (action)
             return D.makeCompleteActionSuccessPhrase(ctx, action, info);
@@ -113,7 +113,7 @@ action_notification_phrase : D.AgentReplyRecord = {
     };
 
     // purely generic fallback, so we always say something, even if we cannot use a better template
-    ctx:ctx_action_notification notification_preamble generic_excitement_phrase generic_action_success_phrase [priority=-10]
+    ctx:ctx_action_notification generic_excitement_phrase generic_action_success_phrase [priority=-10]
         => D.makeGenericActionSuccessPhrase(ctx);
 }
 
@@ -153,7 +153,7 @@ two_param_try_different_param_question : C.ParamSlot[] = {
 }
 
 action_error_phrase : D.AgentReplyRecord = {
-    ctx:short_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
+    sorry_preamble ctx:short_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
 
     !inference {
         // FIXME this should be good for inference too but the phrase it generates is weird

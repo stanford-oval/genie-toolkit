@@ -71,6 +71,11 @@ type ReplacedAgentMessage = Tp.FormatObjects.FormattedObject | {
     url : string;
 };
 
+interface EmptyAgentReplyRecord {
+    meaning : undefined;
+    numResults : 0;
+}
+
 interface ExtendedAgentReplyRecord extends AgentReplyRecord {
     messages : ReplacedAgentMessage[];
     end : boolean;
@@ -90,6 +95,10 @@ interface InferenceTimeDialogueOptions {
     useConfidence : boolean,
     debug : number,
     rng : () => number
+}
+
+function emptyMeaning() : EmptyAgentReplyRecord {
+    return { meaning: undefined, numResults: 0 };
 }
 
 /**
@@ -388,6 +397,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             agent_target = '';
             end = false;
         }
+        this._nextReply = null;
 
         let expecting : ValueCategory|null;
         if (expectingType === null) {
@@ -426,12 +436,12 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         return this._commandQueue.pop();
     }
 
-    private _expandTemplate(reply : Template<any[], AgentReplyRecord|void>, contextPhrases : ContextPhrase[]) {
+    private _expandTemplate(reply : Template<any[], AgentReplyRecord|EmptyAgentReplyRecord>, contextPhrases : ContextPhrase[]) {
         this._agentGenerator.reset();
         const [tmpl, placeholders, semantics] = reply;
         addTemplate(this._agentGenerator, [], tmpl, placeholders, semantics);
 
-        return this._agentGenerator.generateOne(contextPhrases, '$dynamic');
+        return this._agentGenerator.generateOne<AgentReplyRecord|EmptyAgentReplyRecord>(contextPhrases, '$dynamic');
     }
 
     private _getMainAgentContextPhrase() : ContextPhrase {
@@ -475,10 +485,10 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
 
         messageloop: for (const reply of replies) {
             if (reply.type === 'text') {
-                const derivation = this._expandTemplate([reply.text, reply.args, reply.meaning], contextPhrases);
+                const derivation = this._expandTemplate([reply.text, reply.args, reply.meaning ?? emptyMeaning], contextPhrases);
                 if (!derivation)
                     continue;
-                if (derivation.value !== undefined)
+                if (derivation.value.meaning)
                     meaning = derivation.value;
                 if (messages.length > 0) {
                     let utterance = derivation.sentence.chooseBest();
@@ -498,7 +508,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
                     if (key === 'type' || key === 'args')
                         continue;
                     if (key === 'title' || key === 'alt' || key === 'displayTitle' || key === 'displayText') {
-                        const derivation = this._expandTemplate([(reply as any)[key], reply.args, () => undefined], contextPhrases);
+                        const derivation = this._expandTemplate([(reply as any)[key], reply.args, emptyMeaning], contextPhrases);
                         if (!derivation)
                             continue messageloop;
 
