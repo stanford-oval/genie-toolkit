@@ -52,7 +52,7 @@ function processPlaceholderMap(tmpl : string, langPack : I18n.LanguagePack, nonT
         names.push(alias);
         if (symbol instanceof NonTerminal) {
             nonTermNames.push(alias);
-            nonTerms.push(symbol);
+            nonTerms.push(symbol.withName(alias));
             replacePartialCtx.replacements.push(undefined);
         } else if (symbol instanceof ReplacedResult) {
             needsReplacePartial = true;

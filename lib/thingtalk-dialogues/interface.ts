@@ -333,11 +333,11 @@ export class DialogueInterface {
      * output of that semantic action will be used as the formal meaning of the turn.
      * The semantic action receives as input the specified values of the placeholders
      */
-    say(tmpl : NonTerminal, semantics ?: SemanticAction<[any], Ast.DialogueState|AgentReplyRecord>) : void;
+    say<T>(tmpl : NonTerminal<T>, semantics ?: SemanticAction<[T], Ast.DialogueState|AgentReplyRecord>) : void;
     say(tmpl : string, args ?: TemplatePlaceholderMap) : void;
     say(tmpl : string, semantics : Ast.DialogueState) : void;
     say(tmpl : string, args : TemplatePlaceholderMap, semantics : SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) : void;
-    say(arg1 : string|NonTerminal, arg2 ?: TemplatePlaceholderMap|Ast.DialogueState|SemanticAction<[any], Ast.DialogueState|AgentReplyRecord>, arg3 ?: SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) {
+    say(arg1 : string|NonTerminal<any>, arg2 ?: TemplatePlaceholderMap|Ast.DialogueState|SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>, arg3 ?: SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) {
         let tmpl : string;
         let args : TemplatePlaceholderMap;
         let semantics : SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>|undefined;

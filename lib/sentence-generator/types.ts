@@ -75,15 +75,6 @@ export interface GrammarOptions {
 }
 
 /**
- * A statically-defined non-terminal in a Genie template file.
- *
- * This type exists only for documentation.
- */
-export type NonTerminalName<ValueType> = ValueType extends unknown ? string : never;
-// ^ clever hack with dual purposes: it shuts up typescript about
-// an unused type argument, and it hides the type definition from typedoc
-
-/**
  * Equality of key compared to another non-terminal.
  *
  * The values are [our index name, the 0-based position of the other non-terminal, the other index name].

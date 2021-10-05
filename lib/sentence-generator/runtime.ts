@@ -204,13 +204,16 @@ class Derivation<ValueType> {
     }
 }
 
-class NonTerminal {
+class NonTerminal<ValueType = any> {
     symbol : string;
     name : string|undefined;
     index : number;
 
     relativeKeyConstraint : RelativeKeyConstraint|undefined = undefined;
     constantKeyConstraint : ConstantKeyConstraint|undefined = undefined;
+
+    // @ts-expect-error unused value
+    private _unused : ValueType;
 
     constructor(symbol : string, name ?: string, constraint ?: NonTerminalKeyConstraint) {
         this.symbol = symbol;
@@ -223,6 +226,10 @@ class NonTerminal {
             else
                 this.constantKeyConstraint = constraint;
         }
+    }
+
+    withName(name : string) : NonTerminal<ValueType> {
+        return new NonTerminal(this.symbol, name, this.constantKeyConstraint ?? this.relativeKeyConstraint);
     }
 
     toString() : string {

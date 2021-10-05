@@ -22,7 +22,6 @@ import assert from 'assert';
 import { Ast } from 'thingtalk';
 
 import { ContextTable } from '../sentence-generator/types';
-import { NonTerminal } from '../sentence-generator/runtime';
 import ThingpediaLoader from '../templates/load-thingpedia';
 import * as C from '../templates/ast_manip';
 import { StateM } from '../utils/thingtalk';
@@ -30,12 +29,13 @@ import { StateM } from '../utils/thingtalk';
 import * as S from './state_manip';
 import * as D from './dialogue_acts';
 
-export * as Templates from './templates/index.genie.out';
+import * as Templates from './templates/index.genie.out';
 import { $load } from './templates/index.genie.out';
 import { DialogueInterface } from '../thingtalk-dialogues/interface';
 import { CommandType, PolicyStartMode, UnexpectedCommandError } from '../thingtalk-dialogues';
 import { ContextInfo } from './context-info';
 export {
+    Templates,
     $load as initializeTemplates
 };
 export * from './metadata';
@@ -126,7 +126,7 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) {
 
     if (!ctx.resultInfo.isList) {
         if (ctx.results!.length === 1)
-            dlg.say(new NonTerminal('system_nonlist_result'), (result : D.Recommendation) => D.makeDisplayResultReply(ctx, result));
+            dlg.say(Templates.system_nonlist_result, (result) => D.makeDisplayResultReply(ctx, result));
         else
             TODO(dlg, 'makeDisplayResultReplyFromList');
     } else if (ctx.resultInfo.isQuestion) {
@@ -238,12 +238,12 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
                 break;
 
             case POLICY_NAME + '.learn_more':
-                dlg.say(new NonTerminal('system_learn_more'), () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_learn_more_what'));
+                dlg.say(Templates.system_learn_more, () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_learn_more_what'));
                 break;
 
             case POLICY_NAME + '.cancel':
                 if (dlg.flags.anything_else)
-                    dlg.say(new NonTerminal('anything_else_phrase'), () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
+                    dlg.say(Templates.anything_else_phrase, () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
                 else
                     dlg.say(dlg._("alright, let me know if I can help you with anything else!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
                 return;
