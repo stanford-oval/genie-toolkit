@@ -101,6 +101,8 @@ function emptyMeaning() : EmptyAgentReplyRecord {
     return { meaning: undefined, numResults: 0 };
 }
 
+let _cnt = 0;
+
 /**
  * Runtime for a ThingTalk dialogue at inference time.
  *
@@ -151,7 +153,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
 
     private readonly _commandQueue : AsyncQueue<Command>;
     private _nextReply : ExtendedAgentReplyRecord|null;
-    private _policyRunning = 0;
+    private _policyRunning : boolean;
     private _continuePromise : Promise<ReplyResult>|null;
     private _continueResolve : ((reply : ReplyResult) => void)|null;
 
@@ -175,6 +177,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         this._expecting = null;
         this._choices = [];
 
+        this._policyRunning = false;
         this._nextReply = null;
         this._continuePromise = null;
         this._continueResolve = null;
@@ -287,35 +290,41 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
     }
 
     private async _runPolicy(startMode : PolicyStartMode) {
-        this._policyRunning ++;
+        const cnt = _cnt++;
+        this._policyRunning = true;
+        if (this._debug >= LogLevel.INFO)
+            console.log(`Starting policy (iteration ${cnt})`);
         try {
-            try {
-                await this._policy.policy(this._dlg, startMode);
-            } catch(e) {
-                if (!(e instanceof TerminatedDialogueError) && !(e instanceof UnexpectedCommandError))
-                    throw e;
-            }
-            // dialogue terminated, send the final message
-            await this._dlg.flush();
-            if (this._nextReply)
-                this._nextReply.finished = true;
-            await this._sendReply(null, false);
-        } finally {
-            this._policyRunning --;
+            await this._policy.policy(this._dlg, startMode);
+        } catch(e) {
+            if (!(e instanceof TerminatedDialogueError) && !(e instanceof UnexpectedCommandError))
+                throw e;
         }
+        // dialogue terminated, send the final message
+        await this._dlg.flush();
+        if (this._nextReply)
+            this._nextReply.finished = true;
+        if (this._debug >= LogLevel.INFO)
+            console.log(`Policy finished (${cnt})`);
+        this._policyRunning = false;
+        await this._sendReply(null, false);
     }
 
     getState() : string {
         return this._dlg.state ? this._dlg.state.prettyprint() : 'null';
     }
 
-    reset() : void {
+    async reset() : Promise<void> {
         // if we're already running a policy, cancel it with a terminated dialogue error
-        // (which will bubble up)
-        // note that policyRunning is a number not a boolean because we're concurrently
-        // starting the new policy function, which will change policyRunning
-        if (this._policyRunning > 0)
+        // (which will bubble up) and wait until the continue promise is reset to null
+        if (this._policyRunning) {
+            const promise = this._waitReply();
             this._commandQueue.cancelWait(new TerminatedDialogueError());
+            await promise;
+            assert(this._continuePromise === null);
+            assert(!this._policyRunning);
+        }
+
         this._dlg.state = null;
         this._runPolicy(PolicyStartMode.NO_WELCOME);
     }

@@ -79,7 +79,7 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
     getState() : undefined {
         return undefined;
     }
-    reset() : void {
+    async reset() : Promise<void> {
     }
 
     async analyzeCommand(command : UserInput) : Promise<FAQCommandAnalysisType> {

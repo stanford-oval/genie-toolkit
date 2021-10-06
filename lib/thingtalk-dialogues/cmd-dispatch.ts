@@ -182,7 +182,7 @@ function wildCardMatch(pattern : string, str : string) {
 }
 
 function isCommandCompatible(cmd : Command, options : GetCommandOptions) : Compatibility {
-    if (options.rawHandler)
+    if (options.rawHandler && !cmd.utterance.startsWith('\\t '))
         return Compatibility.RAW;
 
     if (cmd.type === CommandType.THINGTALK_ACTION) {
@@ -250,21 +250,24 @@ export class SimpleCommandDispatcher implements CommandDispatcher {
         if (this._inGet)
             throw new Error(`Concurrent calls to DialogueInterface.get are not allowed. Use DialogueInterface.par or DialogueInterface.any instead`);
         this._inGet = true;
-        const cmd = await this._io.get(options.expecting ?? null, !!options.rawHandler);
-        this._inGet = false;
+        try {
+            const cmd = await this._io.get(options.expecting ?? null, !!options.rawHandler);
 
-        const compat = isCommandCompatible(cmd, options);
-        if (compat === Compatibility.RAW) {
-            const handled = options.rawHandler!(cmd.utterance, this._io.tpLoader);
-            if (handled === null)
+            const compat = isCommandCompatible(cmd, options);
+            if (compat === Compatibility.RAW) {
+                const handled = options.rawHandler!(cmd.utterance, this._io.tpLoader);
+                if (handled === null)
+                    throw new UnexpectedCommandError(cmd);
+                return new Command(cmd.utterance, cmd.context, handled);
+            }
+
+            if (compat === Compatibility.NONE)
                 throw new UnexpectedCommandError(cmd);
-            return new Command(cmd.utterance, cmd.context, handled);
+
+            return cmd;
+        } finally {
+            this._inGet = false;
         }
-
-        if (compat === Compatibility.NONE)
-            throw new UnexpectedCommandError(cmd);
-
-        return cmd;
     }
 }
 

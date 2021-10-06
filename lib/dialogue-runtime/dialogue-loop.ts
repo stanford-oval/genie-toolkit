@@ -101,7 +101,7 @@ export interface DialogueHandler<AnalysisType extends CommandAnalysisResult, Sta
 
     initialize(initialState : StateType|undefined, showWelcome : boolean) : Promise<ReplyResult|null>;
     getState() : StateType;
-    reset() : void;
+    reset() : Promise<void>;
 
     analyzeCommand(command : UserInput) : Promise<AnalysisType>;
     getReply(command : AnalysisType) : Promise<ReplyResult>;
@@ -169,7 +169,7 @@ export class DialogueLoop {
             nlg: this._nlg,
             extraFlags: {},
             anonymous: conversation.isAnonymous,
-            debug: options.debug ? LogLevel.DUMP_TEMPLATES : LogLevel.INFO,
+            debug: options.debug ? LogLevel.GENERATION : LogLevel.INFO,
             rng: Math.random
         });
         this._faqHandlers = {};
@@ -296,7 +296,7 @@ export class DialogueLoop {
             throw new CancellationError();
 
         case CommandAnalysisType.DEBUG:
-            await this.reply("Current State:\n");
+            await this.reply("Current State:");
             for (const handler of this._iterateDialogueHandlers())
                 await this.reply(handler.uniqueId + ': ' + handler.getState());
             break;
@@ -395,7 +395,7 @@ export class DialogueLoop {
             } catch(e) {
                 if (e.code === 'ECANCELLED') {
                     for (const handler of this._iterateDialogueHandlers())
-                        handler.reset();
+                        await handler.reset();
                     this._currentHandler = null;
                     this.icon = null;
                     await this.setExpected(null);
