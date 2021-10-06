@@ -115,7 +115,7 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
             context: '$dialogue @org.thingpedia.dialogue.faq.question;',
             agent_target: '$dialogue @org.thingpedia.dialogue.faq.answer;',
             expecting: null,
-            end: false,
+            finished: false,
         };
     }
     async getFollowUp() : Promise<ReplyResult | null> {

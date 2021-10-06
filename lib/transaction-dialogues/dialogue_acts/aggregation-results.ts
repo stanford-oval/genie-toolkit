@@ -29,7 +29,7 @@ import { ContextInfo } from '../context-info';
 import { POLICY_NAME } from '../metadata';
 import {
     makeAgentReply,
-} from '../state_manip';
+} from './common';
 import * as Templates from '../templates/index.genie.out';
 
 export function makeCountAggregationReply(ctx : ContextInfo, table : Ast.Expression, mustFilter : boolean) {
@@ -86,4 +86,5 @@ export function ctxAggregationQuestion(dlg : DialogueInterface, ctx : ContextInf
         dlg.say(Templates.count_aggregation_reply, (reply) => reply);
     else
         dlg.say(Templates.other_aggregation_reply, (reply) => reply);
+    return dlg.flush();
 }

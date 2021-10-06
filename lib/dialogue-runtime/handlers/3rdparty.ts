@@ -63,7 +63,7 @@ export default class ThingpediaDialogueHandler<AnalysisType extends Tp.DialogueH
             messages: result.messages,
             context: result.context,
             agent_target: result.agent_target,
-            end: false,
+            finished: false,
         };
     }
     private _mapConfidence(confidence : Tp.DialogueHandler.Confidence) : CommandAnalysisType {
@@ -73,7 +73,7 @@ export default class ThingpediaDialogueHandler<AnalysisType extends Tp.DialogueH
 
         case Tp.DialogueHandler.Confidence.CONFIDENT_IN_DOMAIN_COMMAND:
             return CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND;
-        
+
         case Tp.DialogueHandler.Confidence.EXACT_IN_DOMAIN_FOLLOWUP:
             return CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP;
 

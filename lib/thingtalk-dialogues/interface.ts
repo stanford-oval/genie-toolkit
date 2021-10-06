@@ -31,6 +31,10 @@ import {
     AgentReply,
     AgentReplyRecord
 } from '../sentence-generator/types';
+import { shouldAutoConfirmStatement, StateM } from '../utils/thingtalk';
+import { LogLevel, NonTerminal } from '../sentence-generator/runtime';
+import type ThingpediaLoader from '../templates/load-thingpedia';
+
 import { Command, } from './command';
 import {
     UnexpectedCommandError,
@@ -44,8 +48,6 @@ import AbstractThingTalkExecutor, {
     ExecutionResult,
     NotificationConfig
 } from './abstract-thingtalk-executor';
-import { shouldAutoConfirmStatement, StateM } from '../utils/thingtalk';
-import { LogLevel, NonTerminal } from '../sentence-generator/runtime';
 
 /**
  * A callback that computes all the relevant templates to use for synthesis
@@ -84,13 +86,15 @@ export interface GetOptions {
      * and it has no other effect otherwise; use `null` to explicitly indicate that the agent
      * is _not_ expecting an answer at all, and therefore the UI should reflect that and the
      * microphone should stop listening.
+     *
+     * If unspecified, it is equivalent to `null`.
      */
     expecting ?: Type|null;
 
     /**
      * If specified, handles the raw command, without any parsing.
      */
-    rawHandler ?: (cmd : string) => Ast.DialogueState|null;
+    rawHandler ?: (cmd : string, tpLoader : ThingpediaLoader) => Ast.DialogueState|null;
 
     /**
      * The list of acceptable dialogue acts.
@@ -343,7 +347,7 @@ export class DialogueInterface {
      */
     say<T>(tmpl : NonTerminal<T>, semantics ?: SemanticAction<[T], Ast.DialogueState|AgentReplyRecord>) : void;
     say(tmpl : string, args ?: TemplatePlaceholderMap) : void;
-    say(tmpl : string, semantics : Ast.DialogueState) : void;
+    say(tmpl : string, semantics : Ast.DialogueState|SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) : void;
     say(tmpl : string, args : TemplatePlaceholderMap, semantics : SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) : void;
     say(arg1 : string|NonTerminal<any>, arg2 ?: TemplatePlaceholderMap|Ast.DialogueState|SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>, arg3 ?: SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) {
         let tmpl : string;
@@ -358,7 +362,11 @@ export class DialogueInterface {
         } else {
             tmpl = arg1;
             let state : Ast.DialogueState|undefined;
-            if (arg2 instanceof Ast.DialogueState) {
+            if (typeof arg2 === 'function') {
+                state = undefined;
+                args = {};
+                semantics = arg2;
+            } else if (arg2 instanceof Ast.DialogueState) {
                 state = arg2;
                 args = {};
             } else if (arg2) {
@@ -579,13 +587,13 @@ export class DialogueInterface {
      *
      * @returns whether a message was actually sent to the user or not
      */
-    async flush() : Promise<boolean>{
+    async flush() : Promise<AgentReplyRecord|null> {
         if (this._sayBuffer.length > 0) {
             const ok = await this._io.emit(this._sayBuffer, this._eitherTag);
             this._sayBuffer = [];
             return ok;
         } else {
-            return false;
+            return null;
         }
     }
 
@@ -730,6 +738,8 @@ export class DialogueInterface {
      * depends on the state, before the next call to {@link get}.
      *
      * @param actions - possible actions to execute
+     * @returns the meaning of the agent reply that was flushed (see
+     *   {@link DialogueInterface.flush} for details); at synthesis time, returns null
      */
     async either(actions : Iterable<PolicyFunction>) {
         this._checkNesting('either');
@@ -737,9 +747,11 @@ export class DialogueInterface {
             if (this._deterministic) {
                 for (const action of actions) {
                     await action(this, PolicyStartMode.NORMAL);
-                    if (await this.flush())
-                        return;
+                    const flushed = await this.flush();
+                    if (flushed !== null)
+                        return flushed;
                 }
+                return null;
             } else {
                 const state = this.state;
                 const initialEitherTag = this._eitherTag;
@@ -750,6 +762,7 @@ export class DialogueInterface {
                     await this.flush();
                 }
                 this._eitherTag = initialEitherTag;
+                return null;
             }
         } finally {
             this._nested = null;

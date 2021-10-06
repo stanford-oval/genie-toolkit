@@ -25,9 +25,11 @@ import * as C from '../../templates/ast_manip';
 
 import { ContextInfo } from '../context-info';
 import {
-    makeAgentReply,
     addQuery,
 } from '../state_manip';
+import {
+    makeAgentReply,
+} from './common';
 import {
     refineFilterToChangeFilter,
     refineFilterToAnswerQuestion,

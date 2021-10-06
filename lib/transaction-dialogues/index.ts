@@ -54,9 +54,10 @@ import { makeContextPhrase } from './context-phrases';
     return C.countInputOutputParams(schema).output > 0;
 }
 
-function greet(dlg : DialogueInterface) {
+function greet(dlg : DialogueInterface, ctx : ContextInfo) {
     dlg.say(dlg._("{hello|hi}{!|,} {how can i help you|what are you interested in|what can i do for you}?"),
-        StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_greet'));
+        () => D.makeAgentReply(ctx, StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_greet'), null, null, { end: false }));
+    return dlg.flush();
 }
 
 async function ctxNotification(dlg : DialogueInterface, ctx : ContextInfo) {
@@ -66,7 +67,7 @@ async function ctxNotification(dlg : DialogueInterface, ctx : ContextInfo) {
     if (ctx.resultInfo.hasError) {
         dlg.say(Templates.notification_error_preamble);
         dlg.say(Templates.action_error_phrase, (phrase) => phrase);
-        return;
+        return dlg.flush();
     }
 
     dlg.say(Templates.notification_preamble);
@@ -77,11 +78,12 @@ async function ctxNotification(dlg : DialogueInterface, ctx : ContextInfo) {
         dlg.say(Templates.system_recommendation, (proposal) => D.makeRecommendationReply(ctx, proposal));
     else
         dlg.say(Templates.system_nonlist_result, (proposal) => D.makeDisplayResultReply(ctx, proposal));
+    return dlg.flush();
 }
 
 async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextInfo) {
     if (ctx.results!.length > 1) {
-        await dlg.either([
+        return dlg.either([
             async () => {
                 dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
             },
@@ -91,12 +93,13 @@ async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextIn
         ]);
     } else {
         dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+        return dlg.flush();
     }
 }
 
 async function ctxIncompleteSearchCommand(dlg : DialogueInterface, ctx : ContextInfo) {
     if (ctx.results!.length > 1) {
-        await dlg.either([
+        return dlg.either([
             async () => {
                 dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
             },
@@ -111,7 +114,7 @@ async function ctxIncompleteSearchCommand(dlg : DialogueInterface, ctx : Context
             },
         ]);
     } else {
-        await dlg.either([
+        return dlg.either([
             async () => {
                 dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
             },
@@ -125,12 +128,10 @@ async function ctxIncompleteSearchCommand(dlg : DialogueInterface, ctx : Context
     }
 }
 
-async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) {
+async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<D.AgentReplyRecord|null> {
     // treat an empty execute like greet
-    if (ctx.state.history.length === 0) {
-        greet(dlg);
-        return;
-    }
+    if (ctx.state.history.length === 0)
+        return greet(dlg, ContextInfo.initial());
 
     if (ctx.nextInfo !== null) {
         // we have an action we want to execute, or a query that needs confirmation
@@ -144,7 +145,7 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) {
                 // we are missing some parameter
                 dlg.say(Templates.slot_fill_question_for_action, (questions) => D.makeSlotFillQuestion(ctx, questions));
             }
-            return;
+            return dlg.flush();
         }
     }
 
@@ -152,28 +153,29 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) {
     assert(ctx.resultInfo, `expected result info`);
     if (ctx.resultInfo.hasError) {
         dlg.say(Templates.action_error_phrase, (phrase) => phrase);
-        return;
+        return dlg.flush();
     }
     if (ctx.resultInfo.hasStream) {
         dlg.say(dlg._("${preamble} I {will|am going to} ${stmt}"), {
-            preamble: Templates.generic_excitement2_phrase,
+            preamble: Templates.generic_excitement_phrase,
             stmt: new NonTerminal('ctx_current_statement')
-        }, () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_rule_enable_success'));
-        return;
+        }, () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_rule_enable_success')));
+        return dlg.flush();
     }
 
     if (!ctx.resultInfo.isTable) {
-        if (ctx.resultInfo.hasEmptyResult && actionShouldHaveResult(ctx))
+        if (ctx.resultInfo.hasEmptyResult && actionShouldHaveResult(ctx)) {
             dlg.say(Templates.empty_search_error, (error) => D.makeEmptySearchError(ctx, error));
-        else
-            await D.ctxCompletedActionSuccess(dlg, ctx);
-        return;
+            return dlg.flush();
+        } else {
+            return D.ctxCompletedActionSuccess(dlg, ctx);
+        }
     }
 
     if (ctx.resultInfo.hasEmptyResult) {
         // note: aggregation cannot be empty (it would be zero)
         dlg.say(Templates.empty_search_error, (error) => D.makeEmptySearchError(ctx, error));
-        return;
+        return dlg.flush();
     }
 
     if (!ctx.resultInfo.isList) {
@@ -181,43 +183,43 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) {
             dlg.say(Templates.system_nonlist_result, (result) => D.makeDisplayResultReply(ctx, result));
         else
             dlg.say(Templates.system_list_proposal, (result) => D.makeDisplayResultReplyFromList(ctx, result));
+        return dlg.flush();
     } else if (ctx.resultInfo.isQuestion) {
         if (ctx.resultInfo.isAggregation) {
             // "how many restaurants nearby have more than 500 reviews?"
-            await D.ctxAggregationQuestion(dlg, ctx);
+            return D.ctxAggregationQuestion(dlg, ctx);
         } else if (ctx.resultInfo.argMinMaxField !== null) {
             // these are treated as single result questions, but
             // the context is tagged as ctx_with_result_argminmax instead of
             // ctx_with_result_noquestion
             // so the answer is worded differently
-            await ctxCompleteSearchCommand(dlg, ctx);
+            return ctxCompleteSearchCommand(dlg, ctx);
         } else if (ctx.resultInfo.hasSingleResult) {
             // "what is the rating of Terun?"
             // FIXME if we want to answer differently, we need to change this one
-            await ctxCompleteSearchCommand(dlg, ctx);
+            return ctxCompleteSearchCommand(dlg, ctx);
         } else if (ctx.resultInfo.hasLargeResult) {
             // "what's the food and price range of restaurants nearby?"
             // we treat these the same as "find restaurants nearby", but we make sure
             // that the necessary fields are computed
-            await ctxIncompleteSearchCommand(dlg, ctx);
+            return ctxIncompleteSearchCommand(dlg, ctx);
         } else {
             // "what's the food and price range of restaurants nearby?"
             // we treat these the same as "find restaurants nearby", but we make sure
             // that the necessary fields are computed
-            await ctxCompleteSearchCommand(dlg, ctx);
+            return ctxCompleteSearchCommand(dlg, ctx);
         }
     } else {
         if (ctx.resultInfo.hasSingleResult) {
             // we can recommend
-            await ctxCompleteSearchCommand(dlg, ctx);
+            return ctxCompleteSearchCommand(dlg, ctx);
         } else if (ctx.resultInfo.hasLargeResult && ctx.state.dialogueAct !== 'ask_recommend') {
             // we can refine
-            await ctxIncompleteSearchCommand(dlg, ctx);
+            return ctxIncompleteSearchCommand(dlg, ctx);
         } else {
-            await ctxCompleteSearchCommand(dlg, ctx);
+            return ctxCompleteSearchCommand(dlg, ctx);
         }
     }
-
 }
 
 /**
@@ -233,9 +235,10 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
 
     if (dlg.interactive && dlg.debug)
         console.log('Policy start');
+    let lastReply : D.AgentReplyRecord|null = null;
     switch (startMode) {
     case PolicyStartMode.NORMAL:
-        greet(dlg);
+        lastReply = await greet(dlg, ContextInfo.initial());
         break;
     case PolicyStartMode.NO_WELCOME:
         break;
@@ -250,7 +253,8 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
     for (;;) {
         try {
             const cmd = await dlg.get({
-                expecting: null,
+                expecting: lastReply?.expecting,
+                rawHandler: lastReply?.raw ? ((cmd, loader) => interpretAnswer(dlg.state, new Ast.StringValue(cmd), loader)) : undefined,
 
                 acceptActs: ['*'],
                 acceptQueries: ['*'],
@@ -267,19 +271,21 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
             switch (cmd.type) {
             case POLICY_NAME + '.end':
                 dlg.say(dlg._("alright, {bye|good bye}!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
+                lastReply = await dlg.flush();
                 return;
 
             case POLICY_NAME + '.greet':
             case POLICY_NAME + '.reinit':
-                greet(dlg);
+                lastReply = await greet(dlg, ctx);
                 break;
 
             case POLICY_NAME + '.action_question':
-                await D.ctxCompletedActionSuccess(dlg, ctx);
+                lastReply = await D.ctxCompletedActionSuccess(dlg, ctx);
                 break;
 
             case POLICY_NAME + '.learn_more':
-                dlg.say(Templates.system_learn_more, () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_learn_more_what'));
+                dlg.say(Templates.system_learn_more, () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_learn_more_what'), null, null, { end: false }));
+                lastReply = await dlg.flush();
                 break;
 
             case POLICY_NAME + '.cancel':
@@ -290,7 +296,7 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
                 return;
 
             case POLICY_NAME + '.notification':
-                await ctxNotification(dlg, ctx);
+                lastReply = await ctxNotification(dlg, ctx);
                 break;
 
             case POLICY_NAME + '.init':
@@ -300,7 +306,7 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
             case CommandType.THINGTALK_ACTION:
             case CommandType.THINGTALK_QUERY:
             case CommandType.THINGTALK_STREAM:
-                await ctxExecute(dlg, ctx);
+                lastReply = await ctxExecute(dlg, ctx);
                 break;
 
             default:
@@ -311,6 +317,7 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
                 throw e;
 
             dlg.say(dlg._("Sorry, I did not understand that. Can you rephrase it?"), StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_unexpected'));
+            lastReply = await dlg.flush();
         }
     }
 }
@@ -340,9 +347,12 @@ export function getContextPhrasesForState(state : Ast.DialogueState|null,
  * This function converts the answer to the appropriate dialogue state at this turn,
  * if possible, or returns `null` to signal failure.
  */
-export function interpretAnswer(state : Ast.DialogueState,
+export function interpretAnswer(state : Ast.DialogueState|null,
                                 answer : Ast.Value,
                                 tpLoader : ThingpediaLoader) : Ast.DialogueState|null {
+    if (!state)
+        return null;
+
     const ctx = ContextInfo.get(state);
 
     // if the agent proposed something and the user says "yes", we accept the proposal

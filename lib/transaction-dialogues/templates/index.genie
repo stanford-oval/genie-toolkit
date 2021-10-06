@@ -197,18 +197,18 @@ $agent : D.AgentReplyRecord = {
     ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-    ) => S.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_greet'), null, null, { end: false }),
+    ) => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_greet'), null, null, { end: false }),
 
     ?anything_else {
         ctx:ctx_cancel anything_else_phrase
-            => S.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_anything_else'), null, null, { end: false }),
+            => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_anything_else'), null, null, { end: false }),
 
         ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
-            => S.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end')),
+            => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end')),
     }
     !anything_else {
         ctx:ctx_cancel 'alright, let me know if I can help you with anything else!'
-            => S.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end')),
+            => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end')),
     }
 
     // action results
@@ -256,10 +256,10 @@ $agent : D.AgentReplyRecord = {
 
     // learn more
     ctx:ctx_learn_more system_learn_more
-        => S.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_learn_more_what'), null, null, { end: false });
+        => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_learn_more_what'), null, null, { end: false });
 
-    ["${preamble} I {will|am going to} ${stmt}"]: (ctx : ctx_rule_enable_success, preamble : generic_excitement2_phrase, stmt : ctx_current_statement)
-        => S.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_rule_enable_success'));
+    ["${preamble} I {will|am going to} ${stmt}"]: (ctx : ctx_rule_enable_success, preamble : generic_excitement_phrase, stmt : ctx_current_statement)
+        => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_rule_enable_success'));
 
     // notification
     ctx:ctx_list_notification notification_preamble proposal:system_recommendation

@@ -87,7 +87,7 @@ export type ReplyMessage = string|Tp.FormatObjects.FormattedObject|{
 export interface ReplyResult {
     messages : ReplyMessage[];
     expecting : ValueCategory|null;
-    end : boolean;
+    finished : boolean;
 
     // used in the conversation logs
     context : string;
@@ -126,7 +126,6 @@ export class DialogueLoop {
     private icon : string|null;
     expecting : ValueCategory|null;
     platformData : PlatformData;
-    choices : string[];
 
     private _stopped = false;
     private _mgrResolve : (() => void)|null;
@@ -182,7 +181,6 @@ export class DialogueLoop {
 
         this.icon = null;
         this.expecting = null;
-        this.choices = [];
         this.platformData = {};
 
         this._mgrResolve = null;
@@ -359,7 +357,7 @@ export class DialogueLoop {
             // (requiring a wakeword again to continue) and start
             // processing notifications again
 
-            if (reply.end)
+            if (reply.finished)
                 throw new CancellationError();
             if (this.expecting === null)
                 return;

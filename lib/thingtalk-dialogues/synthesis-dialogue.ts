@@ -154,6 +154,9 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
     get state() {
         return this._dlg.state;
     }
+    get tpLoader() {
+        return this._agentGenerator.tpLoader;
+    }
 
     hash() {
         return this._id;
@@ -241,7 +244,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
      *
      * @param reply the reply from the agent
      */
-    async emit(reply : AgentReply, tag : number) : Promise<boolean> {
+    async emit(reply : AgentReply, tag : number) : Promise<AgentReplyRecord|null> {
         if (this._state !== PartialDialogueState.RUNNING && this._state !== PartialDialogueState.AGENT_SPEAKING)
             throw new Error(`Invalid state for emit`);
         this._state = PartialDialogueState.AGENT_SPEAKING;
@@ -265,9 +268,9 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
             };
         });
 
-        // unconditionally return true here
+        // unconditionally return null here
         // the return value is only meaningful in inference (deterministic) mode
-        return true;
+        return null;
     }
 
     private _addDynamicUserTemplate(tag : number | null,

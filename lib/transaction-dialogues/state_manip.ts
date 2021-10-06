@@ -20,8 +20,7 @@
 
 
 import assert from 'assert';
-import * as ThingTalk from 'thingtalk';
-import { Ast, Type } from 'thingtalk';
+import { Ast } from 'thingtalk';
 
 import * as SentenceGeneratorTypes from '../sentence-generator/types';
 import { setOrAddInvocationParam, StateM } from '../utils/thingtalk';
@@ -267,92 +266,6 @@ function addQueryAndAction(ctx : ContextInfo,
     return StateM.makeTargetState(ctx.state, POLICY_NAME, dialogueAct, [], confirm, newTableHistoryItem, newActionHistoryItem);
 }
 
-export interface AgentReplyOptions {
-    end ?: boolean;
-    raw ?: boolean;
-    numResults ?: number;
-}
-
-/**
- * Construct a full formal reply from the agent.
- *
- * The reply contains:
- * - the agent state (a ThingTalk dialogue state passed to the NLU and NLG networks)
- * - the agent reply tags (a list of strings that define the context tags on the user side)
- * - the interaction state (the expected type of the reply, if any, and a boolean indicating raw mode)
- * - extra information for the new context
- *
- * @deprecated
- */
-function makeAgentReply(ctx : ContextInfo,
-                        state : Ast.DialogueState,
-                        aux : unknown = null,
-                        expectedType : ThingTalk.Type|null = null,
-                        options : AgentReplyOptions = {}) : SentenceGeneratorTypes.AgentReplyRecord {
-    assert(state instanceof Ast.DialogueState);
-    assert(state.dialogueAct.startsWith('sys_'));
-    assert(expectedType === null || expectedType instanceof ThingTalk.Type);
-
-    // show a yes/no thing if we're proposing something
-    if (expectedType === null && state.history.some((item) => item.confirm === 'proposed'))
-        expectedType = Type.Boolean;
-
-    // if false, the agent is still listening
-    // the agent will continue listening if one of the following is true:
-    // - the agent is eliciting a value (slot fill or search question)
-    // - the agent is proposing a statement
-    // - the agent is asking the user to learn more
-    // - there are more statements left to do (includes the case of confirmations)
-    let end = options.end;
-    if (end === undefined) {
-        end = expectedType === null &&
-            state.dialogueActParam === null &&
-            !state.dialogueAct.endsWith('_question') &&
-            state.history.every((item) => item.results !== null);
-    }
-
-    // if (ctx.loader.flags.inference) {
-    //     // at inference time, we don't need to compute any of the auxiliary info
-    //     // necessary to synthesize the new utterance, so we take a shortcut
-    //     // here and skip a whole bunch of computation
-
-    //     return {
-    //         meaning: state /* FIXME */,
-
-    //         // the number of results we're describing at this turn
-    //         // (this affects the number of result cards to show)
-    //         numResults: options.numResults || 0,
-    //     };
-    // }
-
-    const newContext = ContextInfo.get(state);
-    // set the auxiliary information, which is used by the semantic functions of the user
-    // to see if the continuation is compatible with the specific reply from the agent
-    newContext.aux = aux;
-
-    /*
-    let mainTag;
-    if (state.dialogueAct === 'sys_generic_search_question')
-        mainTag = contextTable.ctx_sys_search_question;
-    else if (state.dialogueAct.endsWith('_question') && state.dialogueAct !== 'sys_search_question')
-        mainTag = contextTable['ctx_' + state.dialogueAct.substring(0, state.dialogueAct.length - '_question'.length)];
-    else if (state.dialogueAct.startsWith('sys_recommend_') && state.dialogueAct !== 'sys_recommend_one')
-        mainTag = contextTable.ctx_sys_recommend_many;
-    else if (state.dialogueAct === 'sys_rule_enable_success')
-        mainTag = contextTable.ctx_sys_action_success;
-    else
-        mainTag = contextTable['ctx_' + state.dialogueAct];
-    */
-
-    return {
-        meaning: state /* FIXME */,
-
-        // the number of results we're describing at this turn
-        // (this affects the number of result cards to show)
-        numResults: options.numResults || 0,
-    };
-}
-
 /**
  * @deprecated
  */
@@ -566,7 +479,6 @@ function getContextPhrasesCommon(ctx : ContextInfo, contextTable : SentenceGener
 }
 
 export {
-    makeAgentReply,
     setEndBit,
 
     // manipulate states to create new states

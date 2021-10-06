@@ -179,8 +179,9 @@ export type AgentReply = AgentMessage[];
 /**
  * Formally represent a single concrete action taken by the agent at this turn.
  *
- * @deprecated This is a transitional type while the existing transaction model
- *   is ported to dialogue PL. New code should return the dialogue state directly.
+ * Policy code can extend this object to carry additional properties that
+ * are computed by the semantic function of a turn and are returned by
+ * the agent.
  */
 export interface AgentReplyRecord {
     /**
@@ -193,26 +194,24 @@ export interface AgentReplyRecord {
      *
      * This affects the presentation of non-textual elements (cards, media objects)
      * associated with this agent turn.
+     *
+     * @deprecated Do not use
      */
-    numResults : number;
+     numResults ?: number;
 
-    /**
-     * What the agent expects at this turn.
-     *
-     * This property exists to allow different replies to expect different
-     * values, even though they don't correspond to different dialogue PL code paths.
-     *
-     * @deprecated Use the appropriate option to {@link DialogueInterface.get} instead.
-     */
-    expecting ?: Type;
+     /**
+      * What the agent expects at this turn.
+      *
+      * See {@link GetOptions.expecting} for details.
+      *
+      * @deprecated Do not use
+      */
+     expecting ?: Type|null|undefined;
 
-    /**
-     * Whether to use raw mode at this turn or not.
-     *
-     * This property exists to allow different replies to expect different
-     * values, even though they don't correspond to different dialogue PL code paths.
-     *
-     * @deprecated Use the appropriate option to {@link DialogueInterface.get} instead.
-     */
-    raw ?: boolean;
+     /**
+      * Whether to use raw mode at this turn or not.
+      *
+      * @deprecated Do not use
+      */
+     raw ?: boolean;
 }

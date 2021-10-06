@@ -35,7 +35,7 @@ import { SlotBag } from '../templates/slot_bag';
 import * as keyfns from '../templates/keyfns';
 
 import { ContextInfo } from "./context-info";
-import { contextNameKeyFn, NameList, nameListKeyFn } from './dialogue_acts/types';
+import { contextNameKeyFn, NameList, nameListKeyFn } from './dialogue_acts/common';
 
 const MAX_LIST_LENGTH = 5;
 

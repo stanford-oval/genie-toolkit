@@ -32,14 +32,14 @@ import ThingpediaLoader from '../../templates/load-thingpedia';
 import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
-    AgentReplyOptions,
-    makeAgentReply,
     addActionParam,
     addAction,
     addQuery,
 } from '../state_manip';
-import { NameList } from './types';
 import {
+    NameList,
+    AgentReplyOptions,
+    makeAgentReply,
     isInfoPhraseCompatibleWithResult,
     findChainParam
 } from './common';

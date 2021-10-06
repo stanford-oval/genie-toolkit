@@ -21,7 +21,7 @@
 
 import assert from 'assert';
 
-import { Ast, } from 'thingtalk';
+import { Ast, Type, } from 'thingtalk';
 
 import * as C from '../../templates/ast_manip';
 import { arraySubset } from '../../templates/array_utils';
@@ -29,6 +29,8 @@ import { setOrAddInvocationParam } from '../../utils/thingtalk';
 
 import { SlotBag } from '../../templates/slot_bag';
 import { POLICY_NAME } from '../metadata';
+import { ContextInfo } from '../context-info';
+import { AgentReplyRecord } from '../../sentence-generator/types';
 
 function isFilterCompatibleWithInfo(info : SlotBag, filter : Ast.BooleanExpression) : boolean {
     assert(filter instanceof Ast.BooleanExpression);
@@ -232,6 +234,109 @@ export function acceptAllProposedStatements(state : Ast.DialogueState) {
         else
             return item;
     }));
+}
+
+export interface NameList {
+    ctx : ContextInfo;
+    results : Ast.DialogueHistoryResultItem[];
+}
+
+export function nameListKeyFn(list : NameList) {
+    const schema = list.ctx.currentFunction!;
+    return {
+        functionName: schema.qualifiedName,
+        idType: schema.getArgType('id')!,
+        length: list.results.length,
+
+        id0: list.ctx.key.id0,
+        id1: list.ctx.key.id1,
+        id2: list.ctx.key.id2,
+    };
+}
+
+export interface ContextName {
+    ctx : ContextInfo;
+    name : Ast.Value;
+}
+
+export function contextNameKeyFn(name : ContextName) {
+    return {
+        currentFunction: name.ctx.key.currentFunction
+    };
+}
+
+export interface AgentReplyOptions {
+    end ?: boolean;
+    raw ?: boolean;
+    numResults ?: number;
+}
+export { AgentReplyRecord };
+
+/**
+ * Construct a reply from the agent, including additional information beyond the new dialogue state.
+ *
+ * The reply contains:
+ * - the agent state (a ThingTalk dialogue state passed to the NLU and NLG networks)
+ * //- the agent reply tags (a list of strings that define the context tags on the user side)
+ * - the interaction state (the expected type of the reply, if any, and a boolean indicating raw mode)
+ * //- extra information for the new context
+ */
+export function makeAgentReply(ctx : ContextInfo,
+                               meaning : Ast.DialogueState,
+                               aux : unknown = null,
+                               expectedType : Type|null = null,
+                               options : AgentReplyOptions = {}) : AgentReplyRecord {
+    assert(meaning instanceof Ast.DialogueState);
+    assert(meaning.dialogueAct.startsWith('sys_'));
+    assert(expectedType === null || expectedType instanceof Type);
+
+    // show a yes/no thing if we're proposing something
+    if (expectedType === null && meaning.history.some((item) => item.confirm === 'proposed'))
+        expectedType = Type.Boolean;
+
+    // if false, the agent is still listening
+    // the agent will continue listening if one of the following is true:
+    // - the agent is eliciting a value (slot fill or search question)
+    // - the agent is proposing a statement
+    // - the agent is asking the user to learn more
+    // - there are more statements left to do (includes the case of confirmations)
+    let end = options.end;
+    if (end === undefined) {
+        end = expectedType === null &&
+            meaning.dialogueActParam === null &&
+            !meaning.dialogueAct.endsWith('_question') &&
+            meaning.history.every((item) => item.results !== null);
+    }
+
+    //const newContext = ContextInfo.get(state);
+    // set the auxiliary information, which is used by the semantic functions of the user
+    // to see if the continuation is compatible with the specific reply from the agent
+    //newContext.aux = aux;
+
+    /*
+    let mainTag;
+    if (state.dialogueAct === 'sys_generic_search_question')
+        mainTag = contextTable.ctx_sys_search_question;
+    else if (state.dialogueAct.endsWith('_question') && state.dialogueAct !== 'sys_search_question')
+        mainTag = contextTable['ctx_' + state.dialogueAct.substring(0, state.dialogueAct.length - '_question'.length)];
+    else if (state.dialogueAct.startsWith('sys_recommend_') && state.dialogueAct !== 'sys_recommend_one')
+        mainTag = contextTable.ctx_sys_recommend_many;
+    else if (state.dialogueAct === 'sys_rule_enable_success')
+        mainTag = contextTable.ctx_sys_action_success;
+    else
+        mainTag = contextTable['ctx_' + state.dialogueAct];
+    */
+
+    return {
+        meaning,
+
+        // the number of results we're describing at this turn
+        // (this affects the number of result cards to show)
+        numResults: options.numResults || 0,
+
+        expecting: expectedType ?? (end ? null : Type.Any),
+        raw: options.raw ?? false,
+    };
 }
 
 export {

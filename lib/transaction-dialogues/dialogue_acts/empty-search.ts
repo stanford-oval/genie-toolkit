@@ -27,7 +27,6 @@ import { StateM } from '../../utils/thingtalk';
 import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
-    makeAgentReply,
     addQuery,
 } from '../state_manip';
 import {
@@ -36,6 +35,7 @@ import {
     RefineFilterCallback
 } from './refinement-helpers';
 import {
+    makeAgentReply,
     acceptAllProposedStatements,
     isValidSearchQuestion
 } from './common';

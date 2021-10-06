@@ -23,7 +23,8 @@ import { Ast, Type } from 'thingtalk';
 import { split } from '../utils/misc-utils';
 import { Command, CommandType } from './command';
 import { uniform } from '../utils/random';
-import { AgentReply } from '../sentence-generator/types';
+import { AgentReply, AgentReplyRecord } from '../sentence-generator/types';
+import ThingpediaLoader from '../templates/load-thingpedia';
 
 function escapeStringRegexp(string : string) {
     // Copied from escape-string-regexp npm package
@@ -72,7 +73,7 @@ export class TerminatedDialogueError extends Error {
 
 interface GetCommandOptions {
     expecting ?: Type|null;
-    rawHandler ?: (cmd : string) => Ast.DialogueState|null;
+    rawHandler ?: (cmd : string, tpLoader : ThingpediaLoader) => Ast.DialogueState|null;
     acceptActs ?: string[];
     acceptActions ?: string[];
     acceptQueries ?: string[];
@@ -82,14 +83,24 @@ interface GetCommandOptions {
 /**
  * Abstract interface to interact with the user.
  *
- * The ThingTalkDialogueHandler implements this interface at runtime, and the
- * SynthesisCommandQueue implements this interface at synthesis time.
+ * {@link InferenceTimeDialogue} implements this interface at runtime, and the
+ * {@link SynthesisDialogue} implements this interface at synthesis time.
+ *
+ * This is an internal interface to Genie. It should not be used by outside code.
  */
 export interface AbstractCommandIO {
     /**
+     * The thingpedia loader object currently in use to generate agent utterances.
+     *
+     * This property can be accessed only when a valid state has been initialized
+     * previously, and might throw an exception otherwise.
+     */
+    readonly tpLoader : ThingpediaLoader;
+
+    /**
      * Fetch the next command from the user.
      */
-    get(expecting : Type|null) : Promise<Command>;
+    get(expecting : Type|null, raw : boolean) : Promise<Command>;
 
     /**
      * Emit the next reply from the agent.
@@ -108,17 +119,21 @@ export interface AbstractCommandIO {
      * @param tag - a tag to use at synthesis time to identify this specific reply
      * @returns whether a message was actually sent to the user or not
      */
-    emit(reply : AgentReply, tag : number) : Promise<boolean>;
+    emit(reply : AgentReply, tag : number) : Promise<AgentReplyRecord|null>;
 }
 
 export class DummyCommandIO implements AbstractCommandIO {
+    get tpLoader() : never {
+        throw new Error(`No thingpedia loader available`);
+    }
+
     async get() : Promise<never> {
         throw new Error(`No command available`);
     }
 
-    async emit() : Promise<boolean> {
+    async emit() : Promise<AgentReplyRecord|null> {
         // discard
-        return true;
+        return null;
     }
 }
 
@@ -235,12 +250,12 @@ export class SimpleCommandDispatcher implements CommandDispatcher {
         if (this._inGet)
             throw new Error(`Concurrent calls to DialogueInterface.get are not allowed. Use DialogueInterface.par or DialogueInterface.any instead`);
         this._inGet = true;
-        const cmd = await this._io.get(options.expecting === undefined ? Type.Any : options.expecting);
+        const cmd = await this._io.get(options.expecting ?? null, !!options.rawHandler);
         this._inGet = false;
 
         const compat = isCommandCompatible(cmd, options);
         if (compat === Compatibility.RAW) {
-            const handled = options.rawHandler!(cmd.utterance);
+            const handled = options.rawHandler!(cmd.utterance, this._io.tpLoader);
             if (handled === null)
                 throw new UnexpectedCommandError(cmd);
             return new Command(cmd.utterance, cmd.context, handled);
@@ -331,7 +346,7 @@ export class ParallelCommandDispatcher {
         if (this._waiters.some((state) => state.promise === null))
             return;
 
-        let expecting : Type|null = null;
+        let expecting : Type|null = null, raw = false;
         for (const waiter of this._waiters) {
             if (waiter.getCmdOptions!.expecting !== null) {
                 if (expecting === null)
@@ -339,14 +354,15 @@ export class ParallelCommandDispatcher {
                 else if (waiter.getCmdOptions!.expecting !== Type.Any && waiter.getCmdOptions!.expecting !== expecting)
                     expecting = Type.Any;
             }
+            raw = raw || !!waiter.getCmdOptions!.rawHandler;
         }
-        this._io.get(expecting).then((cmd) => {
+        this._io.get(expecting, raw).then((cmd) => {
             const compat = this._waiters.map((state) => isCommandCompatible(cmd, state.getCmdOptions!));
 
             // first check for some waiting dialogue in raw mode
             const raw = this._waiters.filter((w, i) => compat[i] === Compatibility.RAW);
             for (const choice of raw) {
-                const handled = choice.getCmdOptions!.rawHandler!(cmd.utterance);
+                const handled = choice.getCmdOptions!.rawHandler!(cmd.utterance, this._io.tpLoader);
                 if (handled !== null) {
                     const cmd2 = new Command(cmd.utterance, cmd.context, handled);
                     choice.resolve!(cmd2);

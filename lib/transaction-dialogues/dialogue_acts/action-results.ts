@@ -33,8 +33,6 @@ import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
     makeAgentReply,
-} from '../state_manip';
-import {
     isInfoPhraseCompatibleWithResult
 } from './common';
 import * as Templates from '../templates/index.genie.out';
@@ -288,18 +286,22 @@ function actionSuccessQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
 }
 
 export async function ctxCompletedActionSuccess(dlg : DialogueInterface, ctx : ContextInfo) {
-    dlg.say(Templates.generic_excitement_phrase);
-
-    await dlg.either([
+    return dlg.either([
         async () => {
             dlg.say(dlg._("${ctx_thingpedia_result}."), {
                 ctx_thingpedia_result: new NonTerminal('ctx_thingpedia_result')
             }, (result : SlotBag) => makeThingpediaActionSuccessPhrase(ctx, result));
+
+            if (dlg.flags.anything_else)
+                dlg.say(Templates.anything_else_phrase);
         },
         async () => {
             dlg.say(dlg._("i ${action}."), {
                 action: Templates.complete_past_action_phrase.withConstraint(['functionName', ctx.currentFunction!.qualifiedName])
             }, (action : Ast.Expression) => makeCompleteActionSuccessPhrase(ctx, action, null));
+
+            if (dlg.flags.anything_else)
+                dlg.say(Templates.anything_else_phrase);
         },
         async () => {
             dlg.say(Templates.action_success_phrase_with_result, (phrase) => {
@@ -309,15 +311,18 @@ export async function ctxCompletedActionSuccess(dlg : DialogueInterface, ctx : C
                 else
                     return makeThingpediaActionSuccessPhrase(ctx, info);
             });
+
+            if (dlg.flags.anything_else)
+                dlg.say(Templates.anything_else_phrase);
         },
         async () => {
             // purely generic fallback, so we always say something, even if we cannot use a better template
             dlg.say(Templates.generic_action_success_phrase, () => makeGenericActionSuccessPhrase(ctx));
+
+            if (dlg.flags.anything_else)
+                dlg.say(Templates.anything_else_phrase);
         }
     ]);
-
-    if (dlg.flags.anything_else)
-        dlg.say(Templates.anything_else_phrase);
 }
 
 export {

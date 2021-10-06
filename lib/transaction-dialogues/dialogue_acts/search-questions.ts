@@ -30,7 +30,6 @@ import * as C from '../../templates/ast_manip';
 import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
-    makeAgentReply,
     addQuery,
     addQueryAndAction,
 } from '../state_manip';
@@ -39,6 +38,7 @@ import {
     refineFilterToAnswerQuestion
 } from './refinement-helpers';
 import {
+    makeAgentReply,
     isValidSearchQuestion,
     isSimpleFilterExpression,
     addParametersFromContext

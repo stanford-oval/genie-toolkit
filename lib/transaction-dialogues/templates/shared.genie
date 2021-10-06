@@ -36,12 +36,6 @@ the_base_noun_phrase : Ast.FunctionDef = {
 }
 
 generic_excitement_phrase : string = {
-    ['', priority=0.1]: () => '',
-
-    ["{alright,| great!|awesome !|sounds good !|sounds good ,|perfect !}"]: () => '',
-}
-
-generic_excitement2_phrase : string = {
     ["{alright,| great!|awesome !|sounds good !|sounds good ,|perfect !}"]: () => '',
 }
 

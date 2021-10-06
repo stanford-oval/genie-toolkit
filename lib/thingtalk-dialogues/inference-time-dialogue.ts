@@ -78,7 +78,7 @@ interface EmptyAgentReplyRecord {
 
 interface ExtendedAgentReplyRecord extends AgentReplyRecord {
     messages : ReplacedAgentMessage[];
-    end : boolean;
+    finished : boolean;
 }
 
 interface InferenceTimeDialogueOptions {
@@ -134,15 +134,6 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
     private readonly _flags : Record<string, boolean>;
 
     /**
-     * Whether the dialogue is currently in raw mode (i.e. any command
-     * from the user is treated as a quoted string without parsing).
-     *
-     * This has the same purpose as {@link DialogueLoop}.raw but it
-     * only tracks the state of this agent, so it can differ when other
-     * dialogue handlers are involved.
-     */
-    private _raw : boolean;
-    /**
      * What type the current agent is expecting.
      *
      * This is used to affect the semantic parsing heuristics. It has
@@ -181,7 +172,6 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             ...this._options.extraFlags
         };
 
-        this._raw = false;
         this._expecting = null;
         this._choices = [];
 
@@ -217,6 +207,15 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
      */
     get policy() {
         return this._policy;
+    }
+
+    /**
+     * Low-level access to the thingpedia loader.
+     *
+     * This is used by certain code paths to handle raw commands.
+     */
+    get tpLoader() {
+        return this._agentGenerator.tpLoader;
     }
 
     /**
@@ -275,6 +274,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         const reply = await promise;
         if (reply.messages.length === 0)
             return null;
+        this._expecting = reply.expecting;
         return reply;
     }
 
@@ -298,7 +298,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             // dialogue terminated, send the final message
             await this._dlg.flush();
             if (this._nextReply)
-                this._nextReply.end = true;
+                this._nextReply.finished = true;
             await this._sendReply(null, false);
         } finally {
             this._policyRunning --;
@@ -322,13 +322,12 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
 
     analyzeCommand(command : UserInput) {
         return this._nlu.parse(this._dlg.state, command, {
-            raw: this._raw,
             expecting: this._expecting,
             choices: this._choices,
         });
     }
 
-    getReply(analyzed : ThingTalkCommandAnalysisType) : Promise<ReplyResult> {
+    async getReply(analyzed : ThingTalkCommandAnalysisType) : Promise<ReplyResult> {
         const promise = this._waitReply();
 
         switch (analyzed.type) {
@@ -362,7 +361,9 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         }
         }
 
-        return promise;
+        const reply = await promise;
+        this._expecting = reply.expecting;
+        return reply;
     }
 
     /**
@@ -373,7 +374,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
     private async _sendReply(expectingType : Type|null, raw : boolean) {
         const before : ReplacedAgentMessage[] = [];
         const messages : ReplacedAgentMessage[] = [];
-        let agent_target : string, end : boolean;
+        let agent_target : string, finished : boolean;
 
         if (this._nextReply) {
             agent_target = this._nextReply.meaning.prettyprint();
@@ -390,12 +391,12 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
                     }
                 }
             }
-            end = this._nextReply.end;
+            finished = this._nextReply.finished;
         } else {
             if (this._debug >= LogLevel.INFO)
                 console.log(`Agent did not produce a reply in-between calls to get()`);
             agent_target = '';
-            end = false;
+            finished = false;
         }
         this._nextReply = null;
 
@@ -424,12 +425,12 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             expecting,
             context: this._dlg.state ? this._dlg.state.prettyprint() : '',
             agent_target,
-            end
+            finished
         });
         this._continuePromise = null;
     }
 
-    async get(expectingType : Type|null, raw = false) : Promise<Command> {
+    async get(expectingType : Type|null, raw : boolean) : Promise<Command> {
         if (this._continuePromise !== null)
             await this._sendReply(expectingType, raw);
 
@@ -473,7 +474,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         return false;
     }
 
-    async emit(replies : AgentReply) : Promise<boolean> {
+    async emit(replies : AgentReply) : Promise<AgentReplyRecord|null> {
         this.icon = this._dlg.state ? getProgramIcon(this._dlg.state) : null;
 
         await this._agentGenerator.initialize(this._dlg.state);
@@ -525,7 +526,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             }
         }
         if (!meaning || utterances.length === 0)
-            return false;
+            return null;
         this._dlg.state = ThingTalkUtils.computeNewState(this._dlg.state, meaning.meaning, 'agent').optimize();
 
         let utterance = new ReplacedConcatenation(utterances, {}, {}).chooseBest();
@@ -547,9 +548,9 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         this._nextReply = {
             messages,
             ...meaning,
-            end: false
+            finished: false
         };
-        return true;
+        return meaning;
     }
 
     prepareContextForPrediction() {

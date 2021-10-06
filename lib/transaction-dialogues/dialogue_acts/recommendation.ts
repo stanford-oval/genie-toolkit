@@ -33,11 +33,11 @@ import { SlotBag } from '../../templates/slot_bag';
 import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
-    AgentReplyOptions,
-    makeAgentReply,
     addActionParam,
 } from '../state_manip';
 import {
+    AgentReplyOptions,
+    makeAgentReply,
     isInfoPhraseCompatibleWithResult,
     findChainParam
 } from './common';

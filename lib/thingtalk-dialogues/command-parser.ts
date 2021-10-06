@@ -178,7 +178,7 @@ export class CommandParser {
         }
     }
 
-    private _getSpecialThingTalkType(input : Ast.Input) : CommandAnalysisType {
+    private _getSpecialThingTalkType(input : Ast.Input, score : number|'Infinity') : CommandAnalysisType {
         if (input instanceof Ast.ControlCommand) {
             if (input.intent instanceof Ast.SpecialControlIntent) {
                 switch (input.intent.type) {
@@ -192,12 +192,24 @@ export class CommandParser {
                 }
             }
 
-            if (input.intent instanceof Ast.AnswerControlIntent)
-                return CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP;
+            if (input.intent instanceof Ast.AnswerControlIntent) {
+                if (score === 'Infinity')
+                    return CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP;
+                else if (this._useConfidence && score < CONFIDENCE_CONFIRM_THRESHOLD)
+                    return CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_FOLLOWUP;
+                else
+                    return CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP;
+            }
         }
 
         // anything else is automatically in-domain
-        return CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND;
+
+        if (score === 'Infinity')
+            return CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND;
+        else if (this._useConfidence && score < CONFIDENCE_CONFIRM_THRESHOLD)
+            return CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;
+        else
+            return CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND;
     }
 
     prepareContextForPrediction(state : Ast.DialogueState|null) : [string[], EntityMap] {
@@ -234,7 +246,6 @@ export class CommandParser {
      * @returns the result of analyzing the command
      */
     async parse(state : Ast.DialogueState|null, command : UserInput, options : {
-        raw : boolean,
         expecting : ValueCategory|null,
         choices : string[]
     }) : Promise<ThingTalkCommandAnalysisType> {
@@ -262,12 +273,11 @@ export class CommandParser {
     }
 
     async _parseCommand(state : Ast.DialogueState|null, command : UserInput, options : {
-        raw : boolean,
         expecting : ValueCategory|null,
         choices : string[]
     }) : Promise<ThingTalkCommandAnalysisType> {
         if (command.type === 'thingtalk') {
-            const type = this._getSpecialThingTalkType(command.parsed);
+            const type = this._getSpecialThingTalkType(command.parsed, 'Infinity');
             return {
                 type,
                 utterance: `\\t ${command.parsed.prettyprint()}`,
@@ -280,8 +290,8 @@ export class CommandParser {
         // ok so this was a natural language
 
         const [contextCode, contextEntities] = this.prepareContextForPrediction(state);
-        if (options.raw) {
-            // in "raw mode", all natural language becomes an answer
+        if (options.expecting === ValueCategory.RawString) {
+            // in "raw mode", all natural language becomes an answer, and we're confident about it
 
             // we still ship it to the parser so it gets recorded
             await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
@@ -289,15 +299,10 @@ export class CommandParser {
                 choices: options.choices,
             });
 
-            let value;
-            if (options.expecting === ValueCategory.Location)
-                value = new Ast.LocationValue(new Ast.UnresolvedLocation(command.utterance));
-            else
-                value = new Ast.Value.String(command.utterance);
-
+            const value = new Ast.Value.String(command.utterance);
             const parsed = new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, value));
             return {
-                type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP,
+                type: CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP,
                 utterance: command.utterance,
                 user_target: parsed.prettyprint(),
                 answer: value,
@@ -353,27 +358,18 @@ export class CommandParser {
         // this user)
         let i = 0;
         let choice = candidates[i];
-        let type = this._getSpecialThingTalkType(choice.parsed);
+        let type = this._getSpecialThingTalkType(choice.parsed, choice.score);
         while (i < candidates.length-1 && type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND && choice.score === 'Infinity') {
             i++;
             choice = candidates[i];
-            type = this._getSpecialThingTalkType(choice.parsed);
+            type = this._getSpecialThingTalkType(choice.parsed, choice.score);
         }
 
-        if (type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND) {
-            type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
-            if (this._debug >= LogLevel.INFO)
+        if (this._debug >= LogLevel.INFO) {
+            if (type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND)
                 console.log('Failed to analyze message as ThingTalk');
-            //this._loop.conversation.stats.hit('sabrina-failure');
-        } else if (this._useConfidence && choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
-            type = CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;
-            if (this._debug >= LogLevel.INFO)
-                console.log('Dubiously analyzed message into ' + choice.parsed.prettyprint());
-            //this._loop.conversation.stats.hit('sabrina-command-maybe');
-        } else {
-            if (this._debug >= LogLevel.INFO)
-                console.log('Confidently analyzed message into ' + choice.parsed.prettyprint());
-            //this._loop.conversation.stats.hit('sabrina-command-good');
+            else
+                console.log('Analyzed message into ' + choice.parsed.prettyprint());
         }
 
         // everything else is an in-domain command

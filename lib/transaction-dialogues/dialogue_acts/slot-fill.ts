@@ -31,7 +31,7 @@ import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 import {
     makeAgentReply,
-} from '../state_manip';
+} from './common';
 
 
 function isGoodSlotFillQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
