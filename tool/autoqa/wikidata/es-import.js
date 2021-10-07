@@ -197,5 +197,5 @@ export async function execute(args) {
         .setEncoding('utf8')
         .pipe(JSONStream.parse('*'))
         .pipe(new ItemProcessor(args.offset))
-        .pipe(new ESBulkInserter(require(path.resolve(args.es_config)))));
+        .pipe(new ESBulkInserter(await import(path.resolve(args.es_config)))));
 }
