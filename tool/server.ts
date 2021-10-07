@@ -157,6 +157,7 @@ interface TranslationData {
     limit ?: string;
     alignment ?: boolean;
     src_locale ?: string;
+    align_remove_output_quotation ?: boolean
 }
 const Translation_PARAMS = {
     input: 'string',
@@ -165,7 +166,30 @@ const Translation_PARAMS = {
     limit: '?number',
     alignment: '?boolean',
     src_locale: '?string',
+    align_remove_output_quotation: '?boolean'
 };
+
+
+// const VALID_PARSER_OPTIONS = new Set([
+//     "num_beams",
+//     "num_beam_groups",
+//     "diversity_penalty",
+//     "num_outputs",
+//     "no_repeat_ngram_size",
+//     "top_p",
+//     "top_k",
+//     "repetition_penalty",
+//     "temperature",
+//     "max_output_length",
+//     "reduce_metrics",
+//     "database_dir",
+//     "do_alignment",
+//     "align_preserve_input_quotation",
+//     "align_remove_output_quotation",
+//     "src_locale",
+//     "tgt_locale",
+//     "translate_example_split"
+// ]);
 
 async function queryTranslate(params : Record<string, string>,
                             data : TranslationData,
@@ -177,14 +201,15 @@ async function queryTranslate(params : Record<string, string>,
         return;
     }
 
-    if (! data.src_locale)
+    if (!data.src_locale)
         data.src_locale = 'en-US';
 
-    const translationOptions : Record<string, any> = {
-                                                        'do_alignment': data.alignment,
-                                                        'align_remove_output_quotation': true,
-                                                        'src_locale': data.src_locale,
-                                                        'tgt_locale': data.tgt_locale
+    const translationOptions : Record<string, unknown> = {
+        'src_locale': data.src_locale,
+        'tgt_locale': data.tgt_locale,
+        'do_alignment': data.alignment,
+        'align_remove_output_quotation': data.align_remove_output_quotation,
+
     };
 
     const result = await res.app.backend.translator!.translateUtterance(

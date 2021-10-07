@@ -41,7 +41,7 @@ import {
 const SEMANTIC_PARSING_TASK = 'almond';
 const NLU_TASK = 'almond_dialogue_nlu';
 const NLG_TASK = 'almond_dialogue_nlg';
-const Translation_TASK = 'almond_translate';
+const TRANSLATION_TASK = 'almond_translate';
 const NLG_QUESTION = 'what should the agent say ?';
 
 export interface LocalParserOptions {
@@ -59,22 +59,6 @@ function compareScore(a : PredictionCandidate, b : PredictionCandidate) : number
         return 1;
     return b.score - a.score;
 }
-
-function substringSpan(sequence : string[], substring : string[]) : [number, number] | null {
-    for (let i=0; i < sequence.length; i++) {
-        let found = true;
-        for (let j = 0; j < substring.length; j++) {
-            if (sequence[i+j] !== substring[j]) {
-                found = false;
-                break;
-            }
-        }
-        if (found)
-            return [i, i + substring.length + 1];
-    }
-    return null;
-}
-
 
 export default class LocalParserClient {
     private _locale : string;
@@ -280,18 +264,9 @@ export default class LocalParserClient {
         });
     }
 
-    async translateUtterance(input : string[], contextEntities : EntityMap|undefined, translationOptions : Record<string, any>) : Promise<GenerationResult[]> {
-        if (contextEntities) {
-            const allEntities = Object.keys(contextEntities).map((ent) => ent.split(' '));
-            for (const entity of allEntities) {
-                const span = substringSpan(input, entity);
-                if (span) {
-                    input.splice(span[0], 0, '"');
-                    input.splice(span[1], 0, '"');
-                }
-            }
-        }
-        const candidates = await this._predictor.predict('', input.join(' '), undefined, Translation_TASK, 'id-null', translationOptions);
+    async translateUtterance(input : string[], contextEntities : EntityMap|undefined, translationOptions : Record<string, unknown>) : Promise<GenerationResult[]> {
+        input = Utils.qpisEntities(input, contextEntities);
+        const candidates = await this._predictor.predict('', input.join(' '), undefined, TRANSLATION_TASK, 'id-null', translationOptions);
         return candidates.map((cand) => {
             return {
                 answer: cand.answer,

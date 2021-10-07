@@ -31,6 +31,7 @@ import {
     makeDummyEntity,
     makeDummyEntities,
     renumberEntities,
+    EntityMap,
 } from './entity-utils';
 
 class ValidationError extends Error {
@@ -200,6 +201,37 @@ function isHumanEntity(type : Type|string) : boolean {
     return false;
 }
 
+function substringSpan(sequence : string[], substring : string[]) : [number, number] | null {
+    for (let i=0; i < sequence.length; i++) {
+        let found = true;
+        for (let j = 0; j < substring.length; j++) {
+            if (sequence[i+j] !== substring[j]) {
+                found = false;
+                break;
+            }
+        }
+        if (found)
+            return [i, i + substring.length + 1];
+    }
+    return null;
+}
+
+
+function qpisEntities(input : string[], contextEntities : EntityMap|undefined) : string[] {
+    if (contextEntities) {
+        const allEntities = Object.keys(contextEntities).map((ent) => ent.split(' '));
+        for (const entity of allEntities) {
+            const span = substringSpan(input, entity);
+            if (span) {
+                input.splice(span[0], 0, '"');
+                input.splice(span[1], 0, '"');
+            }
+        }
+    }
+    return input;
+}
+
+
 export {
     splitParams,
     split,
@@ -212,4 +244,6 @@ export {
     makeDummyEntity,
     makeDummyEntities,
     renumberEntities,
+
+    qpisEntities
 };

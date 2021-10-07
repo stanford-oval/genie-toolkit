@@ -151,7 +151,7 @@ class LocalWorker extends events.EventEmitter {
         this._requests.clear();
     }
 
-    request(task : string, minibatch : Example[], options : Record<string, any>) : Promise<RawPredictionCandidate[][]> {
+    request(task : string, minibatch : Example[], options : Record<string, unknown>) : Promise<RawPredictionCandidate[][]> {
         const id = this._nextId ++;
 
         return new Promise((resolve, reject) => {
@@ -179,7 +179,7 @@ class RemoteWorker extends events.EventEmitter {
     start() {}
     stop() {}
 
-    async request(task : string, minibatch : Example[], options : Record<string, any>) : Promise<RawPredictionCandidate[][]> {
+    async request(task : string, minibatch : Example[], options : Record<string, unknown>) : Promise<RawPredictionCandidate[][]> {
         const response = await Tp.Helpers.Http.post(this._url, JSON.stringify({
             task,
             instances: minibatch,
@@ -244,7 +244,7 @@ export default class Predictor {
         });
     }
 
-    private _startRequest(ex : Example, task : string, options : Record<string, any>, now : number) {
+    private _startRequest(ex : Example, task : string, options : Record<string, unknown>, now : number) {
         assert(this._minibatch.length === 0);
         this._minibatch.push(ex);
         this._minibatchTask = task;
@@ -257,7 +257,7 @@ export default class Predictor {
         }, this._maxLatency);
     }
 
-    private _addRequest(ex : Example, task : string, options : Record<string, any>) {
+    private _addRequest(ex : Example, task : string, options : Record<string, unknown>) {
         const now = Date.now();
         if (this._minibatch.length === 0) {
             this._startRequest(ex, task, options, now);
@@ -271,7 +271,7 @@ export default class Predictor {
         }
     }
 
-    predict(context : string, question : string = DEFAULT_QUESTION, answer ?: string, task = 'almond', example_id ?: string, options : Record<string, any> = {}) : Promise<RawPredictionCandidate[]> {
+    predict(context : string, question : string = DEFAULT_QUESTION, answer ?: string, task = 'almond', example_id ?: string, options : Record<string, unknown> = {}) : Promise<RawPredictionCandidate[]> {
 
         // ensure we have a worker, in case it recently died
         if (!this._worker)
@@ -283,7 +283,7 @@ export default class Predictor {
             resolve = _resolve;
             reject = _reject;
         });
-        this._addRequest({ context, question, answer, example_id, resolve, reject }, task, options);
+        this._addRequest({ context, question, answer, resolve, reject }, task, options);
 
         return promise;
     }
