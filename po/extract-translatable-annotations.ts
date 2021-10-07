@@ -49,7 +49,10 @@ function extract(key : string, str : unknown) {
 
 async function main() {
     const code = (await pfs.readFile(process.argv[2])).toString();
-    const parsed = ThingTalk.Syntax.parse(code);
+    const parsed = ThingTalk.Syntax.parse(code, ThingTalk.Syntax.SyntaxType.Normal, {
+        locale: 'en-US',
+        timezone: 'UTC'
+    });
     assert(parsed instanceof ThingTalk.Ast.Library);
 
     for (const _class of parsed.classes) {
