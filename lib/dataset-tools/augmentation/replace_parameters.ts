@@ -742,7 +742,7 @@ export default class ParameterReplacer {
 
             if (this._cleanParameters &&
                 (/[,?!.'\-_]/.test(sampled) || ['1', '2', '3'].includes(sampled)) &&
-                attempts > this._numAttempts * 0.9){
+                attempts > this._numAttempts * 0.9) {
                 attempts -= 1;
                 continue;
             }
@@ -760,7 +760,7 @@ export default class ParameterReplacer {
             if (!type.isNumeric()) {
                 if ((this._paramLangPack.isGoodPersonName(sampled)) ||
                     (this._paramLangPack.isGoodUserName(sampled) && typeValue && typeValue === "tt:username"))
-                        return { sentenceValue: sampled, programValue: sampled };
+                    return { sentenceValue: sampled, programValue: sampled };
                 if (words.some((w) => !this._paramLangPack.isGoodWord(w)) || words.length > this._maxSpanLength) {
                     attempts -= 1;
                     continue;

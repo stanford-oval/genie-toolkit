@@ -34,7 +34,7 @@ async function collectOutputs(app) {
 
 async function testActivityMonitor(engine) {
     const app = await engine.createApp('timer(base=$now,interval=10s) => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
-            { icon: 'org.foo', uniqueId: 'uuid-timer-foo', name: 'some app', description: 'some app description' });
+        { icon: 'org.foo', uniqueId: 'uuid-timer-foo', name: 'some app', description: 'some app description' });
     let idle = false;
     engine.activityMonitor.on('idle', () => idle = true);
 
@@ -187,7 +187,7 @@ async function testGetGet(engine, icon = null) {
     const outputs = await collectOutputs(app);
     assert.deepStrictEqual(outputs, [{
         outputType: 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data',
-        outputValue: { __response: undefined, data: '!!!!!!!!!!', count: 2, size: 10, data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!',}
+        outputValue: { __response: undefined, data: '!!!!!!!!!!', count: 2, size: 10, data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!', }
     }, {
         outputType: 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data',
         outputValue: { __response: undefined, data: '""""""""""', count: 2, size: 10, data_in: '""""""""""', data_out: '""""""""""""""""""""', }

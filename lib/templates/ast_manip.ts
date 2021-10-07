@@ -1015,7 +1015,7 @@ function addFilterInternal(table : Ast.Expression,
     if (table instanceof Ast.FilterExpression) {
         // if we already have a filter, don't add a new complex filter
         if (!filter.isAtom && !(filter instanceof Ast.NotBooleanExpression && filter.expr.isAtom))
-             return null;
+            return null;
 
         if (checkFilterUniqueness(table, filter))
             return null;

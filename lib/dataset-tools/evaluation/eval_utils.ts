@@ -26,5 +26,5 @@ export function* stripOutTypeAnnotations(tokens : string[]) : Generator<string, 
         } else {
             yield token;
         }
-   }
+    }
 }

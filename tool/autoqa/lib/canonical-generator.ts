@@ -135,12 +135,12 @@ export default class AutoCanonicalGenerator {
             return;
         const manualAnnotations = await import(`../${this.options.dataset}/manual-annotations.js`);
         if (manualAnnotations.PROPERTY_CANONICAL_OVERRIDE)
-                this.annotatedProperties = Object.keys(manualAnnotations.PROPERTY_CANONICAL_OVERRIDE);
+            this.annotatedProperties = Object.keys(manualAnnotations.PROPERTY_CANONICAL_OVERRIDE);
     }
 
     private _generateBaseCanonicalAnnotation(func : Ast.FunctionDef, 
-                                     arg : Ast.ArgumentDef, 
-                                     typeCounts : Record<string, number>) : CanonicalAnnotation {
+                                             arg : Ast.ArgumentDef, 
+                                             typeCounts : Record<string, number>) : CanonicalAnnotation {
         const canonicalAnnotation : CanonicalAnnotation = {};
         if (this.options.remove_existing_canonicals) {
             genBaseCanonical(canonicalAnnotation, arg.name, arg.type);
@@ -180,9 +180,9 @@ export default class AutoCanonicalGenerator {
 
             // if property is missing, use the type information
             if (!('property' in canonicalAnnotation)) {
-                    const base = utils.clean(typestr.substring(typestr.indexOf(':') + 1));
-                    canonicalAnnotation['property'] = [base];
-                    canonicalAnnotation['base'] = [base];
+                const base = utils.clean(typestr.substring(typestr.indexOf(':') + 1));
+                canonicalAnnotation['property'] = [base];
+                canonicalAnnotation['base'] = [base];
             }
 
             // if it's the only people entity, adding adjective form
@@ -210,7 +210,7 @@ export default class AutoCanonicalGenerator {
                 if (arg.type.isBoolean)
                     continue;
 
-                    const canonicals = arg.metadata.canonical;
+                const canonicals = arg.metadata.canonical;
                 if (!canonicals)
                     continue;
                 if (typeof canonicals === 'string' || Array.isArray(canonicals))

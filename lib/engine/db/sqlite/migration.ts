@@ -82,8 +82,8 @@ function migrateTo8(db : sqlite3.Database) {
 function migrateTo9(db : sqlite3.Database) {
     db.serialize(() => {
         // we used to create a table called `keyword` here, we no longer do that
-	db.run('drop table if exists conversation');
-	db.run('create table conversation (' +
+        db.run('drop table if exists conversation');
+        db.run('create table conversation (' +
                'uniqueId varchar(255) primary key, ' +
                'conversationId varchar(255), ' +
                'previousId varchar(255), ' +

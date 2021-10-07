@@ -412,8 +412,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     private async _makeClarificationQuestion(program : Ast.Input) {
         const allocator = new Syntax.SequentialEntityAllocator({}, { timezone: this._engine.platform.timezone });
         const describer = new ThingTalkUtils.Describer(this._engine.platform.locale,
-                                                       this._engine.platform.timezone,
-                                                       allocator);
+            this._engine.platform.timezone,
+            allocator);
         // retrieve the relevant primitive templates
         const kinds = new Set<string>();
         for (const [, prim] of program.iteratePrimitives(false))
@@ -568,8 +568,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     }
 
     async showNotification(app : AppExecutor,
-        outputType : string,
-        outputValue : Record<string, unknown>) {
+                           outputType : string,
+                           outputValue : Record<string, unknown>) {
         assert(app.program.statements.length === 1);
         const stmt = app.program.statements[0];
         assert(stmt instanceof ThingTalk.Ast.ExpressionStatement);
@@ -581,7 +581,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     }
 
     async showAsyncError(app : AppExecutor,
-        error : Error) {
+                         error : Error) {
         console.log('Error from ' + app.uniqueId, error);
 
         const mappedError = await this._agent.executor.mapError(error);

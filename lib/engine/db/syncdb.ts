@@ -78,7 +78,7 @@ export default class SyncDatabase<K extends keyof SyncTables> extends events.Eve
         this._syncManager = syncManager;
 
         this._syncManager.registerHandler('syncdb-' + tablename,
-                                          this._handleMessage.bind(this));
+            this._handleMessage.bind(this));
 
         this._debug = false;
 
@@ -269,8 +269,8 @@ export default class SyncDatabase<K extends keyof SyncTables> extends events.Eve
     private _reportChanges(fromTier : string, changes : Array<SyncRecord<SyncTables[K]>>, done : boolean[]) {
         for (let i = 0; i < changes.length; i++) {
             this._reportChange(fromTier, changes[i].uniqueId,
-                               changes[i].lastModified, this._makeRow(changes[i]),
-                               done[i]);
+                changes[i].lastModified, this._makeRow(changes[i]),
+                done[i]);
         }
     }
 

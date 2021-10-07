@@ -84,7 +84,7 @@ class LocalWorker extends events.EventEmitter {
             args.push('--embeddings', process.env.GENIENLP_EMBEDDINGS);
         if (process.env.GENIENLP_DATABASE_DIR)
             args.push('--database_dir', process.env.GENIENLP_DATABASE_DIR);
-        if (process.env.GENIENLP_NUM_BEAMS){
+        if (process.env.GENIENLP_NUM_BEAMS) {
             const numBeams = parseInt(process.env.GENIENLP_NUM_BEAMS);
             // Count the greedy output as one of the results
             if (numBeams > 1)

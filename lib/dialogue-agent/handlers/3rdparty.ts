@@ -40,7 +40,7 @@ interface AnalysisTypeAdapter<InnerAnalysisType extends Tp.DialogueHandler.Comma
  * of the ThingTalk dialogue loop.
  */
 export default class ThingpediaDialogueHandler<AnalysisType extends Tp.DialogueHandler.CommandAnalysisResult, StateType>
-    implements DialogueHandler<AnalysisTypeAdapter<AnalysisType>, StateType> {
+implements DialogueHandler<AnalysisTypeAdapter<AnalysisType>, StateType> {
     private _iface : Tp.DialogueHandler<AnalysisType, StateType>;
     uniqueId : string;
 

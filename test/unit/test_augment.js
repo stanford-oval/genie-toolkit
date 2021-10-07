@@ -19,7 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-process.on('unhandledRejection', (up) => { throw up; });
+process.on('unhandledRejection', (up) => {
+    throw up; 
+});
 
 import * as path from 'path';
 import * as stream from 'stream';

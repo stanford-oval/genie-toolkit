@@ -136,9 +136,9 @@ export async function execute(args : any) {
         }
 
         stream
-        .pipe(JSONStream.parse('data.*'))
-        .pipe(csvstringify({ columns: ['value', 'preprocessed', 'weight'], delimiter:'\t', header: false }))
-        .pipe(output);
+            .pipe(JSONStream.parse('data.*'))
+            .pipe(csvstringify({ columns: ['value', 'preprocessed', 'weight'], delimiter:'\t', header: false }))
+            .pipe(output);
         await StreamUtils.waitFinish(output);
 
         progress++;
