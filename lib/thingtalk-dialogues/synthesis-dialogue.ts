@@ -89,6 +89,17 @@ const enum PartialDialogueState {
 let partialDialogueID = 0;
 
 /**
+ * Combine the id of the dialogue with the "tag" of the non-deterministic
+ * agent choice to form a single tag, used to identify contexts in the
+ * synthesis templates.
+ */
+function combineDialogueAgentTags(dialogueTag : number, agentTag : number) {
+    if (agentTag > 65535)
+        throw new Error('OVERFLOW: too many agent either choices');
+    return dialogueTag << 16 | agentTag;
+}
+
+/**
  * A partial dialogue, during synthesis.
  *
  * This class bridges the synthesis code, which operates over batches of dialogues
@@ -199,7 +210,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
             context: this,
             key: {
                 dialogue: this,
-                tag: this._id << 65536 | agentTurn.tag
+                tag: combineDialogueAgentTags(this._id, agentTurn.tag),
             }
         };
     }
@@ -278,12 +289,10 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
                                     placeholders : TemplatePlaceholderMap,
                                     semantics : SemanticAction<[Ast.DialogueState, ...any[]], Ast.DialogueState>) {
         let ctxNonTerm;
-        if (tag === null) {
+        if (tag === null)
             ctxNonTerm = new NonTerminal('ctx_sys_dynamic_any', undefined, ['dialogue', this]);
-        } else {
-            assert(tag < 65536);
-            ctxNonTerm = new NonTerminal('ctx_sys_dynamic_any', undefined, ['tag', this._id << 65536 | tag]);
-        }
+        else
+            ctxNonTerm = new NonTerminal('ctx_sys_dynamic_any', undefined, ['tag', combineDialogueAgentTags(this._id, tag)]);
 
         addTemplate(this._userGenerator, [ctxNonTerm], tmpl, placeholders, (ctx : AgentTurn, ...args : any[]) : UserReplyRecord|null => {
             const result = semantics(ctx.state, ...args);

@@ -324,7 +324,7 @@ export class ContextPhraseCreator {
                 utterance.push(piece);
             }
 
-            if (utterance && utterance.length) {
+            if (utterance.length) {
                 const value = [this.ctx, bag];
                 output.push({
                     symbol: this.contextTable.ctx_thingpedia_list_result,

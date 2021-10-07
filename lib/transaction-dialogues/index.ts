@@ -290,7 +290,6 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
             switch (cmd.type) {
             case POLICY_NAME + '.end':
                 dlg.say(dlg._("alright, {bye|good bye}!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
-                lastReply = await dlg.flush();
                 return;
 
             case POLICY_NAME + '.greet':
