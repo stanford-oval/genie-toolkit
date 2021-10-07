@@ -32,6 +32,7 @@ import * as Utils from '../lib/utils/misc-utils';
 import { EntityMap } from '../lib/utils/entity-utils';
 import LocalParserClient from '../lib/prediction/localparserclient';
 import * as I18n from '../lib/i18n';
+import {GenerationOptions} from "../lib/prediction/types";
 
 interface Backend {
     schemas : ThingTalk.SchemaRetriever;
@@ -153,7 +154,7 @@ async function queryNLG(params : Record<string, string>,
 interface TranslationData {
     input : string;
     tgt_locale : string
-    entities ?: EntityMap;
+    entities ?: string[];
     limit ?: string;
     alignment ?: boolean;
     src_locale ?: string;
@@ -162,34 +163,12 @@ interface TranslationData {
 const Translation_PARAMS = {
     input: 'string',
     tgt_locale: 'string',
-    entities: '?object',
+    entities: '?array',
     limit: '?number',
     alignment: '?boolean',
     src_locale: '?string',
     align_remove_output_quotation: '?boolean'
 };
-
-
-// const VALID_PARSER_OPTIONS = new Set([
-//     "num_beams",
-//     "num_beam_groups",
-//     "diversity_penalty",
-//     "num_outputs",
-//     "no_repeat_ngram_size",
-//     "top_p",
-//     "top_k",
-//     "repetition_penalty",
-//     "temperature",
-//     "max_output_length",
-//     "reduce_metrics",
-//     "database_dir",
-//     "do_alignment",
-//     "align_preserve_input_quotation",
-//     "align_remove_output_quotation",
-//     "src_locale",
-//     "tgt_locale",
-//     "translate_example_split"
-// ]);
 
 async function queryTranslate(params : Record<string, string>,
                             data : TranslationData,
@@ -204,7 +183,7 @@ async function queryTranslate(params : Record<string, string>,
     if (!data.src_locale)
         data.src_locale = 'en-US';
 
-    const translationOptions : Record<string, unknown> = {
+    const generationOptions : GenerationOptions = {
         'src_locale': data.src_locale,
         'tgt_locale': data.tgt_locale,
         'do_alignment': data.alignment,
@@ -213,7 +192,7 @@ async function queryTranslate(params : Record<string, string>,
     };
 
     const result = await res.app.backend.translator!.translateUtterance(
-        data.input.split(' '), data.entities, translationOptions);
+        data.input.split(' '), data.entities, generationOptions);
     res.json({
         candidates: result.slice(0, data.limit ? parseInt(data.limit) : undefined),
     });

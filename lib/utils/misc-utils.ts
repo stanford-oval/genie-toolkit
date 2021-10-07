@@ -31,7 +31,6 @@ import {
     makeDummyEntity,
     makeDummyEntities,
     renumberEntities,
-    EntityMap,
 } from './entity-utils';
 
 class ValidationError extends Error {
@@ -211,20 +210,22 @@ function substringSpan(sequence : string[], substring : string[]) : [number, num
             }
         }
         if (found)
-            return [i, i + substring.length + 1];
+            return [i, i + substring.length];
     }
     return null;
 }
 
 
-function qpisEntities(input : string[], contextEntities : EntityMap|undefined) : string[] {
-    if (contextEntities) {
-        const allEntities = Object.keys(contextEntities).map((ent) => ent.split(' '));
-        for (const entity of allEntities) {
+function qpisEntities(input : string[], entities : string[]|undefined) : string[] {
+    if (entities) {
+        const entityTokens = entities.map((ent) => ent.split(' '));
+        for (const entity of entityTokens) {
             const span = substringSpan(input, entity);
             if (span) {
                 input.splice(span[0], 0, '"');
-                input.splice(span[1], 0, '"');
+
+                // add 1 cause previous splice shift tokens to the right
+                input.splice(span[1] + 1, 0, '"');
             }
         }
     }

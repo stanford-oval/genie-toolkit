@@ -31,6 +31,7 @@ import {
     PredictionResult,
     GenerationResult,
     ExactMatcher,
+    GenerationOptions,
 } from './types';
 import ExactMatcherBuilder from './exactbuilder';
 
@@ -170,16 +171,19 @@ export default class RemoteParserClient {
         return parsed.candidates;
     }
 
-    async translateUtterance(input : string[], contextEntities : EntityMap|undefined, translationOptions : Record<string, unknown>) : Promise<GenerationResult[]> {
-        input = Utils.qpisEntities(input, contextEntities);
+    async translateUtterance(input : string[], entities : string[]|undefined, generationOptions : GenerationOptions) : Promise<GenerationResult[]> {
+        input = Utils.qpisEntities(input, entities);
 
         const data = {
             input: input.join(' '),
-            tgt_locale: translationOptions.tgt_locale,
-            entities: contextEntities,
-            alignment: translationOptions.alignment,
-            src_locale: translationOptions.src_locale,
-            align_remove_output_quotation: translationOptions.align_remove_output_quotation
+            tgt_locale: generationOptions.tgt_locale,
+            entities: entities,
+            alignment: generationOptions.do_alignment,
+            src_locale: generationOptions.src_locale,
+            // always remove quotation marks in the output string used to mark entity boundaries
+            align_remove_output_quotation: true,
+            // always break input utterance into individual sentences before translation
+            translate_example_split: true
         };
 
         const response = await Tp.Helpers.Http.post(`${this._baseUrl}/translate`, JSON.stringify(data), {

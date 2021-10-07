@@ -35,7 +35,8 @@ import {
     PredictionCandidate,
     PredictionResult,
     GenerationResult,
-    ExactMatcher
+    ExactMatcher,
+    GenerationOptions
 } from './types';
 
 const SEMANTIC_PARSING_TASK = 'almond';
@@ -264,9 +265,9 @@ export default class LocalParserClient {
         });
     }
 
-    async translateUtterance(input : string[], contextEntities : EntityMap|undefined, translationOptions : Record<string, unknown>) : Promise<GenerationResult[]> {
-        input = Utils.qpisEntities(input, contextEntities);
-        const candidates = await this._predictor.predict('', input.join(' '), undefined, TRANSLATION_TASK, 'id-null', translationOptions);
+    async translateUtterance(input : string[], entities : string[]|undefined, generationOptions : GenerationOptions) : Promise<GenerationResult[]> {
+        input = Utils.qpisEntities(input, entities);
+        const candidates = await this._predictor.predict('', input.join(' '), undefined, TRANSLATION_TASK, undefined, generationOptions);
         return candidates.map((cand) => {
             return {
                 answer: cand.answer,

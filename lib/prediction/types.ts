@@ -24,6 +24,26 @@ export interface ExactMatcher {
     get(tokens : string[]) : string[][]|null;
 }
 
+export interface GenerationOptions {
+    num_beams ?: number
+    num_beam_groups ?: number
+    diversity_penalty ?: number
+    num_outputs ?: number
+    no_repeat_ngram_size ?: number
+    top_p ?: number
+    top_k ?: number
+    repetition_penalty ?: number
+    temperature ?: number
+    max_output_length ?: number
+    src_locale ?: string
+    tgt_locale ?: string
+    do_alignment ?: boolean
+    align_preserve_input_quotation ?: boolean
+    align_remove_output_quotation ?: boolean
+    translate_example_split ?: boolean
+}
+
+
 export interface ParseOptions {
     thingtalk_version ?: string;
     store ?: string;

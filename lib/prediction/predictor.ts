@@ -24,6 +24,7 @@ import * as child_process from 'child_process';
 import * as Tp from 'thingpedia';
 
 import JsonDatagramSocket from '../utils/json_datagram_socket';
+import {GenerationOptions} from "./types";
 
 const DEFAULT_QUESTION = 'translate from english to thingtalk';
 
@@ -151,7 +152,7 @@ class LocalWorker extends events.EventEmitter {
         this._requests.clear();
     }
 
-    request(task : string, minibatch : Example[], options : Record<string, unknown>) : Promise<RawPredictionCandidate[][]> {
+    request(task : string, minibatch : Example[], options : GenerationOptions) : Promise<RawPredictionCandidate[][]> {
         const id = this._nextId ++;
 
         return new Promise((resolve, reject) => {
@@ -179,7 +180,7 @@ class RemoteWorker extends events.EventEmitter {
     start() {}
     stop() {}
 
-    async request(task : string, minibatch : Example[], options : Record<string, unknown>) : Promise<RawPredictionCandidate[][]> {
+    async request(task : string, minibatch : Example[], options : GenerationOptions) : Promise<RawPredictionCandidate[][]> {
         const response = await Tp.Helpers.Http.post(this._url, JSON.stringify({
             task,
             instances: minibatch,
@@ -244,7 +245,7 @@ export default class Predictor {
         });
     }
 
-    private _startRequest(ex : Example, task : string, options : Record<string, unknown>, now : number) {
+    private _startRequest(ex : Example, task : string, options : GenerationOptions, now : number) {
         assert(this._minibatch.length === 0);
         this._minibatch.push(ex);
         this._minibatchTask = task;
@@ -257,7 +258,7 @@ export default class Predictor {
         }, this._maxLatency);
     }
 
-    private _addRequest(ex : Example, task : string, options : Record<string, unknown>) {
+    private _addRequest(ex : Example, task : string, options : GenerationOptions) {
         const now = Date.now();
         if (this._minibatch.length === 0) {
             this._startRequest(ex, task, options, now);
@@ -271,7 +272,7 @@ export default class Predictor {
         }
     }
 
-    predict(context : string, question : string = DEFAULT_QUESTION, answer ?: string, task = 'almond', example_id ?: string, options : Record<string, unknown> = {}) : Promise<RawPredictionCandidate[]> {
+    predict(context : string, question : string = DEFAULT_QUESTION, answer ?: string, task = 'almond', example_id ?: string, options : GenerationOptions = {}) : Promise<RawPredictionCandidate[]> {
 
         // ensure we have a worker, in case it recently died
         if (!this._worker)
