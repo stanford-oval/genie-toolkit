@@ -22,7 +22,7 @@ import assert from "assert";
 import { infixToPostfix, specialTokens } from "./infix-to-postfix";
 
 import EnglishLanguagePack from '../../lib/i18n/english';
-import EnglishTokenizer from '../../lib/i18n/tokenizer/english';
+import EnglishTokenizer from '../i18n/tokenizer/english';
 import { TokenizerResult } from '../i18n';
 
 interface Transition {

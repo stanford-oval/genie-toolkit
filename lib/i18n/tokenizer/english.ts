@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
+import { TimeEntity } from '../../utils/entity-utils';
 import BaseTokenizer from './base';
 import { WS, makeToken } from './helpers';
 
@@ -39,7 +40,7 @@ import { WS, makeToken } from './helpers';
 //
 // NO CODE WAS COPIED FROM CORENLP
 
-const NUMBERS = {
+const NUMBERS : Record<string, number> = {
     zero: 0,
     zeroth: 0,
     zeroeth: 0,
@@ -105,7 +106,7 @@ const NUMBERS = {
 };
 
 // NOTE: this uses the American convention for interpreting billions
-const MULTIPLIERS = {
+const MULTIPLIERS : Record<string, number> = {
     hundred: 100,
     hundreds: 100,
     hundredth: 100,
@@ -127,7 +128,7 @@ const MULTIPLIERS = {
 };
 
 
-const MONTHS = {
+const MONTHS : Record<string, number> = {
     jan: 1,
     feb: 2,
     mar: 3,
@@ -142,7 +143,7 @@ const MONTHS = {
     dec: 12
 };
 
-const CURRENCIES = {
+const CURRENCIES : Record<string, string> = {
     'dollars': 'usd',
     'dollar': 'usd',
     'bucks': 'usd',
@@ -169,7 +170,7 @@ const CURRENCIES = {
 };
 
 export default class EnglishTokenizer extends BaseTokenizer {
-    _initAbbrv() {
+    protected _initAbbrv() {
         // words with apostrophes
         this._addDefinition('APWORD', /(?:[a-z]+?n['’]t(?!{LETTER}))|o['’]clock(?!{LETTER})|o['’](?={WS}clock(?!{LETTER}))|['’]{LETTER}+/);
 
@@ -216,7 +217,7 @@ export default class EnglishTokenizer extends BaseTokenizer {
             (lexer) => makeToken(lexer.index, lexer.text, lexer.text.toLowerCase().replace(/’/g, "'")));
     }
 
-    _parseWordNumber(text) {
+    private _parseWordNumber(text : string) {
         // note: this function will parse a bunch of things that are not valid, such a mixed ordinal and cardinal numbers
         // this is ok because we only call it with good stuff
 
@@ -275,11 +276,11 @@ export default class EnglishTokenizer extends BaseTokenizer {
         return value;
     }
 
-    _initSpecialNumbers() {
+    protected _initSpecialNumbers() {
         this._lexer.addRule(/911/, (lexer) => makeToken(lexer.index, lexer.text));
     }
 
-    _initNumbers() {
+    protected _initNumbers() {
         // numbers in digit
         this._addDefinition('DIGITS', /[0-9]+(,[0-9]+)*/);
         this._addDefinition('DECIMAL_NUMBER', /\.{DIGITS}|{DIGITS}(?:\.{DIGITS})?/);
@@ -291,8 +292,9 @@ export default class EnglishTokenizer extends BaseTokenizer {
 
         // currencies
         this._lexer.addRule(/{DECIMAL_NUMBER}{WS}(dollars?|bucks?|cents?|pounds?|pence|penny|yen|euros?|won|yuan|usd|cad|aud|chf|eur|gbp|cny|jpy|krw)/, (lexer) => {
-            let [num, unit] = lexer.text.split(WS);
+            const [num, unitword] = lexer.text.split(WS);
             let value = this._parseDecimalNumber(num);
+            let unit = unitword;
             if (unit in CURRENCIES)
                 unit = CURRENCIES[unit];
             if (unit.startsWith('0.01')) {
@@ -302,10 +304,10 @@ export default class EnglishTokenizer extends BaseTokenizer {
             return makeToken(lexer.index, lexer.text, String(value) + ' ' + unit, 'CURRENCY', { value, unit });
         });
         this._lexer.addRule(/(?:C\$|A\$|[$£€₩¥]){WS}?{DECIMAL_NUMBER}/, (lexer) => {
-            let unit = lexer.text.match(/C\$|A\$|[$£€₩¥]/)[0];
+            let unit = lexer.text.match(/C\$|A\$|[$£€₩¥]/)![0];
             unit = CURRENCIES[unit];
-            let num = lexer.text.replace(/(?:C\$|A\$|[$£€₩¥])/g, '').replace(WS, '');
-            let value = this._parseDecimalNumber(num);
+            const num = lexer.text.replace(/(?:C\$|A\$|[$£€₩¥])/g, '').replace(WS, '');
+            const value = this._parseDecimalNumber(num);
             return makeToken(lexer.index, lexer.text, String(value) + ' ' + unit, 'CURRENCY', { value, unit });
         });
 
@@ -350,7 +352,7 @@ export default class EnglishTokenizer extends BaseTokenizer {
         });
     }
 
-    _normalizeOrdinal(value) {
+    private _normalizeOrdinal(value : number) {
         let normalized;
         if (value % 10 === 1 && value % 100 !== 11)
             normalized = String(value) + 'st';
@@ -363,7 +365,7 @@ export default class EnglishTokenizer extends BaseTokenizer {
         return normalized;
     }
 
-    _initOrdinals() {
+    protected _initOrdinals() {
         // ordinals in digit (1st, 2nd, 3rd, "4 th", 0-th, etc.
         this._lexer.addRule(/[0-9]*?(?:1[123]{WS}?-?th|1{WS}?-?st|2{WS}?-?nd|3{WS}?-?rd|[4-90]{WS}?-?th)(?!{LETTER})/, (lexer) => {
             const text = lexer.text.replace(/[^0-9]/g, '');
@@ -404,7 +406,7 @@ export default class EnglishTokenizer extends BaseTokenizer {
         });
     }
 
-    _parseMilitaryTime(text) {
+    protected _parseMilitaryTime(text : string) {
         text = text.replace(/[^0-9]/g, '');
         const hour = parseInt(text.substring(0, 2));
         const minute = parseInt(text.substring(2, 4));
@@ -412,7 +414,7 @@ export default class EnglishTokenizer extends BaseTokenizer {
         return { hour, minute, second };
     }
 
-    _initTimes() {
+    protected _initTimes() {
         // "we'll attack at 0700hrs"
         this._addDefinition('MILITARY_TIME', /(?:[01][0-9]|2[0-4]):?[0-6][0-9](?::?[0-6][0-9])?(hrs?)?/);
         // 12 hour clock (no subsecond allowed)
@@ -461,24 +463,24 @@ export default class EnglishTokenizer extends BaseTokenizer {
         super._initTimes();
     }
 
-    _extractWordMonth(text) {
-        const word = /jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec/.exec(text.toLowerCase());
+    private _extractWordMonth(text : string) {
+        const word = /jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec/.exec(text.toLowerCase())!;
         return MONTHS[word[0]];
     }
 
-    _parseWordDate(text, parseDay, parseYear, parseTime) {
+    private _parseWordDate(text : string, parseDay : boolean, parseYear : boolean, parseTime : ((x : string) => TimeEntity)|null) {
         const month = this._extractWordMonth(text);
         const digitreg = /[0-9]+/g;
         let day = -1;
         if (parseDay) {
             // find the first sequence of digits to get the day
-            day = parseInt(digitreg.exec(text)[0]);
+            day = parseInt(digitreg.exec(text)![0]);
         }
         let year = -1;
         if (parseYear) {
             // find the next sequence of digits to get the year
             // (digitreg is a global regex so it will start matching from the end of the previous match)
-            year = parseInt(digitreg.exec(text)[0]);
+            year = parseInt(digitreg.exec(text)![0]);
         }
         if (parseTime) {
             // if we have a time, pick the remaining of the string and parse it
@@ -489,7 +491,7 @@ export default class EnglishTokenizer extends BaseTokenizer {
         }
     }
 
-    _initDates() {
+    protected _initDates() {
         // init ISO date recognition
         super._initDates();
 
