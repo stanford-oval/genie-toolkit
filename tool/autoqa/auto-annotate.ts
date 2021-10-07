@@ -30,8 +30,8 @@ import { parseConstantFile } from '../lib/constant-file';
 
 import AnnotationGenerator from './lib/annotation-generator';
 
-async function loadClassDefs(thingpedia : string) : Promise<ThingTalk.Ast.ClassDef[]> {
-    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
+async function loadClassDefs(thingpedia : string, options : ThingTalk.Syntax.ParseOptions) : Promise<ThingTalk.Ast.ClassDef[]> {
+    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }), ThingTalk.Syntax.SyntaxType.Normal, options);
     assert(library instanceof ThingTalk.Ast.Library);
     return library.classes;
 }
@@ -53,6 +53,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('-l', '--locale', {
         default: 'en-US',
         help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
+    });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--constants', {
         required: true,
@@ -123,7 +128,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 export async function execute(args : any) {
-    const classDefs = await loadClassDefs(args.thingpedia);
+    const classDefs = await loadClassDefs(args.thingpedia, { locale: args.locale, timezone: args.timezone });
 
     if (!args.algorithms) {
         for (const classDef of classDefs)
