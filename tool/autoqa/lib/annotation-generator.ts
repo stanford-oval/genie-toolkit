@@ -1,8 +1,8 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020-2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,16 +18,21 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
+import * as ThingTalk from 'thingtalk';
 import CanonicalGenerator from './canonical-generator';
 
 export default class AutoAnnotationGenerator {
-    constructor(classDef, constants, queries, parameterDatasets, options) {
+    private canonicalGenerator; 
+
+    constructor(classDef : ThingTalk.Ast.ClassDef, 
+                constants : Record<string, any[]>, 
+                queries : string[], 
+                parameterDatasets : string, 
+                options : any) {
         this.canonicalGenerator = new CanonicalGenerator(classDef, constants, queries, parameterDatasets, options);
     }
 
     generate() {
-        let classDef;
-        classDef = this.canonicalGenerator.generate();
-        return classDef;
+        return this.canonicalGenerator.generate();
     }
 }

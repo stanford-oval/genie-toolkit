@@ -45,7 +45,6 @@ do_test([
     ('./test_augment'),
     ('./test_bart_canonical_extractor'),
     ('./test_base_canonical_generator'),
-    ('./test_bert_canonical_generator'),
     ('./test_btrie'),
     ('./test_card_formatter'),
     ('./test_describe'),

@@ -1,8 +1,8 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020-2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,22 +18,75 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
-
+import * as ThingTalk from 'thingtalk';
 import { clean } from '../../../lib/utils/misc-utils';
 import EnglishLanguagePack from '../../../lib/i18n/english';
 
-function updateDefault(canonical, type) {
+export const PARTS_OF_SPEECH = [
+    'base',
+    'property',
+    'property_true',
+    'property_false',
+    'reverse_property',
+    'reverse_property_true',
+    'reverse_property_false',
+    'verb',
+    'verb_true',
+    'verb_false',
+    'passive_verb',
+    'passive_verb_true',
+    'passive_verb_false',
+    'adjective',
+    'adjective_true',
+    'adjective_false',
+    'preposition',
+    'preposition_true',
+    'preposition_false',
+    'reverse_verb'
+];
+
+export const PROJECTION_PARTS_OF_SPEECH = [
+    'base',
+    'reverse_verb',
+];
+
+export interface Canonicals {
+    base ?: string[],
+    base_projection ?: string[],
+    property ?: string[],
+    property_true ?: string[],
+    property_false ?: string[],
+    reverse_property ?: string[],
+    reverse_property_true ?: string[],
+    verb ?: string[],
+    verb_true ?: string[],
+    passive_verb ?: string[],
+    passive_verb_true ?: string[],
+    adjective ?: string[],
+    adjective_argmin ?: string[],
+    adjective_argmax ?: string[],
+    adjective_true ?: string[],
+    preposition ?: string[]
+    preposition_true ?: string[],
+    reverse_verb ?: string[]
+}
+
+export interface CanonicalAnnotation extends Canonicals {
+    default ?: string
+}
+
+function updateDefault(canonical : CanonicalAnnotation, type : keyof Canonicals) {
     if (!canonical.default)
         canonical.default = type === 'base' ? 'property' : type;
 }
-function updateCanonical(canonical, type, values) {
+function updateCanonical(canonical : CanonicalAnnotation, type : keyof Canonicals, values : string[]|string) {
     updateDefault(canonical, type);
     if (!Array.isArray(values))
         values = [values];
     canonical[type] = (canonical[type] || []).concat(values);
 }
 
-function preprocessName(languagePack, name, ptype) {
+function preprocessName(languagePack : EnglishLanguagePack, name : string, ptype : ThingTalk.Type) : [string, string[]] {
     name = clean(name);
     if (name.endsWith(' value'))
         name = name.substring(0, name.length - ' value'.length);
@@ -45,42 +98,20 @@ function preprocessName(languagePack, name, ptype) {
     return [name, tags];
 }
 
-function typeEqual(t1, t2) {
-    // TODO: replace this once we switch away from adt
-    if (t1.isCompound && t2.isCompound) {
-        if (t1.name !== t2.name)
-            return false;
-        if (Object.keys(t1.fields).length !== Object.keys(t2.fields).length)
-            return false;
-        for (let f in t1.fields) {
-            if (!(f in t2.fields))
-                return false;
-            if (!typeEqual(t1.fields[f].type, (t2.fields[f].type)))
-                return false;
-        }
-        return true;
-    } else if (t1.isEnum && t2.isEnum) {
-        if (t1.entries.length !== t2.entries.length)
-            return false;
-        for (let entry of t1.entries) {
-            if (!t2.entries.includes(entry))
-                return false;
-        }
-        return true;
-    } else {
-        return t1.equals(t2);
-    }
-}
-
-export default function genBaseCanonical(canonical, argname, ptype, functionDef = null) {
+export default function genBaseCanonical(canonical : CanonicalAnnotation, 
+                                         argname : string, 
+                                         ptype : ThingTalk.Type, 
+                                         functionDef : ThingTalk.Ast.FunctionDef|null = null) {
     const languagePack = new EnglishLanguagePack('en-US');
-    let [name, tags] = preprocessName(languagePack, argname, ptype);
+    const processedName = preprocessName(languagePack, argname, ptype);
+    let [name, ] = processedName;
+    const [, tags] = processedName;
 
     // e.g., saturatedFatContent
     if (name.endsWith(' content') && ptype.isMeasure) {
         name = name.substring(0, name.length - ' content'.length);
-        let base = [name + ' content', name, name + ' amount'];
-        let verb = ['contains #' + name.replace(/ /g, '_')];
+        const base = [name + ' content', name, name + ' amount'];
+        const verb = ['contains #' + name.replace(/ /g, '_')];
         updateCanonical(canonical, 'verb', verb);
         updateCanonical(canonical, 'base', base);
         return;
@@ -131,35 +162,35 @@ export default function genBaseCanonical(canonical, argname, ptype, functionDef 
 
     // e.g., memberOf
     if (name.endsWith(' of')) {
-        let noun = name.slice(0, -' of'.length);
-        let candidates = [name, `# ${noun}`, `# 's ${noun}`];
+        const noun = name.slice(0, -' of'.length);
+        const candidates = [name, `# ${noun}`, `# 's ${noun}`];
         updateCanonical(canonical, 'reverse_property', candidates);
         return;
     }
 
     // e.g., from_location, to_location, inAlbum
     if (tags.length === 2 && (tags[0] === 'IN' || tags[0] === 'TO') && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
-        let preposition = name.split(' ')[0];
-        let noun = name.substring(preposition.length + 1);
+        const preposition = name.split(' ')[0];
+        const noun = name.substring(preposition.length + 1);
         updateDefault(canonical, 'preposition');
 
         let [hasPrepositionConflict, hasNounConflict] = [false, false];
         if (functionDef) {
-            for (let arg of functionDef.iterateArguments()) {
+            for (const arg of functionDef.iterateArguments()) {
                 // stop if already found conflicts
                 if (hasPrepositionConflict && hasNounConflict)
                     break;
                 // don't consider property with different type
-                if (!typeEqual(arg.type, ptype))
+                if (!arg.type.equals(ptype))
                     continue;
                 // skip the argument itself
                 if (arg.name === argname)
                     continue;
-                let [name, tags] = preprocessName(languagePack, arg.name, arg.type);
+                const [name, tags] = preprocessName(languagePack, arg.name, arg.type);
                 // skip itself
                 if (tags.length === 2 && (tags[0] === 'IN' || tags[0] === 'TO') && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
-                    let otherProposition = name.split(' ')[0];
-                    let otherNoun = name.substring(otherProposition.length + 1);
+                    const otherProposition = name.split(' ')[0];
+                    const otherNoun = name.substring(otherProposition.length + 1);
                     if (preposition === otherProposition)
                         hasPrepositionConflict = true;
                     if (noun === otherNoun)
@@ -181,10 +212,10 @@ export default function genBaseCanonical(canonical, argname, ptype, functionDef 
 
     // e.g., petsAllowed
     if (ptype.isBoolean && tags.length >= 2 && ['VBN', 'VBD'].includes(tags[tags.length - 1])) {
-        let tokens = name.split(' ');
-        let noun = tokens.slice(0, tokens.length - 1);
-        let verb = tokens[tokens.length - 1];
-        let verb_phrase = [languagePack.toVerbSingular(verb), ...noun].join(' ');
+        const tokens = name.split(' ');
+        const noun = tokens.slice(0, tokens.length - 1);
+        const verb = tokens[tokens.length - 1];
+        const verb_phrase = [languagePack.toVerbSingular(verb), ...noun].join(' ');
         updateDefault(canonical, 'property');
         updateCanonical(canonical, 'property_true', name);
         updateCanonical(canonical, 'verb_true', verb_phrase);
