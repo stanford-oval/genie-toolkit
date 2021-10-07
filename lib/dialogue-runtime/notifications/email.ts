@@ -71,7 +71,7 @@ export default class EmailNotificationBackend implements Tp.Capabilities.Notific
     }
 
     get requiredSettings() {
-        return { to: '$context.self.email_address' };
+        return { to: '$self.email_address' };
     }
 
     async notify(data : {

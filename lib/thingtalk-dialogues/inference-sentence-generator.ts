@@ -31,7 +31,7 @@ import { Derivation, NonTerminal, Replaceable } from '../sentence-generator/runt
 import { PolicyModule } from './policy';
 
 const MAX_DEPTH = 8;
-const TARGET_PRUNING_SIZE = 15;
+const TARGET_PRUNING_SIZE = 50;
 
 function arrayEqual<T>(a : T[], b : T[]) : boolean {
     if (a.length !== b.length)

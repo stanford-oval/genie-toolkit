@@ -428,7 +428,7 @@ export default class Conversation extends events.EventEmitter {
         this._resetInactivityTimeout();
         await this.addMessage({ type: MessageType.COMMAND, command });
         if (this._debug)
-            console.log('Received ThingTalk program');
+            console.log('Received ThingTalk program ' + program);
 
         const parsed = await ThingTalkUtils.parse(program, {
             timezone: this._engine.platform.timezone,
@@ -464,8 +464,6 @@ export default class Conversation extends events.EventEmitter {
     }
 
     sendChoice(idx : number, title : string) {
-        if (this._expecting !== ValueCategory.MultipleChoice)
-            console.log('UNEXPECTED: sendChoice while not expecting a MultipleChoice');
         if (this._debug)
             console.log('Genie sends multiple choice button: '+ title);
         return this.addMessage({ type: MessageType.CHOICE, idx, title });

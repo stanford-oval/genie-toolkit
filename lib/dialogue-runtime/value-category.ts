@@ -66,6 +66,8 @@ namespace ValueCategory {
             return ValueCategory.Date;
         else if (type.isLocation)
             return ValueCategory.Location;
+        else if (type instanceof Type.Unknown && type.name === 'MultipleChoice')
+            return ValueCategory.MultipleChoice;
         else
             return ValueCategory.Generic;
     }

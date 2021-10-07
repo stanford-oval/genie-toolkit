@@ -27,16 +27,14 @@ import * as ThingTalkUtils from '../utils/thingtalk';
 import { EntityMap } from '../utils/entity-utils';
 import { LogLevel } from '../sentence-generator/runtime';
 import ValueCategory from '../dialogue-runtime/value-category';
-import { UserInput, } from '../dialogue-runtime/user-input';
+import { UserInput } from '../dialogue-runtime/user-input';
+import { PlatformData } from '../dialogue-runtime/protocol';
+import { CommandAnalysisType } from '../dialogue-runtime/dialogue-loop';
 
-import {
-    CommandAnalysisType,
-} from '../dialogue-runtime/dialogue-loop';
 import {
     PolicyModule,
 } from './policy';
 import InferenceTimeSentenceGenerator from './inference-sentence-generator';
-
 
 export async function inputToDialogueState(policy : PolicyModule,
                                            context : Ast.DialogueState|null,
@@ -64,10 +62,15 @@ export async function inputToDialogueState(policy : PolicyModule,
                 return null;
             }
         }
-        if (input.intent instanceof Ast.ChoiceControlIntent)
-            return null;
         if (context === null)
             return null;
+
+        if (input.intent instanceof Ast.ChoiceControlIntent) {
+            await generator.initialize(context);
+            if (!policy.interpretAnswer)
+                return null;
+            return policy.interpretAnswer(context, new Ast.NumberValue(input.intent.value), generator.tpLoader, generator.contextTable);
+        }
 
         if (input.intent instanceof Ast.AnswerControlIntent) {
             await generator.initialize(context);
@@ -125,10 +128,7 @@ export interface ThingTalkCommandAnalysisType {
     type : CommandAnalysisType;
     utterance : string;
     user_target : string;
-
-    // not null if this command was generated as a ThingTalk $answer()
-    // only used by legacy ask() methods
-    answer : Ast.Value|number|null;
+    platformData : PlatformData;
 
     // the user target
     parsed : Ast.Input;
@@ -217,22 +217,6 @@ export class CommandParser {
         return ThingTalkUtils.serializeNormalized(prepared);
     }
 
-    private _maybeGetThingTalkAnswer(input : Ast.Input) : Ast.Value|number|null {
-        if (input instanceof Ast.ControlCommand) {
-            if (input.intent instanceof Ast.SpecialControlIntent) {
-                switch (input.intent.type) {
-                case 'yes':
-                case 'no':
-                    return new Ast.Value.Boolean(input.intent.type === 'yes');
-                }
-            } else if (input.intent instanceof Ast.AnswerControlIntent
-                       || input.intent instanceof Ast.ChoiceControlIntent) {
-                return input.intent.value;
-            }
-        }
-        return null;
-    }
-
     /**
      * Parse a command into a ThingTalk dialogue state.
      *
@@ -267,7 +251,7 @@ export class CommandParser {
             type: analysis.type,
             utterance: analysis.utterance,
             user_target: prediction.prettyprint(),
-            answer: analysis.answer,
+            platformData: command.platformData,
             parsed: prediction,
         };
     }
@@ -282,7 +266,7 @@ export class CommandParser {
                 type,
                 utterance: `\\t ${command.parsed.prettyprint()}`,
                 user_target: command.parsed.prettyprint(),
-                answer: this._maybeGetThingTalkAnswer(command.parsed),
+                platformData: command.platformData,
                 parsed: command.parsed,
             };
         }
@@ -305,7 +289,7 @@ export class CommandParser {
                 type: CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP,
                 utterance: command.utterance,
                 user_target: parsed.prettyprint(),
-                answer: value,
+                platformData: command.platformData,
                 parsed: parsed,
             };
         }
@@ -326,7 +310,7 @@ export class CommandParser {
                 type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND,
                 utterance: command.utterance,
                 user_target: parsed.prettyprint(),
-                answer: null,
+                platformData: command.platformData,
                 parsed: parsed,
             };
         }
@@ -377,7 +361,7 @@ export class CommandParser {
             type,
             utterance: command.utterance,
             user_target: choice.parsed.prettyprint(),
-            answer: this._maybeGetThingTalkAnswer(choice.parsed),
+            platformData: command.platformData,
             parsed: choice.parsed,
         };
     }

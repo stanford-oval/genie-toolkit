@@ -924,8 +924,6 @@ export default class SentenceGenerator extends events.EventEmitter {
                 best = derivation;
         }
 
-        this._removeTemporaryRules();
-
         return best;
     }
 
@@ -1007,6 +1005,7 @@ export default class SentenceGenerator extends events.EventEmitter {
             return;
         if (hard) {
             this._charts = undefined;
+            this._removeTemporaryRules();
             return;
         }
 

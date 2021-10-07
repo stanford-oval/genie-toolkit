@@ -40,6 +40,7 @@ import SynthesisDialogue, {
 
 import {
     Command,
+    Confidence,
     PolicyModule,
 } from '../thingtalk-dialogues';
 import { ReplacedResult } from '../utils/template-string';
@@ -200,7 +201,9 @@ class MinibatchDialogueGenerator {
                 // we chose to continue this dialogue using `turn` as the continuation
                 // either because there was no previously chosen continuation
                 // for this dialogue, or because we won the random sampling
-                const cmd = new Command(userUtterance, agentTurn.state, meaning);
+
+                // TODO: sample confidence randomly to emulate misunderstanding the user
+                const cmd = new Command(userUtterance, agentTurn.state, meaning, Confidence.HIGH, {});
                 continuations.set(dlg, { cmd, turn });
 
                 if (existing) {

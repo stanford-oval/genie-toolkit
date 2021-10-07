@@ -133,7 +133,7 @@ export class Describer {
 
     private _displayLocation(loc : Ast.Location) {
         if (loc instanceof Ast.AbsoluteLocation || loc instanceof Ast.UnresolvedLocation) {
-            return this._getEntity('LOCATION', loc.toEntity());
+            return this.getEntity('LOCATION', loc.toEntity());
         } else {
             assert(loc instanceof Ast.RelativeLocation);
             switch (loc.relativeTag) {
@@ -149,7 +149,7 @@ export class Describer {
         }
     }
 
-    private _getEntity(entityType : string, entity : AnyEntity) : ReplacedResult {
+    getEntity(entityType : string, entity : AnyEntity) : ReplacedResult {
         // note: we don't use this._const here because we don't want to preprocess
         // the string, because that would mess up with the entities
         return new ReplacedConcatenation([this._entityAllocator.findEntity(entityType, entity).flatten().join(' ')], {}, {});
@@ -157,7 +157,7 @@ export class Describer {
 
     private _describeTime(time : Ast.Time) : ReplacedResult|null {
         if (time instanceof Ast.AbsoluteTime) {
-            return this._getEntity('TIME', time.toEntity());
+            return this.getEntity('TIME', time.toEntity());
         } else {
             assert(time instanceof Ast.RelativeTime);
             switch (time.relativeTag) {
@@ -229,7 +229,7 @@ export class Describer {
             const weekday = this._(date.weekday);
             base = this._interp(this._("${time} on ${weekday}"), { time, weekday });
         } else {
-            return this._getEntity('DATE', date);
+            return this.getEntity('DATE', date);
         }
 
         return base;
@@ -240,7 +240,7 @@ export class Describer {
             return this._makeList(arg.value.map((v) => this.describeArg(v, scope)));
 
         if (arg instanceof Ast.NumberValue)
-            return this._getEntity('NUMBER', arg.value);
+            return this.getEntity('NUMBER', arg.value);
 
         if (arg instanceof Ast.VarRefValue) {
             let name;
@@ -322,7 +322,7 @@ export class Describer {
 
                     // we have to convert back to legacy Date object for compatibility with
                     // other code that handles entities
-                    operands[0] = this._getEntity('DATE', new Date(datetz.epochMilliseconds));
+                    operands[0] = this.getEntity('DATE', new Date(datetz.epochMilliseconds));
                 }
 
                 return this._interp(this._("${time} on ${date}"), { date : operands[0], time: operands[1] });
@@ -370,34 +370,34 @@ export class Describer {
         if (arg instanceof Ast.LocationValue)
             return this._displayLocation(arg.value);
         if (arg instanceof Ast.StringValue)
-            return this._getEntity('QUOTED_STRING', arg.value);
+            return this.getEntity('QUOTED_STRING', arg.value);
         if (arg instanceof Ast.EntityValue) {
             switch (arg.type) {
             case 'tt:url':
-                return this._getEntity('URL', arg.value!);
+                return this.getEntity('URL', arg.value!);
             case 'tt:username':
-                return this._getEntity('USERNAME', arg.value!);
+                return this.getEntity('USERNAME', arg.value!);
             case 'tt:hashtag':
-                return this._getEntity('HASHTAG', arg.value!);
+                return this.getEntity('HASHTAG', arg.value!);
             case 'tt:phone_number':
-                return this._getEntity('PHONE_NUMBER', arg.value!);
+                return this.getEntity('PHONE_NUMBER', arg.value!);
             case 'tt:email_address':
-                return this._getEntity('EMAIL_ADDRESS', arg.value!);
+                return this.getEntity('EMAIL_ADDRESS', arg.value!);
             case 'tt:path_name':
-                return this._getEntity('PATH_NAME', arg.value!);
+                return this.getEntity('PATH_NAME', arg.value!);
             case 'tt:picture':
-                return this._getEntity('PICTURE', arg.value!);
+                return this.getEntity('PICTURE', arg.value!);
             default:
-                return this._getEntity('GENERIC_ENTITY_' + arg.type, arg.toEntity());
+                return this.getEntity('GENERIC_ENTITY_' + arg.type, arg.toEntity());
             }
         }
         if (arg instanceof Ast.CurrencyValue)
-            return this._getEntity('CURRENCY', arg.toEntity());
+            return this.getEntity('CURRENCY', arg.toEntity());
         if (arg instanceof Ast.EnumValue)
             return new ReplacedConcatenation([clean(arg.value)], {}, {});
         if (arg instanceof Ast.MeasureValue) {
             const normalizedUnit = new Type.Measure(arg.unit).unit;
-            return this._getEntity('MEASURE_' + normalizedUnit, arg.toEntity());
+            return this.getEntity('MEASURE_' + normalizedUnit, arg.toEntity());
         }
         if (arg instanceof Ast.BooleanValue)
             return this._const(arg.value ? this._("true") : this._("false"));

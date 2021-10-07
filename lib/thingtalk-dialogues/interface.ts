@@ -31,7 +31,7 @@ import {
     AgentReply,
     AgentReplyRecord
 } from '../sentence-generator/types';
-import { shouldAutoConfirmStatement, StateM } from '../utils/thingtalk';
+import { computeNewState, shouldAutoConfirmStatement, StateM } from '../utils/thingtalk';
 import { LogLevel, NonTerminal } from '../sentence-generator/runtime';
 import type ThingpediaLoader from '../templates/load-thingpedia';
 
@@ -445,14 +445,11 @@ export class DialogueInterface {
         if (this._synthesizer)
             return;
 
-        const state = StateM.makeSimpleState(this.state, this._policy.MANIFEST.name, 'answer_choice', [new Ast.Value.Number(idx)]);
         this._sayBuffer.push({
-            type: 'button',
-            args: {},
-            title: choice,
-            json: JSON.stringify({
-                program: state.prettyprint()
-            }),
+            type: 'choice',
+            args: { choice },
+            title: '${choice}',
+            idx,
         });
     }
 
@@ -492,7 +489,7 @@ export class DialogueInterface {
      *
      * @deprecated This function should not be used. Instead, use helpers in {@link TransactionPolicy}.
      */
-    async ask(tmpl : string, args : TemplatePlaceholderMap, agentDialogueAct : string, agentDialogueActParam : Array<string|Ast.Value>, expectedType : Type, getOptions : GetOptions = {}) {
+    async ask(tmpl : string, args : TemplatePlaceholderMap, agentDialogueAct : string, agentDialogueActParam : Array<string|Ast.Value>|null, expectedType : Type, getOptions : GetOptions = {}) {
         const dialogueState = StateM.makeSimpleState(this.state, this._policy.MANIFEST.name, agentDialogueAct, agentDialogueActParam);
 
         this.say(tmpl, args, () => dialogueState);
@@ -546,8 +543,9 @@ export class DialogueInterface {
         for (;;) {
             try {
                 const cmd = await this.get({
-                    expecting: undefined,
-                    acceptActs: ['answer_choice'],
+                    // HACK HACK HACK
+                    expecting: new Type.Unknown('MultipleChoice'),
+                    acceptActs: ['answer'],
                     // TODO followUp
                     ...getOptions
                 });
@@ -614,6 +612,7 @@ export class DialogueInterface {
 
         const toExecute : Ast.ExpressionStatement[] = [];
         const remaining : Ast.DialogueHistoryItem[] = [];
+        let notificationConfig : NotificationConfig|undefined = undefined;
 
         for (const item of state.history) {
             assert(item.confirm !== 'proposed');
@@ -621,6 +620,11 @@ export class DialogueInterface {
                 continue;
 
             await this._executor.prepareStatementForExecution(this, item.stmt, hints);
+
+            // if we have a stream, we'll trigger notifications
+            // configure them if necessary
+            if (!notificationConfig && item.stmt.stream)
+                notificationConfig = await this._executor.configureNotifications(this);
 
             if (item.confirm === 'accepted' &&
                 item.isExecutable() &&
@@ -636,14 +640,17 @@ export class DialogueInterface {
                 remaining.push(item);
         }
 
-        // if we have a stream, we'll trigger notifications
-        // configure them if necessary
-        let notificationConfig : NotificationConfig|undefined = undefined;
-        if (toExecute.some((stmt) => stmt instanceof Ast.ExpressionStatement && stmt.stream))
-            notificationConfig = await this._executor.configureNotifications(this);
-
         const program = new Ast.Program(null, [], [], toExecute);
         return [program, remaining, notificationConfig] as const;
+    }
+
+    /**
+     * Update the dialogue state given the state introduced by the current command.
+     */
+    updateState() {
+        if (!this.command)
+            return;
+        this.state = computeNewState(this.state, this.command.meaning, 'user');
     }
 
     /**

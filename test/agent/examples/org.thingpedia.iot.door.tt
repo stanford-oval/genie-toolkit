@@ -1,0 +1,111 @@
+dataset @org.thingpedia.iot.door language "en" {
+    program = @org.thingpedia.iot.door.state()
+    #_[utterances=["is my door open?",
+                   "is my door closed?",
+                   "check whether my door is open or closed",
+                   "is the door ajar?",
+                   "did I leave the door open?",
+                   "did I forget to close my door?",
+                   "did somebody open the door?",
+                   "did anyone close the door",
+                   "was the door shut?"
+                   ]]
+    #[name="StateThenNotify"];
+
+    program = @org.thingpedia.iot.door(all=true).state()
+    #_[utterances=["which doors are open?",
+                   "are any doors open?",
+                   "are all the doors open?",
+                   "which doors are closed?",
+                   "are any doors closed?",
+                   "are all the doors closed?",
+                   "list the state of all the doors",
+                   "tell me if all the doors are open",
+                   "tell me if all the doors are closed"]]
+    #[name="StateAllThenNotify"];
+
+    query = @org.thingpedia.iot.door.state()
+    #_[utterances=["if the door is open or closed",
+                   "whether the door is open or closed",
+                   "whether anyone opened the door"]]
+    #[name="State"];
+
+    stream = monitor (@org.thingpedia.iot.door.state())
+    #_[utterances=["when the door is opened or closed"]]
+    #[name="MonitorState"];
+
+    stream (p_state :Enum(open,closed)) = monitor (@org.thingpedia.iot.door.state()), state == p_state
+    #_[utterances=["when the door is ${p_state}",
+                   "once the door is ${p_state}",
+                   "when my door gets ${p_state}"]]
+    #[name="MonitorStateByState"];
+
+    stream = monitor (@org.thingpedia.iot.door.state()), state == enum(open)
+    #_[utterances=["when my door opens",
+                   "when I open the door",
+                   "the moment I open the door",
+                   "once I leave the door open",
+                   "when someone opens the door",
+                   "whoever opens the door",
+                   "once anyone opens the door"]]
+    #[name="MonitorStateByStateOpen"];
+
+    stream = monitor (@org.thingpedia.iot.door.state()), state == enum(closed)
+    #_[utterances=["when my door closes",
+                   "when I close the door",
+                   "the moment I close the door",
+                   "once I leave the door closed",
+                   "when someone closes the door",
+                   "whoever closes the door",
+                   "once anyone closes the door"]]
+    #[name="MonitorStateByStateClosed"];
+
+    program (p_name :String) = @org.thingpedia.iot.door(name=p_name).state()
+
+    #_[utterances=["is my ${p_name:const} door open?",
+                   "is my ${p_name:const} door closed?",
+                   "check whether my ${p_name:const} door is open or closed",
+                   "is the ${p_name:const} door ajar?",
+                   "did I leave the ${p_name:const} door open?",
+                   "did I forget to close my ${p_name:const} door?",
+                   "did somebody open the ${p_name:const} door?",
+                   "did anyone close the ${p_name:const} door",
+                   "was the ${p_name:const} door shut?"]]
+    #[name="StateThenNotify1"];
+
+    query (p_name :String) = @org.thingpedia.iot.door(name=p_name).state()
+    #_[utterances=["if the ${p_name:const} door is open or not",
+                   "if the ${p_name:const} door is open",
+                   "whether the ${p_name:const} door is open or closed"]]
+    #[name="State1"];
+
+    stream (p_name :String) = monitor (@org.thingpedia.iot.door(name=p_name).state())
+    #_[utterances=["when the ${p_name:const} door is opened or closed"]]
+    #[name="MonitorState1"];
+
+    stream (p_name :String, p_state :Enum(open,closed)) = monitor (@org.thingpedia.iot.door(name=p_name).state()), state == p_state
+    #_[utterances=["when the ${p_name:const} door is ${p_state}",
+                   "when my ${p_name:const} door gets ${p_state}"]]
+    #[name="MonitorStateByState1"];
+
+    stream (p_name :String) = monitor (@org.thingpedia.iot.door(name=p_name).state()), state == enum(open)
+    #_[utterances=["when my ${p_name:const} door opens",
+                   "when I open the ${p_name:const} door",
+                   "the moment I open the ${p_name:const} door",
+                   "once I leave the ${p_name:const} door open",
+                   "when someone opens the ${p_name:const} door",
+                   "whoever opens the ${p_name:const} door",
+                   "once anyone opens the ${p_name:const} door"]]
+    #[name="MonitorStateByStateOpen1"];
+
+    stream (p_name :String) = monitor (@org.thingpedia.iot.door(name=p_name).state()), state == enum(closed)
+    #_[utterances=["when my ${p_name:const} door closes",
+                   "when I close the ${p_name:const} door",
+                   "the moment I close the ${p_name:const} door",
+                   "once I leave the ${p_name:const} door closed",
+                   "when someone closes the ${p_name:const} door",
+                   "whoever closes the ${p_name:const} door",
+                   "once anyone closes the ${p_name:const} door"]]
+    #[name="MonitorStateByStateClosed1"];
+
+}

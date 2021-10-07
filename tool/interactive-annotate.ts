@@ -406,7 +406,7 @@ class Annotator extends events.EventEmitter {
                 type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
                 utterance: this._outputTurn!.user,
                 user_target: this._outputTurn!.user_target,
-                answer: null,
+                platformData: {},
                 parsed: parsed!
             });
 

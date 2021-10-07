@@ -46,6 +46,13 @@ function extractConstants(ast : Ast.Node, entityAllocator : Syntax.SequentialEnt
     function addConstant(tokenPrefix : string, value : Ast.Value) : void {
         const token = entityAllocator.findEntity(tokenPrefix, value.toEntity()).flatten().join(' ');
 
+        // FIXME this should be fixed in thingtalk
+        if (value instanceof Ast.EntityValue && value.display) {
+            const entity = entityAllocator.entities[token] as Syntax.GenericEntity;
+            if (!entity.display)
+                entity.display = value.display;
+        }
+
         if (constants[tokenPrefix])
             constants[tokenPrefix].push({ token, value });
         else

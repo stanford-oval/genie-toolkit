@@ -81,6 +81,7 @@ context : D.ContextInfo = {
     // these should be returned by S.getContextTags()
     ctx_init,
     ctx_multidomain,
+    ctx_with_error,
     ctx_with_result,
     ctx_with_table_result,
     ctx_with_aggregation_result,

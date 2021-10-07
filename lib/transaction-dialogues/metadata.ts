@@ -101,6 +101,8 @@
              // agent asks the user a free-form command
              'sys_record_command',
 
+             // agent asks to confirm a potential parsing mistake
+             'sys_confirm_parse',
 
              // profile resolution dialogue acts (semi-legacy)
              'sys_resolve_contact',

@@ -19,21 +19,26 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import { Ast } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import { ContextTable } from '../sentence-generator/types';
 import { NonTerminal } from '../sentence-generator/runtime';
 import ThingpediaLoader from '../templates/load-thingpedia';
 import * as C from '../templates/ast_manip';
 import { StateM } from '../utils/thingtalk';
+import {
+    Confidence,
+    DialogueInterface,
+    CommandType,
+    PolicyStartMode,
+    UnexpectedCommandError
+} from '../thingtalk-dialogues';
 
 import * as S from './state_manip';
 import * as D from './dialogue_acts';
 
 import * as Templates from './templates/index.genie.out';
 import { $load } from './templates/index.genie.out';
-import { DialogueInterface } from '../thingtalk-dialogues/interface';
-import { CommandType, PolicyStartMode, UnexpectedCommandError } from '../thingtalk-dialogues';
 import { ContextInfo } from './context-info';
 export {
     Templates,
@@ -42,6 +47,7 @@ export {
 export * from './metadata';
 import { POLICY_NAME } from './metadata';
 import { makeContextPhrase } from './context-phrases';
+import { CancellationError } from '../dialogue-runtime';
 
 /**
  * This module defines the basic logic of transaction dialogues: how
@@ -70,11 +76,11 @@ async function ctxNotification(dlg : DialogueInterface, ctx : ContextInfo) {
         return dlg.flush();
     }
 
-    dlg.say(Templates.notification_preamble);
-
     if (!ctx.resultInfo.isTable)
-        dlg.say(Templates.action_notification_phrase, (phrase) => phrase);
-    else if (ctx.resultInfo.isList)
+        return D.ctxCompletedActionSuccess(dlg, ctx, { withNotificationPreamble: true, withAnythingElse: false });
+
+    dlg.say(Templates.notification_preamble);
+    if (ctx.resultInfo.isList)
         dlg.say(Templates.system_recommendation, (proposal) => D.makeRecommendationReply(ctx, proposal));
     else
         dlg.say(Templates.system_nonlist_result, (proposal) => D.makeDisplayResultReply(ctx, proposal));
@@ -260,6 +266,19 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
                 acceptQueries: ['*'],
                 acceptActions: ['*']
             });
+            dlg.updateState();
+
+            if (cmd.confidence === Confidence.LOW) {
+                const yesNo = await dlg.ask(dlg._("Did you mean ${command}?"), {
+                    command: new NonTerminal('ctx_next_statement')
+                }, 'sys_confirm_parse', null, Type.Boolean);
+                assert(yesNo instanceof Ast.BooleanValue);
+                if (!yesNo.value) {
+                    dlg.say(dlg._("Sorry I couldn't help on that."),
+                        StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_end'));
+                    return;
+                }
+            }
 
             // execute the command immediately regardless of dialogue act
             // this will update dlg.state to the dialogue state after the user speaks
@@ -313,6 +332,12 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
                 throw new Error(`Unexpected user dialogue act ${ctx.state.dialogueAct}`);
             }
         } catch(e) {
+            // catch legacy cancellation errors coming from dlg.execute()
+            if (e instanceof CancellationError) {
+                dlg.say('', StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_end'));
+                return;
+            }
+
             if (!(e instanceof UnexpectedCommandError))
                 throw e;
 
@@ -403,6 +428,7 @@ export function interpretAnswer(state : Ast.DialogueState|null,
                 return D.actionConfirmRejectPhrase(ctx);
         }
         return null;
+    case 'sys_confirm_parse':
     case 'sys_resolve_contact':
     case 'sys_resolve_device':
     case 'sys_ask_phone_number':

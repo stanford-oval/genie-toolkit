@@ -144,6 +144,11 @@ export type AgentExtensionMessage = {
     title : string;
     json : string;
 } | {
+    type : 'choice';
+    args : TemplatePlaceholderMap;
+    title : string;
+    idx : number;
+} | {
     type : 'sound';
     args : TemplatePlaceholderMap;
     name : string;

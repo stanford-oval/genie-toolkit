@@ -45,7 +45,7 @@ export default class TwilioNotificationBackend implements Tp.Capabilities.Notifi
     }
 
     get requiredSettings() {
-        return { to: '$context.self.phone_number' };
+        return { to: '$self.phone_number' };
     }
 
     async notify(data : {

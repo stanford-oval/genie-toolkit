@@ -118,10 +118,10 @@ action_notification_phrase : D.AgentReplyRecord = {
 }
 
 short_action_error_message : D.ContextInfo = {
-    ctx:ctx_completed_action_error msg:ctx_thingpedia_error_message '.' [priority=5]
+    ctx:ctx_with_error msg:ctx_thingpedia_error_message '.' [priority=5]
         => D.checkThingpediaErrorMessage(ctx, msg);
 
-    ctx:ctx_completed_action_error 'there was an unexpected error with your command . please try again later or report this issue to my developers' => ctx;
+    ctx:ctx_with_error 'there was an unexpected error with your command . please try again later or report this issue to my developers' => ctx;
 }
 
 long_action_error_message : D.ContextInfo = {

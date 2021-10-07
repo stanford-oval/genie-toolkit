@@ -32,6 +32,13 @@ export enum CommandType {
     THINGTALK_STREAM
 }
 
+export const enum Confidence {
+    NO,
+    LOW,
+    HIGH,
+    ABSOLUTE
+}
+
 function getCommandType(cmd : Ast.ExpressionStatement) : CommandType {
     switch (cmd.expression.schema!.functionType) {
     case 'query':
@@ -75,14 +82,20 @@ function getCommandType(cmd : Ast.ExpressionStatement) : CommandType {
     readonly meaning : Ast.DialogueState;
 
     /**
+     * How confident is the parser in the meaning of this command.
+     */
+    readonly confidence : Confidence;
+
+    /**
      * Platform specific data associated with this command.
      */
     readonly platformData : PlatformData;
 
-    constructor(utterance : string, context : Ast.DialogueState|null, prediction : Ast.DialogueState, platformData : PlatformData = {}) {
+    constructor(utterance : string, context : Ast.DialogueState|null, prediction : Ast.DialogueState, confidence : Confidence, platformData : PlatformData) {
         this.utterance = utterance;
         this.context = context;
         this.meaning = prediction;
+        this.confidence = confidence;
         this.platformData = platformData;
 
         if (prediction.policy === TRANSACTION_POLICY &&

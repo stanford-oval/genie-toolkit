@@ -22,11 +22,9 @@
  * Utilities for converting dynamic templates to rules in a {@link SentenceGenerator}
  */
 
-import * as I18n from '../i18n';
 import {
     PlaceholderReplacement,
     Replaceable,
-    ReplacedConcatenation,
     ReplacedResult,
     ReplacementContext
 } from '../utils/template-string';
@@ -39,9 +37,13 @@ import {
 } from '../sentence-generator/types';
 import { NonTerminal } from '../sentence-generator/runtime';
 
-function processPlaceholderMap(tmpl : string, langPack : I18n.LanguagePack, nonTerms : NonTerminal[], names : string[], placeholders : TemplatePlaceholderMap) {
+function processPlaceholderMap(tmpl : string,
+                               generator : SentenceGenerator|InferenceSentenceGenerator,
+                               nonTerms : NonTerminal[],
+                               names : string[],
+                               placeholders : TemplatePlaceholderMap) {
     let needsReplacePartial = false;
-    const replacePartialCtx : ReplacementContext & { replacements : Array<PlaceholderReplacement|undefined> } = {
+    const replacePartialCtx : ReplacementContext & { replacements : Array<PlaceholderReplacement|undefined|null> } = {
         replacements: [],
         constraints: {}
     };
@@ -49,10 +51,11 @@ function processPlaceholderMap(tmpl : string, langPack : I18n.LanguagePack, nonT
 
     for (const alias in placeholders) {
         const symbol = placeholders[alias];
-        if (symbol === null)
-            return null;
         names.push(alias);
-        if (symbol instanceof NonTerminal) {
+        if (symbol === null) {
+            needsReplacePartial = true;
+            replacePartialCtx.replacements.push(null);
+        } else if (symbol instanceof NonTerminal) {
             nonTermNames.push(alias);
             nonTerms.push(symbol.withName(alias));
             replacePartialCtx.replacements.push(undefined);
@@ -61,7 +64,7 @@ function processPlaceholderMap(tmpl : string, langPack : I18n.LanguagePack, nonT
             replacePartialCtx.replacements.push({ value: symbol, text: symbol });
         } else if (typeof symbol === 'string') {
             needsReplacePartial = true;
-            replacePartialCtx.replacements.push({ value: symbol, text: new ReplacedConcatenation([symbol], {}, {}) });
+            replacePartialCtx.replacements.push({ value: symbol, text: generator.tpLoader.describer.getEntity('QUOTED_STRING', symbol) });
         } else {
             needsReplacePartial = true;
             replacePartialCtx.replacements.push(symbol);
@@ -70,7 +73,7 @@ function processPlaceholderMap(tmpl : string, langPack : I18n.LanguagePack, nonT
 
     let repl;
     try {
-        repl = Replaceable.get(tmpl, langPack, names);
+        repl = Replaceable.get(tmpl, generator.langPack, names);
     } catch(e) {
         throw new Error(`Failed to parse dynamic template string for ${tmpl} (${nonTerms.join(', ')}): ${e.message}`);
     }
@@ -80,7 +83,7 @@ function processPlaceholderMap(tmpl : string, langPack : I18n.LanguagePack, nonT
             return null;
         // preprocess again to adjust the non-terminal numbers
         // this is ok because replacePartial created clones
-        repl.preprocess(langPack, nonTermNames);
+        repl.preprocess(generator.langPack, nonTermNames);
     }
     return repl;
 }
@@ -98,7 +101,7 @@ export function addTemplate(generator : SentenceGenerator|InferenceSentenceGener
         names.push(prependNonTerminals[i].name ?? `_${i+1}`);
     }
 
-    const repl = processPlaceholderMap(tmpl, generator.langPack, nonTerms, names, placeholders);
+    const repl = processPlaceholderMap(tmpl, generator, nonTerms, names, placeholders);
     if (repl === null)
         return;
     generator.addDynamicRule(nonTerms, repl, semantics);

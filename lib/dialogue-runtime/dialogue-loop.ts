@@ -78,11 +78,15 @@ export interface CommandAnalysisResult {
 }
 
 // TODO move link messages to FormattedObject as well
-export type ReplyMessage = string|Tp.FormatObjects.FormattedObject|{
+export type ReplyMessage = string | Tp.FormatObjects.FormattedObject | {
     type : 'link',
     title : string,
     url : string
-}
+} | {
+    type : 'choice',
+    title : string,
+    idx : number
+};
 
 export interface ReplyResult {
     messages : ReplyMessage[];
@@ -475,6 +479,8 @@ export class DialogueLoop {
             await this.conversation.sendButton(message.title, message.json);
         else if (message.type === 'link')
             await this.conversation.sendLink(message.title, message.url, this.conversation.getState());
+        else if (message.type === 'choice')
+            await this.conversation.sendChoice(message.idx, message.title);
     }
 
     private _isInDefaultState() : boolean {

@@ -285,25 +285,34 @@ function actionSuccessQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
     return StateM.makeSimpleState(ctx.state, POLICY_NAME, 'action_question', questions.map((q) => q.name));
 }
 
-export async function ctxCompletedActionSuccess(dlg : DialogueInterface, ctx : ContextInfo) {
+export async function ctxCompletedActionSuccess(dlg : DialogueInterface, ctx : ContextInfo, options = { withNotificationPreamble: false, withAnythingElse: dlg.flags.anything_else }) {
     return dlg.either([
         async () => {
+            if (options.withNotificationPreamble)
+                dlg.say(Templates.notification_preamble);
+
             dlg.say(dlg._("${ctx_thingpedia_result}."), {
                 ctx_thingpedia_result: new NonTerminal('ctx_thingpedia_result')
             }, (result : SlotBag) => makeThingpediaActionSuccessPhrase(ctx, result));
 
-            if (dlg.flags.anything_else)
+            if (options.withAnythingElse)
                 dlg.say(Templates.anything_else_phrase);
         },
         async () => {
+            if (options.withNotificationPreamble)
+                dlg.say(Templates.notification_preamble);
+
             dlg.say(dlg._("i ${action}."), {
                 action: Templates.complete_past_action_phrase.withConstraint(['functionName', ctx.currentFunction!.qualifiedName])
             }, (action : Ast.Expression) => makeCompleteActionSuccessPhrase(ctx, action, null));
 
-            if (dlg.flags.anything_else)
+            if (options.withAnythingElse)
                 dlg.say(Templates.anything_else_phrase);
         },
         async () => {
+            if (options.withNotificationPreamble)
+                dlg.say(Templates.notification_preamble);
+
             dlg.say(Templates.action_success_phrase_with_result, (phrase) => {
                 const [action, info] = phrase;
                 if (action)
@@ -312,14 +321,17 @@ export async function ctxCompletedActionSuccess(dlg : DialogueInterface, ctx : C
                     return makeThingpediaActionSuccessPhrase(ctx, info);
             });
 
-            if (dlg.flags.anything_else)
+            if (options.withAnythingElse)
                 dlg.say(Templates.anything_else_phrase);
         },
         async () => {
+            if (options.withNotificationPreamble)
+                dlg.say(Templates.notification_preamble);
+
             // purely generic fallback, so we always say something, even if we cannot use a better template
             dlg.say(Templates.generic_action_success_phrase, () => makeGenericActionSuccessPhrase(ctx));
 
-            if (dlg.flags.anything_else)
+            if (options.withAnythingElse)
                 dlg.say(Templates.anything_else_phrase);
         }
     ]);

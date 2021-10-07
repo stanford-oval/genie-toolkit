@@ -265,7 +265,7 @@ type PlaceholderConstraints = Record<number, Record<string, FlagValue>>;
 
 
 export interface ReplacementContext {
-    replacements : Record<number, PlaceholderReplacement|undefined>;
+    replacements : Record<number, PlaceholderReplacement|undefined|null>;
     constraints : PlaceholderConstraints;
 }
 
@@ -372,8 +372,10 @@ export class Placeholder extends Replaceable {
 
     replacePartial(ctx : ReplacementContext) : Replaceable|null {
         const param = ctx.replacements[this._index!];
-        if (!param)
+        if (param === undefined)
             return this;
+        if (param === null)
+            return null;
 
         if (this.key.length > 0) {
             const replacement = get(param.value, this.key);

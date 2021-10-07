@@ -21,7 +21,7 @@
 import { Ast, Type } from 'thingtalk';
 
 import { split } from '../utils/misc-utils';
-import { Command, CommandType } from './command';
+import { Command, CommandType, Confidence } from './command';
 import { uniform } from '../utils/random';
 import { AgentReply, AgentReplyRecord } from '../sentence-generator/types';
 import ThingpediaLoader from '../templates/load-thingpedia';
@@ -258,7 +258,7 @@ export class SimpleCommandDispatcher implements CommandDispatcher {
                 const handled = options.rawHandler!(cmd.utterance, this._io.tpLoader);
                 if (handled === null)
                     throw new UnexpectedCommandError(cmd);
-                return new Command(cmd.utterance, cmd.context, handled);
+                return new Command(cmd.utterance, cmd.context, handled, Confidence.ABSOLUTE, cmd.platformData);
             }
 
             if (compat === Compatibility.NONE)
@@ -367,7 +367,7 @@ export class ParallelCommandDispatcher {
             for (const choice of raw) {
                 const handled = choice.getCmdOptions!.rawHandler!(cmd.utterance, this._io.tpLoader);
                 if (handled !== null) {
-                    const cmd2 = new Command(cmd.utterance, cmd.context, handled);
+                    const cmd2 = new Command(cmd.utterance, cmd.context, handled, Confidence.ABSOLUTE, cmd.platformData);
                     choice.resolve!(cmd2);
                     choice.promise = null;
                     choice.resolve = null;

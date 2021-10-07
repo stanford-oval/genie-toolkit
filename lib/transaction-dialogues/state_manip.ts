@@ -449,7 +449,13 @@ function getContextPhrasesCommon(ctx : ContextInfo, contextTable : SentenceGener
         if (ctx.resultInfo && ctx.resultInfo.isTable)
             phrases.push(makeContextPhrase(contextTable.ctx_without_action, ctx));
     }
-    if (!ctx.resultInfo || ctx.resultInfo.hasEmptyResult)
+    if (!ctx.resultInfo)
+        return;
+    if (ctx.resultInfo.hasError) {
+        phrases.push(makeContextPhrase(contextTable.ctx_with_error, ctx));
+        return;
+    }
+    if (ctx.resultInfo.hasEmptyResult)
         return;
     if (ctx.resultInfo.hasStream && ctx.state.dialogueAct !== 'notification')
         return;

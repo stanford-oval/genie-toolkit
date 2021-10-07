@@ -111,7 +111,7 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
     }
     async getReply(command : FAQCommandAnalysisType) : Promise<ReplyResult> {
         return {
-            messages: [command.answer],
+            messages: [{ type: 'text', text: command.answer }],
             context: '$dialogue @org.thingpedia.dialogue.faq.question;',
             agent_target: '$dialogue @org.thingpedia.dialogue.faq.answer;',
             expecting: null,

@@ -256,6 +256,7 @@ async function test(testRunner, dlg, i) {
 
     testRunner.conversation._options.anonymous = dlg.id.indexOf('-anon-') >= 0;
     testRunner.conversation.dialogueFlags.faqs = dlg.id.indexOf('-faqs-') >= 0;
+    testRunner.conversation._loop._thingtalkHandler._dlg.anonymous = dlg.id.indexOf('-anon-') >= 0;
     testRunner.reset();
 
     // reset the conversation

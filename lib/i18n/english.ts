@@ -548,4 +548,6 @@ EnglishLanguagePack.prototype.MUST_CAPITALIZE_TOKEN = new Set([
     'chinese', 'italian', 'french', 'english', 'american',
 
     'spotify', 'twitter', 'yelp', 'google', 'facebook',
+
+    'genie', 'almond'
 ]);

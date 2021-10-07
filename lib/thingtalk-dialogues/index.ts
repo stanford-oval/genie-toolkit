@@ -22,7 +22,7 @@
  * This module contains the public API of the Genie dialogue scripting language.
  */
 
-export { Command, CommandType } from './command';
+export { Command, CommandType, Confidence } from './command';
 export { UnexpectedCommandError, TerminatedDialogueError } from './cmd-dispatch';
 export * from './interface';
 export { PolicyFunction, PolicyStartMode, PolicyModule } from './policy';
