@@ -218,7 +218,9 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._modules = [];
 
-        const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, Builtins.modules);
+        const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, Builtins.modules, {
+            builtinGettext: this._langPack._
+        });
 
         // inject the abstract interfaces used by the builtin devices into the schema retriever
         for (const kind in Builtins.interfaces) {
