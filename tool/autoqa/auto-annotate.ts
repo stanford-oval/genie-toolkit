@@ -20,21 +20,11 @@
 
 import * as argparse from 'argparse';
 import * as fs from 'fs';
-import assert from 'assert';
-import util from 'util';
-import * as ThingTalk from 'thingtalk';
 
 import * as StreamUtils from '../../lib/utils/stream-utils';
-
 import { parseConstantFile } from '../lib/constant-file';
-
 import AnnotationGenerator from './lib/annotation-generator';
-
-async function loadClassDefs(thingpedia : string, options : ThingTalk.Syntax.ParseOptions) : Promise<ThingTalk.Ast.ClassDef[]> {
-    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }), ThingTalk.Syntax.SyntaxType.Normal, options);
-    assert(library instanceof ThingTalk.Ast.Library);
-    return library.classes;
-}
+import { loadClassDefs } from './lib/utils';
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('auto-annotate', {

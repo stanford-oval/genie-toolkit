@@ -24,19 +24,12 @@ import * as fs from 'fs';
 import assert from 'assert';
 import * as util from 'util';
 import * as path from 'path';
-import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
 import * as I18N from '../../../lib/i18n';
 import { serializePrediction } from '../../../lib/utils/thingtalk';
 import { getElementType, getItemLabel, argnameFromLabel, readJson, Domains } from './utils';
 import { makeDummyEntities } from "../../../lib/utils/entity-utils";
-
-async function loadClassDef(thingpedia : string, options : ThingTalk.Syntax.ParseOptions) {
-    const schema = await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' });
-    const library = ThingTalk.Syntax.parse(schema, ThingTalk.Syntax.SyntaxType.Normal, options);
-    assert(library instanceof Ast.Library && library.classes.length === 1);
-    return library.classes[0];
-}
+import { loadClassDef } from '../lib/utils';
 
 export interface CSQADialogueTurn {
     speaker : 'USER'|'SYSTEM',
