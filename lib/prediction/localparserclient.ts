@@ -43,10 +43,26 @@ const NLU_TASK = 'almond_dialogue_nlu';
 const NLG_TASK = 'almond_dialogue_nlg';
 const NLG_QUESTION = 'what should the agent say ?';
 
+export interface CacheInterface {
+    get(
+        tokens : string[],
+        entities : EntityMap,
+        contextCode : string[] | undefined,
+        options : ParseOptions
+    ) : Promise<null | PredictionResult>;
+    
+    set(
+        result : PredictionResult,
+        contextCode : string[] | undefined,
+        options : ParseOptions
+    ) : Promise<void>;
+}
+
 export interface LocalParserOptions {
     id ?: string;
     minibatchSize ?: number;
     maxLatency ?: number;
+    cacheInterface ?: CacheInterface;
 }
 
 function compareScore(a : PredictionCandidate, b : PredictionCandidate) : number {
@@ -67,6 +83,7 @@ export default class LocalParserClient {
     private _platform : Tp.BasePlatform|undefined;
     private _exactmatcher : ExactMatcher|undefined;
     private _tpClient : Tp.BaseClient|null;
+    private _cacheInterface ?: CacheInterface;
 
     constructor(modeldir : string,
                 locale : string,
@@ -82,6 +99,7 @@ export default class LocalParserClient {
         this._platform = platform;
         this._exactmatcher = exactmatcher;
         this._tpClient = tpClient;
+        this._cacheInterface = options.cacheInterface;
     }
 
     async start() : Promise<void> {
@@ -152,6 +170,15 @@ export default class LocalParserClient {
                 renumberEntities(tokenized, contextEntities);
             tokens = tokenized.tokens;
             entities = tokenized.entities;
+        }
+        
+        if (this._cacheInterface) {
+            const cacheResult =
+                await this._cacheInterface.get(
+                    tokens, entities, contextCode, options
+                );
+            if (cacheResult !== null) 
+                return cacheResult;
         }
 
         const answer = options.answer;
@@ -244,13 +271,18 @@ export default class LocalParserClient {
             }))).filter(<T>(c : T) : c is Exclude<T, null> => c !== null);
         }
 
-        return {
+        const predictionResult : PredictionResult = {
             result: 'ok',
             tokens: tokens,
             candidates: result2,
             entities: entities,
             intent
         };
+        
+        if (this._cacheInterface) 
+            this._cacheInterface.set(predictionResult, contextCode, options);
+        
+        return predictionResult;
     }
 
     async generateUtterance(contextCode : string[], contextEntities : EntityMap, targetAct : string[]) : Promise<GenerationResult[]> {
