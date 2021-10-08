@@ -1,8 +1,8 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020-2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
-
+import * as argparse from 'argparse';
 import * as fs from 'fs';
 import assert from 'assert';
 import util from 'util';
@@ -30,13 +30,13 @@ import { parseConstantFile } from '../lib/constant-file';
 
 import AnnotationGenerator from './lib/annotation-generator';
 
-async function loadClassDefs(thingpedia) {
-    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
+async function loadClassDefs(thingpedia : string, options : ThingTalk.Syntax.ParseOptions) : Promise<ThingTalk.Ast.ClassDef[]> {
+    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }), ThingTalk.Syntax.SyntaxType.Normal, options);
     assert(library instanceof ThingTalk.Ast.Library);
     return library.classes;
 }
 
-export function initArgparse(subparsers) {
+export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('auto-annotate', {
         add_help: true,
         description: "Automatically generate annotations including canonicals"
@@ -53,6 +53,11 @@ export function initArgparse(subparsers) {
     parser.add_argument('-l', '--locale', {
         default: 'en-US',
         help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
+    });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--constants', {
         required: true,
@@ -122,11 +127,11 @@ export function initArgparse(subparsers) {
     });
 }
 
-export async function execute(args) {
-    const classDefs = await loadClassDefs(args.thingpedia);
+export async function execute(args : any) {
+    const classDefs = await loadClassDefs(args.thingpedia, { locale: args.locale, timezone: args.timezone });
 
     if (!args.algorithms) {
-        for (let classDef of classDefs)
+        for (const classDef of classDefs)
             args.output.write(classDef.prettyprint() + '\n');
         args.output.end();
     } else {
@@ -134,7 +139,7 @@ export async function execute(args) {
         const constants = await parseConstantFile(args.locale, args.constants);
         const functions = args.functions ? args.functions.split(',') : null;
 
-        for (let classDef of classDefs) {
+        for (const classDef of classDefs) {
             const generator = new AnnotationGenerator(classDef, constants, functions, args.parameter_datasets, options);
             const annotatedClassDef = await generator.generate();
             args.output.write(annotatedClassDef.prettyprint());

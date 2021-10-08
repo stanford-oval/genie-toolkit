@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -17,9 +17,15 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-
+//         Silei Xu <silei@cs.stanford.edu>
 
 import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
+
+interface ArgMeta {
+    isArray : boolean,
+    type : string | Record<string, ArgMeta>
+}
 
 const LOCATION_TYPE = {
     display: { isArray: false, type: 'tt:String' },
@@ -27,10 +33,10 @@ const LOCATION_TYPE = {
     longitude: { isArray: false, type: 'tt:Number' }
 };
 
-function makeMetadata(className, args) {
-    const meta = {};
+function makeMetadata(className : string, args : Ast.ArgumentDef[]) : Record<string, ArgMeta> {
+    const meta : Record<string, ArgMeta> = {};
 
-    for (let arg of args) {
+    for (const arg of args) {
         const type = arg.type;
         const name = arg.name;
         if (name === 'id')
@@ -39,22 +45,22 @@ function makeMetadata(className, args) {
             continue;
 
         let ptype = type;
-        if (type.isArray)
-            ptype = type.elem;
+        if (type instanceof Type.Array)
+            ptype = type.elem as Type;
         assert(!ptype.isArray);
 
         let typemeta;
-        if (ptype.isEntity && ptype.type.startsWith(`${className}:`))
+        if (ptype instanceof Type.Entity && ptype.type.startsWith(`${className}:`))
             typemeta = ptype.type.substring(ptype.type.indexOf(':') + 1);
-        else if (ptype.isEntity && ptype.type === 'tt:country')
+        else if (ptype instanceof Type.Entity && ptype.type === 'tt:country')
             typemeta = 'tt:EntityLower';
-        else if (ptype.isEntity)
+        else if (ptype instanceof Type.Entity)
             typemeta = 'tt:Entity';
-        else if (ptype.isMeasure && ptype.unit === 'ms')
+        else if (ptype instanceof Type.Measure && ptype.unit === 'ms')
             typemeta = 'tt:Duration';
-        else if (ptype.isMeasure)
+        else if (ptype instanceof Type.Measure)
             typemeta = 'tt:Measure';
-        else if (ptype.isCompound)
+        else if (ptype instanceof Type.Compound)
             typemeta = makeMetadata(className, Object.values(ptype.fields));
         else if (ptype.isLocation)
             typemeta = LOCATION_TYPE;
