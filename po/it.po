@@ -21,7 +21,7 @@ msgstr ""
 "Project-Id-Version: genie-toolkit 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-10-07 09:20-0700\n"
-"PO-Revision-Date: 2021-10-07 10:35-0700\n"
+"PO-Revision-Date: 2021-10-07 21:37-0700\n"
 "Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
 "Language-Team: Italian <it@li.org>\n"
 "Language: it\n"
@@ -1664,6 +1664,9 @@ msgid ""
 "${base[plural=other]} {matching your request|matching your constraints|with "
 "those characteristics|like that|}."
 msgstr ""
+"{ci sono|vedo|ho trovato|posso raccomandare} ${base[gender]:select: "
+"m{diversi} f{diverse}} ${base[plural=other]} {che rispettano le tue esigenze|"
+"che corrispondono alla tua richiesta|con quelle caratteristiche|così|}."
 
 #: lib/templates/dlg/refinement.genie.out.ts:52
 msgid ""
@@ -2488,9 +2491,8 @@ msgid ""
 msgstr ""
 
 #: lib/templates/dlg/empty-search.genie.out.ts:65
-#, fuzzy
 msgid "${sorry_preamble} i cannot find any result for your search. "
-msgstr "Mi dispiace, non ho trovato alcun risultato."
+msgstr "${sorry_preamble}, non ho trovato alcun risultato per la tua ricerca."
 
 #: lib/templates/dlg/empty-search.genie.out.ts:67
 msgid "${sorry_preamble} ${message}."
@@ -2616,11 +2618,11 @@ msgstr ""
 
 #: lib/templates/dlg/shared.genie.out.ts:95
 msgid "{sorry,|i am sorry,|}"
-msgstr ""
+msgstr "{mi dispiace,|sono spiacente,|}"
 
 #: lib/templates/dlg/shared.genie.out.ts:97
 msgid "{ok, never mind|never mind then|alright, never mind|too bad, alright}"
-msgstr ""
+msgstr "{ok, non importa {allora|}|peccato, vabbè}"
 
 #: lib/templates/dlg/shared.genie.out.ts:99
 msgid ""
@@ -2739,31 +2741,35 @@ msgstr ""
 
 #: lib/templates/dlg/action-results.genie.out.ts:115
 msgid "${ctx} ${msg} ."
-msgstr ""
+msgstr "${ctx} ${msg} ."
 
 #: lib/templates/dlg/action-results.genie.out.ts:116
 msgid ""
 "${ctx} there was an unexpected error with your command . please try again "
 "later or report this issue to my developers"
 msgstr ""
+"${ctx} si è verificato un errore inaspettato con il tuo comando . per favore "
+"riprova più tardi o segnala il problema ai miei sviluppatori"
 
 #: lib/templates/dlg/action-results.genie.out.ts:118
 msgid "{i could not|it was not possible to} ${action} {:|because} ${ctx}"
-msgstr ""
+msgstr "{non ho potuto|non è stato possible} ${action} {:|perchè} ${ctx}"
 
 #: lib/templates/dlg/action-results.genie.out.ts:120
-#, fuzzy
 msgid "would you like to try a different ${p} ?"
-msgstr "Cosa vuoi che sia il terzo %s?"
+msgstr ""
+"vuoi che provi ${p[gender]:select: m{un {diverso ${p}|${p} diverso}} f{una "
+"{diversa ${p}|${p} diversa}}}?"
 
 #: lib/templates/dlg/action-results.genie.out.ts:123
-#, fuzzy
 msgid "would you like a different ${p} ?"
-msgstr "Puoi inserire un numero?"
+msgstr ""
+"vuoi ${p[gender]:select: m{un {diverso ${p}|${p} diverso}} f{una {diversa "
+"${p}|${p} diversa}}}?"
 
 #: lib/templates/dlg/action-results.genie.out.ts:126
 msgid "shall i try another ${p} ?"
-msgstr ""
+msgstr "provo ${p[gender]:select: m{un altro ${p}} f{una altra ${p}}}?"
 
 #: lib/templates/dlg/action-results.genie.out.ts:129
 msgid "how about for another ${p} ?"
@@ -2787,18 +2793,18 @@ msgstr ""
 
 #: lib/templates/dlg/action-results.genie.out.ts:158
 msgid "${ctx} ."
-msgstr ""
+msgstr "${ctx} ."
 
 #: lib/templates/dlg/action-results.genie.out.ts:160
 msgid "${sorry_preamble} ${ctx} ."
-msgstr ""
+msgstr "${sorry_preamble} ${ctx} ."
 
 #: lib/templates/dlg/action-results.genie.out.ts:161
 #: lib/templates/dlg/action-results.genie.out.ts:162
 #: lib/templates/dlg/action-results.genie.out.ts:163
 #: lib/templates/dlg/action-results.genie.out.ts:164
 msgid "${sorry_preamble} ${ctx} . ${questions}"
-msgstr ""
+msgstr "${sorry_preamble} ${ctx} . ${questions}"
 
 #: lib/templates/dlg/slot-fill.genie.out.ts:90
 #: lib/templates/dlg/initial-request.genie.out.ts:40
@@ -2839,7 +2845,7 @@ msgstr "Puoi inserire un orario?"
 #: lib/templates/dlg/coref-actions.genie.out.ts:119
 #: lib/templates/dlg/coref-actions.genie.out.ts:123
 msgid "${ctx} ${base}"
-msgstr ""
+msgstr "${ctx} ${base}"
 
 #: lib/templates/dlg/streams.genie.out.ts:44
 msgid "reminder:"
@@ -2856,11 +2862,11 @@ msgstr "notifica da ${app}:"
 
 #: lib/templates/dlg/streams.genie.out.ts:50
 msgid "${sorry} {there was an error in|an error occurred in} ${app}:"
-msgstr ""
+msgstr "${sorry} si è verificato un errore in ${app}:"
 
 #: lib/templates/dlg/streams.genie.out.ts:51
 msgid "${sorry} {there was an error}:"
-msgstr ""
+msgstr "${sorry} si è verificato un errore:"
 
 #: lib/templates/dlg/streams.genie.out.ts:54
 #: lib/templates/dlg/streams.genie.out.ts:56
@@ -4180,13 +4186,16 @@ msgstr "Subito! Come posso aiutarti?"
 msgid ""
 "${ctx} {hello|hi} {!|,} {how can i help you|what are you interested in|what "
 "can i do for you} ?"
-msgstr "${ctx} ciao! {come posso aiutarti|a cosa sei interessato|cosa posso fare per te}?"
+msgstr ""
+"${ctx} ciao! {come posso aiutarti|a cosa sei interessato|cosa posso fare per "
+"te}?"
 
 #: lib/templates/dialogue.genie.out.ts:204
 msgid ""
 "${ctx} {how can i help you|what are you interested in|what can i do for "
 "you} ?"
-msgstr "${ctx} {come posso aiutarti|a cosa sei interessato|cosa posso fare per te}?"
+msgstr ""
+"${ctx} {come posso aiutarti|a cosa sei interessato|cosa posso fare per te}?"
 
 #: lib/templates/dialogue.genie.out.ts:206
 msgid "${ctx} ${anything_else_phrase}"
@@ -4194,11 +4203,12 @@ msgstr "${ctx} ${anything_else_phrase}"
 
 #: lib/templates/dialogue.genie.out.ts:207
 msgid "${ctx} alright , {bye !|good bye !}"
-msgstr ""
+msgstr "${ctx} {d'accordo|va bene}, {ciao!|arrivederci!}"
 
 #: lib/templates/dialogue.genie.out.ts:210
 msgid "${ctx} alright, let me know if I can help you with anything else!"
-msgstr "${ctx} {d'accordo|va bene}, fammi sapere se posso aiutarti con qualcos'altro!"
+msgstr ""
+"${ctx} {d'accordo|va bene}, fammi sapere se posso aiutarti con qualcos'altro!"
 
 #: lib/templates/dialogue.genie.out.ts:214
 msgid "${action} ${anything_else_phrase}"
@@ -4471,33 +4481,31 @@ msgstr "mostrami ${query}"
 
 #: lib/templates/filters.genie.out.ts:53
 msgid "before ${t1}"
-msgstr ""
+msgstr "prima di ${t1}"
 
 #: lib/templates/filters.genie.out.ts:54
 msgid "after ${t2}"
-msgstr ""
+msgstr "dopo ${t2}"
 
 #: lib/templates/filters.genie.out.ts:55
 msgid "between ${t1} and ${t2}"
-msgstr ""
+msgstr "tra ${t1} e ${t2}"
 
 #: lib/templates/filters.genie.out.ts:56
-#, fuzzy
 msgid "my location is ${loc}"
-msgstr "la mia posizione"
+msgstr "la mia posizione è ${loc}"
 
 #: lib/templates/filters.genie.out.ts:57
-#, fuzzy
 msgid "my location is not ${loc}"
-msgstr "la mia posizione"
+msgstr "la mia posizione non è ${loc}"
 
 #: lib/templates/filters.genie.out.ts:58
 msgid "i am at ${loc}"
-msgstr ""
+msgstr "sono a ${loc}"
 
 #: lib/templates/filters.genie.out.ts:59
 msgid "i am not at ${loc}"
-msgstr ""
+msgstr "non sono a ${loc}"
 
 #: lib/templates/filters.genie.out.ts:60
 msgid "${proj} {is|is exactly|is equal to} ${x}"
@@ -5409,7 +5417,6 @@ msgid "${value} for which ${filter}"
 msgstr "${value} per qui ${filter}"
 
 #: lib/utils/thingtalk/describe.ts:342
-#, fuzzy
 msgid "the ${field} of ${value}"
 msgstr ""
 "${field[gender]:select: m{il ${field}} f{la ${field}}} di ${value} "
