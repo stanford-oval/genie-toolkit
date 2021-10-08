@@ -179,13 +179,6 @@ export default class ItalianLanguagePack extends DefaultLanguagePack {
         return undefined;
     }
 
-    detokenize(sentence : string, prevtoken : string|null, token : string) {
-        if (sentence && !this._NO_SPACE_TOKENS.has(token) && prevtoken && !prevtoken.endsWith("'"))
-            sentence += ' ';
-        sentence += token;
-        return sentence;
-    }
-
     addDefiniteArticle(phrase : string) {
         const words = phrase.split(' ');
         assert(words.length > 0);
