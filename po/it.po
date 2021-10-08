@@ -16,12 +16,13 @@
 #: lib/templates/projections.genie.out.ts:119
 #: lib/templates/projections.genie.out.ts:122
 #: lib/templates/projections.genie.out.ts:124
+#: lib/templates/common-constants.genie.out.ts:74
 msgid ""
 msgstr ""
 "Project-Id-Version: genie-toolkit 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-07 09:20-0700\n"
-"PO-Revision-Date: 2021-10-07 21:37-0700\n"
+"POT-Creation-Date: 2021-10-07 21:42-0700\n"
+"PO-Revision-Date: 2021-10-07 21:55-0700\n"
 "Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
 "Language-Team: Italian <it@li.org>\n"
 "Language: it\n"
@@ -302,11 +303,11 @@ msgstr "Intendevi ${command}?"
 msgid "This app has no description"
 msgstr "Questa app non ha una descrizione"
 
-#: lib/engine/index.ts:495
+#: lib/engine/index.ts:497
 msgid "Unknown device"
 msgstr "Dispositivo sconosciuto"
 
-#: lib/engine/index.ts:496
+#: lib/engine/index.ts:498
 msgid "Description not available"
 msgstr "Descrizione non disponibile"
 
@@ -724,6 +725,193 @@ msgstr "Intendevi %s?"
 msgid "${command} ${timer}"
 msgstr ""
 
+#: lib/templates/commands.genie.out.ts:156
+#: lib/templates/commands.genie.out.ts:186
+#: lib/templates/commands.genie.out.ts:203
+#, fuzzy
+msgid "i am looking for"
+msgstr "Vorrei un filtro."
+
+#: lib/templates/commands.genie.out.ts:157
+#: lib/templates/commands.genie.out.ts:189
+#: lib/templates/commands.genie.out.ts:205
+#, fuzzy
+msgid "i would like"
+msgstr "a %s è consentito %s"
+
+#: lib/templates/commands.genie.out.ts:158
+#: lib/templates/commands.genie.out.ts:184
+msgid "i want"
+msgstr "voglio"
+
+#: lib/templates/commands.genie.out.ts:159
+#: lib/templates/commands.genie.out.ts:185
+#: lib/templates/commands.genie.out.ts:190
+#: lib/templates/commands.genie.out.ts:206
+msgid "i need"
+msgstr "ho bisogno di"
+
+#: lib/templates/commands.genie.out.ts:161
+msgid "i am looking to"
+msgstr "sto cercando"
+
+#: lib/templates/commands.genie.out.ts:162
+msgid "i would like to"
+msgstr "vorrei"
+
+#: lib/templates/commands.genie.out.ts:163
+msgid "i want to"
+msgstr "voglio"
+
+#: lib/templates/commands.genie.out.ts:164
+msgid "i need to"
+msgstr "ho bisogno di"
+
+#: lib/templates/commands.genie.out.ts:165
+msgid "please"
+msgstr "per favore"
+
+#: lib/templates/commands.genie.out.ts:167
+msgid "search for"
+msgstr "cerca"
+
+#: lib/templates/commands.genie.out.ts:168
+#: lib/templates/commands.genie.out.ts:178
+#: lib/templates/commands.genie.out.ts:199
+msgid "search"
+msgstr "cerca"
+
+#: lib/templates/commands.genie.out.ts:169
+#: lib/templates/commands.genie.out.ts:179
+#: lib/templates/commands.genie.out.ts:200
+msgid "find"
+msgstr "trova"
+
+#: lib/templates/commands.genie.out.ts:170
+#: lib/templates/commands.genie.out.ts:180
+msgid "get"
+msgstr "ottieni"
+
+#: lib/templates/commands.genie.out.ts:171
+msgid "retrieve"
+msgstr "recupera"
+
+#: lib/templates/commands.genie.out.ts:173
+#: lib/templates/commands.genie.out.ts:181
+#: lib/templates/commands.genie.out.ts:195
+msgid "show me"
+msgstr "mostrami"
+
+#: lib/templates/commands.genie.out.ts:174
+#: lib/templates/commands.genie.out.ts:196
+msgid "tell me"
+msgstr "dimmi"
+
+#: lib/templates/commands.genie.out.ts:175
+#: lib/templates/commands.genie.out.ts:182
+#: lib/templates/commands.genie.out.ts:197
+msgid "give me"
+msgstr "dammi"
+
+#: lib/templates/commands.genie.out.ts:176
+#: lib/templates/commands.genie.out.ts:183
+#: lib/templates/commands.genie.out.ts:198
+msgid "find me"
+msgstr "trovami"
+
+#: lib/templates/commands.genie.out.ts:187
+#, fuzzy
+msgid "i am looking for a particular"
+msgstr "Vorrei un filtro."
+
+#: lib/templates/commands.genie.out.ts:188
+#, fuzzy
+msgid "i am looking for a certain"
+msgstr "Vorrei un comando."
+
+#: lib/templates/commands.genie.out.ts:191
+#, fuzzy
+msgid "i need some information about"
+msgstr "informazioni riguardo a una skill"
+
+#: lib/templates/commands.genie.out.ts:192
+#, fuzzy
+msgid "i would like information about"
+msgstr "informazioni riguardo a una skill"
+
+#: lib/templates/commands.genie.out.ts:193
+#, fuzzy
+msgid "i would like to hear about"
+msgstr "Cosa vuoi che sia il secondo %s?"
+
+#: lib/templates/commands.genie.out.ts:201
+#, fuzzy
+msgid "i want to know"
+msgstr "%s a %s"
+
+#: lib/templates/commands.genie.out.ts:202
+msgid "i need to know"
+msgstr ""
+
+#: lib/templates/commands.genie.out.ts:204
+#, fuzzy
+msgid "i would like to know"
+msgstr "Cosa vuoi che sia il secondo %s?"
+
+#: lib/templates/commands.genie.out.ts:208
+msgid "a"
+msgstr ""
+
+#: lib/templates/commands.genie.out.ts:209
+msgid "an"
+msgstr ""
+
+#: lib/templates/commands.genie.out.ts:210
+#, fuzzy
+msgid "the"
+msgstr "il %s"
+
+#: lib/templates/commands.genie.out.ts:211
+#, fuzzy
+msgid "some"
+msgstr "qualcuno"
+
+#: lib/templates/commands.genie.out.ts:212
+#, fuzzy
+msgid "any"
+msgstr "dici"
+
+#: lib/templates/commands.genie.out.ts:213
+msgid "all"
+msgstr ""
+
+#: lib/templates/commands.genie.out.ts:214
+msgid "all the"
+msgstr ""
+
+#: lib/templates/commands.genie.out.ts:215
+#, fuzzy
+msgid "every"
+msgstr "ogni %s"
+
+#: lib/templates/commands.genie.out.ts:216
+msgid "a list of"
+msgstr ""
+
+#: lib/templates/commands.genie.out.ts:217
+msgid "a list of all"
+msgstr ""
+
+#: lib/templates/commands.genie.out.ts:218
+#, fuzzy
+msgid "the list of"
+msgstr "l'ultimo %s"
+
+#: lib/templates/commands.genie.out.ts:219
+#, fuzzy
+msgid "the list of all"
+msgstr "il %s di %s"
+
 #: lib/templates/commands.genie.out.ts:222
 msgid "get ${generic_article} ${table}"
 msgstr ""
@@ -1012,14 +1200,12 @@ msgid ""
 msgstr ""
 
 #: lib/templates/commands.genie.out.ts:480
-#, fuzzy
 msgid "say ${c}"
-msgstr "${program}"
+msgstr "di' ${c}"
 
 #: lib/templates/commands.genie.out.ts:481
-#, fuzzy
 msgid "send me a message saying ${c}"
-msgstr "mandami un messaggio $message"
+msgstr "mandami un messaggio dicendo ${c}"
 
 #: lib/templates/commands.genie.out.ts:482
 msgid "show a popup that says ${c}"
@@ -1428,7 +1614,7 @@ msgstr ""
 #: lib/templates/dlg/search-questions.genie.out.ts:75
 #: lib/templates/dlg/slot-fill.genie.out.ts:49
 msgid "${p} ?"
-msgstr ""
+msgstr "${p} ?"
 
 #: lib/templates/dlg/search-questions.genie.out.ts:83
 #: lib/templates/dlg/search-questions.genie.out.ts:156
@@ -1549,6 +1735,19 @@ msgstr ""
 msgid ""
 "{are you looking for|would you like|do you need} a ${table} that "
 "${question} ?"
+msgstr ""
+
+#: lib/templates/dlg/search-questions.genie.out.ts:255
+#, fuzzy
+msgid "which one would you like ?"
+msgstr "Quanti risultati vuoi?"
+
+#: lib/templates/dlg/search-questions.genie.out.ts:256
+msgid "do you have a specific one in mind ?"
+msgstr ""
+
+#: lib/templates/dlg/search-questions.genie.out.ts:257
+msgid "do you have any more information to narrow down the search ?"
 msgstr ""
 
 #: lib/templates/dlg/search-questions.genie.out.ts:271
@@ -2311,24 +2510,24 @@ msgstr ""
 
 #: lib/templates/dlg/recommendation.genie.out.ts:93
 msgid "${proposal} ${anything_else_phrase}"
-msgstr ""
+msgstr "${proposal} ${anything_else_phrase}"
 
 #: lib/templates/dlg/recommendation.genie.out.ts:101
 #: lib/templates/dlg/recommendation.genie.out.ts:102
 #: lib/templates/dlg/recommendation.genie.out.ts:111
 #: lib/templates/dlg/recommendation.genie.out.ts:112
 msgid "${proposal}."
-msgstr ""
+msgstr "${proposal}."
 
 #: lib/templates/dlg/recommendation.genie.out.ts:103
 msgid "${proposal}. ${learn_more_offer}?"
-msgstr ""
+msgstr "${proposal}. ${learn_more_offer}?"
 
 #: lib/templates/dlg/recommendation.genie.out.ts:104
 #: lib/templates/dlg/recommendation.genie.out.ts:109
 #: lib/templates/dlg/recommendation.genie.out.ts:110
 msgid "${proposal}?"
-msgstr ""
+msgstr "${proposal}?"
 
 #: lib/templates/dlg/recommendation.genie.out.ts:105
 #, fuzzy
@@ -2537,6 +2736,32 @@ msgid ""
 "other{${table[plural=other]}}}"
 msgstr ""
 
+#: lib/templates/dlg/aggregation-results.genie.out.ts:47
+#, fuzzy
+msgid "minimum"
+msgstr "numero minimo"
+
+#: lib/templates/dlg/aggregation-results.genie.out.ts:48
+msgid "smallest"
+msgstr ""
+
+#: lib/templates/dlg/aggregation-results.genie.out.ts:49
+#, fuzzy
+msgid "maximum"
+msgstr "numero massimo"
+
+#: lib/templates/dlg/aggregation-results.genie.out.ts:50
+msgid "largest"
+msgstr ""
+
+#: lib/templates/dlg/aggregation-results.genie.out.ts:51
+msgid "average"
+msgstr ""
+
+#: lib/templates/dlg/aggregation-results.genie.out.ts:52
+msgid "total"
+msgstr ""
+
 #: lib/templates/dlg/aggregation-results.genie.out.ts:54
 msgid "${ctx} the ${op} ${p} is ${c}"
 msgstr ""
@@ -2673,7 +2898,7 @@ msgstr ""
 #: lib/templates/dlg/action-results.genie.out.ts:61
 #: lib/templates/dlg/action-results.genie.out.ts:69
 msgid "${action} for you"
-msgstr ""
+msgstr "${action} per te"
 
 #: lib/templates/dlg/action-results.genie.out.ts:70
 #: lib/templates/dlg/action-results.genie.out.ts:72
@@ -2695,9 +2920,17 @@ msgstr "${program}"
 msgid "${action} {with|having} ${param}"
 msgstr "il %s con il minimo %s"
 
+#: lib/templates/dlg/action-results.genie.out.ts:87
+msgid "your request was completed successfully"
+msgstr "la tua richiesta è stata completata con successo"
+
+#: lib/templates/dlg/action-results.genie.out.ts:88
+msgid "consider your request done !"
+msgstr "consideralo fatto!"
+
 #: lib/templates/dlg/action-results.genie.out.ts:90
 msgid "${generic_action_success_phrase} . ${result}"
-msgstr ""
+msgstr "${generic_action_success_phrase} . ${result}"
 
 #: lib/templates/dlg/action-results.genie.out.ts:91
 msgid "i ${action} . ${result}"
@@ -3009,6 +3242,214 @@ msgstr ""
 #, fuzzy
 msgid "new ${table}"
 msgstr "il numero di %s"
+
+#: lib/templates/projections.genie.out.ts:141
+#: lib/templates/projections.genie.out.ts:183
+msgid "some number"
+msgstr "un qualche numero"
+
+#: lib/templates/projections.genie.out.ts:142
+#: lib/templates/projections.genie.out.ts:144
+msgid "some value"
+msgstr "un qualche valore"
+
+#: lib/templates/projections.genie.out.ts:143
+msgid "something"
+msgstr "qualcosa"
+
+#: lib/templates/projections.genie.out.ts:145
+msgid "some amount"
+msgstr "un certo quantitativo"
+
+#: lib/templates/projections.genie.out.ts:146
+#: lib/templates/projections.genie.out.ts:150
+msgid "some time"
+msgstr "qualche orario"
+
+#: lib/templates/projections.genie.out.ts:147
+#: lib/templates/projections.genie.out.ts:151
+msgid "a certain time"
+msgstr "un certo orario"
+
+#: lib/templates/projections.genie.out.ts:148
+msgid "some date"
+msgstr "una qualche data"
+
+#: lib/templates/projections.genie.out.ts:149
+msgid "a certain date"
+msgstr "una certa data"
+
+#: lib/templates/projections.genie.out.ts:152
+#, fuzzy
+msgid "some location"
+msgstr "la mia posizione"
+
+#: lib/templates/projections.genie.out.ts:153
+#, fuzzy
+msgid "a location"
+msgstr "la mia posizione"
+
+#: lib/templates/projections.genie.out.ts:154
+#, fuzzy
+msgid "some place"
+msgstr "qualche data"
+
+#: lib/templates/projections.genie.out.ts:155
+#, fuzzy
+msgid "a place"
+msgstr "qualche località"
+
+#: lib/templates/projections.genie.out.ts:156
+msgid "a certain place"
+msgstr ""
+
+#: lib/templates/projections.genie.out.ts:157
+#, fuzzy
+msgid "somewhere"
+msgstr "qualcuno"
+
+#: lib/templates/projections.genie.out.ts:158
+#, fuzzy
+msgid "some duration"
+msgstr "la mia posizione"
+
+#: lib/templates/projections.genie.out.ts:159
+#, fuzzy
+msgid "some amount of time"
+msgstr "qualche orario"
+
+#: lib/templates/projections.genie.out.ts:160
+#: lib/templates/projections.genie.out.ts:166
+#, fuzzy
+msgid "some size"
+msgstr "qualche orario"
+
+#: lib/templates/projections.genie.out.ts:161
+#: lib/templates/projections.genie.out.ts:167
+#, fuzzy
+msgid "a certain size"
+msgstr "una dimensione"
+
+#: lib/templates/projections.genie.out.ts:162
+#, fuzzy
+msgid "a certain weight"
+msgstr "un peso"
+
+#: lib/templates/projections.genie.out.ts:163
+#, fuzzy
+msgid "a certain temperature"
+msgstr "una temperatura"
+
+#: lib/templates/projections.genie.out.ts:164
+#, fuzzy
+msgid "some distance"
+msgstr "qualche data"
+
+#: lib/templates/projections.genie.out.ts:165
+#, fuzzy
+msgid "some length"
+msgstr "una lunghezza"
+
+#: lib/templates/projections.genie.out.ts:168
+#, fuzzy
+msgid "some volume"
+msgstr "qualche orario"
+
+#: lib/templates/projections.genie.out.ts:169
+msgid "a certain volume"
+msgstr ""
+
+#: lib/templates/projections.genie.out.ts:170
+#, fuzzy
+msgid "some speed"
+msgstr "una velocità"
+
+#: lib/templates/projections.genie.out.ts:171
+#, fuzzy
+msgid "a certain speed"
+msgstr "una velocità"
+
+#: lib/templates/projections.genie.out.ts:172
+#, fuzzy
+msgid "some image"
+msgstr "qualche orario"
+
+#: lib/templates/projections.genie.out.ts:173
+#, fuzzy
+msgid "some picture"
+msgstr "qualche squadra"
+
+#: lib/templates/projections.genie.out.ts:174
+#, fuzzy
+msgid "some photo"
+msgstr "qualche squadra"
+
+#: lib/templates/projections.genie.out.ts:175
+#: lib/templates/projections.genie.out.ts:179
+#: lib/templates/projections.genie.out.ts:185
+#, fuzzy
+msgid "somebody"
+msgstr "qualcuno"
+
+#: lib/templates/projections.genie.out.ts:176
+#: lib/templates/projections.genie.out.ts:180
+#: lib/templates/projections.genie.out.ts:186
+msgid "someone"
+msgstr "qualcuno"
+
+#: lib/templates/projections.genie.out.ts:177
+#: lib/templates/projections.genie.out.ts:181
+#: lib/templates/projections.genie.out.ts:187
+#, fuzzy
+msgid "some one"
+msgstr "qualcuno"
+
+#: lib/templates/projections.genie.out.ts:178
+#: lib/templates/projections.genie.out.ts:182
+#: lib/templates/projections.genie.out.ts:188
+#, fuzzy
+msgid "some person"
+msgstr "qualcuno"
+
+#: lib/templates/projections.genie.out.ts:184
+#, fuzzy
+msgid "some phone number"
+msgstr "Qual è il tuo numero di telefono?"
+
+#: lib/templates/projections.genie.out.ts:189
+#, fuzzy
+msgid "some email address"
+msgstr "Qual è il tuo indirizzo email?"
+
+#: lib/templates/projections.genie.out.ts:190
+#, fuzzy
+msgid "some file"
+msgstr "qualche orario"
+
+#: lib/templates/projections.genie.out.ts:191
+#, fuzzy
+msgid "some directory"
+msgstr "qualche società"
+
+#: lib/templates/projections.genie.out.ts:192
+#, fuzzy
+msgid "some folder"
+msgstr "qualche data"
+
+#: lib/templates/projections.genie.out.ts:193
+#, fuzzy
+msgid "some url"
+msgstr "apri $url"
+
+#: lib/templates/projections.genie.out.ts:194
+#, fuzzy
+msgid "some website"
+msgstr "qualche squadra"
+
+#: lib/templates/projections.genie.out.ts:195
+#, fuzzy
+msgid "some link"
+msgstr "apri url su builtin"
 
 #: lib/templates/single-command.genie.out.ts:80
 #: lib/templates/single-command.genie.out.ts:81
@@ -3635,17 +4076,141 @@ msgid ""
 "{sleep|bed}}|at bedtime}"
 msgstr ""
 
+#: lib/templates/constants.genie.out.ts:73
+msgid "noon"
+msgstr "mezzogiorno"
+
+#: lib/templates/constants.genie.out.ts:74
+msgid "midday"
+msgstr "mezzogiorno"
+
+#: lib/templates/constants.genie.out.ts:75
+msgid "midnight"
+msgstr "mezzanotte"
+
+#: lib/templates/constants.genie.out.ts:79
+msgid "zero"
+msgstr "zero"
+
+#: lib/templates/constants.genie.out.ts:80
+msgid "one"
+msgstr "uno"
+
+#: lib/templates/constants.genie.out.ts:84 lib/utils/thingtalk/describe.ts:178
+msgid "now"
+msgstr "adesso"
+
+#: lib/templates/constants.genie.out.ts:85 lib/utils/thingtalk/describe.ts:209
+#: lib/i18n/default.ts:508
+msgid "today"
+msgstr "oggi"
+
+#: lib/templates/constants.genie.out.ts:86 lib/i18n/default.ts:514
+msgid "yesterday"
+msgstr "ieri"
+
+#: lib/templates/constants.genie.out.ts:88 lib/i18n/default.ts:520
+msgid "tomorrow"
+msgstr "domani"
+
+#: lib/templates/constants.genie.out.ts:89
+#, fuzzy
+msgid "the end of the day"
+msgstr "la fine di ${unit}"
+
+#: lib/templates/constants.genie.out.ts:90
+#, fuzzy
+msgid "the end of the week"
+msgstr "la selezione sullo schermo"
+
+#: lib/templates/constants.genie.out.ts:91
+#, fuzzy
+msgid "the end of the month"
+msgstr "la fine di ${unit}"
+
+#: lib/templates/constants.genie.out.ts:92
+#, fuzzy
+msgid "the end of the year"
+msgstr "Qual è l'indice del primo risultato che vuoi?"
+
+#: lib/templates/constants.genie.out.ts:95 lib/utils/thingtalk/describe.ts:212
+msgid "this week"
+msgstr "questa settimana"
+
+#: lib/templates/constants.genie.out.ts:96 lib/utils/thingtalk/describe.ts:215
+msgid "this month"
+msgstr "questo mese"
+
+#: lib/templates/constants.genie.out.ts:97 lib/utils/thingtalk/describe.ts:182
+#: lib/utils/thingtalk/describe.ts:218
+msgid "this year"
+msgstr "quest'anno"
+
+#: lib/templates/constants.genie.out.ts:99
+#, fuzzy
+msgid "last week"
+msgstr "${weekday:select: sunday{domenica scorsa} _{${weekday} scorso}}"
+
+#: lib/templates/constants.genie.out.ts:100
+#, fuzzy
+msgid "last month"
+msgstr "questo mese"
+
+#: lib/templates/constants.genie.out.ts:101
+#, fuzzy
+msgid "last year"
+msgstr "quest'anno"
+
+#: lib/templates/constants.genie.out.ts:102
+#, fuzzy
+msgid "next week"
+msgstr "${weekday:select: sunday{domenica prossima} _{${weekday} scorsa}}"
+
+#: lib/templates/constants.genie.out.ts:103
+#, fuzzy
+msgid "next month"
+msgstr "questo mese"
+
+#: lib/templates/constants.genie.out.ts:104
+#, fuzzy
+msgid "next year"
+msgstr "quest'anno"
+
 #: lib/templates/constants.genie.out.ts:113
 msgid "${year} s"
 msgstr ""
+
+#: lib/templates/constants.genie.out.ts:122
+msgid "jan"
+msgstr "gen"
+
+#: lib/templates/constants.genie.out.ts:123
+msgid "january"
+msgstr "gennaio"
 
 #: lib/templates/constants.genie.out.ts:124
 msgid "{jan|january} of ${year}"
 msgstr ""
 
+#: lib/templates/constants.genie.out.ts:125
+msgid "feb"
+msgstr "feb"
+
+#: lib/templates/constants.genie.out.ts:126
+msgid "february"
+msgstr "febbraio"
+
 #: lib/templates/constants.genie.out.ts:127
 msgid "{feb|february} of ${year}"
 msgstr ""
+
+#: lib/templates/constants.genie.out.ts:128
+msgid "mar"
+msgstr "mar"
+
+#: lib/templates/constants.genie.out.ts:129
+msgid "march"
+msgstr "marzo"
 
 #: lib/templates/constants.genie.out.ts:130
 #, fuzzy
@@ -3655,6 +4220,14 @@ msgstr ""
 "#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
 "la media di %s in %s"
 
+#: lib/templates/constants.genie.out.ts:131
+msgid "apr"
+msgstr "apr"
+
+#: lib/templates/constants.genie.out.ts:132
+msgid "april"
+msgstr "aprile"
+
 #: lib/templates/constants.genie.out.ts:133
 #, fuzzy
 msgid "{apr|april} of ${year}"
@@ -3663,39 +4236,111 @@ msgstr ""
 "#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
 "la media di %s in %s"
 
+#: lib/templates/constants.genie.out.ts:134
+msgid "may"
+msgstr "maggio"
+
 #: lib/templates/constants.genie.out.ts:135
 msgid "may of ${year}"
 msgstr ""
+
+#: lib/templates/constants.genie.out.ts:136
+msgid "jun"
+msgstr "giu"
+
+#: lib/templates/constants.genie.out.ts:137
+msgid "june"
+msgstr "giugno"
 
 #: lib/templates/constants.genie.out.ts:138
 msgid "{jun|june} of ${year}"
 msgstr ""
 
+#: lib/templates/constants.genie.out.ts:139
+msgid "jul"
+msgstr "lug"
+
+#: lib/templates/constants.genie.out.ts:140
+msgid "july"
+msgstr "luglio"
+
 #: lib/templates/constants.genie.out.ts:141
 msgid "{jul|july} of ${year}"
 msgstr ""
+
+#: lib/templates/constants.genie.out.ts:142
+msgid "aug"
+msgstr "ago"
+
+#: lib/templates/constants.genie.out.ts:143
+msgid "august"
+msgstr "agosto"
 
 #: lib/templates/constants.genie.out.ts:144
 msgid "{aug|august} of ${year}"
 msgstr ""
 
+#: lib/templates/constants.genie.out.ts:145
+msgid "sep"
+msgstr "set"
+
+#: lib/templates/constants.genie.out.ts:146
+msgid "sept"
+msgstr "sett"
+
+#: lib/templates/constants.genie.out.ts:147
+msgid "september"
+msgstr "settembre"
+
 #: lib/templates/constants.genie.out.ts:148
 msgid "{sep|sept|september} of ${year}"
 msgstr ""
 
+#: lib/templates/constants.genie.out.ts:149
+msgid "oct"
+msgstr "ott"
+
+#: lib/templates/constants.genie.out.ts:150
+msgid "october"
+msgstr "ottobre"
+
 #: lib/templates/constants.genie.out.ts:151
 msgid "{oct|october} of ${year}"
 msgstr ""
+
+#: lib/templates/constants.genie.out.ts:152
+msgid "nov"
+msgstr "nov"
+
+#: lib/templates/constants.genie.out.ts:153
+msgid "november"
+msgstr "novembre"
 
 #: lib/templates/constants.genie.out.ts:154
 #, fuzzy
 msgid "{nov|november} of ${year}"
 msgstr "il numero di %s"
 
+#: lib/templates/constants.genie.out.ts:155
+msgid "dec"
+msgstr "dic"
+
+#: lib/templates/constants.genie.out.ts:156
+msgid "december"
+msgstr "dicembre"
+
 #: lib/templates/constants.genie.out.ts:157
 #, fuzzy
 msgid "{dec|december} of ${year}"
 msgstr "il numero di %s"
+
+#: lib/templates/constants.genie.out.ts:159
+msgid "mon"
+msgstr "lun"
+
+#: lib/templates/constants.genie.out.ts:160
+msgid "monday"
+msgstr "lunedì"
 
 #: lib/templates/constants.genie.out.ts:161
 msgid "last {mon|monday}"
@@ -3705,6 +4350,14 @@ msgstr ""
 msgid "next {mon|monday}"
 msgstr ""
 
+#: lib/templates/constants.genie.out.ts:163
+msgid "tue"
+msgstr "mar"
+
+#: lib/templates/constants.genie.out.ts:164
+msgid "tuesday"
+msgstr "martedì"
+
 #: lib/templates/constants.genie.out.ts:165
 msgid "last {tue|tuesday}"
 msgstr ""
@@ -3712,6 +4365,14 @@ msgstr ""
 #: lib/templates/constants.genie.out.ts:166
 msgid "next {tue|tuesday}"
 msgstr ""
+
+#: lib/templates/constants.genie.out.ts:167
+msgid "wed"
+msgstr "mer"
+
+#: lib/templates/constants.genie.out.ts:168
+msgid "wednesday"
+msgstr "mercoledì"
 
 #: lib/templates/constants.genie.out.ts:169
 msgid "last {wed|wednesday}"
@@ -3721,6 +4382,14 @@ msgstr ""
 msgid "next {wed|wednesday}"
 msgstr ""
 
+#: lib/templates/constants.genie.out.ts:171
+msgid "thu"
+msgstr "gio"
+
+#: lib/templates/constants.genie.out.ts:172
+msgid "thursday"
+msgstr "giovedì"
+
 #: lib/templates/constants.genie.out.ts:173
 msgid "last {thu|thursday}"
 msgstr ""
@@ -3728,6 +4397,14 @@ msgstr ""
 #: lib/templates/constants.genie.out.ts:174
 msgid "next {thu|thursday}"
 msgstr ""
+
+#: lib/templates/constants.genie.out.ts:175
+msgid "fri"
+msgstr "ven"
+
+#: lib/templates/constants.genie.out.ts:176
+msgid "friday"
+msgstr "venerdì"
 
 #: lib/templates/constants.genie.out.ts:177
 msgid "last {fri|friday}"
@@ -3737,6 +4414,14 @@ msgstr ""
 msgid "next {fri|friday}"
 msgstr ""
 
+#: lib/templates/constants.genie.out.ts:179
+msgid "sat"
+msgstr "sab"
+
+#: lib/templates/constants.genie.out.ts:180
+msgid "saturday"
+msgstr "sabato"
+
 #: lib/templates/constants.genie.out.ts:181
 msgid "last {sat|saturday}"
 msgstr ""
@@ -3744,6 +4429,14 @@ msgstr ""
 #: lib/templates/constants.genie.out.ts:182
 msgid "next {sat|saturday}"
 msgstr ""
+
+#: lib/templates/constants.genie.out.ts:183
+msgid "sun"
+msgstr "dom"
+
+#: lib/templates/constants.genie.out.ts:184
+msgid "sunday"
+msgstr "domenica"
 
 #: lib/templates/constants.genie.out.ts:185
 msgid "last {sun|sunday}"
@@ -3831,6 +4524,30 @@ msgstr ""
 #, fuzzy
 msgid "${num} years"
 msgstr "qualche numero"
+
+#: lib/templates/constants.genie.out.ts:231
+msgid "minute"
+msgstr "minuto"
+
+#: lib/templates/constants.genie.out.ts:232
+msgid "hour"
+msgstr "ora"
+
+#: lib/templates/constants.genie.out.ts:233
+msgid "day"
+msgstr "giorno"
+
+#: lib/templates/constants.genie.out.ts:234
+msgid "week"
+msgstr "settimana"
+
+#: lib/templates/constants.genie.out.ts:235
+msgid "month"
+msgstr "mese"
+
+#: lib/templates/constants.genie.out.ts:236
+msgid "year"
+msgstr "anno"
 
 #: lib/templates/constants.genie.out.ts:240
 #, fuzzy
@@ -4153,6 +4870,51 @@ msgstr ""
 msgid "${num} dbm"
 msgstr "qualche numero"
 
+#: lib/templates/constants.genie.out.ts:356
+#: lib/templates/filters.genie.out.ts:439 lib/utils/thingtalk/describe.ts:141
+msgid "here"
+msgstr "qui"
+
+#: lib/templates/constants.genie.out.ts:358
+#, fuzzy
+msgid "where i am now"
+msgstr "Dove sei ora?"
+
+#: lib/templates/constants.genie.out.ts:360
+#, fuzzy
+msgid "the area"
+msgstr "il risultato [gender=m]"
+
+#: lib/templates/constants.genie.out.ts:361
+#, fuzzy
+msgid "the city"
+msgstr "il tipo di dispositivo"
+
+#: lib/templates/constants.genie.out.ts:362 lib/utils/thingtalk/describe.ts:143
+msgid "home"
+msgstr "casa"
+
+#: lib/templates/constants.genie.out.ts:363
+#, fuzzy
+msgid "my home"
+msgstr "casa"
+
+#: lib/templates/constants.genie.out.ts:364
+msgid "my neighborhood"
+msgstr ""
+
+#: lib/templates/constants.genie.out.ts:365 lib/utils/thingtalk/describe.ts:145
+msgid "work"
+msgstr "lavoro"
+
+#: lib/templates/constants.genie.out.ts:366
+msgid "my office"
+msgstr ""
+
+#: lib/templates/constants.genie.out.ts:367
+msgid "my workplace"
+msgstr ""
+
 #: lib/templates/constants.genie.out.ts:370
 msgid "${c1} and ${c2}"
 msgstr ""
@@ -4164,6 +4926,45 @@ msgstr ""
 #: lib/templates/constants.genie.out.ts:384
 msgid "${c1} nor ${c2}"
 msgstr ""
+
+#: lib/templates/constants.genie.out.ts:392
+#: lib/templates/shared.genie.out.ts:44
+#, fuzzy
+msgid "this"
+msgstr "quest'anno"
+
+#: lib/templates/constants.genie.out.ts:395 lib/utils/thingtalk/describe.ts:351
+msgid "the selection on the screen"
+msgstr "la selezione sullo schermo"
+
+#: lib/templates/shared.genie.out.ts:40 lib/templates/shared.genie.out.ts:43
+msgid "it"
+msgstr "esso"
+
+#: lib/templates/shared.genie.out.ts:41
+msgid "them"
+msgstr ""
+
+#: lib/templates/shared.genie.out.ts:45
+msgid "that"
+msgstr ""
+
+#: lib/templates/shared.genie.out.ts:47
+msgid "either one"
+msgstr ""
+
+#: lib/templates/shared.genie.out.ts:48
+msgid "either of them"
+msgstr ""
+
+#: lib/templates/shared.genie.out.ts:49
+msgid "any of them"
+msgstr ""
+
+#: lib/templates/shared.genie.out.ts:50
+#, fuzzy
+msgid "any one of them"
+msgstr "nessuno di questi"
 
 #: lib/templates/shared.genie.out.ts:52
 #, fuzzy
@@ -4177,9 +4978,8 @@ msgid ""
 msgstr ""
 
 #: lib/templates/dialogue.genie.out.ts:195
-#, fuzzy
 msgid "{hello|hi}! i can help you ${action}."
-msgstr "Subito! Come posso aiutarti?"
+msgstr "Ciao! Posso aiutarti a ${action}."
 
 #: lib/templates/dialogue.genie.out.ts:202
 #: lib/templates/dialogue.genie.out.ts:203
@@ -4415,6 +5215,34 @@ msgstr ""
 msgid "the {maximum|highest} ${p} of {|the|this|that} ${t}"
 msgstr ""
 
+#: lib/templates/joins.genie.out.ts:43
+#, fuzzy
+msgid "the first"
+msgstr "il primo %s"
+
+#: lib/templates/joins.genie.out.ts:44
+#, fuzzy
+msgid "the former"
+msgstr "il richiedente [gender=m]"
+
+#: lib/templates/joins.genie.out.ts:46
+#, fuzzy
+msgid "the second"
+msgstr "questo secondo"
+
+#: lib/templates/joins.genie.out.ts:47
+#, fuzzy
+msgid "the latter"
+msgstr "l'ultimo %s"
+
+#: lib/templates/joins.genie.out.ts:49
+msgid "each other"
+msgstr ""
+
+#: lib/templates/joins.genie.out.ts:50
+msgid "one another"
+msgstr ""
+
 #: lib/templates/joins.genie.out.ts:55
 msgid ""
 "pairs of ${table} {such that|that} ${pronoun_the_first} {is|are|was|were} "
@@ -4470,6 +5298,98 @@ msgstr ""
 #: lib/templates/joins.genie.out.ts:70
 msgid "${table1} {and|with} the ${table2} ${param2} of {its|their} ${param1}"
 msgstr ""
+
+#: lib/templates/basic.genie.out.ts:46
+msgid "debug"
+msgstr "debug"
+
+#: lib/templates/basic.genie.out.ts:47 lib/utils/thingtalk/describe.ts:1683
+msgid "cancel"
+msgstr "annulla"
+
+#: lib/templates/basic.genie.out.ts:48
+msgid "never mind"
+msgstr "non importa"
+
+#: lib/templates/basic.genie.out.ts:49 lib/utils/thingtalk/describe.ts:1685
+msgid "stop"
+msgstr "stop"
+
+#: lib/templates/basic.genie.out.ts:50
+msgid "stop it"
+msgstr "fermati"
+
+#: lib/templates/basic.genie.out.ts:51
+msgid "shut up"
+msgstr "zitto"
+
+#: lib/templates/basic.genie.out.ts:52
+msgid "shush"
+msgstr "silenzio"
+
+#: lib/templates/basic.genie.out.ts:53
+msgid "quiet"
+msgstr "chetati"
+
+#: lib/templates/basic.genie.out.ts:54
+msgid "close"
+msgstr "chiudi"
+
+#: lib/templates/basic.genie.out.ts:55 lib/utils/thingtalk/describe.ts:1665
+msgid "yes"
+msgstr "sì"
+
+#: lib/templates/basic.genie.out.ts:56
+msgid "yes please"
+msgstr "sì grazie"
+
+#: lib/templates/basic.genie.out.ts:57
+msgid "yes ,  please"
+msgstr "sì, grazie"
+
+#: lib/templates/basic.genie.out.ts:58
+msgid "yeah"
+msgstr "sì"
+
+#: lib/templates/basic.genie.out.ts:59
+msgid "ok"
+msgstr "ok"
+
+#: lib/templates/basic.genie.out.ts:60
+msgid "okay"
+msgstr "okay"
+
+#: lib/templates/basic.genie.out.ts:61
+msgid "yes yes"
+msgstr "sì sì"
+
+#: lib/templates/basic.genie.out.ts:62
+msgid "yes . yes"
+msgstr "sì. sì"
+
+#: lib/templates/basic.genie.out.ts:63 lib/utils/thingtalk/describe.ts:1667
+msgid "no"
+msgstr "no"
+
+#: lib/templates/basic.genie.out.ts:64
+msgid "no thanks"
+msgstr "no grazie"
+
+#: lib/templates/basic.genie.out.ts:65
+msgid "no ,  thanks"
+msgstr "no, grazie"
+
+#: lib/templates/basic.genie.out.ts:66
+msgid "nope"
+msgstr "no"
+
+#: lib/templates/basic.genie.out.ts:67
+msgid "no no"
+msgstr "no no"
+
+#: lib/templates/basic.genie.out.ts:68
+msgid "no . no"
+msgstr "no . no"
 
 #: lib/templates/basic.genie.out.ts:77 lib/templates/basic.genie.out.ts:84
 msgid "get ${query}"
@@ -5230,6 +6150,30 @@ msgstr ""
 "#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
 "la media di %s in %s"
 
+#: lib/templates/filters.genie.out.ts:437
+msgid "both"
+msgstr "entrambi"
+
+#: lib/templates/filters.genie.out.ts:440
+msgid "around here"
+msgstr "qui attorno"
+
+#: lib/templates/filters.genie.out.ts:441
+msgid "near here"
+msgstr "qui attorno"
+
+#: lib/templates/filters.genie.out.ts:442
+msgid "nearby"
+msgstr "qui vicino"
+
+#: lib/templates/filters.genie.out.ts:443
+msgid "around me"
+msgstr "attorno a me"
+
+#: lib/templates/filters.genie.out.ts:444
+msgid "in this area"
+msgstr "in questa zona"
+
 #: lib/templates/filters.genie.out.ts:445
 msgid "{in|around|near} ${x}"
 msgstr ""
@@ -5238,6 +6182,22 @@ msgstr ""
 #: lib/templates/filters.genie.out.ts:448
 msgid "${p} is ${x}"
 msgstr ""
+
+#: lib/templates/filters.genie.out.ts:450
+msgid "good"
+msgstr "buono"
+
+#: lib/templates/filters.genie.out.ts:451
+msgid "great"
+msgstr "ottimo"
+
+#: lib/templates/filters.genie.out.ts:452
+msgid "nice"
+msgstr "carino"
+
+#: lib/templates/filters.genie.out.ts:453
+msgid "decent"
+msgstr "decente"
 
 #: lib/templates/filters.genie.out.ts:455
 msgid ""
@@ -5249,18 +6209,6 @@ msgstr ""
 msgid "within ${distance} {|radius} {of|from} ${place}"
 msgstr ""
 
-#: lib/utils/thingtalk/describe.ts:141
-msgid "here"
-msgstr "qui"
-
-#: lib/utils/thingtalk/describe.ts:143
-msgid "home"
-msgstr "casa"
-
-#: lib/utils/thingtalk/describe.ts:145
-msgid "work"
-msgstr "lavoro"
-
 #: lib/utils/thingtalk/describe.ts:165
 msgid "the morning"
 msgstr "la mattina"
@@ -5268,14 +6216,6 @@ msgstr "la mattina"
 #: lib/utils/thingtalk/describe.ts:167
 msgid "the evening"
 msgstr "la sera"
-
-#: lib/utils/thingtalk/describe.ts:178
-msgid "now"
-msgstr "adesso"
-
-#: lib/utils/thingtalk/describe.ts:182 lib/utils/thingtalk/describe.ts:218
-msgid "this year"
-msgstr "quest'anno"
 
 #: lib/utils/thingtalk/describe.ts:188
 msgid "1"
@@ -5304,18 +6244,6 @@ msgstr "questo minuto"
 #: lib/utils/thingtalk/describe.ts:206
 msgid "this hour"
 msgstr "quest'ora"
-
-#: lib/utils/thingtalk/describe.ts:209 lib/i18n/default.ts:508
-msgid "today"
-msgstr "oggi"
-
-#: lib/utils/thingtalk/describe.ts:212
-msgid "this week"
-msgstr "questa settimana"
-
-#: lib/utils/thingtalk/describe.ts:215
-msgid "this month"
-msgstr "questo mese"
 
 #: lib/utils/thingtalk/describe.ts:224
 msgid "the start of ${unit}"
@@ -5421,10 +6349,6 @@ msgid "the ${field} of ${value}"
 msgstr ""
 "${field[gender]:select: m{il ${field}} f{la ${field}}} di ${value} "
 "[gender=field[gender]]"
-
-#: lib/utils/thingtalk/describe.ts:351
-msgid "the selection on the screen"
-msgstr "la selezione sullo schermo"
 
 #: lib/utils/thingtalk/describe.ts:361
 msgid "the program ID"
@@ -5948,14 +6872,6 @@ msgid ""
 "${query[plural=one]}} and then use it to ${action}"
 msgstr "a %s è consentito leggere %s e poi usarlo per %s"
 
-#: lib/utils/thingtalk/describe.ts:1665
-msgid "yes"
-msgstr "sì"
-
-#: lib/utils/thingtalk/describe.ts:1667
-msgid "no"
-msgstr "no"
-
 #: lib/utils/thingtalk/describe.ts:1669
 msgid "I did not understand"
 msgstr "Non ho capito"
@@ -5984,14 +6900,6 @@ msgstr "mostra informazioni di debug"
 msgid "maybe"
 msgstr "forse"
 
-#: lib/utils/thingtalk/describe.ts:1683
-msgid "cancel"
-msgstr "annulla"
-
-#: lib/utils/thingtalk/describe.ts:1685
-msgid "stop"
-msgstr "stop"
-
 #. queries.device_info.args.help.canonical.base[0]
 #: lib/utils/thingtalk/describe.ts:1687
 #: po/tmp/org.thingpedia.builtin.thingengine.builtin.js:158
@@ -6010,14 +6918,6 @@ msgstr "sveglia"
 #: lib/utils/thingtalk/describe.ts:1702
 msgid "choice number ${choice}"
 msgstr "scelta numero ${choice}"
-
-#: lib/i18n/default.ts:514
-msgid "yesterday"
-msgstr "ieri"
-
-#: lib/i18n/default.ts:520
-msgid "tomorrow"
-msgstr "domani"
 
 #: lib/i18n/default.ts:525
 msgid "last ${weekday}"
@@ -7650,9 +8550,6 @@ msgstr "qualche valore"
 #~ msgid "What is the first result you would like?"
 #~ msgstr "Qual è il primo risultato che vuoi?"
 
-#~ msgid "How many results would you like?"
-#~ msgstr "Quanti risultati vuoi?"
-
 #~ msgid "What ${field:enum} would you like?"
 #~ msgstr "Quale ${field:enum} vuoi?"
 
@@ -7787,9 +8684,6 @@ msgstr "qualche valore"
 #~ "Mi dispiace, ma mi serve che confermi l'ultima domanda prima di andare "
 #~ "avanti."
 
-#~ msgid "I'm looking for a command."
-#~ msgstr "Vorrei un comando."
-
 #~ msgid "In fact, I'm not even sure what I asked. Sorry!"
 #~ msgstr "In effetti, non sono del tutto sicura di cosa ho chiesto. Scusa!"
 
@@ -7853,10 +8747,6 @@ msgstr "qualche valore"
 #, javascript-format
 #~ msgid "%s before %s"
 #~ msgstr "%s prima di %s"
-
-#, javascript-format
-#~ msgid "the %s"
-#~ msgstr "il %s"
 
 #, javascript-format
 #~ msgid "the %s contain %s"
@@ -7951,10 +8841,6 @@ msgstr "qualche valore"
 #~ msgstr "non %s"
 
 #, javascript-format
-#~ msgid "the %s of %s"
-#~ msgstr "il %s di %s"
-
-#, javascript-format
 #~ msgid "for %s, %s"
 #~ msgstr "per %s, %s"
 
@@ -7977,14 +8863,6 @@ msgstr "qualche valore"
 #, javascript-format
 #~ msgid " and %s equal to %s"
 #~ msgstr " e %s uguale a %s"
-
-#, javascript-format
-#~ msgid "the last %s"
-#~ msgstr "l'ultimo %s"
-
-#, javascript-format
-#~ msgid "the first %s"
-#~ msgstr "il primo %s"
 
 #, javascript-format
 #~ msgid "the %d-th last %s"
@@ -8037,10 +8915,6 @@ msgstr "qualche valore"
 #, javascript-format
 #~ msgid "the %s that changed in the %s prior to %s"
 #~ msgstr "i %s che hanno cambiato negli ultimi %s prima di %s"
-
-#, javascript-format
-#~ msgid "every %s"
-#~ msgstr "ogni %s"
 
 #, javascript-format
 #~ msgid "%s times every %s"
@@ -8133,9 +9007,6 @@ msgstr "qualche valore"
 #~ msgstr[0] "Ho trovato solo un valore di %2$s."
 #~ msgstr[1] "Ho trovato %d valori distinti di %s."
 
-#~ msgid "it"
-#~ msgstr "esso"
-
 #~ msgid "the result title"
 #~ msgstr "il titolo del risultato"
 
@@ -8144,24 +9015,6 @@ msgstr "qualche valore"
 
 #~ msgid "the event's long description"
 #~ msgstr "la descrizione lunga dell'evento"
-
-#~ msgid "someone"
-#~ msgstr "qualcuno"
-
-#~ msgid "some team"
-#~ msgstr "qualche squadra"
-
-#~ msgid "some company"
-#~ msgstr "qualche società"
-
-#~ msgid "something"
-#~ msgstr "qualcosa"
-
-#~ msgid "some date"
-#~ msgstr "qualche data"
-
-#~ msgid "some time"
-#~ msgstr "qualche orario"
 
 #~ msgid " and "
 #~ msgstr " e "
@@ -8255,9 +9108,6 @@ msgstr "qualche valore"
 #~ msgid "When"
 #~ msgstr "Quando"
 
-#~ msgid "Get"
-#~ msgstr "Ottieni"
-
 #~ msgid "Do"
 #~ msgstr "Fai"
 
@@ -8314,9 +9164,6 @@ msgstr "qualche valore"
 
 #~ msgid "Make Your Own Rule"
 #~ msgstr "Crea la tua regola"
-
-#~ msgid "none of the above"
-#~ msgstr "nessuno di questi"
 
 #~ msgid "Did you mean any of the following?"
 #~ msgstr "Intendevi uno dei comandi seguenti?"
@@ -8611,14 +9458,8 @@ msgstr "qualche valore"
 #~ msgid "Sorry, but that's not what I asked."
 #~ msgstr "Mi dispiace, ma non è quello che ho chiesto."
 
-#~ msgid "I'm looking for a filter"
-#~ msgstr "Vorrei un filtro."
-
 #~ msgid "I'm sorry, you don't have permission to do that."
 #~ msgstr "Mi dispiace, non hai il permesso di eseguire questa operazione."
-
-#~ msgid "Consider it done."
-#~ msgstr "Consideralo fatto."
 
 #~ msgid "User not available to respond"
 #~ msgstr "L'utente non è disponibile a rispondere"
@@ -8708,23 +9549,11 @@ msgstr "qualche valore"
 #~ msgid "a time interval"
 #~ msgstr "un intervallo di tempo"
 
-#~ msgid "a length"
-#~ msgstr "una lunghezza"
-
-#~ msgid "a speed"
-#~ msgstr "una velocità"
-
-#~ msgid "a weight"
-#~ msgstr "un peso"
-
 #~ msgid "a pressure"
 #~ msgstr "una pressione"
 
 #~ msgid "an energy"
 #~ msgstr "un'energia"
-
-#~ msgid "a size"
-#~ msgstr "una dimensione"
 
 #, javascript-format
 #~ msgid "I'm looking for %s in any of the supported units (%s)."
@@ -8875,9 +9704,6 @@ msgstr "qualche valore"
 #~ msgid "Sending rule to %s: %s"
 #~ msgstr "Invo regola a %s: %s"
 
-#~ msgid "never mind"
-#~ msgstr "non importa"
-
 #~ msgid "Ok, so you want me to tell %s: %s. Is that right?"
 #~ msgstr "Ok, quindi vuoi che io dica a %s: %s. Corretto?"
 
@@ -9025,9 +9851,6 @@ msgstr "qualche valore"
 #~ msgid "Unnamed (multiple partecipants)"
 #~ msgstr "Senza nome (più partecipanti)"
 
-#~ msgid "devices"
-#~ msgstr "dispositivi"
-
 #~ msgid "Try add some devices first."
 #~ msgstr "Prova ad aggiungere qualche dispositivo prima."
 
@@ -9040,9 +9863,6 @@ msgstr "qualche valore"
 #~ msgstr ""
 #~ "Puoi configurare dispositivi usando il comando 'configura ____', per "
 #~ "esempio 'configura twitter'."
-
-#~ msgid "on"
-#~ msgstr "acceso"
 
 #~ msgid "off"
 #~ msgstr "spento"
@@ -9195,9 +10015,6 @@ msgstr "qualche valore"
 #~ msgid "discover"
 #~ msgstr "scopri"
 
-#~ msgid "search for new devices"
-#~ msgstr "cerca nuovi dispositivi"
-
 #~ msgid "search for new devices on $__person's Almond"
 #~ msgstr "cerca nuovi dispositivi nell'Almond di $__person"
 
@@ -9284,14 +10101,6 @@ msgstr "qualche valore"
 #, fuzzy, javascript-format
 #~ msgid "%s notify me"
 #~ msgstr "notifichi te"
-
-#, fuzzy, javascript-format
-#~ msgid "%s would like to %s."
-#~ msgstr "a %s è consentito %s"
-
-#, fuzzy, javascript-format
-#~ msgid "%s wants to %s"
-#~ msgstr "%s a %s"
 
 #, fuzzy, javascript-format
 #~ msgid "Use the %s from %s"
