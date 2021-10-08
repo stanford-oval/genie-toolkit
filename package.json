@@ -63,6 +63,7 @@
     "@types/gettext-parser": "^4.0.1",
     "@types/js-yaml": "^4.0.3",
     "@types/jsonstream": "^0.8.30",
+    "@types/JSONStream": "npm:@types/jsonstream@^0.8.30",
     "@types/mime": "^2.0.3",
     "@types/morgan": "^1.9.3",
     "@types/node": "^14.17.21",
