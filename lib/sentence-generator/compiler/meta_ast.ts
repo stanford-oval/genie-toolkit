@@ -361,8 +361,8 @@ export class OldStyleExpansion extends Rule {
         let template = '"' + this.head.map((h) => h.getTemplate()).join(' ') + '"';
 
         // generate code to lookup the translation of the template if meaningful
-        // (skip if this template has only one component)
-        if (this.head.length > 1 && template !== '""')
+        // (skip if this template has only one component and that component is a non-terminal)
+        if ((this.head.length > 1 || this.head.length > nonTerminalChildren.length) && template !== '""')
             template = `$locale._(${template})`;
 
         return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${nonTerminalChildren.map((h, i) => h.codegen(nonTerminalChildren, i)).join(', ')}], ${template}, (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
