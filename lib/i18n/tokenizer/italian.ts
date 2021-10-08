@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,10 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
+import { TimeEntity } from '../../utils/entity-utils';
 import BaseTokenizer from './base';
 import { WS, makeToken } from './helpers';
 
-const NUMBERS = {
+const NUMBERS : Record<string, number> = {
     zero: 0,
     un: 1,
     uno: 1,
@@ -64,7 +65,7 @@ const NUMBERS = {
     novanta: 90,
 };
 
-const MULTIPLIERS = {
+const MULTIPLIERS : Record<string, number> = {
     cent: 100,
     cento: 100,
     mille: 1000,
@@ -79,7 +80,7 @@ const MULTIPLIERS = {
     // also, people commonly say "duemila miliardi"
 };
 
-const MONTHS = {
+const MONTHS : Record<string, number> = {
     gen: 1,
     feb: 2,
     mar: 3,
@@ -94,7 +95,7 @@ const MONTHS = {
     dic: 12
 };
 
-const CURRENCIES = {
+const CURRENCIES : Record<string, string> = {
     'dollaro': 'usd',
     'dollari': 'usd',
     'sterlina': 'gbp',
@@ -119,7 +120,7 @@ const CURRENCIES = {
 };
 
 export default class ItalianTokenizer extends BaseTokenizer {
-    _initAbbrv() {
+    protected _initAbbrv() {
         // always attach the apostrophe to the preceding word
         this._addDefinition('APWORD', /{LETTER}+'/);
 
@@ -136,14 +137,14 @@ export default class ItalianTokenizer extends BaseTokenizer {
             (lexer) => makeToken(lexer.index, lexer.text));
     }
 
-    _addIntlPrefix(text) {
+    protected _addIntlPrefix(text : string) {
         // assume Italian/Italy locale
         if (!text.startsWith('+'))
             text = '+39' + text;
         return text;
     }
 
-    _parseWordNumber(text) {
+    private _parseWordNumber(text : string) {
         // the logic for this function is exactly the same as the English version, except
         // that in Italian there are no spaces before the suffixes "cento" (hundred) and "mila" (thousands)
         // so to parse a number in word we need to use another regular expression
@@ -207,7 +208,7 @@ export default class ItalianTokenizer extends BaseTokenizer {
         return value;
     }
 
-    _normalizeNumber(num) {
+    private _normalizeNumber(num : number) {
         let wholepart, fracpart;
         if (num < 0) {
             wholepart = Math.ceil(num);
@@ -224,13 +225,13 @@ export default class ItalianTokenizer extends BaseTokenizer {
             return String(wholepart);
     }
 
-    _parseDecimalNumber(text) {
+    protected _parseDecimalNumber(text : string) {
         // remove any ".", replace "," with "." and remove any leading 0 or +
-        let normalized = text.replace(/\./g, '').replace(/,/g, '.').replace(/^[0+]+/g, '');
+        const normalized = text.replace(/\./g, '').replace(/,/g, '.').replace(/^[0+]+/g, '');
         return parseFloat(normalized);
     }
 
-    _initNumbers() {
+    protected _initNumbers() {
         // numbers in digit
 
         // note: Italian uses "," as the decimal separator and "." as the thousand separator!
@@ -245,8 +246,9 @@ export default class ItalianTokenizer extends BaseTokenizer {
 
         // currencies
         this._lexer.addRule(/{DECIMAL_NUMBER}{WS}(dollar[oi]|euro(?:cent)?|cent|sterlin[ae]|pence|penny|yen|won|yuan|usd|cad|aud|chf|eur|gbp|cny|jpy|krw)/, (lexer) => {
-            let [num, unit] = lexer.text.split(WS);
+            const [num, unitword] = lexer.text.split(WS);
             let value = this._parseDecimalNumber(num);
+            let unit = unitword;
             if (unit in CURRENCIES)
                 unit = CURRENCIES[unit];
             if (unit.startsWith('0.01')) {
@@ -257,10 +259,10 @@ export default class ItalianTokenizer extends BaseTokenizer {
             return makeToken(lexer.index, lexer.text, this._normalizeNumber(value) + ' ' + unit, 'CURRENCY', { value, unit });
         });
         this._lexer.addRule(/(?:C\$|A\$|[$£€₩¥]){WS}?{DECIMAL_NUMBER}/, (lexer) => {
-            let unit = lexer.text.match(/C\$|A\$|[$£€₩¥]/)[0];
+            let unit = lexer.text.match(/C\$|A\$|[$£€₩¥]/)![0];
             unit = CURRENCIES[unit];
-            let num = lexer.text.replace(/(?:C\$|A\$|[$£€₩¥])/g, '').replace(WS, '');
-            let value = this._parseDecimalNumber(num);
+            const num = lexer.text.replace(/(?:C\$|A\$|[$£€₩¥])/g, '').replace(WS, '');
+            const value = this._parseDecimalNumber(num);
             return makeToken(lexer.index, lexer.text, this._normalizeNumber(value) + ' ' + unit, 'CURRENCY', { value, unit });
         });
 
@@ -311,7 +313,7 @@ export default class ItalianTokenizer extends BaseTokenizer {
         });
     }
 
-    _initOrdinals() {
+    protected _initOrdinals() {
         // ordinals in digits are written as digit followed by "º" (MASCULINE ORDINAL INDICATOR) or "ª" (FEMININE ORDINAL INDICATOR)
         // but those characters have a compatibility decomposition "o" and "a"
         // so we see "1o" and "1a"
@@ -356,7 +358,7 @@ export default class ItalianTokenizer extends BaseTokenizer {
         });
     }
 
-    _initTimes() {
+    protected _initTimes() {
         // Written Italian uses a simple 24 hour clock
         // Proper punctuation (as enforced by spellcheckers and autocomplete) uses ":" to separate hour minute and second
         // but it's common to see "." instead (and apparently some depraved people use "," too?)
@@ -374,25 +376,25 @@ export default class ItalianTokenizer extends BaseTokenizer {
         // (it's easy to synthesize enough training data with templates)
     }
 
-    _extractWordMonth(text) {
-        const word = /gen|feb|mar|apr|mag|giu|lug|ago|set|ott|nov|dic/.exec(text.toLowerCase());
+    private _extractWordMonth(text : string) {
+        const word = /gen|feb|mar|apr|mag|giu|lug|ago|set|ott|nov|dic/.exec(text.toLowerCase())!;
         return MONTHS[word[0]];
     }
 
-    _parseWordDate(text, parseDay, parseYear, parseTime) {
+    private _parseWordDate(text : string, parseDay : boolean, parseYear : boolean, parseTime : ((x : string) => TimeEntity)|null) {
         // this is the same logic as English (the order is the same as British English: day month year)
         const month = this._extractWordMonth(text);
         const digitreg = /[0-9]+/g;
         let day = -1;
         if (parseDay) {
             // find the first sequence of digits to get the day
-            day = parseInt(digitreg.exec(text)[0]);
+            day = parseInt(digitreg.exec(text)![0]);
         }
         let year = -1;
         if (parseYear) {
             // find the next sequence of digits to get the year
             // (digitreg is a global regex so it will start matching from the end of the previous match)
-            year = parseInt(digitreg.exec(text)[0]);
+            year = parseInt(digitreg.exec(text)![0]);
         }
         if (parseTime) {
             // if we have a time, pick the remaining of the string and parse it
@@ -403,7 +405,7 @@ export default class ItalianTokenizer extends BaseTokenizer {
         }
     }
 
-    _initDates() {
+    protected _initDates() {
         // init ISO date recognition
         super._initDates();
 

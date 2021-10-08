@@ -346,7 +346,7 @@ export default class BaseTokenizer {
         });
     }
 
-    protected _normalizeTime(hour : number, minute : number, second : number, strictISO : boolean) {
+    protected _normalizeTime(hour : number, minute : number, second : number, strictISO = false) {
         let hourstr = String(hour);
         if (strictISO && hourstr.length === 1)
             hourstr = '0' + hourstr;
@@ -443,7 +443,7 @@ export default class BaseTokenizer {
             return `${year}-${month}-${day}`;
     }
 
-    protected _parseNumericDate(text : string, style : 'mdy'|'dmy'|'ymd', parseTime ?: (time : string) => TimeEntity) : DateEntity {
+    protected _parseNumericDate(text : string, style : 'mdy'|'dmy'|'ymd', parseTime ?: ((time : string) => TimeEntity)|null) : DateEntity {
         let year, month, day;
         let datestr : string, timestr : string|undefined;
         if (parseTime) {

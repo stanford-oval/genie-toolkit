@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -26,7 +26,7 @@ import DefaultLanguagePack from './default';
 
 import { coin } from '../utils/random';
 
-function replaceMeMy(sentence) {
+function replaceMeMy(sentence : string) {
     sentence = sentence.replace(/\b((?!(?:notifica|informa|invia a)\b)[a-zA-Z0-9]+) me\b/g, '$1 lui');
 
     return sentence.replace(/\b(io|me|mio|miei|mia|mie)\b/g, (what) => {
@@ -48,7 +48,7 @@ function replaceMeMy(sentence) {
     });
 }
 
-const PREPOSITIONS = {
+const PREPOSITIONS : Record<string, string> = {
     // of
     'di il': 'del',
     'di la': 'della',
@@ -96,7 +96,7 @@ const PREPOSITIONS = {
 };
 
 export default class ItalianLanguagePack extends DefaultLanguagePack {
-    constructor(locale) {
+    constructor(locale : string) {
         super(locale);
     }
 
@@ -106,7 +106,7 @@ export default class ItalianLanguagePack extends DefaultLanguagePack {
         return this._tokenizer = new ItalianTokenizer();
     }
 
-    postprocessSynthetic(sentence, program, rng, forTarget = 'user') {
+    postprocessSynthetic(sentence : string, program : any, rng : (() => number)|null, forTarget = 'user') {
         if (program.isProgram && program.principal !== null)
             sentence = replaceMeMy(sentence);
 
@@ -137,20 +137,22 @@ export default class ItalianLanguagePack extends DefaultLanguagePack {
         // "posta -lo" -> "postalo"
         sentence = sentence.replace(/ -l([oaie])\b/g, 'l$1');
 
-        if (!sentence.endsWith(' ?') && !sentence.endsWith(' !') && !sentence.endsWith(' .') && rng && coin(0.5, rng))
-            sentence = sentence.trim() + ' .';
-        if (sentence.endsWith(' ?') && rng && coin(0.5, rng))
+        if (!sentence.endsWith(' ?') && !sentence.endsWith(' !') && !sentence.endsWith(' .')) {
+            if ((forTarget === 'user' && rng && coin(0.5, rng)) || forTarget === 'agent')
+                sentence = sentence.trim() + ' .';
+        }
+        if (forTarget === 'user' && sentence.endsWith(' ?') && rng && coin(0.5, rng))
             sentence = sentence.substring(0, sentence.length-2);
 
         return sentence.trim();
     }
 
-    pluralize(noun) {
+    pluralize(noun : string) {
         // TODO rules are complicated and full of exceptions...
         return undefined;
     }
 
-    toAgentSideUtterance(phrase) {
+    toAgentSideUtterance(phrase : string) {
         return phrase.replace(/\b(io|me|mi[oa]|miei?)\b/g, (what) => {
             switch (what) {
             case 'io':
@@ -171,20 +173,13 @@ export default class ItalianLanguagePack extends DefaultLanguagePack {
         });
     }
 
-    toVerbPast(phrase) {
+    toVerbPast(phrase : string) {
         // rules for past simple (passato remoto) are positively insane
         // no way in hell this is implementable
         return undefined;
     }
 
-    detokenize(sentence, prevtoken, token) {
-        if (sentence && !this._NO_SPACE_TOKENS.has(token) && !prevtoken.endsWith("'"))
-            sentence += ' ';
-        sentence += token;
-        return sentence;
-    }
-
-    addDefiniteArticle(phrase) {
+    addDefiniteArticle(phrase : string) {
         const words = phrase.split(' ');
         assert(words.length > 0);
 
@@ -221,14 +216,14 @@ export default class ItalianLanguagePack extends DefaultLanguagePack {
             return 'il ' + phrase;
     }
 
-    isGoodWord(word) {
+    isGoodWord(word : string) {
         // filter out words that cannot be in the dataset,
         // because they would be either tokenized/preprocessed out or
         // they are unlikely to be used with voice
         return /^([\u00E0\u00C8\u00E8\u00E9\u00EC\u00F2\u00F9a-zA-Z0-9][\u00E0\u00C8\u00E8\u00E9\u00EC\u00F2\u00F9a-zA-Z0-9.-]*|'s|,|\?)$/.test(word);
     }
 
-    isGoodSentence(sentence) {
+    isGoodSentence(sentence : string) {
         if (sentence.length < 3)
             return false;
         if (['.', ',', '?', '!', ' '].includes(sentence[0]))
@@ -236,11 +231,11 @@ export default class ItalianLanguagePack extends DefaultLanguagePack {
         return !/^(un|ha|per|titolo|quando|mi|i|modo|-|di|fino|sono|essere|avere|che|questa|questi|quelli|con|come|in|on|prima|dopo)$/.test(sentence);
     }
 
-    isGoodNumber(number) {
+    isGoodNumber(number : string) {
         return /^([0-9]+)$/.test(number);
     }
 
-    isGoodPersonName(word) {
+    isGoodPersonName(word : string) {
         return this.isGoodWord(word) || /^(\w+\s\w\s?\.)$/.test(word);
     }
 }
@@ -255,9 +250,9 @@ const ABBREVIATIONS = [
     ['f.lli', 'fratelli'],
     ['&', 'e']
 ];
-const PROCESSED_ABBREVIATIONS = {};
-for (let abbr of ABBREVIATIONS) {
-    for (let variant of abbr)
+const PROCESSED_ABBREVIATIONS : { [key : string] : string[] } = {};
+for (const abbr of ABBREVIATIONS) {
+    for (const variant of abbr)
         PROCESSED_ABBREVIATIONS[variant] = abbr;
 }
 ItalianLanguagePack.prototype.ABBREVIATIONS = PROCESSED_ABBREVIATIONS;
