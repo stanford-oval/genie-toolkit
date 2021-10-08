@@ -45,6 +45,14 @@ export default class Paraphraser {
         if (process.env.CI || process.env.TRAVIS) 
             return;
 
+        // output paraphrase input 
+        if (this.options.debug) {
+            const output = util.promisify(fs.writeFile);
+            await output('./paraphraser-in.json', JSON.stringify(examples.map((e) => {
+                return { utterance: e.utterance, arg: e.argument, value: e.value ?? null };
+            }), null, 2));
+        }
+
         // call genienlp to run paraphrase
         const args = [
             `run-paraphrase`,

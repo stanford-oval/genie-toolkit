@@ -2,7 +2,7 @@
 //
 // This file is part of Genie
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020-2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -29,18 +29,21 @@ import * as ThingTalkUtils from '../../../lib/utils/thingtalk';
 import { wikidataQuery } from './utils';
 
 class CommandLineHandler {
+    private _locale : string;
+    private _timezone : string|undefined;
     private _rl : readline.Interface;
     private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _parser : ParserClient.ParserClient;
-    private _timezone : string;
 
-    constructor(rl : readline.Interface, options : { locale : string, timezone : string, server : string, thingpedia : string }) {
+    constructor(rl : readline.Interface, options : { locale : string, timezone : string|undefined, server : string, thingpedia : string }) {
         this._rl = rl;
         this._rl.on('line', this._onLine.bind(this));
         this._rl.on('SIGINT', this._quit.bind(this));
 
+        this._locale = options.locale;
         this._timezone = options.timezone;
+
         this._tpClient = new Tp.FileClient(options);
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
         this._parser = ParserClient.get(options.server, 'en-US');
@@ -67,6 +70,7 @@ class CommandLineHandler {
             return;
         }
         const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+            locale: this._locale,
             timezone: this._timezone,
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas
