@@ -40,6 +40,7 @@ interface AutoCanonicalGeneratorOptions {
     paraphraser_model : string,
     remove_existing_canonicals : boolean,
     type_based_projection : boolean,
+    max_per_pos ?: number,
     batch_size : number,
     filtering : boolean,
     debug : boolean
@@ -147,6 +148,7 @@ export default class AutoCanonicalGenerator {
         await extractor.run(examples);
         
         this._addProjectionCanonicals();
+        this._trimAnnotations();
         return this.class;
     }
 
@@ -310,5 +312,24 @@ export default class AutoCanonicalGenerator {
                 return v.value;
             return v.display;
         });
+    }
+
+    private _trimAnnotations() {
+        if (!this.options.max_per_pos)
+            return;
+        for (const fname of this.functions) {
+            const func = this.class.queries[fname] || this.class.actions[fname];
+            for (const arg of func.iterateArguments()) {
+                if (this.annotatedProperties.includes(arg.name) || arg.name === 'id')
+                    continue;
+
+                const canonicalAnnotation = arg.metadata.canonical;
+                for (const pos in canonicalAnnotation) {
+                    if (pos === 'default')
+                        continue;
+                    canonicalAnnotation[pos] = canonicalAnnotation[pos].slice(0, this.options.max_per_pos);
+                }
+            }
+        }
     }
 }
