@@ -80,6 +80,7 @@ type SentenceEvaluatorOptions = {
     tokenized ?: boolean;
     oracle ?: boolean;
     complexityMetric ?: keyof typeof COMPLEXITY_METRICS;
+    includeEntityValue ?: boolean
 } & ThingTalkUtils.ParseOptions;
 
 export interface ExampleEvaluationResult {
@@ -135,6 +136,7 @@ class SentenceEvaluator {
     private _tokenized : boolean;
     private _debug : boolean;
     private _oracle : boolean;
+    private _includeEntityValue : boolean;
     private _tokenizer : I18n.BaseTokenizer;
     private _computeComplexity : ((id : string, code : string) => number)|undefined;
 
@@ -155,6 +157,7 @@ class SentenceEvaluator {
         this._tokenized = !!options.tokenized;
         this._debug = options.debug;
         this._oracle = !!options.oracle;
+        this._includeEntityValue = !!options.includeEntityValue;
         this._tokenizer = tokenizer;
 
         if (options.complexityMetric)
@@ -229,6 +232,7 @@ class SentenceEvaluator {
             normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                locale: this._locale,
                timezone: this._options.timezone,
+               includeEntityValue: this._includeEntityValue
             }).join(' '));
         } catch(e) {
             // if the target_code did not parse due to missing functions in thingpedia, ignore it
@@ -251,6 +255,7 @@ class SentenceEvaluator {
                 normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                    locale: this._locale,
                    timezone: this._options.timezone,
+                   includeEntityValue: this._includeEntityValue
                 }).join(' '));
             } catch(e) {
                 console.error(this._id, this._preprocessed, this._targetPrograms);
@@ -327,7 +332,8 @@ class SentenceEvaluator {
             const normalized = ThingTalkUtils.serializePrediction(parsed, tokens, entities, {
                locale: this._locale,
                timezone: this._options.timezone,
-               ignoreSentence: true
+               ignoreSentence: true,
+               includeEntityValue: this._includeEntityValue
             });
             const normalizedCode = normalized.join(' ');
 
