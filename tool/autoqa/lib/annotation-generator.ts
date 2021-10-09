@@ -27,9 +27,8 @@ export default class AutoAnnotationGenerator {
     constructor(classDef : ThingTalk.Ast.ClassDef, 
                 constants : Record<string, any[]>, 
                 queries : string[], 
-                parameterDatasets : string, 
                 options : any) {
-        this.canonicalGenerator = new CanonicalGenerator(classDef, constants, queries, parameterDatasets, options);
+        this.canonicalGenerator = new CanonicalGenerator(classDef, constants, queries, options);
     }
 
     generate() {

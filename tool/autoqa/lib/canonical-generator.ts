@@ -83,7 +83,6 @@ export default class AutoCanonicalGenerator {
     constructor(classDef : Ast.ClassDef, 
                 constants : Record<string, any[]>, 
                 functions : string[], 
-                parameterDatasets : string, 
                 options : AutoCanonicalGeneratorOptions) {
         this.class = classDef;
         this.constants = constants;

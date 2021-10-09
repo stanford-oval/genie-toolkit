@@ -69,23 +69,13 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('--algorithms', {
         nargs: '*',
-        help: 'Different algorithms to generate canonicals including bert-property-synonyms, bart-paraphrase, bert-adjectives, bert-domain-synonyms'
+        help: 'Currently only `bart-paraphrase` is supported'
     });
     parser.add_argument('--batch-size', {
         required: false,
         type: Number,
         default: 64,
         help: `The batch size for auto paraphrase`
-    });
-    parser.add_argument('--pruning', {
-        required: false,
-        type: Number,
-        default: 0.5,
-        help: `The minimum fraction required for a candidate to be added`
-    });
-    parser.add_argument('--parameter-datasets', {
-        required: true,
-        help: `TSV file containing the paths to datasets for strings and entity types.`
     });
     parser.add_argument('--language-model', {
         required: false,
@@ -96,12 +86,6 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--paraphraser-model', {
         required: false,
         help: `A path to the directory where the bart paraphraser model is saved`
-    });
-    parser.add_argument('--gpt2-ordering', {
-        required: false,
-        default: false,
-        action: 'store_true',
-        help: `Set to True to use gpt2 to decide where to put value`
     });
     parser.add_argument('--filtering', {
         required: false,
@@ -130,7 +114,7 @@ export async function execute(args : any) {
         const functions = args.functions ? args.functions.split(',') : null;
 
         for (const classDef of classDefs) {
-            const generator = new AnnotationGenerator(classDef, constants, functions, args.parameter_datasets, options);
+            const generator = new AnnotationGenerator(classDef, constants, functions, options);
             const annotatedClassDef = await generator.generate();
             args.output.write(annotatedClassDef.prettyprint());
         }
