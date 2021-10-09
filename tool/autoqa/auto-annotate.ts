@@ -20,11 +20,12 @@
 
 import * as argparse from 'argparse';
 import * as fs from 'fs';
+import * as ThingTalk from 'thingtalk';
+import * as Tp from 'thingpedia';
 
 import * as StreamUtils from '../../lib/utils/stream-utils';
 import { parseConstantFile } from '../lib/constant-file';
 import AnnotationGenerator from './lib/annotation-generator';
-import { loadClassDefs } from './lib/utils';
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('auto-annotate', {
@@ -62,6 +63,10 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: null,
         help: `List of functions to include, split by comma (no space). Include all functions if not specified`,
     });
+    parser.add_argument('--entities', {
+        required: false,
+        help: 'Path to JSON file containing entity type definitions.'
+    });
     parser.add_argument('--remove-existing-canonicals', {
         action: 'store_true',
         help: 'Remove all existing canonical annotations in the schema',
@@ -93,6 +98,12 @@ export function initArgparse(subparsers : argparse.SubParser) {
         action: 'store_true',
         help: `Enable filtering for phrase extraction.`
     });
+    parser.add_argument('--type-based-projection', {
+        required: false,
+        default: false,
+        action: 'store_true',
+        help: `Make use of the entity type names when generating projection annotations`
+    });
     parser.add_argument('--debug', {
         required: false,
         default: false,
@@ -102,7 +113,10 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 export async function execute(args : any) {
-    const classDefs = await loadClassDefs(args.thingpedia, { locale: args.locale, timezone: args.timezone });
+    const tpClient = new Tp.FileClient({ thingpedia: args.thingpedia, entities: args.entities, locale: args.locale });
+    const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+    const classDefs = await Promise.all((await tpClient.getDeviceList()).map(async (device) => schemas.getFullMeta(device.primary_kind)));
+    const entities = await tpClient.getAllEntityTypes();
 
     if (!args.algorithms) {
         for (const classDef of classDefs)
@@ -114,7 +128,7 @@ export async function execute(args : any) {
         const functions = args.functions ? args.functions.split(',') : null;
 
         for (const classDef of classDefs) {
-            const generator = new AnnotationGenerator(classDef, constants, functions, options);
+            const generator = new AnnotationGenerator(classDef, entities, constants, functions, options);
             const annotatedClassDef = await generator.generate();
             args.output.write(annotatedClassDef.prettyprint());
         }

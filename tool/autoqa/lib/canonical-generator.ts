@@ -18,9 +18,11 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
+import assert from 'assert';
 import * as fs from 'fs';
 import path from 'path';
 import { Ast, Type } from 'thingtalk';
+import * as Tp from 'thingpedia';
 
 import * as utils from '../../../lib/utils/misc-utils';
 import { makeLookupKeys } from '../../../lib/dataset-tools/mturk/sample-utils';
@@ -37,6 +39,7 @@ interface AutoCanonicalGeneratorOptions {
     dataset : 'schemaorg'|'sgd'|'multiwoz'|'wikidata'|'custom',
     paraphraser_model : string,
     remove_existing_canonicals : boolean,
+    type_based_projection : boolean,
     batch_size : number,
     filtering : boolean,
     debug : boolean
@@ -73,24 +76,43 @@ function countArgTypes(schema : Ast.FunctionDef) : Record<string, number> {
 
 export default class AutoCanonicalGenerator {
     private class : Ast.ClassDef;
+    private entities : Tp.BaseClient.EntityTypeRecord[];
     private constants : Record<string, Constant[]>;
     private functions : string[];
     private paraphraserModel : string;
     private annotatedProperties : string[];
     private langPack : EnglishLanguagePack;
     private options : AutoCanonicalGeneratorOptions;
+    private entityNames : Record<string, string>;
+    private childEntities : Record<string, string[]>;
 
     constructor(classDef : Ast.ClassDef, 
+                entities : Tp.BaseClient.EntityTypeRecord[],
                 constants : Record<string, any[]>, 
                 functions : string[], 
                 options : AutoCanonicalGeneratorOptions) {
         this.class = classDef;
+        this.entities = entities;
         this.constants = constants;
         this.functions = functions ? functions : Object.keys(classDef.queries).concat(Object.keys(classDef.actions));
         this.paraphraserModel = options.paraphraser_model;
         this.annotatedProperties = [];
         this.langPack = new EnglishLanguagePack('en-US');
         this.options = options;
+
+        this.entityNames = {};
+        this.childEntities = {};
+        for (const entity of this.entities) {
+            this.entityNames[entity.type] = entity.name;
+            if (entity.subtype_of) {
+                for (const parent of entity.subtype_of) {
+                    if (parent in this.childEntities)
+                        this.childEntities[parent].push(entity.name);
+                    else
+                        this.childEntities[parent] = [entity.name];
+                }
+            }
+        }
     }
 
     async generate() {
@@ -214,6 +236,16 @@ export default class AutoCanonicalGenerator {
                     continue;
                 if (typeof canonicals === 'string' || Array.isArray(canonicals))
                     continue;
+                    
+                const elemType = arg.type instanceof Type.Array ? arg.type.elem: arg.type;
+                assert(elemType instanceof Type);
+                if (elemType instanceof Type.Entity && this.options.type_based_projection && !('base_projection' in canonicals)) {
+                    const entityType = elemType.type;
+                    if (this.entityNames[entityType])
+                        canonicals['base_projection'] = [this.entityNames[entityType]];
+                    if (this.childEntities[entityType])
+                        canonicals['base_projection'].push(...this.childEntities[entityType]);
+                }
 
                 for (const cat in canonicals) {
                     if (['default', 'adjective', 'implicit_identity', 'property', 'projection_pronoun'].includes(cat))
