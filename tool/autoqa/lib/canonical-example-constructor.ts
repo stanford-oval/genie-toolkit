@@ -61,7 +61,7 @@ function generateExamplesByPOS(query : Ast.FunctionDef,
     case 'base':
         return [
             example(`What is the ${argumentCanonical} of the ${queryCanonical}?`),
-            example(`What is the ${queryCanonical} 's' ${argumentCanonical}?`),
+            example(`What is the ${queryCanonical} 's ${argumentCanonical}?`),
             example(`What ${argumentCanonical} does the ${queryCanonical} have?`)
         ];
     case 'property':
