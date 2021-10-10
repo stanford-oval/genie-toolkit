@@ -8,17 +8,30 @@ trap on_error ERR INT TERM
 
 # copy over the starting code
 cp -r $srcdir/starter/wikidata/* .
-
-# generate & train
-starter_gen_and_train wikidata city
-
-# get some fake data to test with
-mkdir city/eval
-cat > city/eval/annotated.tsv <<EOF
-1	i'm looking for a city	now => @org.wikidata.city => notify
+cat > domains.tsv <<EOF
+administrative_territorial_entity	Q56061	Q515:city:232	Q515:city:232 Q532:village:10
 EOF
 
+cat > bootleg-types.json <<EOF
+{}
+EOF
+
+cat > bootleg-type-canonicals.json <<EOF
+{}
+EOF
+
+# download a smaller version of wikidata for testing
+mkdir -p raw/wikidata-small
+wget --no-verbose https://almond-static.stanford.edu/research/csqa/kb-small/filtered_property_wikidata4.json -P raw/wikidata-small
+wget --no-verbose https://almond-static.stanford.edu/research/csqa/kb-small/wikidata_short_1.json -P raw/wikidata-small
+wget --no-verbose https://almond-static.stanford.edu/research/csqa/kb-small/wikidata_short_2.json -P raw/wikidata-small
+wget --no-verbose https://almond-static.stanford.edu/research/csqa/kb-small/items_wikidata_n.json -P raw/wikidata-small
+
+# generate & train
+touch domains.tsv bootleg-types.json bootleg-type-canonicals.json
+starter_gen_and_train wikidata city annotation=baseline wikidata_dir=raw/wikidata-small 
+
 # evaluate
-make experiment=city eval_set=eval model=small evaluate
+make experiment=city model=small evaluate
 
 rm -fr $workdir
