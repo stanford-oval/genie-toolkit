@@ -462,7 +462,7 @@ module.exports = {
         });
         parser.add_argument('--wikidata-entity-list', {
             required: false,
-            help: "full list of entities in the wikidata dump, named items_wikidata_n.json in CSQA," + 
+            help: "full list of entities in the wikidata dump, named items_wikidata_n.json in CSQA, " + 
                 "in the form of a dictionary with QID as keys and canonical as values."
         });
         parser.add_argument('--wikidata-property-list', {
