@@ -29,7 +29,7 @@ wget --no-verbose https://almond-static.stanford.edu/research/csqa/kb-small/item
 
 # generate & train
 touch domains.tsv bootleg-types.json bootleg-type-canonicals.json
-starter_gen_and_train wikidata city annotation=baseline wikidata_dir=raw/wikidata-small 
+starter_gen_and_train wikidata city annotation=baseline wikidata_dir=raw/wikidata-small train_batch_tokens=100 val_batch_size=500
 
 # evaluate
 make experiment=city model=small evaluate

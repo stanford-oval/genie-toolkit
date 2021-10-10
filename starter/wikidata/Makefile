@@ -61,6 +61,8 @@ maxdepth ?= 8
 fewshot =
 fewshot_size = 100
 
+train_batch_tokens = 2000
+val_batch_size = 4000
 
 # options for training
 model ?= 1
@@ -74,8 +76,8 @@ train_nlu_flags ?= \
 	--warmup 20 \
 	--gradient_accumulation_steps 20 \
 	--eval_set_name valid \
-	--train_batch_tokens 2000 \
-	--val_batch_size 4000 \
+	--train_batch_tokens $(train_batch_tokens) \
+	--val_batch_size $(val_batch_size) \
 	--preprocess_special_tokens \
 	--override_question= 
 custom_train_nlu_flags ?=
@@ -271,6 +273,7 @@ train: $(datadir)
 	-rm datadir/almond
 	ln -sf . datadir/almond
 	genienlp train \
+	  --no_commit \
 	  --data $(datadir) \
 	  --save $(experiment)/models/$(model) \
 	  --cache $(datadir)/.cache \
