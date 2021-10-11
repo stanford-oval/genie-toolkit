@@ -1,9 +1,8 @@
 import re
 import dl_translate as dlt
 import polib
-import os
 from datetime import datetime
-import subprocess
+from tqdm import tqdm
 
 
 now = datetime.now()
@@ -43,7 +42,7 @@ for entry in pofile:
 
   
 
-for messageId in msgIdArray:
+for messageId in tqdm(msgIdArray):
     reg = "|".join(
         (
             r"<\${\w+?}>",  # <${link}>
@@ -81,7 +80,7 @@ po = polib.POFile()
 po.metadata = {
     'Project-Id-Version': '1.0',
     'Report-Msgid-Bugs-To': Reportmsgid.rstrip(),
-    'POT-Creation-Date': POTCreationDateFetched,
+    'POT-Creation-Date': POT_Creation_Date,
     'PO-Revision-Date': PO_Revision_Date.rstrip(),
     'Last-Translator':  Last_Translator.rstrip(),
     'Language-Team': Language_Team.rstrip(),
