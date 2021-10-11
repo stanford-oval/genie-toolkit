@@ -106,6 +106,9 @@ const subcommands : { [key : string] : SubCommand } = {
     'upload-device': require('./upload-device'),
     'upload-string-values': require('./upload-string-values'),
     'upload-entity-values': require('./upload-entity-values'),
+
+    'extract-translatable-annotations': require('./extract-translatable-annotations'),
+    'translate-schema-annotations': require('./translate-schema-annotations')
 };
 
 async function main() {
