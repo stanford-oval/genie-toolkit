@@ -18,16 +18,15 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 
 import Engine from '../../engine';
-import * as ThingTalkUtils from '../../utils/thingtalk';
-//import * as I18n from '../../i18n';
+import { LogLevel } from '../../sentence-generator/runtime';
+import InferenceTimeThingTalkExecutor from '../../thingtalk-dialogues/inference-thingtalk-executor';
+import { InferenceTimeDialogue } from '../../thingtalk-dialogues/inference-time-dialogue';
 
-import CardFormatter from '../card-output/card-formatter';
-//import { FORMAT_TYPES } from '../card-output/format_objects';
+import { FORMAT_TYPES } from '../card-output/format_objects';
 
 /**
  * An object that is able to convert structured ThingTalk results
@@ -41,75 +40,37 @@ import CardFormatter from '../card-output/card-formatter';
  * instantiated with a special state for every result.
  */
 export default class NotificationFormatter {
-    private _engine : Engine;
-    private _cardFormatter : CardFormatter;
-    // TODO
-    // private _policy : DialoguePolicy;
+    private _dlg : InferenceTimeDialogue;
 
     /**
      * Construct a new formatter for a given Genie engine.
      */
     constructor(engine : Engine) {
-        this._engine = engine;
-
-        this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
-        //this._langPack = I18n.get(engine.platform.locale);
-
-        /*this._policy = new DialoguePolicy({
-            thingpedia: engine.thingpedia,
-            schemas: engine.schemas,
+        const executor = new InferenceTimeThingTalkExecutor(engine, {
+            id: 'notification',
+            async sendNewProgram() {}
+        }, false);
+        this._dlg = new InferenceTimeDialogue({
+            thingpediaClient: engine.thingpedia,
+            schemaRetriever: engine.schemas,
             locale: engine.platform.locale,
             timezone: engine.platform.timezone,
-            rng: Math.random,
-            debug: 0,
+            policy: undefined,
+            useConfidence: false,
+            executor: executor,
+            extraFlags: {},
             anonymous: false,
-            extraFlags: {}
-        });*/
+            debug: LogLevel.INFO,
+            rng: Math.random
+        });
     }
 
     async initialize() {
-        // await this._policy.initialize();
+        await this._dlg.initialize(undefined, false);
     }
 
     async formatNotification(appName : string|null, program : ThingTalk.Ast.Program, outputType : string, outputValue : Record<string, unknown>) : Promise<Tp.FormatObjects.FormattedObject[]> {
-        assert(program.statements.length === 1);
-        const stmt = program.statements[0];
-        assert(stmt instanceof ThingTalk.Ast.ExpressionStatement);
-        assert(stmt.expression.schema);
-
-        const mappedResult = await ThingTalkUtils.mapResult(stmt.expression.schema, outputValue);
-        void(mappedResult);
-
-        void(this._engine);
-        void(this._cardFormatter);
-
-        throw new Error(`not implemented yet`);
-        /*
-
-        const dialogueState = await this._policy.getNotificationState(appName, program, mappedResult);
-
-        const policyResult = await this._policy.chooseAction(dialogueState);
-        if (!policyResult) {
-            console.log(dialogueState!.prettyprint());
-            throw new Error(`Unexpected invalid state from agent during notification`);
-        }
-
-        const postprocessed = this._langPack.postprocessNLG(policyResult.utterance, policyResult.entities, {
-            timezone: this._engine.platform.timezone,
-            getPreferredUnit: (type : string) => {
-                const pref = this._engine.platform.getSharedPreferences();
-                return pref.get('preferred-' + type) as string|undefined;
-            }
-        });
-
-        const output : Tp.FormatObjects.FormattedObject[] = [
-            new FORMAT_TYPES.text({ type: 'text', text: postprocessed })
-        ];
-        const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
-        for (const card of formatted)
-            output.push(card);
-
-        return output;
-        */
+        const reply = await this._dlg.showNotification(program, appName, outputValue);
+        return reply.messages.map((msg) => typeof msg === 'string' ? new FORMAT_TYPES.text({ type: 'text', text: msg }) : msg) as Tp.FormatObjects.FormattedObject[];
     }
 }

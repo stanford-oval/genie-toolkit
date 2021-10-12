@@ -83,8 +83,8 @@ interface ExtendedAgentReplyRecord extends AgentReplyRecord {
 }
 
 interface InferenceTimeDialogueOptions {
-    nlu : ParserClient.ParserClient,
-    nlg : ParserClient.ParserClient,
+    nlu ?: ParserClient.ParserClient,
+    nlg ?: ParserClient.ParserClient,
     executor : AbstractThingTalkExecutor,
     locale : string,
     timezone : string,
@@ -149,11 +149,11 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
     private readonly _schemas : SchemaRetriever;
     private readonly _langPack : I18n.LanguagePack;
     private readonly _executor : AbstractThingTalkExecutor;
-    private readonly _nlg : ParserClient.ParserClient;
+    private readonly _nlg ?: ParserClient.ParserClient|undefined;
+    private _nlu : CommandParser|undefined;
     private _dlg ! : DialogueInterface;
     private _policy ! : PolicyModule;
     private _agentGenerator ! : InferenceTimeSentenceGenerator;
-    private _nlu ! : CommandParser;
     private readonly _cardFormatter : CardFormatter;
     private readonly _debug : number;
     private readonly _flags : Record<string, boolean>;
@@ -268,11 +268,14 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             policy: this._policy
         });
         this._agentGenerator = new InferenceTimeSentenceGenerator({ ...this._options, flags: this._flags, policy: this._policy });
-        this._nlu = new CommandParser({
-            ...this._options,
-            generator: this._agentGenerator,
-            policy: this._policy
-        });
+        if (this._options.nlu) {
+            this._nlu = new CommandParser({
+                ...this._options,
+                nlu: this._options.nlu,
+                generator: this._agentGenerator,
+                policy: this._policy
+            });
+        }
 
         let startMode = PolicyStartMode.NORMAL;
         if (initialState !== undefined) {
@@ -364,6 +367,8 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
     }
 
     analyzeCommand(command : UserInput) {
+        if (!this._nlu)
+            throw new Error(`Dialogue instantiated without NLU, cannot analyze`);
         return this._nlu.parse(this._dlg.state, command, {
             expecting: this._expecting,
             choices: this._choices,
@@ -551,7 +556,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         this._dlg.state = ThingTalkUtils.computeNewState(this._dlg.state, meaning.meaning, 'agent').optimize();
 
         let utterance = new ReplacedConcatenation(utterances, {}, {}).chooseBest();
-        if (this._useNeuralNLG()) {
+        if (this._nlg && this._useNeuralNLG()) {
             const prepared = ThingTalkUtils.prepareContextForPrediction(this._dlg.state, 'agent');
             const [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(prepared);
 
@@ -577,36 +582,47 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
     }
 
     prepareContextForPrediction() {
-        return this._nlu.prepareContextForPrediction(this._dlg.state);
+        return CommandParser.prepareContextForPrediction(this._dlg.state);
     }
 
     async showNotification(program : Ast.Program,
-                           name : string,
-                           outputType : string,
+                           name : string|null,
                            outputValue : Record<string, unknown>) : Promise<ReplyResult> {
         assert(program.statements.length === 1);
         const stmt = program.statements[0];
         assert(stmt instanceof Ast.ExpressionStatement);
         assert(stmt.expression.schema);
 
-        /*
-        const mappedResult = await this._agent.executor.mapResult(stmt.expression.schema, outputValue);
-        this._dialogueState = await this._policy.getNotificationState(app.name, app.program, mappedResult);
-        return this._doAgentReply([[outputType, outputValue]]);
-        */
-        throw new Error('not implemented');
+        const promise = this._waitReply();
+        const mappedResult = await ThingTalkUtils.mapResult(stmt.expression.schema, outputValue);
+        const semantics = await this._policy.notification?.(name, program, mappedResult);
+        if (!semantics)
+            throw new Error(`Unsupported notification from ${name}`);
+
+        const cmd = new Command('notification', this._dlg.state, semantics, Confidence.ABSOLUTE, {});
+        this._commandQueue.push(cmd);
+
+        const reply = await promise;
+        this._setExpecting(reply);
+
+        return reply;
     }
 
     async showAsyncError(program : Ast.Program,
-                         name : string,
+                         name : string|null,
                          error : Error) : Promise<ReplyResult> {
-        //console.log('Error from ' + app.uniqueId, error);
+        const promise = this._waitReply();
+        const mappedError = await ThingTalkUtils.mapError(error);
+        const semantics = await this._policy.notifyError?.(name, program, mappedError);
+        if (!semantics)
+            throw new Error(`Unsupported notification from ${name}`);
 
-        /*
-        const mappedError = await this._agent.executor.mapError(error);
-        this._dialogueState = await this._policy.getAsyncErrorState(app.name, app.program, mappedError);
-        return this._doAgentReply([]);
-        */
-        throw new Error('not implemented');
+        const cmd = new Command('error', this._dlg.state, semantics, Confidence.ABSOLUTE, {});
+        this._commandQueue.push(cmd);
+
+        const reply = await promise;
+        this._setExpecting(reply);
+
+        return reply;
     }
 }

@@ -212,7 +212,7 @@ export class CommandParser {
             return CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND;
     }
 
-    prepareContextForPrediction(state : Ast.DialogueState|null) : [string[], EntityMap] {
+    static prepareContextForPrediction(state : Ast.DialogueState|null) : [string[], EntityMap] {
         const prepared = ThingTalkUtils.prepareContextForPrediction(state, 'user');
         return ThingTalkUtils.serializeNormalized(prepared);
     }
@@ -273,7 +273,7 @@ export class CommandParser {
 
         // ok so this was a natural language
 
-        const [contextCode, contextEntities] = this.prepareContextForPrediction(state);
+        const [contextCode, contextEntities] = CommandParser.prepareContextForPrediction(state);
         if (options.expecting === ValueCategory.RawString) {
             // in "raw mode", all natural language becomes an answer, and we're confident about it
 

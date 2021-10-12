@@ -309,7 +309,7 @@ export class DialogueLoop {
 
     private async _handleAPICall(call : QueueItem) {
         if (call instanceof QueueItem.Notification)
-            await this._sendAgentReply(await this._thingtalkHandler.showNotification(call.app.program, call.app.name, call.outputType, call.outputValue));
+            await this._sendAgentReply(await this._thingtalkHandler.showNotification(call.app.program, call.app.name, call.outputValue));
         else if (call instanceof QueueItem.Error)
             await this._sendAgentReply(await this._thingtalkHandler.showAsyncError(call.app.program, call.app.name, call.error));
     }
