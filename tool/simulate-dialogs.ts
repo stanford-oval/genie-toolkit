@@ -171,6 +171,7 @@ class SimulatorStream extends Stream.Transform {
         const lastTurn = dlg[dlg.length-1];
 
         const agent = new InferenceTimeDialogue({
+            conversationId: 'simulate-dialogs',
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
             locale: this._locale,

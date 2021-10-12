@@ -122,6 +122,7 @@ class Annotator extends events.EventEmitter {
             this._schemas = this._engine.schemas;
         }
         this._agent = new InferenceTimeDialogue({
+            conversationId: this.id,
             policy: options.policy,
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
@@ -213,7 +214,7 @@ class Annotator extends events.EventEmitter {
     // implementation of the abstract conversation interface, which the
     // inference time executor calls sometimes
     get id() {
-        return 'main';
+        return 'interactive-annotate';
     }
     async sendNewProgram() {
         // do nothing

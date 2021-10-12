@@ -83,6 +83,7 @@ interface ExtendedAgentReplyRecord extends AgentReplyRecord {
 }
 
 interface InferenceTimeDialogueOptions {
+    conversationId : string;
     nlu ?: ParserClient.ParserClient,
     nlg ?: ParserClient.ParserClient,
     executor : AbstractThingTalkExecutor,
@@ -329,7 +330,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         const cnt = _cnt++;
         this._policyRunning = true;
         if (this._debug >= LogLevel.INFO)
-            console.log(`Starting policy (iteration ${cnt})`);
+            console.log(`Starting policy (conversation ${this._options.conversationId}, iteration ${cnt}, startMode: ${PolicyStartMode[startMode]})`);
         try {
             await this._policy.policy(this._dlg, startMode);
         } catch(e) {
@@ -342,28 +343,35 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         if (this._nextReply)
             this._nextReply.finished = true;
         if (this._debug >= LogLevel.INFO)
-            console.log(`Policy finished (${cnt})`);
+            console.log(`Policy finished (conversation ${this._options.conversationId}, iteration ${cnt})`);
         this._policyRunning = false;
         await this._sendReply(null, false);
     }
 
     getState() : string {
+        if (!this._dlg)
+            throw new Error(`Not initialized`);
         return this._dlg.state ? this._dlg.state.prettyprint() : 'null';
     }
 
     async reset() : Promise<void> {
-        // if we're already running a policy, cancel it with a terminated dialogue error
-        // (which will bubble up) and wait until the continue promise is reset to null
-        if (this._policyRunning) {
-            const promise = this._waitReply();
-            this._commandQueue.cancelWait(new TerminatedDialogueError());
-            await promise;
-            assert(this._continuePromise === null);
-            assert(!this._policyRunning);
-        }
+        await this.terminate();
 
         this._dlg.state = null;
         this._runPolicy(PolicyStartMode.NO_WELCOME);
+    }
+
+    async terminate() : Promise<void> {
+        if (!this._policyRunning)
+            return;
+
+        // if we're running a policy, cancel it with a terminated dialogue error
+        // (which will bubble up) and wait until the continue promise is reset to null
+        const promise = this._waitReply();
+        this._commandQueue.cancelWait(new TerminatedDialogueError());
+        await promise;
+        assert(this._continuePromise === null);
+        assert(!this._policyRunning);
     }
 
     analyzeCommand(command : UserInput) {
@@ -416,7 +424,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             finished = this._nextReply.finished;
         } else {
             if (this._debug >= LogLevel.INFO)
-                console.log(`Agent did not produce a reply in-between calls to get()`);
+                console.log(`Agent did not produce a reply at this turn (conversation ${this._options.conversationId})`);
             context = '';
             agent_target = '';
             finished = false;

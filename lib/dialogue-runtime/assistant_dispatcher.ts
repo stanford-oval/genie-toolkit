@@ -150,6 +150,9 @@ export default class AssistantDispatcher extends events.EventEmitter {
     }
     async stop() {
         this._dynamicNotificationBackends.stop();
+        await this._notificationFormatter.terminate();
+        await Promise.all(Array.from(this._conversations.values()).map((conv) => conv.stop()));
+        this._conversations.clear();
     }
 
     /**
@@ -316,6 +319,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
     }
 
     async getOrOpenConversation(id : string, options : ConversationOptions, state ?: ConversationState) {
+        console.log('getOrOpenConversation', id);
         if (this._conversations.has(id))
             return this._conversations.get(id)!;
         options = options || {};
@@ -328,6 +332,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
     }
 
     openConversation(id : string, options : ConversationOptions) {
+        console.log('openConversation', id);
         this._conversations.delete(id);
         options = options || {};
         if (!options.nluServerUrl)

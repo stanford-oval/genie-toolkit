@@ -15,7 +15,7 @@
 // limitations under the License.
 
 import assert from 'assert';
-import { MessageType } from '../../lib/dialogue-agent/protocol';
+import { MessageType } from '../../lib/dialogue-runtime/protocol';
 
 export default async function testConversationState(engine) {
     const conversationId = 'mock';

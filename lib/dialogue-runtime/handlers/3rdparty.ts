@@ -109,6 +109,10 @@ export default class ThingpediaDialogueHandler<AnalysisType extends Tp.DialogueH
         await this._iface.reset();
     }
 
+    async terminate() : Promise<void> {
+
+    }
+
     async analyzeCommand(command : UserInput) : Promise<AnalysisTypeAdapter<AnalysisType>> {
         if (command.type !== 'command') {
             return {

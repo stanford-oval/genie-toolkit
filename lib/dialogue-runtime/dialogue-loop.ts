@@ -106,6 +106,7 @@ export interface DialogueHandler<AnalysisType extends CommandAnalysisResult, Sta
     initialize(initialState : StateType|undefined, showWelcome : boolean) : Promise<ReplyResult|null>;
     getState() : StateType;
     reset() : Promise<void>;
+    terminate() : Promise<void>;
 
     analyzeCommand(command : UserInput) : Promise<AnalysisType>;
     getReply(command : AnalysisType) : Promise<ReplyResult>;
@@ -162,6 +163,7 @@ export class DialogueLoop {
             undefined, engine.thingpedia);
         this._nlg = ParserClient.get(options.nlgServerUrl || undefined, engine.platform.locale, engine.platform);
         this._thingtalkHandler = new ThingTalkDialogueHandler({
+            conversationId: conversation.id,
             thingpediaClient: engine.thingpedia,
             schemaRetriever: engine.schemas,
             locale: engine.platform.locale,
@@ -514,17 +516,12 @@ export class DialogueLoop {
     async stop() {
         this._stopped = true;
 
-        // wait until the dialog is ready to accept commands, then inject
-        // a cancellation error
+        // wait until the dialog is ready to accept commands, then terminate
         await this._mgrPromise;
         assert(this._mgrPromise === null);
 
-        if (this._isInDefaultState())
-            this._notifyQueue.cancelWait(new CancellationError());
-        else
-            this._userInputQueue.cancelWait(new CancellationError());
-
         this._dynamicHandlers.stop();
+        await Promise.all(Array.from(this._iterateDialogueHandlers()).map((handler) => handler.terminate()));
         await this._nlu.stop();
         await this._nlg.stop();
     }

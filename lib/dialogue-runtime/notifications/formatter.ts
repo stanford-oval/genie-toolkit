@@ -51,6 +51,7 @@ export default class NotificationFormatter {
             async sendNewProgram() {}
         }, false);
         this._dlg = new InferenceTimeDialogue({
+            conversationId: 'notification',
             thingpediaClient: engine.thingpedia,
             schemaRetriever: engine.schemas,
             locale: engine.platform.locale,
@@ -67,6 +68,10 @@ export default class NotificationFormatter {
 
     async initialize() {
         await this._dlg.initialize(undefined, false);
+    }
+
+    async terminate() {
+        await this._dlg.terminate();
     }
 
     async formatNotification(appName : string|null, program : ThingTalk.Ast.Program, outputType : string, outputValue : Record<string, unknown>) : Promise<Tp.FormatObjects.FormattedObject[]> {

@@ -81,6 +81,8 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
     }
     async reset() : Promise<void> {
     }
+    async terminate() : Promise<void> {
+    }
 
     async analyzeCommand(command : UserInput) : Promise<FAQCommandAnalysisType> {
         if (command.type !== 'command')
