@@ -465,24 +465,24 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
 
         let value : Ast.Value|null = null;
         switch (variable) {
-            case '$context.location.current_location': {
-                const location = await this._tryGetCurrentLocation();
-                if (location)
-                    value = new Ast.Value.Location(location);
-                else
-                    value = this._tryGetStoredVariable(Type.Location, variable);
-                break;
-            }
-            case '$context.location.home':
-            case '$context.location.work':
+        case '$context.location.current_location': {
+            const location = await this._tryGetCurrentLocation();
+            if (location)
+                value = new Ast.Value.Location(location);
+            else
                 value = this._tryGetStoredVariable(Type.Location, variable);
-                break;
-            case '$context.time.morning':
-            case '$context.time.evening':
-                value = this._tryGetStoredVariable(Type.Time, variable);
-                break;
-            default:
-                throw new TypeError('Invalid variable ' + variable);
+            break;
+        }
+        case '$context.location.home':
+        case '$context.location.work':
+            value = this._tryGetStoredVariable(Type.Location, variable);
+            break;
+        case '$context.time.morning':
+        case '$context.time.evening':
+            value = this._tryGetStoredVariable(Type.Time, variable);
+            break;
+        default:
+            throw new TypeError('Invalid variable ' + variable);
         }
         if (value !== null)
             return value;

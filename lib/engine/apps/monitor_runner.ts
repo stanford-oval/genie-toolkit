@@ -33,9 +33,9 @@ import type DeviceView from '../devices/device_view';
 
 function extendParams(output : Record<string, unknown>, input : Record<string, unknown>) {
     for (const key in input) {
-         if (Object.prototype.hasOwnProperty.call(output, key))
-             continue;
-         output[key] = input[key];
+        if (Object.prototype.hasOwnProperty.call(output, key))
+            continue;
+        output[key] = input[key];
     }
 }
 

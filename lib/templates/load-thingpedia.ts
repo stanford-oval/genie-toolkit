@@ -341,7 +341,9 @@ export default class ThingpediaLoader {
             if (type instanceof Type.Enum) {
                 for (const entry of type.entries!) {
                     const value = new Ast.Value.Enum(entry);
-                    value.getType = function() { return type; };
+                    value.getType = function() {
+                        return type; 
+                    };
                     this._addRule('constant_' + typestr, [], ThingTalkUtils.clean(entry),
                         () => value, keyfns.valueKeyFn);
                 }
@@ -938,7 +940,7 @@ export default class ThingpediaLoader {
 
         const fromNonTermNames =
             grammarCat === 'action_past' ? ['ctx_current_query'] :
-            ['with_filtered_table', 'with_arg_min_max_table', 'projection_Any', 'stream_projection_Any'];
+                ['with_filtered_table', 'with_arg_min_max_table', 'projection_Any', 'stream_projection_Any'];
 
         // generate one rule for each possible parameter
         // in each rule, choose a different parameter to be replaced with a table
@@ -1399,7 +1401,7 @@ export default class ThingpediaLoader {
         this._entities[entityType] = typeRecord;
         if (typeRecord.subtype_of) {
             const subTypeOf = typeof
-                typeRecord.subtype_of === 'string' ? [typeRecord.subtype_of] : typeRecord.subtype_of;
+            typeRecord.subtype_of === 'string' ? [typeRecord.subtype_of] : typeRecord.subtype_of;
             this.entitySubTypeMap[entityType] = subTypeOf;
 
             // TODO this only supports a flat hierarchy

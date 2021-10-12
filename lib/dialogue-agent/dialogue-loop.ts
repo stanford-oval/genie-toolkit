@@ -252,7 +252,7 @@ export class DialogueLoop {
             const handlers = [...this._iterateDialogueHandlers()];
             const handlerCandidates = await Promise.all(handlers.map(async (handler) => {
                 const analysis = await handler.analyzeCommand(command);
-                return {handler: handler, analysis: analysis};
+                return { handler: handler, analysis: analysis };
             }));
 
             return pickHandler(this._currentHandler, handlerCandidates, command);
@@ -397,7 +397,7 @@ export class DialogueLoop {
                     await this.conversation.dialogueFinished();
                 } else {
                     if (item instanceof QueueItem.UserInput) {
-                        await this.replyInterp(this._("Sorry, I had an error processing your command: ${error}."), {//"
+                        await this.replyInterp(this._("Sorry, I had an error processing your command: ${error}."), { //"
                             error: this._formatError(e)
                         });
                     } else {
@@ -696,99 +696,99 @@ export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResu
         // console.log(`Handler ${handler.uniqueId} reports ${CommandAnalysisType[analysis.type]}`);
 
         switch (analysis.type) {
-            case CommandAnalysisType.STOP:
-            case CommandAnalysisType.DEBUG:
-            case CommandAnalysisType.NEVERMIND:
-            case CommandAnalysisType.WAKEUP:
-            case CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND:
+        case CommandAnalysisType.STOP:
+        case CommandAnalysisType.DEBUG:
+        case CommandAnalysisType.NEVERMIND:
+        case CommandAnalysisType.WAKEUP:
+        case CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND:
                 // choose if either
                 // - we're higher priority
                 // - we're more confident
-                if (best === undefined ||
+            if (best === undefined ||
                     (
                         bestconfidence < Confidence.ABSOLUTE ||
                         handler.priority > best.priority ||
                         (currentHandler === handler && handler.priority >= best.priority)
                     )) {
-                    best = handler;
-                    bestanalysis = analysis;
-                    bestconfidence = Confidence.ABSOLUTE;
-                }
-                break;
+                best = handler;
+                bestanalysis = analysis;
+                bestconfidence = Confidence.ABSOLUTE;
+            }
+            break;
 
-            case CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND:
+        case CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND:
                 // choose if either
                 // - we're higher priority
                 // - we're more confident
                 // - we're the current dialogue and we have the same priority
-                if (best === undefined ||
+            if (best === undefined ||
                     (
                         bestconfidence < Confidence.HIGH ||
                         (bestconfidence <= Confidence.HIGH && handler.priority > best.priority) ||
                         (bestconfidence <= Confidence.HIGH && handler.priority >= best.priority && currentHandler === handler)
                     )) {
-                    best = handler;
-                    bestanalysis = analysis;
-                    bestconfidence = Confidence.HIGH;
-                }
-                break;
+                best = handler;
+                bestanalysis = analysis;
+                bestconfidence = Confidence.HIGH;
+            }
+            break;
 
-            case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND:
+        case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND:
                 // choose if both:
                 // - we're higher priority (same if we're the current dialogue)
                 // - we're as confident
-                if (best === undefined ||
+            if (best === undefined ||
                     ((handler.priority > best.priority ||
                     (currentHandler === handler &&
                     handler.priority >= best.priority)) &&
                     bestconfidence <= Confidence.LOW)) {
-                    best = handler;
-                    bestanalysis = analysis;
-                    bestconfidence = Confidence.LOW;
-                }
-                break;
+                best = handler;
+                bestanalysis = analysis;
+                bestconfidence = Confidence.LOW;
+            }
+            break;
 
-            case CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP:
-                if (currentHandler === handler &&
+        case CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP:
+            if (currentHandler === handler &&
                     (
                         best === undefined ||
                         bestconfidence < Confidence.ABSOLUTE ||
                         handler.priority > best.priority
                     )) {
-                    best = handler;
-                    bestanalysis = analysis;
-                    bestconfidence = Confidence.ABSOLUTE;
-                }
-                break;
+                best = handler;
+                bestanalysis = analysis;
+                bestconfidence = Confidence.ABSOLUTE;
+            }
+            break;
 
-            case CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP:
+        case CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP:
                 // choose if handler is the current handler and either
                 // - we're same priority
                 // - we're more confident
-                if (currentHandler === handler &&
+            if (currentHandler === handler &&
                     (best === undefined ||
                     handler.priority >= best.priority ||
                     bestconfidence < Confidence.HIGH)) {
-                    best = handler;
-                    bestanalysis = analysis;
-                    bestconfidence = Confidence.HIGH;
-                }
-                break;
+                best = handler;
+                bestanalysis = analysis;
+                bestconfidence = Confidence.HIGH;
+            }
+            break;
 
-            case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_FOLLOWUP:
+        case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_FOLLOWUP:
                 // choose if handler is the current handler and either
                 // - we're same priority
                 // - we're as confident
-                if (currentHandler === handler &&
+            if (currentHandler === handler &&
                     (best === undefined ||
                     (handler.priority >= best.priority && bestconfidence <= Confidence.LOW))) {
-                    best = handler;
-                    bestanalysis = analysis;
-                    bestconfidence = Confidence.HIGH;
-                }
-                break;
+                best = handler;
+                bestanalysis = analysis;
+                bestconfidence = Confidence.HIGH;
+            }
+            break;
 
-            default:
+        default:
             // ignore this handler, which decided the command is out of domain
         }
     }
@@ -798,5 +798,5 @@ export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResu
             bestanalysis ||
             { type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND,
               utterance: command.type === 'command' ? command.utterance : command.parsed.prettyprint(),
-              user_target: '$failed;'}];
+              user_target: '$failed;' }];
 }

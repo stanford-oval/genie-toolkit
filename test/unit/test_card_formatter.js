@@ -67,17 +67,17 @@ const TEST_CASES = [
           icon: 'http://example.com/sunny.png'
         },
     [{ type: 'text',
-        text: 'Current weather for Somewhere: sunny, temperature 21 C, wind speed 5 m/s, humidity 60%, cloudiness 0%, fog 0%.'}]
+        text: 'Current weather for Somewhere: sunny, temperature 21 C, wind speed 5 m/s, humidity 60%, cloudiness 0%, fog 0%.' }]
     ],
 
     ['org.thingpedia.builtin.thingengine.builtin:get_time',
-      {time: new Date(2018, 4, 24, 11, 4, 0) },
+      { time: new Date(2018, 4, 24, 11, 4, 0) },
     [{ type: 'text',
         text:  'Current time is 11:04:00 AM PDT.' }]
     ],
 
     ['org.thingpedia.builtin.thingengine.builtin:get_date',
-      {date: new Date(2018, 4, 24, 11, 4, 0) },
+      { date: new Date(2018, 4, 24, 11, 4, 0) },
     [{ type: 'text',
         text:  'Today is Thursday, May 24, 2018.' }]
     ],

@@ -31,7 +31,7 @@ const _rssFactory = {
     "category":"online",
     "kind":"org.thingpedia.rss",
     "text":"RSS Feed",
-    "fields":[{"name":"url","label":"Feed URL","type":"text"}]
+    "fields":[{ "name":"url","label":"Feed URL","type":"text" }]
 };
 
 export default class MockThingpediaClient extends Tp.BaseClient {
@@ -82,37 +82,37 @@ export default class MockThingpediaClient extends Tp.BaseClient {
         if (entityType === 'tt:cryptocurrency_code') {
             if (entityDisplay === 'bitcoin') {
                 const array = [
-                    {"type":"tt:cryptocurrency_code","value":"bca","canonical":"bitcoin atom","name":"Bitcoin Atom"},
-                    {"type":"tt:cryptocurrency_code","value":"bcd","canonical":"bitcoin diamond","name":"Bitcoin Diamond"},
-                    {"type":"tt:cryptocurrency_code","value":"bcf","canonical":"bitcoin fast","name":"Bitcoin Fast"},
-                    {"type":"tt:cryptocurrency_code","value":"bch","canonical":"bitcoin cash","name":"Bitcoin Cash"},
-                    {"type":"tt:cryptocurrency_code","value":"bit","canonical":"first bitcoin","name":"First Bitcoin"},
-                    {"type":"tt:cryptocurrency_code","value":"bitg","canonical":"bitcoin green","name":"Bitcoin Green"},
-                    {"type":"tt:cryptocurrency_code","value":"btc","canonical":"bitcoin","name":"Bitcoin"},
-                    {"type":"tt:cryptocurrency_code","value":"btcp","canonical":"bitcoin private","name":"Bitcoin Private"},
-                    {"type":"tt:cryptocurrency_code","value":"btcs","canonical":"bitcoin scrypt","name":"Bitcoin Scrypt"},
-                    {"type":"tt:cryptocurrency_code","value":"btpl","canonical":"bitcoin planet","name":"Bitcoin Planet"},
-                    {"type":"tt:cryptocurrency_code","value":"god","canonical":"bitcoin god","name":"Bitcoin God"},
-                    {"type":"tt:cryptocurrency_code","value":"sbtc","canonical":"super bitcoin","name":"Super Bitcoin"},
-                    {"type":"tt:cryptocurrency_code","value":"ubtc","canonical":"united bitcoin","name":"United Bitcoin"},
-                    {"type":"tt:cryptocurrency_code","value":"xbc","canonical":"bitcoin plus","name":"Bitcoin Plus"},
-                    {"type":"tt:cryptocurrency_code","value":"xbtc21","canonical":"bitcoin 21","name":"Bitcoin 21"}
+                    { "type":"tt:cryptocurrency_code","value":"bca","canonical":"bitcoin atom","name":"Bitcoin Atom" },
+                    { "type":"tt:cryptocurrency_code","value":"bcd","canonical":"bitcoin diamond","name":"Bitcoin Diamond" },
+                    { "type":"tt:cryptocurrency_code","value":"bcf","canonical":"bitcoin fast","name":"Bitcoin Fast" },
+                    { "type":"tt:cryptocurrency_code","value":"bch","canonical":"bitcoin cash","name":"Bitcoin Cash" },
+                    { "type":"tt:cryptocurrency_code","value":"bit","canonical":"first bitcoin","name":"First Bitcoin" },
+                    { "type":"tt:cryptocurrency_code","value":"bitg","canonical":"bitcoin green","name":"Bitcoin Green" },
+                    { "type":"tt:cryptocurrency_code","value":"btc","canonical":"bitcoin","name":"Bitcoin" },
+                    { "type":"tt:cryptocurrency_code","value":"btcp","canonical":"bitcoin private","name":"Bitcoin Private" },
+                    { "type":"tt:cryptocurrency_code","value":"btcs","canonical":"bitcoin scrypt","name":"Bitcoin Scrypt" },
+                    { "type":"tt:cryptocurrency_code","value":"btpl","canonical":"bitcoin planet","name":"Bitcoin Planet" },
+                    { "type":"tt:cryptocurrency_code","value":"god","canonical":"bitcoin god","name":"Bitcoin God" },
+                    { "type":"tt:cryptocurrency_code","value":"sbtc","canonical":"super bitcoin","name":"Super Bitcoin" },
+                    { "type":"tt:cryptocurrency_code","value":"ubtc","canonical":"united bitcoin","name":"United Bitcoin" },
+                    { "type":"tt:cryptocurrency_code","value":"xbc","canonical":"bitcoin plus","name":"Bitcoin Plus" },
+                    { "type":"tt:cryptocurrency_code","value":"xbtc21","canonical":"bitcoin 21","name":"Bitcoin 21" }
                 ];
                 return {
                     data: array,
-                    meta: {"name":"Cryptocurrency Code","has_ner_support":1,"is_well_known":0}
+                    meta: { "name":"Cryptocurrency Code","has_ner_support":1,"is_well_known":0 }
                 };
             } else if (entityDisplay === 'btc') {
                 return {
                     data: [
-                        {"type":"tt:cryptocurrency_code","value":"btc","canonical":"bitcoin","name":"Bitcoin"},
+                        { "type":"tt:cryptocurrency_code","value":"btc","canonical":"bitcoin","name":"Bitcoin" },
                     ],
-                    meta: {"name":"Cryptocurrency Code","has_ner_support":1,"is_well_known":0}
+                    meta: { "name":"Cryptocurrency Code","has_ner_support":1,"is_well_known":0 }
                 };
             } else if (entityDisplay === 'invalid') {
                 return {
                     data: [],
-                    meta: {"name":"Cryptocurrency Code","has_ner_support":1,"is_well_known":0}
+                    meta: { "name":"Cryptocurrency Code","has_ner_support":1,"is_well_known":0 }
                 };
             } else {
                 // unreachable test case
@@ -122,15 +122,15 @@ export default class MockThingpediaClient extends Tp.BaseClient {
             if (entityDisplay === 'italian') {
                 return {
                     data: [
-                        {"type":"com.yelp:restaurant_cuisine","value":"italian","canonical":"italian","name":"Italian"},
+                        { "type":"com.yelp:restaurant_cuisine","value":"italian","canonical":"italian","name":"Italian" },
                     ],
-                    meta: {"name":"Yelp Cuisine","has_ner_support":1,"is_well_known":0}
+                    meta: { "name":"Yelp Cuisine","has_ner_support":1,"is_well_known":0 }
                 };
             } else {
                 return {
                     data: [
                     ],
-                    meta: {"name":"Yelp Cuisine","has_ner_support":1,"is_well_known":0}
+                    meta: { "name":"Yelp Cuisine","has_ner_support":1,"is_well_known":0 }
                 };
             }
         } else {
@@ -230,25 +230,25 @@ export default class MockThingpediaClient extends Tp.BaseClient {
         const ret = {};
         for (const k of kinds) {
             if (k === 'messaging' || k === 'org.thingpedia.builtin.matrix')
-                ret[k] = {type:'interactive',category:'online', kind:'org.thingpedia.builtin.matrix', name:"Matrix Account"};
+                ret[k] = { type:'interactive',category:'online', kind:'org.thingpedia.builtin.matrix', name:"Matrix Account" };
             else if (k === 'com.lg.tv.webos2')
-                ret[k] = {type: 'discovery', discoveryType: 'upnp', text: 'LG WebOS TV'};
+                ret[k] = { type: 'discovery', discoveryType: 'upnp', text: 'LG WebOS TV' };
             else if (k === 'org.thingpedia.builtin.bluetooth.generic')
-                ret[k] = {type: 'discovery', discoveryType: 'bluetooth', text: 'Generic Bluetooth Device'};
+                ret[k] = { type: 'discovery', discoveryType: 'bluetooth', text: 'Generic Bluetooth Device' };
             else if (k === 'com.tumblr.blog')
-                ret[k] = {type: 'multiple', choices: [{ type: 'oauth2', kind: 'com.tumblr', text: "Tumblr Account" }, { type: 'form', kind: 'com.tumblr2', text: 'Some other Tumblr Thing' }]};
+                ret[k] = { type: 'multiple', choices: [{ type: 'oauth2', kind: 'com.tumblr', text: "Tumblr Account" }, { type: 'form', kind: 'com.tumblr2', text: 'Some other Tumblr Thing' }] };
             else if (k === 'com.instagram')
-                ret[k] = {type: 'oauth2', kind: 'com.instagram', text: 'Instagram'};
+                ret[k] = { type: 'oauth2', kind: 'com.instagram', text: 'Instagram' };
             else if (k === 'org.thingpedia.iot.light-bulb')
-                ret[k] = {type: 'multiple', text: 'Light Bulb', choices: [{ type: 'oauth2', kind: 'io.home-assistant', text: 'Home Assistant'}, { type: 'discovery', discoveryType: 'upnp', kind: 'com.hue', text:'Philips Hue'}] };
+                ret[k] = { type: 'multiple', text: 'Light Bulb', choices: [{ type: 'oauth2', kind: 'io.home-assistant', text: 'Home Assistant' }, { type: 'discovery', discoveryType: 'upnp', kind: 'com.hue', text:'Philips Hue' }] };
             else if (k === 'org.thingpedia.iot.door')
-                ret[k] = {type: 'oauth2', kind: 'io.home-assistant', text: 'Home Assistant'};
+                ret[k] = { type: 'oauth2', kind: 'io.home-assistant', text: 'Home Assistant' };
             else if (k === 'org.thingpedia.rss')
                 ret[k] = _rssFactory;
             else if (k === 'org.thingpedia.builtin.thingengine.home' || k === 'car')
-                ret[k] = {type: 'multiple', choices: [] };
+                ret[k] = { type: 'multiple', choices: [] };
             else
-                ret[k] = {type:'none',kind:k,text: k};
+                ret[k] = { type:'none',kind:k,text: k };
         }
         return ret;
     }

@@ -23,16 +23,16 @@ import assert from 'assert';
 import * as constants from '../../lib/dialogue-agent/dialogue-loop';
 import { pickHandler } from '../../lib/dialogue-agent/dialogue-loop';
 
-const thingtalk = {uniqueId: 'thingtalk', priority: 2};
-const bing = {uniqueId: 'bing', priority: 1};
+const thingtalk = { uniqueId: 'thingtalk', priority: 2 };
+const bing = { uniqueId: 'bing', priority: 1 };
 
 const TEST_CASES = [
     // #1
     [
         null,
         [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } }
         ],
         'thingtalk'
     ],
@@ -41,8 +41,8 @@ const TEST_CASES = [
     [
          null,
          [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } }
          ],
          'thingtalk'
     ],
@@ -51,8 +51,8 @@ const TEST_CASES = [
     [
          null,
          [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } }
          ],
          'bing'
     ],
@@ -61,8 +61,8 @@ const TEST_CASES = [
     [
          null,
          [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } }
          ],
          'thingtalk'
     ],
@@ -71,8 +71,8 @@ const TEST_CASES = [
     [
         null,
         [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } }
         ],
         'bing'
     ],
@@ -81,8 +81,8 @@ const TEST_CASES = [
     [
         null,
         [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND } }
         ],
         'thingtalk'
     ],
@@ -91,8 +91,8 @@ const TEST_CASES = [
     [
         null,
         [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND } }
         ],
         'thingtalk'
     ],
@@ -101,8 +101,8 @@ const TEST_CASES = [
     [
         null,
         [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND } }
         ],
         'thingtalk'
     ],
@@ -111,8 +111,8 @@ const TEST_CASES = [
     [
         null,
         [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } }
         ],
         'bing'
     ],
@@ -121,8 +121,8 @@ const TEST_CASES = [
     [
         thingtalk,
         [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP } }
         ],
         'thingtalk'
     ],
@@ -131,8 +131,8 @@ const TEST_CASES = [
     [
         thingtalk,
         [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP } }
         ],
         'thingtalk'
     ],
@@ -141,8 +141,8 @@ const TEST_CASES = [
     [
         thingtalk,
         [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP } }
         ],
         'thingtalk'
     ],
@@ -151,8 +151,8 @@ const TEST_CASES = [
     [
         thingtalk,
         [
-            {handler: thingtalk, analysis: {type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP}},
-            {handler: bing, analysis: {type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP}}
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP } }
         ],
         'thingtalk'
     ],
@@ -163,17 +163,17 @@ async function test(i, reverse=false) {
     if (reverse)
         console.log('Test Case # %d [reverse]', (i+1));
     else
-    console.log('Test Case #' + (i+1));
+        console.log('Test Case #' + (i+1));
     let [currentHandler, testCase, expected] = TEST_CASES[i];
     const best = undefined;
     const bestanalysis = undefined;
     if (reverse)
         testCase.reverse();
     const [handler, analysis] = pickHandler(currentHandler,
-                                            testCase,
-                                            best,
-                                            bestanalysis,
-                                            constants.Confidence.NO);
+        testCase,
+        best,
+        bestanalysis,
+        constants.Confidence.NO);
     console.log("handler: %O | analysis: %O", handler, analysis);
     assert.strictEqual(handler.uniqueId, expected);
 }

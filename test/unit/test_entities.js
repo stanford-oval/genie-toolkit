@@ -91,7 +91,7 @@ async function main() {
 
     for (let i = 0; i < TEST_CASES.length; i++) {
         let [entityType, searchTerm, expectedValue, expectedDisplay] = TEST_CASES[i];
-        const {data:candidates} = await _thingpediaClient.lookupEntity(entityType, searchTerm);
+        const { data:candidates } = await _thingpediaClient.lookupEntity(entityType, searchTerm);
 
         if (candidates.length === 0) {
             if (expectedValue === null && expectedDisplay === 0)

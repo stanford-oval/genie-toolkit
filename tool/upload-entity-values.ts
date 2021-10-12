@@ -78,7 +78,7 @@ function createUpload(args : any) {
         } else if (args.json) {
             const json = JSON.parse(fs.readFileSync(args.json, 'utf8'));
             const csv = json.data.map((row : { value : string, name : string }) => [row.value, row.name]);
-            const string = csvstringify(csv, {delimiter: ','});
+            const string = csvstringify(csv, { delimiter: ',' });
             fd.append('upload', string, {
                 filename: 'entity.csv',
                 contentType: 'text/csv;charset=utf8'

@@ -70,7 +70,7 @@ export function makeId(ex : Example) : string {
         return ex.id;
 
     let prefix = '';
-    for (const [flag, value] of Object.entries(flagsMap)){
+    for (const [flag, value] of Object.entries(flagsMap)) {
         if (ex.flags[value])
             prefix += flag;
     }

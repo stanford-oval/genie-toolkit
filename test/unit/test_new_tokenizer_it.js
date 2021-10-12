@@ -118,15 +118,15 @@ const TEST_CASES = [
     ['voglio il trecentoquindicimiladuesimo', 'voglio il 315002', 'voglio il 315002', {}],
 
     // currencies
-    ['costa $50', 'costa 50 usd', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' }}],
-    ['costa $ 50', 'costa 50 usd', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' }}],
-    ['costa $1,00', 'costa 1 usd', 'costa CURRENCY_0', { CURRENCY_0: { value: 1, unit: 'usd' }}],
-    ['costa $1.000', 'costa 1000 usd', 'costa CURRENCY_0', { CURRENCY_0: { value: 1000, unit: 'usd' }}],
-    ['costa C$50', 'costa 50 cad', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'cad' }}],
-    ['costa €50', 'costa 50 eur', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'eur' }}],
-    ['costa 50 dollari', 'costa 50 usd', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' }}],
-    ['costa 50 euro', 'costa 50 eur', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'eur' }}],
-    ['costa 50 yuan', 'costa 50 cny', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'cny' }}],
+    ['costa $50', 'costa 50 usd', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' } }],
+    ['costa $ 50', 'costa 50 usd', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' } }],
+    ['costa $1,00', 'costa 1 usd', 'costa CURRENCY_0', { CURRENCY_0: { value: 1, unit: 'usd' } }],
+    ['costa $1.000', 'costa 1000 usd', 'costa CURRENCY_0', { CURRENCY_0: { value: 1000, unit: 'usd' } }],
+    ['costa C$50', 'costa 50 cad', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'cad' } }],
+    ['costa €50', 'costa 50 eur', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'eur' } }],
+    ['costa 50 dollari', 'costa 50 usd', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' } }],
+    ['costa 50 euro', 'costa 50 eur', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'eur' } }],
+    ['costa 50 yuan', 'costa 50 cny', 'costa CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'cny' } }],
 
     // times
 

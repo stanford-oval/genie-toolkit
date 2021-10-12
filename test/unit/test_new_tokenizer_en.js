@@ -197,15 +197,15 @@ const TEST_CASES = [
     ['i want the three hundred fifteen thousand and second', 'i want the 315002nd', 'i want the 315002nd', {}],
 
     // currencies
-    ['it costs $50', 'it costs 50 usd', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' }}],
-    ['it costs $ 50', 'it costs 50 usd', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' }}],
-    ['it costs $1,000', 'it costs 1000 usd', 'it costs CURRENCY_0', { CURRENCY_0: { value: 1000, unit: 'usd' }}],
-    ['it costs C$50', 'it costs 50 cad', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'cad' }}],
-    ['it costs €50', 'it costs 50 eur', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'eur' }}],
-    ['it costs 50 dollars', 'it costs 50 usd', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' }}],
-    ['it costs 50 bucks', 'it costs 50 usd', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' }}],
-    ['it costs 50 euro', 'it costs 50 eur', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'eur' }}],
-    ['it costs 50 yuan', 'it costs 50 cny', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'cny' }}],
+    ['it costs $50', 'it costs 50 usd', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' } }],
+    ['it costs $ 50', 'it costs 50 usd', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' } }],
+    ['it costs $1,000', 'it costs 1000 usd', 'it costs CURRENCY_0', { CURRENCY_0: { value: 1000, unit: 'usd' } }],
+    ['it costs C$50', 'it costs 50 cad', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'cad' } }],
+    ['it costs €50', 'it costs 50 eur', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'eur' } }],
+    ['it costs 50 dollars', 'it costs 50 usd', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' } }],
+    ['it costs 50 bucks', 'it costs 50 usd', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'usd' } }],
+    ['it costs 50 euro', 'it costs 50 eur', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'eur' } }],
+    ['it costs 50 yuan', 'it costs 50 cny', 'it costs CURRENCY_0', { CURRENCY_0: { value: 50, unit: 'cny' } }],
 
     // times
 

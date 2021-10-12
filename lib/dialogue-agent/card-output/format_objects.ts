@@ -293,7 +293,7 @@ class Text extends BaseFormattedObject implements Tp.FormatObjects.Text {
 /**
  * A button that triggers a pre-parsed command.
  */
- export class Button extends BaseFormattedObject implements Tp.FormatObjects.Button {
+export class Button extends BaseFormattedObject implements Tp.FormatObjects.Button {
     type : 'button';
     title : string;
     json : string;

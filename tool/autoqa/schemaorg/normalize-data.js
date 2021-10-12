@@ -406,10 +406,10 @@ class Normalizer {
 
                         // add a type and hope for the best
                         if (typeof value.type === 'string' && value.type) {
-                             nestedtype = value['@type'] = value.type;
-                             delete value.type;
+                            nestedtype = value['@type'] = value.type;
+                            delete value.type;
                         } else {
-                             nestedtype = value['@type'] = expectedType.type;
+                            nestedtype = value['@type'] = expectedType.type;
                         }
                     }
                     this._applyPropertyRenames(value);

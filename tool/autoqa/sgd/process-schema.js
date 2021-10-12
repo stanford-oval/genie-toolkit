@@ -107,7 +107,7 @@ class SchemaProcessor {
                     type,
                     annotations: {
                         nl: { canonical },
-                        impl: { description: new Ast.Value.String(slot.description)}
+                        impl: { description: new Ast.Value.String(slot.description) }
                     }
                 };
                 if (type.isString) {
@@ -136,8 +136,7 @@ class SchemaProcessor {
                     let annotations = slots[arg].annotations;
                     if (functionType === 'action') {
                         args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.IN_REQ, arg, type, annotations));
-                    }
-                    else {
+                    } else {
                         // all query parameters are out parameters for now
                         args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, arg, type, annotations));
                     }
@@ -147,8 +146,7 @@ class SchemaProcessor {
                     let annotations = slots[arg].annotations;
                     if (functionType === 'action') {
                         args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, arg, type, annotations));
-                    }
-                    else {
+                    } else {
                         // all query parameters are out parameters for now
                         args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, arg, type, annotations));
                     }
@@ -167,10 +165,10 @@ class SchemaProcessor {
                 let functionDef = new Ast.FunctionDef(null, functionType, null, name, null, {
                         is_list: true,
                         is_monitorable: false,
-                    }, args, {
+                }, args, {
                         nl: { canonical: clean(intent.name), confirmation: clean(intent.name) },
                         impl: { description: new Ast.Value.String(intent.description) }
-                    });
+                });
                 if (functionType === 'query')
                     queries[name] = functionDef;
                 else

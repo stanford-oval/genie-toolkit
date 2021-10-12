@@ -141,20 +141,20 @@ class Timer extends BaseTimer {
         // Days of week are 0-indexed, starting from Sunday
         const base_day = new Date(this._base).getDay();
         switch (frequency) {
-            case 2:
-                return [base_day, (base_day + 4) % 7];
-            case 3:
-                return [1, 3, 5];
-            case 4:
-                return [1, 2, 4, 5];
-            case 5:
-                return [1, 2, 3, 4, 5];
-            case 6:
-                return [1, 2, 3, 4, 5, 6];
-            case 7:
-                return [0, 1, 2, 3, 4, 5, 6];
-            default:
-                throw new Error("Invalid frequency for _splitWeek");
+        case 2:
+            return [base_day, (base_day + 4) % 7];
+        case 3:
+            return [1, 3, 5];
+        case 4:
+            return [1, 2, 4, 5];
+        case 5:
+            return [1, 2, 3, 4, 5];
+        case 6:
+            return [1, 2, 3, 4, 5, 6];
+        case 7:
+            return [0, 1, 2, 3, 4, 5, 6];
+        default:
+            throw new Error("Invalid frequency for _splitWeek");
         }
     }
 
@@ -186,17 +186,14 @@ class Timer extends BaseTimer {
         if (frequency === 0) { // End timer because it will never execute
             this.end();
             return 0;
-        }
-        else if ((this._interval / frequency) < 2000) {
+        } else if ((this._interval / frequency) < 2000) {
             throw new Error(`Timer with total interval ${this._interval} and frequency ${this._frequency} will have intervals of ${this._interval / this._frequency}. Minimum interval is 2 seconds.`);
-        }
-        // Special case if interval is 1 day
-        else if (this._interval === DAY) {
+        } else if (this._interval === DAY) {
+            // Special case if interval is 1 day
             const timings = this._splitDay(frequency);
             nextTiming = this._getEarliest(Math.max(now, base), timings);
-        }
-        // Special case if interval is 1 week
-        else if (this._interval === WEEK) {
+        } else if (this._interval === WEEK) {
+            // Special case if interval is 1 week
             if (base > now) {
                 nextTiming = base;
             } else if (frequency === 1) {
@@ -213,15 +210,14 @@ class Timer extends BaseTimer {
                 }
                 if (nextTiming < now)
                     nextTiming = this._setDay(now + WEEK, days[0]);
-                    nextTiming = this._setTimems(nextTiming, baseTime);
+                nextTiming = this._setTimems(nextTiming, baseTime);
             } else {
                 // Simple divide
                 interval /= frequency;
                 nextTiming = Math.round(now + interval - ((now - base) % interval));
             }
-        }
-        // Otherwise, just try to call at consistent times
-        else if (this._interval > DAY) {
+        } else if (this._interval > DAY) {
+            // Otherwise, just try to call at consistent times
             if (base > now) {
                 nextTiming = base;
             } else if (frequency <= (this._interval / DAY)) {
@@ -237,9 +233,8 @@ class Timer extends BaseTimer {
                 interval /= frequency;
                 nextTiming = Math.round(now + interval - ((now - base) % interval));
             }
-        }
-        // Just do simple divide if interval is less than a day
-        else if (this._interval < DAY) {
+        } else if (this._interval < DAY) {
+            // Just do simple divide if interval is less than a day
             if (base > now) {
                 nextTiming = base;
             } else {

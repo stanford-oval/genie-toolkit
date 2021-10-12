@@ -99,7 +99,7 @@ function getTableArgMinMax(table : Ast.Expression) : [string, string]|null {
         const { base, limit } = table;
         if (base instanceof Ast.Value.Number && (base.value === 1 || base.value === -1) &&
             limit instanceof Ast.Value.Number && limit.value === 1)
-        return [getSortName(table.expression.value), base.value === -1 ? invertDirection(table.expression.direction) : table.expression.direction];
+            return [getSortName(table.expression.value), base.value === -1 ? invertDirection(table.expression.direction) : table.expression.direction];
     }
 
     return null;
@@ -1660,8 +1660,8 @@ export function getAgentContextPhrases(ctx : ContextInfo) : SentenceGeneratorTyp
                 description = description.constrain('plural', 'other');
             if (description !== null) {
                 phrases.push(makeExpressionContextPhrase(ctx,
-                                                         contextTable.ctx_current_query, lastQuery,
-                                                         description));
+                    contextTable.ctx_current_query, lastQuery,
+                    description));
             }
         }
 

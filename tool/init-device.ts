@@ -61,7 +61,7 @@ export async function execute(args : any) {
     await pfs.mkdir(args.class_name);
 
     await pfs.writeFile(path.resolve(args.class_name, 'manifest.tt'),
-`class @${args.class_name}
+        `class @${args.class_name}
 #_[name="${args.name || args.class_name}"]
 #_[description="${args.description}"]
 #_[thingpedia_name="${args.name || args.class_name}"]
@@ -75,7 +75,7 @@ import config from @org.thingpedia.config.none();
 `);
 
     await pfs.writeFile(path.resolve(args.class_name, 'dataset.tt'),
-`dataset @${args.class_name} {
+        `dataset @${args.class_name} {
 }
 `);
 
@@ -96,7 +96,7 @@ import config from @org.thingpedia.config.none();
         }));
 
         await pfs.writeFile(path.resolve(args.class_name, 'index.js'),
-`// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+            `// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of ${args.class_name}
 //
@@ -117,7 +117,7 @@ module.exports = class extends Tp.BaseDevice {
     await execCommand(['git', 'add', args.class_name], { debug: true, });
 
     await pfs.writeFile(`test/unit/${args.class_name}.js`,
-`// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+        `// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // Copyright ${(new Date).getFullYear()} ${packageInfo.author}
 //

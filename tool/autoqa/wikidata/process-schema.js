@@ -224,7 +224,7 @@ class SchemaProcessor {
 
     _addEntity(type, name, has_ner_support) {
         if (!this._entities.some((entity) => entity.type === type))
-            this._entities.push({ type, name, is_well_known: false, has_ner_support});
+            this._entities.push({ type, name, is_well_known: false, has_ner_support });
     }
 
     async run() {
@@ -259,7 +259,7 @@ class SchemaProcessor {
                     'id',
                     new Type.Entity(`org.wikidata:${snakecase(domainLabel)}`), {
                     nl: { canonical: { base: ['name'], passive_verb: ['named', 'called'] } }
-                })
+                    })
             ];
             this._addEntity(`org.wikidata:${snakecase(domainLabel)}`, titleCase(domainLabel), true);
             for (let property of properties) {

@@ -99,8 +99,8 @@ export default class GenieNLPTrainingJob extends BaseTrainingJob {
                 return;
             this.progress = parseFloat(match[1])/this._config.train_iterations;
             for (const metric of match[2].split(':')) {
-                 const [key, value] = metric.split('_');
-                 this.metrics[key] = parseFloat(value);
+                const [key, value] = metric.split('_');
+                this.metrics[key] = parseFloat(value);
             }
         } }, this);
         if (this._killed)

@@ -76,7 +76,7 @@ class Downloader {
         if (expectedType.type.startsWith('tt:Enum(')) {
             const enumerands = expectedType.type.substring('tt:Enum('.length, expectedType.type.length - 1).split(/,/g);
             const processed = cleanEnumValue(label);
-            if (!enumerands.includes(label)){
+            if (!enumerands.includes(label)) {
                 console.error(`Expected enumerated value ${enumerands.join(', ')} for ${arg}, got ${label}`);
                 return undefined;
             }
@@ -232,7 +232,7 @@ export async function execute(args) {
     await downloader.download();
 
     if (args.dialogue) {
-        const output = csvstringify({header: false, delimiter: '\t'});
+        const output = csvstringify({ header: false, delimiter: '\t' });
         output.pipe(fs.createWriteStream(path.resolve(args.output_dir, 'database-map.tsv')));
         for (let fn in downloader.database_map)
             output.write(downloader.database_map[fn]);

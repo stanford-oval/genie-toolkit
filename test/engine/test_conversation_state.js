@@ -19,7 +19,7 @@ import { MessageType } from '../../lib/dialogue-agent/protocol';
 
 export default async function testConversationState(engine) {
     const conversationId = 'mock';
-    const command = { type: MessageType.COMMAND, text: 'command'};
+    const command = { type: MessageType.COMMAND, text: 'command' };
 
     const conversation = await engine.assistant.getOrOpenConversation(conversationId, {
         showWelcome: false,
@@ -31,8 +31,8 @@ export default async function testConversationState(engine) {
     const id = state_0.history.length === 0 ? 1 : state_0.lastMessageId+2;
     /* const count = state_0.history.length + 2; */
 
-    await conversation.addMessage({type: MessageType.COMMAND, command});
-    await conversation.addMessage({type: MessageType.COMMAND, command});
+    await conversation.addMessage({ type: MessageType.COMMAND, command });
+    await conversation.addMessage({ type: MessageType.COMMAND, command });
 
     // conversation state should have two more messages
     const state_1 = await engine.assistant.getConversationState(conversationId);
@@ -49,7 +49,7 @@ export default async function testConversationState(engine) {
     /* assert.strictEqual(state_2.history.length, count); */
     assert.strictEqual(state_2.lastMessageId, id);
 
-    await conversation.addMessage({type: MessageType.COMMAND, command});
+    await conversation.addMessage({ type: MessageType.COMMAND, command });
     const state_3 = restored.getState();
     /* assert.strictEqual(state_3.history.length, count+1); */
     assert.strictEqual(state_3.lastMessageId, id+1);

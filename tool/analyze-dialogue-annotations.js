@@ -352,7 +352,7 @@ class DialogueAnalyzer extends Stream.Transform {
         let context = null;
         if (turn.intermediate_context) {
             context = await ThingTalkUtils.parse(turn.intermediate_context, this._options);
-        } else if (turn.context){
+        } else if (turn.context) {
             context = await ThingTalkUtils.parse(turn.context, this._options);
             // apply the agent prediction to the context to get the state of the dialogue before
             // the user speaks

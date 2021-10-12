@@ -20,7 +20,9 @@
 
 // all tests, in batch form
 
-process.on('unhandledRejection', (up) => { throw up; });
+process.on('unhandledRejection', (up) => {
+    throw up; 
+});
 
 process.env.TEST_MODE = '1';
 
@@ -29,7 +31,7 @@ import '../../lib/index';
 
 
 async function do_test(array) {
-    if (typeof array !== 'undefined' && array instanceof Array ){
+    if (typeof array !== 'undefined' && array instanceof Array ) {
         for (let fn of array) {
             console.log(`Running ${fn}`);
             await (await import(fn)).default();

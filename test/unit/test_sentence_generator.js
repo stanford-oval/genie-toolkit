@@ -19,7 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-process.on('unhandledRejection', (up) => { throw up; });
+process.on('unhandledRejection', (up) => {
+    throw up; 
+});
 
 import * as stream from 'stream';
 import * as seedrandom from 'seedrandom';

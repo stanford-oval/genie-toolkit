@@ -69,6 +69,6 @@ export async function execute(args : any) {
 
     args.output.end(JSON.stringify(JSON.parse(
         await Tp.Helpers.Http.get(url, { accept: 'application/json' })),
-        undefined, 2));
+    undefined, 2));
     await StreamUtils.waitFinish(args.output);
 }

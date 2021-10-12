@@ -73,7 +73,7 @@ function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping
                 found = substringIsFound(sequence, pluralised_substring, i);
             }
             if (!found) {
-                let article_added_substring = paramLangPack.addDefiniteArticle(substring. join(' ')).split(' ');
+                let article_added_substring = paramLangPack.addDefiniteArticle(substring.join(' ')).split(' ');
                 found = substringIsFound(sequence, article_added_substring, i);
                 // need to include the definitive article when requoting sentence
                 if (found)
@@ -116,7 +116,7 @@ function findSpanType(program, begin_index, end_index, string_number) {
     } else if ((program[begin_index-3] || '').startsWith('^^') && program[begin_index-4] === 'null') { // null ^^com.foo ( " ..., in new syntax
         spanType = getEntityType(program[begin_index-3]);
     } else if (doReplaceNumbers(program[begin_index])
-        && !((program[end_index+1] || '').startsWith('^^'))){
+        && !((program[end_index+1] || '').startsWith('^^'))) {
         // catch purely numeric postal_codes or phone_numbers
         if (string_number)
             spanType = 'QUOTED_STRING';
@@ -178,7 +178,7 @@ function createProgram(program, spansByProgramPos, entityRemap, ignoredProgramSp
         if (ENTITY_MATCH_REGEX.test(token)) {
             assert(entityRemap[token]);
             newProgram.push(entityRemap[token]);
-        } else if (doReplaceNumbers(token)){
+        } else if (doReplaceNumbers(token)) {
             const currentSpan = spansByProgramPos[programSpanIndex];
             if (!currentSpan || findSpanContaining(i, ignoredProgramSpans)) {
                 newProgram.push(token);
@@ -295,7 +295,7 @@ function getProgSpans(program, mode) {
             } else {
                 end_index = i;
                 span_type = findSpanType(program, begin_index, end_index, true);
-                let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
+                let prog_span = { begin: begin_index, end: end_index, span_type:span_type };
                 allProgSpans.push(prog_span);
             }
         } else if ((!in_string && doReplaceNumbers(token)) ||
@@ -303,7 +303,7 @@ function getProgSpans(program, mode) {
             begin_index = i;
             end_index = begin_index + 1;
             span_type = findSpanType(program, begin_index, end_index, false);
-            let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
+            let prog_span = { begin: begin_index, end: end_index, span_type:span_type };
             allProgSpans.push(prog_span);
         }
     }
@@ -338,7 +338,7 @@ function findSpanPositions(id, sentence, program, handle_heuristics, param_local
             if (SMALL_NUMBER_REGEX.test(substring) ||  // skip requoting "small" numbers that do not exist in the sentence
                 (mode === 'qpis' && ENTITY_MATCH_REGEX.test(substring)) // skip qpis ing entities that do not exist in the sentence
             ) {
-                ignoredProgramSpans.push({begin: begin_index, end: end_index, type: span_type});
+                ignoredProgramSpans.push({ begin: begin_index, end: end_index, type: span_type });
                 continue;
             } else {
                 let allFoundIndices = findSubstring(sentence, substring, spansBySentencePos, true /* allow overlapping */, handle_heuristics, param_locale);
@@ -408,8 +408,8 @@ function requoteSentence(id, context, sentence, program, mode, handle_heuristics
         return [sentence.join(' '), program.join(' ')];
 
     spansBySentencePos.sort((a, b) => {
-        const {begin:abegin, end:aend} = a;
-        const {begin:bbegin, end:bend} = b;
+        const { begin:abegin, end:aend } = a;
+        const { begin:bbegin, end:bend } = b;
         if (abegin < bbegin)
             return -1;
         if (bbegin < abegin)
@@ -423,7 +423,7 @@ function requoteSentence(id, context, sentence, program, mode, handle_heuristics
 
     let newSentence, newProgram, entityRemap;
 
-    if (mode === 'replace'){
+    if (mode === 'replace') {
         [newSentence, entityRemap] = createSentence(sentence, contextEntities, spansBySentencePos);
         newProgram = createProgram(program, spansByProgramPos, entityRemap, ignoredProgramSpans);
     } else if (mode === 'qpis') {
@@ -492,7 +492,7 @@ export async function execute(args) {
     }
 
     readAllLines(args.input_file)
-        .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true}))
+        .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
         .pipe(new Stream.Transform({
             objectMode: true,
             transform(ex, encoding, callback) {

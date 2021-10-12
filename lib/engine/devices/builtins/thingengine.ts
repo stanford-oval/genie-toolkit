@@ -120,8 +120,8 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
             return Tp.Availability.AVAILABLE;
         } else {
             return (this._syncManager.isConnected(this.address) ?
-                    Tp.Availability.AVAILABLE :
-                    Tp.Availability.OWNER_UNAVAILABLE);
+                Tp.Availability.AVAILABLE :
+                Tp.Availability.OWNER_UNAVAILABLE);
         }
     }
 }

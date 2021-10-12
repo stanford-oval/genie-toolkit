@@ -337,7 +337,7 @@ export async function execute(args : any) {
     });
 
     let parser = null;
-    if (args.nlu_server){
+    if (args.nlu_server) {
         parser = ParserClient.get(args.nlu_server, args.locale);
         await parser.start();
     }
@@ -345,19 +345,19 @@ export async function execute(args : any) {
     if (args.all_turns) {
         await StreamUtils.waitFinish(
             readAllLines(args.input_file, '====')
-            .pipe(new DialogueParser())
-            .pipe(new DialogueToPartialDialoguesStream()) // convert each dialogues to many partial dialogues
-            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale, args.timezone))
-            .pipe(new DialogueSerializer())
-            .pipe(args.output)
+                .pipe(new DialogueParser())
+                .pipe(new DialogueToPartialDialoguesStream()) // convert each dialogues to many partial dialogues
+                .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale, args.timezone))
+                .pipe(new DialogueSerializer())
+                .pipe(args.output)
         );
     } else {
         await StreamUtils.waitFinish(
             readAllLines(args.input_file, '====')
-            .pipe(new DialogueParser())
-            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale, args.timezone))
-            .pipe(new DialogueSerializer())
-            .pipe(args.output)
+                .pipe(new DialogueParser())
+                .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale, args.timezone))
+                .pipe(new DialogueSerializer())
+                .pipe(args.output)
         );
     }
 

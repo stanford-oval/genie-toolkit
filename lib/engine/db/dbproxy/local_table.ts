@@ -52,11 +52,11 @@ export default class LocalTable<RowType> {
 
     async insertOne(uniqueId : string, row : Omit<RowType, "uniqueId">) : Promise<void> {
         await Tp.Helpers.Http.post(`${this._baseUrl}/localtable/user_${this.name}/${encodeURIComponent(uniqueId)}`,
-                JSON.stringify(row), { dataContentType: 'application/json', auth: this._auth });
+            JSON.stringify(row), { dataContentType: 'application/json', auth: this._auth });
     }
 
     async deleteOne(uniqueId : string) : Promise<void> {
         await Tp.Helpers.Http.request(`${this._baseUrl}/localtable/user_${this.name}/${encodeURIComponent(uniqueId)}`,
-                'DELETE', null, { auth: this._auth });
+            'DELETE', null, { auth: this._auth });
     }
 }
