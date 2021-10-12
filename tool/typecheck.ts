@@ -89,12 +89,12 @@ class TypecheckStream extends Stream.Transform {
                 cache : Map<string, CacheEntry>,
                 cacheOut : Stream.Writable|undefined,
                 droppedOut : Stream.Writable,
-                args : { interactive : boolean, strict : boolean, locale : string, timezone : string, entity_id : boolean }) {
+                args : { interactive : boolean, strict : boolean, locale : string, timezone : string, include_entity_value : boolean }) {
         super({ objectMode: true });
 
         this._locale = args.locale;
         this._timezone = args.timezone;
-        this._includeEntityValue = args.entity_id;
+        this._includeEntityValue = args.include_entity_value;
         this._tpClient = tpClient;
         this._schemas = schemas;
         this._cache = cache;
@@ -343,9 +343,9 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 'almond is awesome',
         help: 'Random seed'
     });
-    parser.add_argument('--entity-id', {
+    parser.add_argument('--include-entity-value', {
         action: 'store_true',
-        help: "Include entity id in thingtalk",
+        help: "Include entity value in thingtalk",
         default: false
     });
 }

@@ -203,7 +203,7 @@ $(experiment)/csqa-train.tsv: $(experiment)/wikidata.tt $(csqa_dir)/train $(wiki
 	  --values $(experiment)/values.json \
 	  --types $(experiment)/types.json \
 	  --filtered-examples $(experiment)/train.json \
-	  $(if $(annotate_with_entity_id),--entity-id,) \
+	  $(if $(annotate_with_entity_id),--include-entity-value,) \
 	  $(if $(soft_match_id),--soft-match-id,) \
 
 $(experiment)/csqa-train-typechecked.tsv: $(experiment)/wikidata.tt $(experiment)/csqa-train.tsv
@@ -211,7 +211,7 @@ $(experiment)/csqa-train-typechecked.tsv: $(experiment)/wikidata.tt $(experiment
 	  -o $@ \
 	  --dropped $(experiment)/csqa-train-dropped.tsv \
 	  --thingpedia $(experiment)/wikidata.tt \
-	  $(if $(annotate_with_entity_id),--entity-id,) \
+	  $(if $(annotate_with_entity_id),--include-entity-value,) \
 	  $(experiment)/csqa-train.tsv
 
 $(experiment)/fewshot.tsv: $(experiment)/csqa-train-typechecked.tsv
@@ -224,7 +224,7 @@ $(experiment)/augmented.tsv : $(experiment)/manifest.tt $(experiment)/synthetic.
 	  --parameter-datasets $(experiment)/parameter-datasets.tsv \
 	  --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 60 --no-quote-paraphrasing-expand-factor 20 --quoted-fraction 0.0 \
 	  --debug --no-requotable \
-	  $(if $(annotate_with_entity_id),--entity-id,) \
+	  $(if $(annotate_with_entity_id),--include-entity-value,) \
 	  $(experiment)/synthetic.tsv $(if $(fewshot),$(experiment)/fewshot.tsv,)
 	mv $@.tmp $@
 
@@ -240,7 +240,7 @@ $(experiment)/csqa-valid.tsv: $(experiment)/wikidata.tt $(csqa_dir)/valid $(wiki
 	  --types $(experiment)/types.json \
 	  --filtered-examples $(experiment)/valid.json \
 	  $(if $(csqa_filter),--filter $(csqa_filter),) \
-	  $(if $(annotate_with_entity_id),--entity-id,) \
+	  $(if $(annotate_with_entity_id),--include-entity-value,) \
 	  $(if $(soft_match_id),--soft-match-id,) \
 
 $(experiment)/csqa-valid-typechecked.tsv: $(experiment)/wikidata.tt $(experiment)/csqa-valid.tsv
@@ -248,7 +248,7 @@ $(experiment)/csqa-valid-typechecked.tsv: $(experiment)/wikidata.tt $(experiment
 	  -o $@ \
 	  --dropped $(experiment)/csqa-valid-dropped.tsv \
 	  --thingpedia $(experiment)/wikidata.tt \
-	  $(if $(annotate_with_entity_id),--entity-id,) \
+	  $(if $(annotate_with_entity_id),--include-entity-value,) \
 	  $(experiment)/csqa-valid.tsv
 
 $(experiment)/eval/annotated.tsv: $(experiment)/csqa-valid-typechecked.tsv
@@ -296,7 +296,7 @@ evaluate: $(experiment)/models/${model}/best.pth $(experiment)/$(eval_set)/annot
 	  --min-complexity 1 \
 	  --max-complexity 3 \
 	  --ignore-entity-type \
-	  $(if $(annotate_with_entity_id),--entity-id,) \
+	  $(if $(annotate_with_entity_id),--include-entity-value,) \
 	  -o $(experiment)/$(eval_set)/$(model).results.tmp | tee $(experiment)/$(eval_set)/$(model).debug
 	mv $(experiment)/$(eval_set)/$(model).results.tmp $(experiment)/$(eval_set)/$(model).results
 

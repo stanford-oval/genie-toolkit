@@ -132,9 +132,9 @@ export function initArgparse(subparsers : argparse.SubParser) {
         dest: 'requotable',
         help: 'Allow the replacement of a parameter in the sentence and in the program to differ (making requoting impossible).',
     });
-    parser.add_argument('--entity-id', {
+    parser.add_argument('--include-entity-value', {
         action: 'store_true',
-        help: 'Keep entity id in thingtalk annotation.',
+        help: 'Keep entity value in thingtalk annotation.',
         default: false
     });
     parser.add_argument('--clean-parameters', {

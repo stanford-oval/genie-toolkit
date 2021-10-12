@@ -773,9 +773,9 @@ module.exports = {
             required: true,
             help: "A json file containing in-domain examples of the given CSQA dataset"
         });
-        parser.add_argument('--entity-id', {
+        parser.add_argument('--include-entity-value', {
             action: 'store_true',
-            help: "Include entity id in thingtalk",
+            help: "Include entity value in thingtalk",
             default: false
         });
         parser.add_argument('--soft-match-id', {
@@ -806,7 +806,7 @@ module.exports = {
             values: args.values,
             types: args.types,
             filteredExamples: args.filtered_examples,
-            includeEntityValue: args.entity_id,
+            includeEntityValue: args.include_entity_value,
             softMatchId: args.soft_match_id,
             filter: args.filter
         });

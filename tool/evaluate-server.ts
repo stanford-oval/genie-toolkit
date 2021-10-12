@@ -139,9 +139,9 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 0,
         help: 'Start evaluation from this line of input data',
     });
-    parser.add_argument('--entity-id', {
+    parser.add_argument('--include-entity-value', {
         action: 'store_true',
-        help: "Include entity id in thingtalk",
+        help: "Include entity value in thingtalk",
         default: false
     });
     parser.add_argument('--ignore-entity-type', {
@@ -169,7 +169,7 @@ export async function execute(args : any) {
             debug: args.debug,
             complexityMetric: args.complexity_metric,
             oracle: args.oracle,
-            includeEntityValue: args.entity_id,
+            includeEntityValue: args.include_entity_value,
             ignoreEntityType: args.ignore_entity_type
         }))
         .pipe(new CollectSentenceStatistics({
