@@ -304,13 +304,13 @@ export default class AssistantDispatcher extends events.EventEmitter {
         return this._lastConversation;
     }
 
-    async getConversationState(conversationId : string) {
+    private async _loadConversationState(conversationId : string) {
         const state = await this._conversationStateDB.getOne(conversationId).then((row) => {
             if (row) {
                 return {
                     history : row.history ? JSON.parse(row.history) : [],
                     dialogueState : row.dialogueState ? JSON.parse(row.dialogueState) : null,
-                    lastMessageId : row.lastMessageId ? row.lastMessageId : 0
+                    lastMessageId : row.lastMessageId
                 };
             }
             return undefined;
@@ -319,20 +319,18 @@ export default class AssistantDispatcher extends events.EventEmitter {
     }
 
     async getOrOpenConversation(id : string, options : ConversationOptions, state ?: ConversationState) {
-        console.log('getOrOpenConversation', id);
         if (this._conversations.has(id))
             return this._conversations.get(id)!;
         options = options || {};
         if (!options.nluServerUrl)
             options.nluServerUrl = this._nluModelUrl;
         const conv = this.openConversation(id, options);
-        const convState = state ? state : await this.getConversationState(id);
+        const convState = state ? state : await this._loadConversationState(id);
         await conv.start(convState);
         return conv;
     }
 
     openConversation(id : string, options : ConversationOptions) {
-        console.log('openConversation', id);
         this._conversations.delete(id);
         options = options || {};
         if (!options.nluServerUrl)

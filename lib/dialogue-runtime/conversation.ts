@@ -233,6 +233,8 @@ export default class Conversation extends events.EventEmitter {
     async start(state ?: ConversationState) : Promise<void> {
         this._resetInactivityTimeout();
 
+        if (this._debug)
+            console.log(`Conversation ${this.id} starting`);
         if (state) {
             for (const msg of state.history)
                 await this.addMessage(msg);
@@ -245,6 +247,14 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async stop() : Promise<void> {
+        if (this._inactivityTimeout) {
+            clearTimeout(this._inactivityTimeout);
+            this._inactivityTimeout = null;
+        }
+        if (this._contextResetTimeout) {
+            clearTimeout(this._contextResetTimeout);
+            this._contextResetTimeout = null;
+        }
         return this._loop.stop();
     }
 
@@ -334,16 +344,15 @@ export default class Conversation extends events.EventEmitter {
         if (this._history.length > 30)
             this._history.shift();
         await this._callDelegates((out) => out.addMessage(msg));
-
-        await this.saveState(msg.id);
+        await this._saveState();
     }
 
-    async saveState(lastMessageId : number) {
+    private async _saveState() {
         const conversationState = this.getState();
         const row = {
             history: JSON.stringify(/* FIXME conversationState.history */ []),
             dialogueState: JSON.stringify(conversationState.dialogueState),
-            lastMessageId: lastMessageId,
+            lastMessageId: conversationState.lastMessageId,
         };
         await this._conversationStateDB.insertOne(this._conversationId, row);
     }
@@ -356,11 +365,10 @@ export default class Conversation extends events.EventEmitter {
      */
     getState() : ConversationState {
         const history = this._history.slice();
-        const lastMessageId = history.length > 0 ? history[history.length-1].id : null;
         return {
             history: history,
             dialogueState: this._loop.getState(),
-            lastMessageId: lastMessageId ? lastMessageId : 0
+            lastMessageId: this._nextMsgId-1,
         };
     }
 

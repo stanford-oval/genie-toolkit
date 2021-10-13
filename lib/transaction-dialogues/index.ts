@@ -249,7 +249,7 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
     case PolicyStartMode.NO_WELCOME:
         break;
     case PolicyStartMode.RESUME:
-        throw new Error('TODO resume existing dialogue');
+        // nothing to do, just wait for the next command
         break;
     case PolicyStartMode.USER_FIRST_TIME:
         throw new Error(`first time for the user`);
