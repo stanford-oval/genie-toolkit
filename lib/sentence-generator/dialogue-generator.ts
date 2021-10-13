@@ -142,9 +142,18 @@ class MinibatchDialogueGenerator {
     private async _generateAgent() : Promise<AgentTurn[]> {
         const agentTurns : AgentTurn[] = [];
 
+        if (this._debug)
+            console.log(`Generating agent utterances for ${this._partialDialogues.length} partial dialogues`);
         await Promise.all(this._partialDialogues.map((dlg) => dlg.run()));
         for (const derivation of this._agentGenerator.generate<ExtendedAgentReplyRecord>(this._agentGetContextPhrases(), '$dynamic')) {
             const agentReply = derivation.value;
+            if (agentReply.terminated) {
+                // this was the last turn from the agent, and then the agent quit
+                // we record this dialogue as completed without the last turn
+                // this includes the user speech right before this turn of the agent
+                this._maybeAddCompleteDialog(agentReply.dialogue.turns);
+                continue;
+            }
 
             const meaning = agentReply.meaning.optimize();
             this._stateValidator.validateAgent(meaning);
@@ -158,6 +167,8 @@ class MinibatchDialogueGenerator {
                 tag: agentReply.tag,
             });
         }
+        if (this._debug)
+            console.log(`Generated ${agentTurns.length} agent turns`);
         return agentTurns;
     }
 
@@ -218,6 +229,9 @@ class MinibatchDialogueGenerator {
                 this._maybeAddCompleteDialog(dlg.turns.concat(turn));
             }
         }
+
+        if (this._debug)
+            console.log(`Generated ${continuations.size} user turns to continue the dialogue, and ${this._completeDialogues.length} complete dialogues so far`);
     }
 
     private async _continueDialogues(continuations : Map<SynthesisDialogue, Continuation>) {

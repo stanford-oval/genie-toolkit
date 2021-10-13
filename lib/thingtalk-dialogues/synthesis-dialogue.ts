@@ -63,6 +63,7 @@ export interface AgentTurn {
 export interface ExtendedAgentReplyRecord extends AgentReplyRecord {
     dialogue : SynthesisDialogue;
     tag : number;
+    terminated : boolean;
 }
 
 export interface UserReplyRecord {
@@ -275,6 +276,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
             return {
                 dialogue: this,
                 tag: tag,
+                terminated: this._state === PartialDialogueState.DONE,
                 ...result
             };
         });
@@ -335,6 +337,10 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
             this._fn(this._dlg, PolicyStartMode.NORMAL).catch((e) => {
                 if (!(e instanceof TerminatedDialogueError) && !(e instanceof UnexpectedCommandError))
                     throw e;
+            }).then(() => {
+                // flush the last turn to emit any reply from the agent that ended the dialogue
+                // we'll emit this turn with the "terminated" flag when the generation runs
+                return this._dlg.flush();
             }).then(() => {
                 this._state = PartialDialogueState.DONE;
                 if (this._continueResolve)
