@@ -62,7 +62,7 @@ function getTableArgMinMax(table : Ast.Expression) : [string, string]|null {
         const { base, limit } = table;
         if (base instanceof Ast.Value.Number && (base.value === 1 || base.value === -1) &&
             limit instanceof Ast.Value.Number && limit.value === 1)
-        return [getSortName(table.expression.value), base.value === -1 ? invertDirection(table.expression.direction) : table.expression.direction];
+            return [getSortName(table.expression.value), base.value === -1 ? invertDirection(table.expression.direction) : table.expression.direction];
     }
 
     return null;
@@ -241,15 +241,15 @@ export class ContextInfo {
     };
 
     private constructor(state : Ast.DialogueState,
-                currentTableSchema : Ast.FunctionDef|null,
-                currentFunctionSchema : Ast.FunctionDef|null,
-                resultInfo : ResultInfo|null,
-                previousDomainIdx : number|null,
-                currentIdx : number|null,
-                nextIdx : number|null,
-                nextFunctionSchema : Ast.FunctionDef|null,
-                nextInfo : NextStatementInfo|null,
-                aux : any = null) {
+                        currentTableSchema : Ast.FunctionDef|null,
+                        currentFunctionSchema : Ast.FunctionDef|null,
+                        resultInfo : ResultInfo|null,
+                        previousDomainIdx : number|null,
+                        currentIdx : number|null,
+                        nextIdx : number|null,
+                        nextFunctionSchema : Ast.FunctionDef|null,
+                        nextInfo : NextStatementInfo|null,
+                        aux : any = null) {
         this.state = state;
 
         assert(currentFunctionSchema === null || currentFunctionSchema instanceof Ast.FunctionDef);

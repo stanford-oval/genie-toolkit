@@ -27,7 +27,7 @@ import { adjustDefaultParameters } from './ast-utils';
  * The resulting agent target carries over all the accepted items and not executed items
  * from the current state.
  */
- export function makeSimpleState(state : Ast.DialogueState|null, policyName : string, dialogueAct : string, dialogueActParam : Array<string|Ast.Value>|null = null) {
+export function makeSimpleState(state : Ast.DialogueState|null, policyName : string, dialogueAct : string, dialogueActParam : Array<string|Ast.Value>|null = null) {
     const newState = new Ast.DialogueState(null, policyName, dialogueAct, dialogueActParam, []);
     if (state === null)
         return newState;

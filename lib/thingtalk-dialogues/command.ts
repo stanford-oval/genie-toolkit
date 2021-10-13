@@ -54,7 +54,7 @@ function getCommandType(cmd : Ast.ExpressionStatement) : CommandType {
 /**
  * Data structure containing a parsed command from the user.
  */
- export class Command {
+export class Command {
     /**
      * The actual underlying utterance from the user.
      */

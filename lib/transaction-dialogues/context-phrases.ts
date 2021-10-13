@@ -40,7 +40,7 @@ import { contextNameKeyFn, NameList, nameListKeyFn } from './dialogue_acts/commo
 const MAX_LIST_LENGTH = 5;
 
 function tryReplacePlaceholderPhrase(phrase : ParsedPlaceholderPhrase,
-    getParam : (name : string) => PlaceholderReplacement|undefined|null) : ReplacedResult|null {
+                                     getParam : (name : string) => PlaceholderReplacement|undefined|null) : ReplacedResult|null {
     const replacements : Array<PlaceholderReplacement|undefined> = [];
     for (const param of phrase.names) {
         const replacement = getParam(param);
@@ -352,35 +352,35 @@ export class ContextPhraseCreator {
 
         // top result
         for (const candidate of phrases) {
-        const bag = new SlotBag(currentFunction);
+            const bag = new SlotBag(currentFunction);
 
-        const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
-            if (param === '__device')
-                return this.getDeviceName(topResult, action);
+            const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
+                if (param === '__device')
+                    return this.getDeviceName(topResult, action);
 
-            const value = topResult.value[param];
-            if (!value)
-                return null;
-            const text = this.describer.describeArg(value);
-            if (text === null)
-                return null;
-            bag.set(param, value);
-            return { value: value.toJS(), text };
-        });
+                const value = topResult.value[param];
+                if (!value)
+                    return null;
+                const text = this.describer.describeArg(value);
+                if (text === null)
+                    return null;
+                bag.set(param, value);
+                return { value: value.toJS(), text };
+            });
 
-        if (utterance) {
-            output.push({
+            if (utterance) {
+                output.push({
                 symbol: this.contextTable.ctx_thingpedia_result,
                 utterance,
                 value: bag,
                 priority: 0,
                 context: this.ctx,
                 key: keyfns.slotBagKeyFn(bag)
-            });
+                });
 
             // in inference mode, we're done
-            if (this.loader.flags.inference)
-                return output;
+                if (this.loader.flags.inference)
+                    return output;
             }
         }
 
@@ -523,10 +523,10 @@ export class ContextPhraseCreator {
         for (let index = 0; index < results.length; index++) {
             const value = results[index].value.id;
             if (!value)
-            break;
+                break;
             const description = describer.describeArg(value);
             if (!description)
-            break;
+                break;
             descriptions.push(description);
         }
 

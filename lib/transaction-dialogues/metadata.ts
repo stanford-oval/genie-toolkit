@@ -22,12 +22,12 @@
 /**
  * The name of the dialogue policy
  */
- export const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
+export const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
 
  /**
   * Metadata about this dialogue policy
   */
- export const MANIFEST = {
+export const MANIFEST = {
      name: POLICY_NAME,
 
      dialogueActs: {
@@ -124,4 +124,4 @@
      },
 
      terminalAct: 'sys_end'
- } as const;
+} as const;

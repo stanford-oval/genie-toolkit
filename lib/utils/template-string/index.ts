@@ -403,7 +403,7 @@ export class Placeholder extends Replaceable {
  *
  * This is a Replaceable that does not contain any placeholder.
  */
- export class ReplacedPhrase extends Replaceable {
+export class ReplacedPhrase extends Replaceable {
     constructor(public text : ReplacedResult) {
         super();
     }

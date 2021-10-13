@@ -60,7 +60,7 @@ export interface DeviceInfo {
 /**
  * The result of executing a ThingTalk statement.
  */
- export interface ExecutionResult {
+export interface ExecutionResult {
     /**
      * The statement for which this result was obtained
      */

@@ -55,7 +55,7 @@ import { CancellationError } from '../dialogue-runtime';
  * the agent follows up.
  */
 
- function actionShouldHaveResult(ctx : ContextInfo) : boolean {
+function actionShouldHaveResult(ctx : ContextInfo) : boolean {
     const schema = ctx.currentFunction!;
     return C.countInputOutputParams(schema).output > 0;
 }
