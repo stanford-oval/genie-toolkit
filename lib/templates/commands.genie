@@ -62,7 +62,7 @@ forward_when_do_rule : Ast.ChainExpression = {
     // no pp
     stream:stream action:complete_action => C.makeChainExpression(stream, action);
     stream:stream action:complete_action 'if' filter:if_filter with { functionName = stream.functionName } => {
-        const newStream = C.addFilter(stream, filter);
+        const newStream = C.addFilter($loader, stream, filter);
         if (!newStream)
             return null;
         return C.makeChainExpression(newStream, action);
@@ -384,7 +384,7 @@ explicit_when_condition : Ast.Expression = {
             return null;
         if ($loader.flags.turking && table.schema!.is_list)
             return null;
-        const withFilter = C.addFilter(table, filter, { ifFilter: true });
+        const withFilter = C.addFilter($loader, table, filter, { ifFilter: true });
         if (!withFilter)
             return null;
         return C.tableToStream(withFilter);
@@ -395,7 +395,7 @@ explicit_when_condition : Ast.Expression = {
             return null;
         if (!table.schema!.is_monitorable || table.schema!.is_list)
             return null;
-        const withFilter = C.addFilter(table, filter, { ifFilter: true });
+        const withFilter = C.addFilter($loader, table, filter, { ifFilter: true });
         if (!withFilter)
             return null;
         return C.tableToStream(withFilter);
@@ -450,7 +450,7 @@ monitor_command : Ast.Expression = {
                 return null;
             if (table.schema!.is_list || !table.schema!.is_monitorable)
                 return null;
-            const withFilter = C.addFilter(table, filter);
+            const withFilter = C.addFilter($loader, table, filter);
             if (!withFilter)
                 return null;
             return C.tableToStream(withFilter);

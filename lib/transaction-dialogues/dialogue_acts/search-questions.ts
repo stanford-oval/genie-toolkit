@@ -277,7 +277,7 @@ function impreciseSearchQuestionAnswer(ctx : ContextInfo, loader : ThingpediaLoa
 
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
-    if (!C.checkFilter(currentTable, answerFilter))
+    if (!C.checkFilter(ctx.loader, currentTable, answerFilter))
         return null;
 
     const newTable = queryRefinement(currentTable, answerFilter.ast, refineFilterToAnswerQuestion, null);

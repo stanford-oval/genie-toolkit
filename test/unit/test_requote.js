@@ -218,6 +218,14 @@ const CONTEXTUAL_TEST_CASES_NEW = [
         'what is the price of QUOTED_STRING_2 train ?',
         '... departure =~ QUOTED_STRING_0 && destination =~ QUOTED_STRING_1 && id =~ QUOTED_STRING_2 ) => notify ;'
     ],
+
+    [
+        '$dialogue ... station ( ) filter show =~ QUOTED_STRING_1 && show =~ QUOTED_STRING_2 => @com.tunein ...',
+        'i can see radio javan playing see radio',
+        '... station ( ) filter id =~ " radio javan " && show =~ " see radio " ) ;',
+        'i can see QUOTED_STRING_3 playing QUOTED_STRING_4',
+        '... station ( ) filter id =~ QUOTED_STRING_3 && show =~ QUOTED_STRING_4 ) ;'
+    ],
 ];
 
 const CONTEXTUAL_TEST_CASES_LEGACY = [

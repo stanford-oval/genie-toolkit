@@ -258,9 +258,16 @@ export {
     CountStream,
 };
 
-export function waitFinish(stream : Stream.Writable) : Promise<void> {
+export function waitFinish(stream : NodeJS.WritableStream) : Promise<void> {
     return new Promise((resolve, reject) => {
         stream.once('finish', resolve);
+        stream.on('error', reject);
+    });
+}
+
+export function waitEnd(stream : NodeJS.ReadableStream) : Promise<void> {
+    return new Promise((resolve, reject) => {
+        stream.once('end', resolve);
         stream.on('error', reject);
     });
 }

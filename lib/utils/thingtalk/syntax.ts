@@ -140,6 +140,7 @@ interface SerializeOptions {
     timezone : string|undefined;
     ignoreSentence ?: boolean;
     compatibility ?: string;
+    includeEntityValue ?: boolean;
 }
 
 /**
@@ -158,6 +159,7 @@ export function serializePrediction(program : Ast.Input,
         ignoreSentence: options.ignoreSentence || false,
     });
     return Syntax.serialize(program, Syntax.SyntaxType.Tokenized, entityRetriever, {
-        compatibility: options.compatibility
+        compatibility: options.compatibility,
+        includeEntityValue: options.includeEntityValue
     });
 }

@@ -56,14 +56,12 @@ paraphraser_options ?= --paraphraser-model ./models/paraphraser-bart-large-speed
 
 baseline_process_schemaorg_flags =
 wikidata_process_schemaorg_flags = --wikidata-path ./wikidata-property-labels.json
-bert_process_schemaorg_flags =
 bart_process_schemaorg_flags =
 manual_process_schemaorg_flags = --manual
 manual+bart_process_schemaorg_flags = --manual
 
 baseline_annotate_flags =
 wikidata_annotate_flags =
-bert_annotate_flags = --algorithms bert-property-synonyms bert-domain-synonyms bert-adjectives
 bart_annotate_flags = --algorithms bart-paraphrase $(paraphraser_options)
 manual_annotate_flags =
 manual+bart_annotate_flags = --algorithms bart-paraphrase $(paraphraser_options)
@@ -113,7 +111,7 @@ emptydataset.tt:
 	cat $(geniedir)/data/en-US/constants.tsv >> $@
 
 %/manifest.tt: %/constants.tsv %/schema.trimmed.tt %/parameter-datasets.tsv $(if $(findstring bart,$(annotation)),models/paraphraser-bart-large-speedup-megabatch-5m,) common-words.txt
-	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/schema.trimmed.tt --functions $($(*)_white_list) $(annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset schemaorg
+	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/schema.trimmed.tt --functions $($(*)_white_list) $(annotate_flags) --dataset schemaorg
 	mv $@.tmp $@
 
 multidomain/manifest.tt: $(addsuffix /manifest.tt,$(all_experiments))
@@ -191,7 +189,7 @@ evaluate: $(experiment)/$(eval_set)/annotated.tsv $(experiment)/manifest.tt
 	mv $(experiment)/$(eval_set)/$(model).results.tmp $(experiment)/$(eval_set)/$(model).results
 
 clean:
-	rm -rf datadir bert-canonical-annotator-in.json bert-canonical-annotator-out.json gpt2-paraphraser-in.tsv gpt2-paraphraser-out.json synthetic-test.tsv
+	rm -rf datadir paraphraser-in.json paraphraser-out.json
 	rm -rf multidomain/manifest.tt multidomain/augmented.tsv
 	for exp in $(all_experiments) ; do \
 		rm -rf $$exp/synthetic* $$exp/data.json $$exp/entities.json $$exp/parameter-datasets* $$exp/schema.tt $$exp/manifest.tt $$exp/schema.trimmed.tt $$exp/augmented.tsv $$exp/constants.tsv ; \

@@ -14,7 +14,7 @@ mkdir -p source-data/restaurants/
 wget https://almond-static.stanford.edu/test-data/schemaorg/restaurants/sample.json \
   -O source-data/restaurants/sample.json
 
-starter_gen_and_train schemaorg restaurants annotation=bert
+starter_gen_and_train schemaorg restaurants annotation=bart
 
 # get some fake data to test with
 cat > restaurants/eval/annotated.tsv <<EOF

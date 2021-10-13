@@ -18,17 +18,9 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
-import assert from 'assert';
 import * as argparse from 'argparse';
-import * as fs from 'fs';
-import * as util from 'util';
 import * as ThingTalk from 'thingtalk';
-
-async function loadClassDef(thingpedia : string, options : ThingTalk.Syntax.ParseOptions) : Promise<ThingTalk.Ast.ClassDef> {
-    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }), ThingTalk.Syntax.SyntaxType.Normal, options);
-    assert(library instanceof ThingTalk.Ast.Library && library.classes.length === 1);
-    return library.classes[0];
-}
+import { loadClassDef } from './lib/utils';
 
 function includesAnnotation(canonicalList : string[], canonical : string) {
     if (canonical.endsWith(' #'))

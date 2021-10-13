@@ -1,16 +1,26 @@
 .embeddings/
+
+raw
+datadir
+models
+domains.tsv
 emptydataset.tt
-config.mk
 
-wikidata.tt
-manifest.tt
-constants.tsv
-data.json
-entities.json
-parameter-datasets
-parameter-datasets.tsv
+# domain folders
+city
+country
+tv
+disease
+human
+art
+song
+game
+organization
+music_band
 
-shared-parameter-datasets/
-datadir/
-models/
+# intermediate files
+bootleg-*.json
+paraphraser-in.*
+paraphraser-out.*
+*.tar.xz
 

@@ -41,10 +41,10 @@ function doReplaceNumbers(token) {
     return NUMBER_MATCH_REGEX.test(token) && token !== '0' && token !== '1';
 }
 
-function findSpanContaining(index, spansBySentencePos) {
+function findSpanContaining(index, spansBySentencePos, end = null) {
     for (let i = 0; i < spansBySentencePos.length; i++) {
         const span = spansBySentencePos[i];
-        if (index >= span.begin && index < span.end)
+        if ((index >= span.begin && index < span.end) || (end && end > span.begin && end <= span.end))
             return span;
     }
     return false;
@@ -80,7 +80,7 @@ function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping
                     parsedWithArticle = true;
             }
         }
-        if (found && (allowOverlapping || !findSpanContaining(i, spansBySentencePos))) {
+        if (found && (allowOverlapping || !findSpanContaining(i, spansBySentencePos, i + substring.length))) {
             if (allowOverlapping)
                 allFoundIndices.push([i, parsedWithArticle]);
             else

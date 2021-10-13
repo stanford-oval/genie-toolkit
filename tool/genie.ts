@@ -83,12 +83,14 @@ const subcommands : { [key : string] : SubCommand } = {
     'sgd-process-schema': require('./autoqa/sgd/process-schema'),
     'sgd-normalize-data': require('./autoqa/sgd/normalize-data'),
 
+    'wikidata-preprocess-bootleg': require('./autoqa/wikidata/preprocess-bootleg'),
+    'wikidata-preprocess-knowledge-base': require('./autoqa/wikidata/preprocess-knowledge-base'),
+    'wikidata-csqa-type-map': require('./autoqa/wikidata/csqa-type-mapper'),
     'wikidata-process-schema': require('./autoqa/wikidata/process-schema'),
+    'wikidata-convert-csqa': require('./autoqa/wikidata/csqa-converter'),
     'wikidata-es-import': require('./autoqa/wikidata/es-import'),
-    'wikidata-download-data': require('./autoqa/wikidata/download-data'),
-    'wikidata-label-retriever': require('./autoqa/wikidata/label-retriever'),
-    'wikidata-make-string-datasets': require('./autoqa/wikidata/make-string-datasets'),
     'wikidata-demo': require('./autoqa/wikidata/demo'),
+    'wikidata-postprocess-data': require('./autoqa/wikidata/postprocess-data'),
 
     'auto-annotate': require('./autoqa/auto-annotate'),
     'make-string-datasets': require('./autoqa/make-string-datasets'),

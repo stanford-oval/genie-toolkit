@@ -18,6 +18,29 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
+import assert from 'assert';
+import util from 'util';
+import * as fs from 'fs';
+import * as ThingTalk from 'thingtalk';
+
+async function loadClassDef(
+    thingpedia : string, 
+    options : ThingTalk.Syntax.ParseOptions = { locale : 'en-US', timezone: undefined }
+) : Promise<ThingTalk.Ast.ClassDef> {
+    const classes = await loadClassDefs(thingpedia, options);
+    assert(classes.length === 1);
+    return classes[0];
+}
+
+async function loadClassDefs(
+    thingpedia : string, 
+    options : ThingTalk.Syntax.ParseOptions = { locale : 'en-US', timezone: undefined }
+) : Promise<ThingTalk.Ast.ClassDef[]> {
+    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }), ThingTalk.Syntax.SyntaxType.Normal, options);
+    assert(library instanceof ThingTalk.Ast.Library);
+    return library.classes;
+}
+
 function cleanEnumValue(v : string) : string {
     // replace dash with space
     v = v.replace(/-/g, ' ');
@@ -60,6 +83,8 @@ const DEFAULT_ENTITIES = [
 ];
 
 export {
+    loadClassDef,
+    loadClassDefs,
     cleanEnumValue,
     camelcase,
     snakecase,
