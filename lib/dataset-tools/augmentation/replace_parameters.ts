@@ -105,7 +105,7 @@ function adjustForLength(sentence : string, weight : number) : number {
 
 interface ValueList {
     readonly size : number;
-    sample(rng : () => number) : string;
+    sample(rng : () => number) : ParameterRecord;
 }
 
 class NumberValueList implements ValueList {
@@ -132,16 +132,16 @@ class NumberValueList implements ValueList {
         throw new Error(`Unexpected ${value} with bounds ${this._min} / ${this._max} (isMeasure = ${this._isMeasure})`);
     }
 
-    sample(rng : () => number) : string {
+    sample(rng : () => number) : ParameterRecord {
         if (this._isMeasure) {
             // for measurements, sample uniformly between the (adjusted) bounds,
 
             const value = (this._min + (this._max - this._min) * rng());
             this._checkFinite(value);
             if (Math.abs(value) > 2)
-                return value.toFixed(coin(0.9, rng) ? 0 : 1);
+                return { preprocessed: value.toFixed(coin(0.9, rng) ? 0 : 1) };
             else
-                return value.toPrecision(2);
+                return { preprocessed: value.toPrecision(2) };
         }
 
         // sample an "easy" number
@@ -181,24 +181,24 @@ class NumberValueList implements ValueList {
         } while (val < this._min || val > this._max || val === 0 || val === 1);
 
         this._checkFinite(val);
-        return String(val);
+        return { preprocessed: String(val) };
     }
 }
 
 class WeightedValueList implements ValueList {
-    private _values : string[];
+    private _values : ParameterRecord[];
     private _cumsum : number[];
 
-    constructor(values : string[], weights : number[]) {
+    constructor(values : ParameterRecord[], weights : number[]) {
         assert.strictEqual(values.length, weights.length);
 
         this._values = values;
 
         if (weights.length > 0) {
             const cumsum = new Array(weights.length);
-            cumsum[0] = adjustForLength(values[0], weights[0]);
+            cumsum[0] = adjustForLength(values[0].preprocessed, weights[0]);
             for (let i = 1; i < weights.length; i++)
-                cumsum[i] = cumsum[i-1] + adjustForLength(values[i], weights[i]);
+                cumsum[i] = cumsum[i-1] + adjustForLength(values[i].preprocessed, weights[i]);
             this._cumsum = cumsum;
         } else {
             this._cumsum = [];
@@ -209,16 +209,16 @@ class WeightedValueList implements ValueList {
         return this._values.length;
     }
 
-    sample(rng : () => number) : string {
+    sample(rng : () => number) : ParameterRecord {
         const sample = rng() * this._cumsum[this._cumsum.length-1];
         return this._values[binarySearch(this._cumsum, sample)];
     }
 }
 
 class UniformValueList implements ValueList {
-    private _values : string[];
+    private _values : ParameterRecord[];
 
-    constructor(values : string[]) {
+    constructor(values : ParameterRecord[]) {
         this._values = values;
     }
 
@@ -232,9 +232,9 @@ class UniformValueList implements ValueList {
 }
 
 class SequentialValueList implements ValueList  {
-    private _values : string[];
+    private _values : ParameterRecord[];
     private _index : number;
-    constructor(values : string[]) {
+    constructor(values : ParameterRecord[]) {
         this._values = values;
         this._index = 0;
     }
@@ -254,7 +254,8 @@ class SequentialValueList implements ValueList  {
 
 interface ParameterRecord {
     preprocessed : string;
-    weight : number;
+    value ?: string;
+    weight ?: number;
 }
 interface ParameterProvider {
     get(type : 'entity'|'string', key : string) : Promise<ParameterRecord[]>;
@@ -281,8 +282,9 @@ class ValueListLoader {
         this._rng = rng;
     }
 
-    get([valueListType, valueListName] : ['string'|'entity', string]) : Promise<ValueList> {
-        const key = valueListType + ':' + valueListName;
+    get([valueListType, valueListName] : ['string'|'entity', string|string[]]) : Promise<ValueList> {
+        const name = Array.isArray(valueListName) ? valueListName[0] : valueListName;
+        const key = valueListType + ':' + name;
         if (this._cache.has(key))
             return this._cache.get(key)!;
 
@@ -291,8 +293,12 @@ class ValueListLoader {
         return promise;
     }
 
-    private async _load(valueListType : 'string'|'entity', valueListName : string) : Promise<ValueList> {
-        let rows = await this._provider.get(valueListType, valueListName);
+    private async _load(valueListType : 'string'|'entity', valueListName : string|string[]) : Promise<ValueList> {
+        if (!Array.isArray(valueListName))
+            valueListName = [valueListName];
+        let rows : ParameterRecord[] = [];
+        for (const name of valueListName)
+            rows = rows.concat(await this._provider.get(valueListType, name));
 
         // overwrite weights with random values
         if (this._samplingType === 'random') {
@@ -317,20 +323,20 @@ class ValueListLoader {
         let minWeight = Infinity, maxWeight = -Infinity;
         let sumWeight = 0;
         for (const row of rows) {
-            minWeight = Math.min(row.weight, minWeight);
-            maxWeight = Math.max(row.weight, maxWeight);
-            sumWeight += row.weight;
+            minWeight = Math.min(row.weight||1, minWeight);
+            maxWeight = Math.max(row.weight||1, maxWeight);
+            sumWeight += row.weight||1;
         }
 
         // if all weights are approximately equal
         // (ie, the range is significantly smaller than the average)
         // we use a uniform sampler, which is faster
         if (this._samplingType === 'sequential')
-            return new SequentialValueList(rows.map((r) => r.preprocessed));
+            return new SequentialValueList(rows);
         else if ((maxWeight - minWeight) / (sumWeight / rows.length) < 0.0001)
-            return new UniformValueList(rows.map((r) => r.preprocessed));
+            return new UniformValueList(rows);
         else
-            return new WeightedValueList(rows.map((r) => r.preprocessed), rows.map((r) => r.weight));
+            return new WeightedValueList(rows, rows.map((r) => r.weight||1));
     }
 }
 
@@ -379,6 +385,7 @@ interface ParameterReplacerOptions {
     maxSpanLength ?: number;
     cleanParameters ?: boolean;
     requotable ?: boolean;
+    includeEntityValue ?: boolean;
     numAttempts ?: number;
     syntheticExpandFactor ?: number;
     noQuoteExpandFactor ?: number;
@@ -389,7 +396,7 @@ interface ParameterReplacerOptions {
 
 interface ReplacementRecord {
     sentenceValue : string;
-    programValue : string;
+    programValue : ParameterRecord;
 }
 
 // a bit of a HACK because we add the "token" property to Ast.Value
@@ -409,12 +416,14 @@ export default class ParameterReplacer {
     private _maxSpanLength : number;
     private _cleanParameters : boolean;
     private _requotable : boolean;
+    private _includeEntityValue : boolean;
     private _numAttempts : number;
     private _debug : boolean;
     private _blowUpSynthetic : number;
     private _blowUpNoQuote : number;
     private _blowUpParaphrasing : number;
     private _blowUpAugmented : number;
+    private _entityDescendants ?: Record<string, string[]>;
 
     private _warned : Set<string>;
 
@@ -431,6 +440,7 @@ export default class ParameterReplacer {
         this._maxSpanLength = _default(options.maxSpanLength, 10);
         this._cleanParameters = _default(options.cleanParameters, true);
         this._requotable = _default(options.requotable, true);
+        this._includeEntityValue = _default(options.includeEntityValue, false);
         this._numAttempts = _default(options.numAttempts, 10000);
         this._debug = _default(options.debug, true);
 
@@ -485,7 +495,7 @@ export default class ParameterReplacer {
         return arg;
     }
 
-    private _getParamListKey(slot : Ast.AbstractSlot, arg : Ast.ArgumentDef|null) : ['string'|'entity', string] {
+    private async _getParamListKey(slot : Ast.AbstractSlot, arg : Ast.ArgumentDef|null) : Promise<['string'|'entity', string|string[]]> {
         const prim = slot.primitive;
         if (prim === null && (
             slot.tag === 'filter.==.$source' ||
@@ -515,7 +525,27 @@ export default class ParameterReplacer {
         return ['string', this._getFallbackParamListKey(slot)];
     }
 
-    private _getEntityListKey(entityType : string) : ['string'|'entity', string] {
+    private async _loadEntityDescendants() {
+        this._entityDescendants = {};
+        const entities = await this._tpClient.getAllEntityTypes();
+        for (const entity of entities) {
+            if (!entity.subtype_of) 
+                continue;
+            for (const parent of entity.subtype_of) {
+                if (!(parent in this._entityDescendants))
+                    this._entityDescendants[parent] = [parent];
+                this._entityDescendants[parent].push(entity.type);
+            }
+        }
+    }
+
+    private async _getDescendants(entityType : string) : Promise<string[]> {
+        if (!this._entityDescendants)
+            await this._loadEntityDescendants();
+        return this._entityDescendants![entityType] ?? [entityType];
+    }
+
+    private async _getEntityListKey(entityType : string) : Promise<['string'|'entity', string|string[]]> {
         switch (entityType) {
         case 'tt:username':
         case 'tt:contact':
@@ -528,7 +558,7 @@ export default class ParameterReplacer {
         case 'tt:path_name':
             return ['string', 'tt:path_name'];
         default:
-            return ['entity', entityType];
+            return ['entity', await this._getDescendants(entityType)];
         }
     }
 
@@ -560,7 +590,7 @@ export default class ParameterReplacer {
         }
     }
 
-    private _transformValue(sentenceValue : string, programValue : string, arg : Ast.ArgumentDef|null) : ReplacementRecord {
+    private _transformValue(sentenceValue : string, programValue : ParameterRecord, arg : Ast.ArgumentDef|null) : ReplacementRecord {
         if (this._requotable)
             return { sentenceValue, programValue };
 
@@ -573,18 +603,18 @@ export default class ParameterReplacer {
         let hasDefiniteArticle = false;
         if (this._paramLangPack.DEFINITE_ARTICLE_REGEXP) {
             // remove a definite article ("the") from the program value if we have it
-            const match = this._paramLangPack.DEFINITE_ARTICLE_REGEXP.exec(programValue);
+            const match = this._paramLangPack.DEFINITE_ARTICLE_REGEXP.exec(programValue.preprocessed);
             if (match !== null) {
                 hasDefiniteArticle = true;
-                programValue = programValue.substring(match[0].length);
+                programValue.preprocessed = programValue.preprocessed.substring(match[0].length);
                 if (coin(0.5, this._rng))
                     sentenceValue = sentenceValue.substring(match[0].length);
             }
         }
 
         // hack for hotel & linkedin/books domain: remove "hotel" in the end of names; remove "award" at the end of awards
-        if (arg && arg.name === 'id' && arg.type instanceof Type.Entity && arg.type.type.endsWith(':Hotel') && programValue.endsWith(' hotel')) {
-            programValue = programValue.substring(0, programValue.length - ' hotel'.length);
+        if (arg && arg.name === 'id' && arg.type instanceof Type.Entity && arg.type.type.endsWith(':Hotel') && programValue.preprocessed.endsWith(' hotel')) {
+            programValue.preprocessed = programValue.preprocessed.substring(0, programValue.preprocessed.length - ' hotel'.length);
             if (coin(0.5, this._rng))
                 sentenceValue = sentenceValue.substring(0, sentenceValue.length - ' hotel'.length);
         }
@@ -592,8 +622,8 @@ export default class ParameterReplacer {
         const suffixToRemove : { [key : string] : string[] }  = { award: [' award', ' awards'] };
         for (const argname in suffixToRemove) {
             for (const suffix of suffixToRemove[argname]) {
-                if (arg && arg.name === argname && programValue.endsWith(suffix)) {
-                    programValue = programValue.substring(0, programValue.length - suffix.length);
+                if (arg && arg.name === argname && programValue.preprocessed.endsWith(suffix)) {
+                    programValue.preprocessed = programValue.preprocessed.substring(0, programValue.preprocessed.length - suffix.length);
                     if (coin(0.5, this._rng))
                         sentenceValue = sentenceValue.substring(0, sentenceValue.length - suffix.length);
                 }
@@ -652,7 +682,7 @@ export default class ParameterReplacer {
             return [new NumberValueList(min, max, !!unit), arg, slot.type, operator];
         }
 
-        let valueListKey = this._getParamListKey(slot, arg);
+        let valueListKey = await this._getParamListKey(slot, arg);
         const fallbackKey = this._getFallbackParamListKey(slot);
         if (valueListKey[0] === 'string' && valueListKey[1] !== fallbackKey &&
             coin(this._untypedStringProbability, this._rng))
@@ -730,18 +760,18 @@ export default class ParameterReplacer {
                          valueList : ValueList,
                          type : Type,
                          operator : string,
-                         replacedValuesSet : Set<string>) : ReplacementRecord|null {
+                         replacedValuesSet : Set<ParameterRecord>) : ReplacementRecord|null {
         let typeValue = undefined;
         if (type instanceof Type.Entity)
             typeValue = type.type;
         let attempts = this._numAttempts;
         while (attempts > 0) {
-            const sampled = valueList.sample(this._rng).toLowerCase();
-            let words = sampled.split(' ');
+            const sampled = valueList.sample(this._rng);
+            let words = sampled.preprocessed.split(' ');
             words = Array.from(resampleIgnorableAndAbbreviations(this._paramLangPack, type, words, this._rng));
 
             if (this._cleanParameters &&
-                (/[,?!.'\-_]/.test(sampled) || ['1', '2', '3'].includes(sampled)) &&
+                (/[,?!.'\-_]/.test(sampled.preprocessed) || ['1', '2', '3'].includes(sampled.preprocessed)) &&
                 attempts > this._numAttempts * 0.9) {
                 attempts -= 1;
                 continue;
@@ -754,24 +784,24 @@ export default class ParameterReplacer {
                     continue;
                 }
 
-                return this._transformValue(candidate, candidate, arg);
+                return this._transformValue(candidate, { preprocessed: candidate }, arg);
             }
 
             if (!type.isNumeric()) {
-                if ((this._paramLangPack.isGoodPersonName(sampled)) ||
-                    (this._paramLangPack.isGoodUserName(sampled) && typeValue && typeValue === "tt:username"))
-                    return { sentenceValue: sampled, programValue: sampled };
+                if ((this._paramLangPack.isGoodPersonName(sampled.preprocessed)) ||
+                    (this._paramLangPack.isGoodUserName(sampled.preprocessed) && typeValue && typeValue === "tt:username"))
+                    return { sentenceValue: sampled.preprocessed, programValue: sampled };
                 if (words.some((w) => !this._paramLangPack.isGoodWord(w)) || words.length > this._maxSpanLength) {
                     attempts -= 1;
                     continue;
                 }
-                if (!this._paramLangPack.isGoodSentence(sampled)) {
+                if (!this._paramLangPack.isGoodSentence(sampled.preprocessed)) {
                     attempts -= 1;
                     continue;
                 }
             }
 
-            return this._transformValue(sampled, sampled, arg);
+            return this._transformValue(sampled.preprocessed, sampled, arg);
         }
         this._warn(`failreplace:${key}`, `Could not replace ${key} even after ${this._numAttempts}`);
         return null;
@@ -782,7 +812,7 @@ export default class ParameterReplacer {
                                            parameters : Map<string, Ast.AbstractSlot>,
                                            replacements : Map<string, ReplacementRecord>) {
         const output : string[] = [];
-        const replacedValueSet = new Set<string>();
+        const replacedValueSet = new Set<ParameterRecord>();
         for (const record of replacements.values())
             replacedValueSet.add(record.programValue);
 
@@ -826,16 +856,24 @@ export default class ParameterReplacer {
         const output : string[] = [];
         for (const token of program) {
             if (replacements.has(token)) {
-                const string = replacements.get(token)!.programValue;
+                const programValue = replacements.get(token)!.programValue;
+                const string = programValue.preprocessed;
+                const value = programValue.value;
 
-                if (token.startsWith('LOCATION_'))
+                if (token.startsWith('LOCATION_')) {
                     output.push('new', 'Location', '(', '"', string, '"', ')');
-                else if (token.startsWith('GENERIC_ENTITY_'))
-                    output.push('null', '^^' + token.substring('GENERIC_ENTITY_'.length, token.length-2), '(', '"', string, '"', ')');
-                else if (token.startsWith('NUMBER_'))
+                } else if (token.startsWith('GENERIC_ENTITY_')) {
+                    if (this._includeEntityValue && value) 
+                        output.push('"', value, '"');
+                    else 
+                        output.push('null');
+                    output.push('^^' + token.substring('GENERIC_ENTITY_'.length, token.length-2), '(', '"', string, '"', ')');
+                } else if (token.startsWith('NUMBER_')) {
                     output.push(string);
-                else
-                    output.push('"', replacements.get(token)!.programValue, '"');
+                } else {
+                    output.push('"', string, '"');
+                }
+                
                 if (token.startsWith('HASHTAG_'))
                     output.push('^^tt:hashtag');
                 else if (token.startsWith('USERNAME_'))

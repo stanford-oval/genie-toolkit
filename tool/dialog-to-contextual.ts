@@ -51,6 +51,7 @@ interface DialogueToTurnStreamOptions {
     tokenized : boolean;
     thingpediaClient : Tp.BaseClient;
     ignoreErrors : boolean;
+    includeEntityValue : boolean;
 }
 
 class DialogueToTurnStream extends Stream.Transform {
@@ -64,6 +65,7 @@ class DialogueToTurnStream extends Stream.Transform {
     private _tokenized : boolean;
     private _tokenizer : I18n.BaseTokenizer;
     private _ignoreErrors : boolean;
+    private _includeEntityValue : boolean;
 
     constructor(options : DialogueToTurnStreamOptions) {
         super({ objectMode: true });
@@ -80,6 +82,7 @@ class DialogueToTurnStream extends Stream.Transform {
         this._tokenized = options.tokenized;
         this._tokenizer = I18n.get(this._locale).getTokenizer();
         this._ignoreErrors = options.ignoreErrors;
+        this._includeEntityValue = options.includeEntityValue;
     }
 
     private _preprocess(sentence : string, contextEntities : EntityMap) {
@@ -115,6 +118,7 @@ class DialogueToTurnStream extends Stream.Transform {
         const agentCode = await ThingTalkUtils.serializePrediction(agentTarget, tokens, entities, {
             locale: this._locale,
             timezone: this._timezone,
+            includeEntityValue: this._includeEntityValue
         });
 
         if (this._dedupe) {
@@ -167,6 +171,7 @@ class DialogueToTurnStream extends Stream.Transform {
         const code = await ThingTalkUtils.serializePrediction(userTarget, tokens, entities, {
             locale: this._locale,
             timezone: this._timezone,
+            includeEntityValue : this._includeEntityValue
         });
 
         if (this._dedupe) {
@@ -297,6 +302,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'Ignore erroneous turns.',
         default: false
     });
+    parser.add_argument('--include-entity-value', {
+        action: 'store_true',
+        help: 'Keep entity value in thingtalk annotation.',
+        default: false
+    });
 }
 
 export async function execute(args : any) {
@@ -320,6 +330,7 @@ export async function execute(args : any) {
             deduplicate: args.deduplicate,
             debug: args.debug,
             ignoreErrors: args.ignore_errors,
+            includeEntityValue: args.include_entity_value
         }))
         .pipe(new DatasetStringifier())
         .pipe(args.output);

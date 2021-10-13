@@ -32,7 +32,7 @@ complete_table : Ast.Expression = {
     };
 
     !notablejoin table_join_replace_placeholder;
-    //filter:apv_filter q:thingpedia_complete_query => C.addFilter(q, filter);
+    //filter:apv_filter q:thingpedia_complete_query => C.addFilter($loader, q, filter);
 
     ( table:complete_table param:preposition_input_param with { functionName = table.functionName }
     | table:complete_table ('with' | 'having') param:npp_input_param with { functionName = table.functionName }
@@ -60,7 +60,7 @@ one_if_filter_table : Ast.Expression = {
     !nofilter {
         ( table:complete_table 'if' filter:if_filter with { functionName = table.functionName }
         | table:complete_table 'if' filter:if_filter with { functionName = null }
-        ) => C.addFilter(table, filter, { ifFilter: true });
+        ) => C.addFilter($loader, table, filter, { ifFilter: true });
     }
 }
 
@@ -68,7 +68,7 @@ two_if_filter_table : Ast.Expression = {
     !nofilter {
         ( table:one_if_filter_table 'and' filter:if_filter with { functionName = table.functionName }
         | table:one_if_filter_table 'and' filter:if_filter with { functionName = null }
-        ) => C.addFilter(table, filter, { ifFilter: true });
+        ) => C.addFilter($loader, table, filter, { ifFilter: true });
     }
 }
 
@@ -111,13 +111,13 @@ one_with_filter_table : Ast.Expression = {
     !nofilter {
         ( table:complete_table ('with' | 'having') filter:with_filter with { functionName = table.functionName }
         | table:complete_table ('with' | 'having') filter:npp_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
     }
 
     // within distance filtered table
     !turking {
         !nofilter table:complete_table with { has_geo = true } filter:within_filter
-        => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
+        => C.makeWithinGeoDistanceExpression($loader, table, filter.place, filter.distance);
     }
 }
 
@@ -130,7 +130,7 @@ one_which_filter_table : Ast.Expression = {
         | table:complete_table ('which' | 'that') 'have' filter:npp_filter with { functionName = table.functionName }
         | table:complete_table ('which' | 'that') 'have' filter:with_filter with { functionName = table.functionName }
         | table:complete_table ('which' | 'that') filter:reverse_verb_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
     }
 }
 
@@ -139,10 +139,10 @@ one_clean_filter_table : Ast.Expression = {
         ( filter:apv_filter table:complete_table with { functionName = filter.functionName }
         | table:complete_table filter:pvp_filter with { functionName = table.functionName }
         | table:complete_table filter:preposition_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
 
-        filter:quality_filter table:complete_table => C.addFilter(table, filter);
-        table:complete_table with { has_geo = true } filter:nearby_filter => C.addFilter(table, filter);
+        filter:quality_filter table:complete_table => C.addFilter($loader, table, filter);
+        table:complete_table with { has_geo = true } filter:nearby_filter => C.addFilter($loader, table, filter);
     }
 }
 
@@ -154,10 +154,10 @@ two_with_filter_table : Ast.Expression = {
         | table:one_with_filter_table 'and' filter:npp_filter with { functionName = table.functionName }
         | table:one_which_filter_table ('' | ',') ('and having' | 'and with' | ', with' | 'and have') filter:npp_filter with { functionName = table.functionName }
         | table:one_clean_filter_table ('' | ',') ('with' | 'having' | 'that have') filter:npp_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
     }
 
-    !nofilter filter:apv_filter table:one_with_filter_table with { functionName = filter.functionName } => C.addFilter(table, filter);
+    !nofilter filter:apv_filter table:one_with_filter_table with { functionName = filter.functionName } => C.addFilter($loader, table, filter);
 
     // within distance filtered table
     !turking {
@@ -165,7 +165,7 @@ two_with_filter_table : Ast.Expression = {
               table:one_with_filter_table with { has_geo = true } filter:within_filter
             | table:one_which_filter_table with { has_geo = true } filter:within_filter
             | table:one_clean_filter_table with { has_geo = true } filter:within_filter
-        ) => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
+        ) => C.makeWithinGeoDistanceExpression($loader, table, filter.place, filter.distance);
     }
 }
 
@@ -178,7 +178,7 @@ two_which_filter_table : Ast.Expression = {
         | table:one_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:npp_filter with { functionName = table.functionName }
         | table:one_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:with_filter with { functionName = table.functionName }
         | table:one_with_filter_table ('' | ',') ('which' | 'that') filter:reverse_verb_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
 
         ( table:one_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
         | table:one_which_filter_table 'and' filter:avp_filter with { functionName = table.functionName }
@@ -187,7 +187,7 @@ two_which_filter_table : Ast.Expression = {
         | table:one_which_filter_table ('' | ',') 'and' 'have' filter:npp_filter with { functionName = table.functionName }
         | table:one_which_filter_table ('' | ',') 'and' 'have' filter:with_filter with { functionName = table.functionName }
         | table:one_which_filter_table ('' | ',') 'and' filter:reverse_verb_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
 
         ( table:one_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
         | table:one_clean_filter_table ('' | ',') ('which' | 'that') filter:avp_filter with { functionName = table.functionName }
@@ -196,9 +196,9 @@ two_which_filter_table : Ast.Expression = {
         | table:one_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:npp_filter with { functionName = table.functionName }
         | table:one_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:with_filter with { functionName = table.functionName }
         | table:one_clean_filter_table ('' | ',') ('which' | 'that') filter:reverse_verb_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
 
-        !nofilter filter:apv_filter table:one_which_filter_table with { functionName = filter.functionName } => C.addFilter(table, filter);
+        !nofilter filter:apv_filter table:one_which_filter_table with { functionName = filter.functionName } => C.addFilter($loader, table, filter);
     }
 }
 
@@ -207,10 +207,10 @@ two_clean_filter_table : Ast.Expression = {
         ( filter:apv_filter table:one_clean_filter_table with { functionName = filter.functionName }
         | table:one_clean_filter_table filter:pvp_filter with { functionName = table.functionName }
         | table:one_clean_filter_table filter:preposition_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
 
-        filter:quality_filter table:one_clean_filter_table => C.addFilter(table, filter);
-        table:one_clean_filter_table with { has_geo = true } filter:nearby_filter => C.addFilter(table, filter);
+        filter:quality_filter table:one_clean_filter_table => C.addFilter($loader, table, filter);
+        table:one_clean_filter_table with { has_geo = true } filter:nearby_filter => C.addFilter($loader, table, filter);
     }
 }
 
@@ -222,10 +222,10 @@ three_with_filter_table : Ast.Expression = {
         | table:two_with_filter_table 'and' filter:npp_filter with { functionName = table.functionName }
         | table:two_which_filter_table ('' | ',') ('and having' | 'and with' | ', with' | 'and have') filter:npp_filter with { functionName = table.functionName }
         | table:two_clean_filter_table ('' | ',') ('with' | 'having' | 'that have') filter:npp_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
     }
 
-    !nofilter filter:apv_filter table:two_with_filter_table with { functionName = filter.functionName } => C.addFilter(table, filter);
+    !nofilter filter:apv_filter table:two_with_filter_table with { functionName = filter.functionName } => C.addFilter($loader, table, filter);
 
     // within distance filtered table
     !turking {
@@ -233,7 +233,7 @@ three_with_filter_table : Ast.Expression = {
               table:two_with_filter_table with { has_geo = true } filter:within_filter
             | table:two_which_filter_table with { has_geo = true } filter:within_filter
             | table:two_clean_filter_table with { has_geo = true } filter:within_filter
-        ) => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
+        ) => C.makeWithinGeoDistanceExpression($loader, table, filter.place, filter.distance);
     }
 }
 
@@ -246,7 +246,7 @@ three_which_filter_table : Ast.Expression = {
         | table:two_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:npp_filter with { functionName = table.functionName }
         | table:two_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:with_filter with { functionName = table.functionName }
         | table:two_with_filter_table ('' | ',') ('which' | 'that') filter:reverse_verb_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
 
         ( table:two_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
         | table:two_which_filter_table 'and' filter:avp_filter with { functionName = table.functionName }
@@ -255,7 +255,7 @@ three_which_filter_table : Ast.Expression = {
         | table:two_which_filter_table ('' | ',') 'and' 'have' filter:npp_filter with { functionName = table.functionName }
         | table:two_which_filter_table ('' | ',') 'and' 'have' filter:with_filter with { functionName = table.functionName }
         | table:two_which_filter_table ('' | ',') 'and' filter:reverse_verb_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
 
         ( table:two_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
         | table:two_clean_filter_table ('' | ',') ('which' | 'that') filter:avp_filter with { functionName = table.functionName }
@@ -264,10 +264,10 @@ three_which_filter_table : Ast.Expression = {
         | table:two_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:npp_filter with { functionName = table.functionName }
         | table:two_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:with_filter with { functionName = table.functionName }
         | table:two_clean_filter_table ('' | ',') ('which' | 'that') filter:reverse_verb_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
     }
 
-    !nofilter filter:apv_filter table:two_which_filter_table with { functionName = filter.functionName } => C.addFilter(table, filter);
+    !nofilter filter:apv_filter table:two_which_filter_table with { functionName = filter.functionName } => C.addFilter($loader, table, filter);
 }
 
 three_clean_filter_table : Ast.Expression = {
@@ -275,10 +275,10 @@ three_clean_filter_table : Ast.Expression = {
         ( filter:apv_filter table:two_clean_filter_table with { functionName = filter.functionName }
         | table:two_clean_filter_table filter:pvp_filter with { functionName = table.functionName }
         | table:two_clean_filter_table filter:preposition_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
 
-        filter:quality_filter table:two_clean_filter_table => C.addFilter(table, filter);
-        table:two_clean_filter_table with { has_geo = true } filter:nearby_filter => C.addFilter(table, filter);
+        filter:quality_filter table:two_clean_filter_table => C.addFilter($loader, table, filter);
+        table:two_clean_filter_table with { has_geo = true } filter:nearby_filter => C.addFilter($loader, table, filter);
     }
 }
 
@@ -291,7 +291,7 @@ anything_phrase : Ast.Expression = {
 anything_with_filter_phrase : Ast.Expression = {
     ( ('any' | 'some') phrase:generic_base_noun_phrase ('with' | 'having') filter:npp_filter with { functionName = phrase.functionName }
     | phrase:generic_anything_noun_phrase ('with' | 'having') filter:npp_filter with { functionName = phrase.functionName }
-    ) => C.addFilter(phrase, filter);
+    ) => C.addFilter($loader, phrase, filter);
 }
 
 anything_which_filter_phrase : Ast.Expression = {
@@ -303,7 +303,7 @@ anything_which_filter_phrase : Ast.Expression = {
     | phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = phrase.functionName }
     | phrase:generic_anything_noun_phrase ('which' | 'that') filter:avp_filter with { functionName = phrase.functionName }
     | phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = phrase.functionName }
-    ) => C.addFilter(phrase, filter);
+    ) => C.addFilter($loader, phrase, filter);
 }
 
 anything_clean_filter_phrase : Ast.Expression = {
@@ -315,7 +315,7 @@ anything_clean_filter_phrase : Ast.Expression = {
     | phrase:generic_anything_noun_phrase filter:preposition_filter with { functionName = phrase.functionName }
     | phrase:generic_anything_noun_phrase with { has_geo = true } filter:nearby_filter
     | filter:quality_filter phrase:generic_anything_noun_phrase
-    ) => C.addFilter(phrase, filter);
+    ) => C.addFilter($loader, phrase, filter);
 }
 
 // verb filter:
@@ -340,17 +340,17 @@ one_be_filter_table : Ast.Expression = {
         | table:complete_table ('is' | 'are') filter:pvp_filter with { functionName = table.functionName }
         | table:complete_table ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
         | table:complete_table ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
     }
 }
 
 one_have_filter_table : Ast.Expression = {
-    !nofilter table:complete_table ('get' | 'have') filter:with_filter with { functionName = table.functionName } => C.addFilter(table, filter);
-    !nofilter table:complete_table ('get' | 'have') filter:npp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+    !nofilter table:complete_table ('get' | 'have') filter:with_filter with { functionName = table.functionName } => C.addFilter($loader, table, filter);
+    !nofilter table:complete_table ('get' | 'have') filter:npp_filter with { functionName = table.functionName } => C.addFilter($loader, table, filter);
 }
 
 one_verb_filter_table : Ast.Expression = {
-    !nofilter table:complete_table filter:avp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+    !nofilter table:complete_table filter:avp_filter with { functionName = table.functionName } => C.addFilter($loader, table, filter);
 }
 
 two_be_filter_table : Ast.Expression = {
@@ -359,19 +359,19 @@ two_be_filter_table : Ast.Expression = {
         | table:one_be_filter_table 'and' filter:pvp_filter with { functionName = table.functionName }
         | table:one_be_filter_table 'and' filter:apv_filter with { functionName = table.functionName }
         | table:one_be_filter_table 'and' filter:npv_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
 
         ( table:one_have_filter_table ('' | ',') 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
         | table:one_have_filter_table ('' | ',') 'and' ('is' | 'are') filter:pvp_filter with { functionName = table.functionName }
         | table:one_have_filter_table ('' | ',') 'and' ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
         | table:one_have_filter_table ('' | ',') 'and' ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
 
         ( table:one_verb_filter_table ('' | ',') 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
         | table:one_verb_filter_table ('' | ',') 'and' ('is' | 'are') filter:pvp_filter with { functionName = table.functionName }
         | table:one_verb_filter_table ('' | ',') 'and' ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
         | table:one_verb_filter_table ('' | ',') 'and' ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
     }
 }
 
@@ -383,7 +383,7 @@ two_have_filter_table : Ast.Expression = {
         | table:one_be_filter_table ('' | ',') 'and' ('get' | 'have') filter:npp_filter with { functionName = table.functionName }
         | table:one_have_filter_table 'and' filter:npp_filter with { functionName = table.functionName }
         | table:one_verb_filter_table ('' | ',') 'and' ('get' | 'have') filter:npp_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
     }
 }
 
@@ -392,7 +392,7 @@ two_verb_filter_table : Ast.Expression = {
         ( table:one_be_filter_table 'and' filter:avp_filter with { functionName = table.functionName }
         | table:one_have_filter_table 'and' filter:avp_filter with { functionName = table.functionName }
         | table:one_verb_filter_table 'and' filter:avp_filter with { functionName = table.functionName }
-        ) => C.addFilter(table, filter);
+        ) => C.addFilter($loader, table, filter);
     }
 }
 
@@ -586,19 +586,19 @@ stream : Ast.Expression = {
             => C.tableToStream(proj);
     }
     !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table with { is_monitorable = true } 'change and' filter:edge_filter with { functionName = table.functionName } => {
-        if (!table.schema!.is_monitorable || !C.checkFilter(table, filter) || table.schema!.is_list)
+        if (!table.schema!.is_monitorable || !C.checkFilter($loader, table, filter) || table.schema!.is_list)
             return null;
-        const withFilter = C.addFilter(table, filter, { ifFilter: true });
+        const withFilter = C.addFilter($loader, table, filter, { ifFilter: true });
         if (!withFilter)
             return null;
         return C.tableToStream(withFilter);
     };
     !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table with { is_monitorable = true } 'change and' filter:if_filter with { functionName = table.functionName } => {
-        if (!table.schema!.is_monitorable || !C.checkFilter(table, filter))
+        if (!table.schema!.is_monitorable || !C.checkFilter($loader, table, filter))
             return null;
         if ($loader.flags.turking && table.schema!.is_list)
             return null;
-        const withFilter = C.addFilter(table, filter, { ifFilter: true });
+        const withFilter = C.addFilter($loader, table, filter, { ifFilter: true });
         if (!withFilter)
             return null;
         return C.tableToStream(withFilter);

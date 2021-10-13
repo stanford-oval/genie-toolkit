@@ -392,7 +392,7 @@ function makeEdgeFilterStream(loader : ThingpediaLoader,
         ptype: proj.schema!.getArgType(args[0])!,
         ast: new Ast.BooleanExpression.Atom(null, args[0], op, value)
     };
-    if (!checkFilter(proj.expression, f))
+    if (!checkFilter(loader, proj.expression, f))
         return null;
     if (!proj.schema!.is_monitorable || proj.schema!.is_list)
         return null;
@@ -710,7 +710,7 @@ export function toChainExpression(expr : Ast.Expression) {
 
 function makeProgram(loader : ThingpediaLoader,
                      rule : Ast.Expression) : Ast.Program|null {
-    if (!checkValidQuery(rule))
+    if (!loader.flags.no_soft_match_id && !checkValidQuery(rule))
         return null;
     const chain = toChainExpression(rule);
     if (chain.first.schema!.functionType === 'stream' && loader.flags.nostream)
@@ -792,7 +792,7 @@ function checkComputeFilter(table : Ast.Expression, filter : Ast.ComputeBooleanE
     return filter.rhs.getType().equals(vtype);
 }
 
-function checkAtomFilter(table : Ast.Expression, filter : Ast.AtomBooleanExpression) : boolean {
+function checkAtomFilter(loader : ThingpediaLoader, table : Ast.Expression, filter : Ast.AtomBooleanExpression) : boolean {
     const arg = table.schema!.getArgument(filter.name);
     if (!arg || arg.is_input)
         return false;
@@ -829,13 +829,19 @@ function checkAtomFilter(table : Ast.Expression, filter : Ast.AtomBooleanExpress
     }
 
     let typeMatch = false;
+    const valueType = filter.value.getType();
+    const parentTypes = valueType instanceof Type.Entity ? loader.entitySubTypeMap[valueType.type] || [] : [];
     for (const type of vtypes) {
-        if (filter.value.getType().equals(type))
+        if (valueType.equals(type)) {
             typeMatch = true;
+            break;
+        } else if (type instanceof Type.Entity && parentTypes.includes(type.type)) {
+            typeMatch = true;
+            break;
+        }
     }
     if (!typeMatch)
         return false;
-
 
     if (vtype.isNumber || vtype.isMeasure) {
         let min = -Infinity;
@@ -858,7 +864,7 @@ function checkAtomFilter(table : Ast.Expression, filter : Ast.AtomBooleanExpress
     return true;
 }
 
-function internalCheckFilter(table : Ast.Expression, filter : Ast.BooleanExpression) : boolean {
+function internalCheckFilter(loader : ThingpediaLoader, table : Ast.Expression, filter : Ast.BooleanExpression) : boolean {
     while (table instanceof Ast.ProjectionExpression)
         table = table.expression;
 
@@ -869,7 +875,7 @@ function internalCheckFilter(table : Ast.Expression, filter : Ast.BooleanExpress
     if (filter instanceof Ast.AndBooleanExpression ||
         filter instanceof Ast.OrBooleanExpression) {
         for (const operands of filter.operands) {
-            if (!internalCheckFilter(table, operands))
+            if (!internalCheckFilter(loader, table, operands))
                 return false;
         }
         return true;
@@ -879,7 +885,7 @@ function internalCheckFilter(table : Ast.Expression, filter : Ast.BooleanExpress
         return checkComputeFilter(table, filter);
 
     if (filter instanceof Ast.AtomBooleanExpression)
-        return checkAtomFilter(table, filter);
+        return checkAtomFilter(loader, table, filter);
 
     if (filter instanceof Ast.DontCareBooleanExpression) {
         const arg = table.schema!.getArgument(filter.name);
@@ -893,10 +899,10 @@ function internalCheckFilter(table : Ast.Expression, filter : Ast.BooleanExpress
     throw new Error(`Unexpected filter type ${filter}`);
 }
 
-function checkFilter(table : Ast.Expression, filter : FilterSlot|DomainIndependentFilterSlot) : boolean {
+function checkFilter(loader : ThingpediaLoader, table : Ast.Expression, filter : FilterSlot|DomainIndependentFilterSlot) : boolean {
     if (filter.schema !== null && !isSameFunction(table.schema!, filter.schema))
         return false;
-    return internalCheckFilter(table, filter.ast);
+    return internalCheckFilter(loader, table, filter.ast);
 }
 
 function* iterateFilters(table : Ast.Expression) : Generator<[Ast.FunctionDef, Ast.BooleanExpression], void> {
@@ -1063,10 +1069,11 @@ function addFilterInternal(table : Ast.Expression,
     return new Ast.FilterExpression(null, table, filter, schema);
 }
 
-function addFilter(table : Ast.Expression,
+function addFilter(loader : ThingpediaLoader,
+                   table : Ast.Expression,
                    filter : FilterSlot|DomainIndependentFilterSlot,
                    options : AddFilterOptions = {}) : Ast.Expression|null {
-    if (!checkFilter(table, filter))
+    if (!checkFilter(loader, table, filter))
         return null;
 
     return addFilterInternal(table, filter.ast, options);
@@ -1531,7 +1538,8 @@ function makeComputeExpression(table : Ast.Expression,
     return new Ast.ProjectionExpression(null, table, [], [expression], [null], resolveProjection(table.schema!, [], [expression]));
 }
 
-function makeComputeFilterExpression(table : Ast.Expression,
+function makeComputeFilterExpression(loader : ThingpediaLoader, 
+                                     table : Ast.Expression,
                                      operation : 'distance',
                                      operands : Ast.Value[],
                                      resultType : Type,
@@ -1551,10 +1559,10 @@ function makeComputeFilterExpression(table : Ast.Expression,
         ptype: expression.type,
         ast: new Ast.BooleanExpression.Compute(null, expression, filterOp, filterValue)
     };
-    return addFilter(table, filter);
+    return addFilter(loader, table, filter);
 }
 
-function makeWithinGeoDistanceExpression(table : Ast.Expression, location : Ast.Value, filterValue : Ast.Value) : Ast.Expression|null {
+function makeWithinGeoDistanceExpression(loader : ThingpediaLoader, table : Ast.Expression, location : Ast.Value, filterValue : Ast.Value) : Ast.Expression|null {
     const arg = table.schema!.getArgument('geo');
     if (!arg || !arg.type.isLocation)
         return null;
@@ -1570,7 +1578,7 @@ function makeWithinGeoDistanceExpression(table : Ast.Expression, location : Ast.
     // the distance should be at least 100 meters (if the value is small number)
     if (filterValue instanceof Ast.MeasureValue && Units.transformToBaseUnit(filterValue.value, unit) < 100)
         return null;
-    return makeComputeFilterExpression(table, 'distance', [new Ast.Value.VarRef('geo'), location], new Type.Measure('m'), '<=', filterValue);
+    return makeComputeFilterExpression(loader, table, 'distance', [new Ast.Value.VarRef('geo'), location], new Type.Measure('m'), '<=', filterValue);
 }
 
 function makeComputeArgMinMaxExpression(table : Ast.Expression,

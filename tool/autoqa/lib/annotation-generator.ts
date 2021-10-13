@@ -19,17 +19,18 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 
 import * as ThingTalk from 'thingtalk';
+import * as Tp from 'thingpedia';
 import CanonicalGenerator from './canonical-generator';
 
 export default class AutoAnnotationGenerator {
     private canonicalGenerator; 
 
     constructor(classDef : ThingTalk.Ast.ClassDef, 
+                entities : Tp.BaseClient.EntityTypeRecord[],
                 constants : Record<string, any[]>, 
                 queries : string[], 
-                parameterDatasets : string, 
                 options : any) {
-        this.canonicalGenerator = new CanonicalGenerator(classDef, constants, queries, parameterDatasets, options);
+        this.canonicalGenerator = new CanonicalGenerator(classDef, entities, constants, queries, options);
     }
 
     generate() {

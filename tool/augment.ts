@@ -132,6 +132,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         dest: 'requotable',
         help: 'Allow the replacement of a parameter in the sentence and in the program to differ (making requoting impossible).',
     });
+    parser.add_argument('--include-entity-value', {
+        action: 'store_true',
+        help: 'Keep entity value in thingtalk annotation.',
+        default: false
+    });
     parser.add_argument('--clean-parameters', {
         action: 'store_true',
         help: 'Take extra effort to use parameters that are simple and do not include punctuation marks',

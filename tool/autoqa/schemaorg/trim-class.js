@@ -19,12 +19,12 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 import * as fs from 'fs';
 import util from 'util';
+import { loadClassDef } from '../lib/utils';
 
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 import {
@@ -35,12 +35,6 @@ import {
 } from './manual-annotations';
 
 import { titleCase, DEFAULT_ENTITIES } from '../lib/utils';
-
-async function loadClassDef(thingpedia) {
-    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
-    assert(library instanceof ThingTalk.Ast.Library && library.classes.length === 1);
-    return library.classes[0];
-}
 
 class SchemaTrimmer {
     constructor(classDef, data, entities, domain) {

@@ -112,6 +112,16 @@ export default class PosParser {
                 for (const template of this.queryTemplates[pos]) {
                     const match = template.match(utterance, domainCanonicals, value);
                     if (match && !match.includes('$domain') && match.split(' ').length - 1 < MAX_LENGTH) {
+                        // FIXME: capture these in templates
+                        // skip matches containing punctuations that always introduce a break in the utterance
+                        if (/[,.!?:]/.test(match))
+                            continue;
+                        // skip reverse property that contains a pronoun
+                        if (pos === 'reverse_property') { 
+                            const tokens = match.split(' ');
+                            if (tokens.includes('it') || tokens.includes('that') || tokens.includes('this'))
+                                continue;
+                        }
                         if (pos === 'verb' && match.startsWith('$value ')) {
                             return [
                                 { pos, canonical: match },
