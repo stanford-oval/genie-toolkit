@@ -54,10 +54,12 @@ keyfn = {
     C.ExpressionWithCoreference : C.expressionWithCoreferenceKeyFn,
 }
 // declare contexts used internally
-context : unknown = {
-    ctx_dynamic_any,
-    ctx_sys_dynamic_any
-};
+if ($options.contextual) {
+    context : unknown = {
+        ctx_dynamic_any,
+        ctx_sys_dynamic_any
+    };
+}
 
 // Thingpedia Grammar Rules
 
@@ -136,7 +138,7 @@ both_prefix : string = {
     '';
 }
 
-// pronouns used to refer to the first/second part of 
+// pronouns used to refer to the first/second part of
 // an expression with left-hand side and right-hand side
 // like join
 pronoun_the_first : string = {}

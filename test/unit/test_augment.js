@@ -20,14 +20,14 @@
 
 
 process.on('unhandledRejection', (up) => {
-    throw up; 
+    throw up;
 });
 
 import * as path from 'path';
 import * as stream from 'stream';
 import * as seedrandom from 'seedrandom';
 
-import { BasicSentenceGenerator } from '../../lib/sentence-generator/batch';
+import BasicSentenceGenerator from '../../lib/sentence-generator/batch-sentence';
 import DatasetAugmenter from '../../lib/dataset-tools/augmentation';
 import * as Utils from '../../lib/utils/misc-utils';
 import FileParameterProvider from '../../tool/lib/file_parameter_provider';

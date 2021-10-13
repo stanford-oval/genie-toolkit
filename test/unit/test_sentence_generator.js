@@ -20,13 +20,14 @@
 
 
 process.on('unhandledRejection', (up) => {
-    throw up; 
+    throw up;
 });
 
 import * as stream from 'stream';
 import * as seedrandom from 'seedrandom';
 
-import { BasicSentenceGenerator, DialogueGenerator } from '../../lib/sentence-generator/batch';
+import BasicSentenceGenerator from '../../lib/sentence-generator/batch-sentence';
+import DialogueGenerator from '../../lib/sentence-generator/dialogue-generator';
 import { makeDummyEntities } from '../../lib/utils/misc-utils';
 
 import { Syntax, SchemaRetriever } from 'thingtalk';
@@ -75,6 +76,7 @@ async function doTestBasic(filename) {
         templateFiles: [filename],
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
+        schemaRetriever: _schemaRetriever,
         flags: {
             turking: false,
             aggregation: true,
@@ -144,6 +146,7 @@ async function doTestDialogue(onlyDevices = null) {
         timezone: 'America/Los_Angeles',
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
+        schemaRetriever: _schemaRetriever,
         flags: {
             turking: false,
             aggregation: true,
