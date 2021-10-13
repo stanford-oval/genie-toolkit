@@ -23,7 +23,7 @@
  * The interface implemented by skills that can retrieve audio to play,
  * and control APIs to play such audio.
  */
- export interface AudioDevice {
+export interface AudioDevice {
     /**
      * Stop all playback.
      */

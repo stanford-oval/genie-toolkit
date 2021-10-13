@@ -173,17 +173,17 @@ export interface Contact {
 export async function contactSearch(dlg : DialogueInterface, executor : AbstractThingTalkExecutor, type : string, name : string) {
     let category;
     switch (type) {
-        case 'tt:phone_number':
-            category = ValueCategory.PhoneNumber as const;
-            break;
-        case 'tt:email_address':
-            category = ValueCategory.EmailAddress as const;
-            break;
-        case 'tt:contact':
-            category = ValueCategory.Contact as const;
-            break;
-        default:
-            throw new TypeError('Invalid contact type ' + type);
+    case 'tt:phone_number':
+        category = ValueCategory.PhoneNumber as const;
+        break;
+    case 'tt:email_address':
+        category = ValueCategory.EmailAddress as const;
+        break;
+    case 'tt:contact':
+        category = ValueCategory.Contact as const;
+        break;
+    default:
+        throw new TypeError('Invalid contact type ' + type);
     }
 
     const choices = name === null ? [] : await executor.lookupContact(dlg, category, name);

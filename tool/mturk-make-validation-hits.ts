@@ -106,7 +106,7 @@ export async function execute(args : any) {
             columns: true,
             delimiter: ',',
             relax_column_count: true
-        }))
+    }))
         .pipe(new ParaphrasingParser({
             sentencesPerTask: args.sentences_per_task,
             paraphrasesPerSentence: args.paraphrases_per_sentence,

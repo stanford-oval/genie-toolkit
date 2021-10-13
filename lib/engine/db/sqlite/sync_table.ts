@@ -82,10 +82,10 @@ export default class SyncTable<RowType extends { uniqueId : string }> {
         return Promise.all(changes.map((change) => {
             if (change[this._discriminator] !== null) {
                 return this._insertIfRecentInternal(client, change.uniqueId,
-                                                    change.lastModified, change as Omit<RowType, "uniqueId">);
+                    change.lastModified, change as Omit<RowType, "uniqueId">);
             } else {
                 return this._deleteIfRecentInternal(client, change.uniqueId,
-                                                    change.lastModified);
+                    change.lastModified);
             }
         }));
     }
@@ -135,7 +135,7 @@ export default class SyncTable<RowType extends { uniqueId : string }> {
 
     private _insertIfRecentInternal(client : sqlite3.Database, uniqueId : string, lastModified : number, row : Omit<RowType, "uniqueId">) {
         return sql.selectAll(client, `select lastModified from ${this.name}_journal where uniqueId = ?`,
-                             [uniqueId]).then((rows) => {
+            [uniqueId]).then((rows) => {
             if (rows.length > 0 && rows[0].lastModified >= lastModified)
                 return false;
 
@@ -165,7 +165,7 @@ export default class SyncTable<RowType extends { uniqueId : string }> {
 
     private _deleteIfRecentInternal(client : sqlite3.Database, uniqueId : string, lastModified : number) {
         return sql.selectAll(client, `select lastModified from ${this.name}_journal where uniqueId = ?`,
-                             [uniqueId]).then((rows) => {
+            [uniqueId]).then((rows) => {
             if (rows.length > 0 && rows[0].lastModified >= lastModified)
                 return false;
 

@@ -774,9 +774,9 @@ class SchemaProcessor {
                     this._white_list.map((q) => new Ast.Value.String(q.trim()))
                 )
             }
-        }, {
+            }, {
             is_abstract: false
-        });
+            });
 
         this.addCanonicalAnnotations(classdef);
 

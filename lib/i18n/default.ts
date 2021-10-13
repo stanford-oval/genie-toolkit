@@ -787,7 +787,7 @@ export default class LanguagePack {
      * {@link LanguagePack.isGoodWord} to account for foreign person
      * names and loan words.
      */
-     isGoodPersonName(word : string) : boolean {
+    isGoodPersonName(word : string) : boolean {
         return this.isGoodWord(word) || /^(\w+\s\w\s?\.)$/.test(word);
     }
 

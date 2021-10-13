@@ -101,8 +101,8 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
         const confidence = best.score >= this._highConfidence ?
             CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND :
             best.score >= this._lowConfidence ?
-            CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND :
-            CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
+                CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND :
+                CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
 
         return {
             type: confidence,

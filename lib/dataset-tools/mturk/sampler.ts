@@ -205,26 +205,26 @@ class SentenceProcessor {
         // catch gmail reply and twitter retweet
         let hasGmailInbox = false;
         for (let i = 0; i < code.length; i++) {
-             const token = code[i];
-             if (token === '@com.gmail.inbox') {
-                 hasGmailInbox = true;
-                 continue;
-             }
-             if (hasGmailInbox &&
+            const token = code[i];
+            if (token === '@com.gmail.inbox') {
+                hasGmailInbox = true;
+                continue;
+            }
+            if (hasGmailInbox &&
                  (token === '@com.gmail.send_email' || token === '@com.gmail.send_picture'))
-                 return true;
+                return true;
         }
 
         let hasTweetInbox = false;
         for (let i = 0; i < code.length; i++) {
-             const token = code[i];
-             if (token === '@com.twitter.search' || token === '@com.twitter.home_timeline' || token === '@com.twitter.my_tweets') {
-                 hasTweetInbox = true;
-                 continue;
-             }
-             if (hasTweetInbox &&
+            const token = code[i];
+            if (token === '@com.twitter.search' || token === '@com.twitter.home_timeline' || token === '@com.twitter.my_tweets') {
+                hasTweetInbox = true;
+                continue;
+            }
+            if (hasTweetInbox &&
                  (token === '@com.twitter.post' || token === '@com.twitter.post_picture'))
-                 return true;
+                return true;
         }
         return false;
     }
@@ -312,7 +312,7 @@ class SentenceProcessor {
         let program;
         try {
             const entityResolver = ((entity : string, param : string|null, functionname : string|null, unit : string|null) =>
-                    this._entityRetriever(entity, param, functionname, unit, { forContext: false }));
+                this._entityRetriever(entity, param, functionname, unit, { forContext: false }));
             program = await ThingTalkUtils.parsePrediction(tokens, entityResolver, {
                 timezone: this._timezone,
                 thingpediaClient: this._tpClient,

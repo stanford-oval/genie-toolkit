@@ -63,11 +63,11 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
      * @param schemas - the schema retriever to typecheck ThingTalk code
      * @internal
      */
-     constructor(platform : Tp.BasePlatform,
-                 db : AbstractDatabase,
-                 syncManager : SyncManager,
-                 factory : Tp.DeviceFactory,
-                 schemas : SchemaRetriever) {
+    constructor(platform : Tp.BasePlatform,
+                db : AbstractDatabase,
+                syncManager : SyncManager,
+                factory : Tp.DeviceFactory,
+                schemas : SchemaRetriever) {
         super();
         this.setMaxListeners(0);
 

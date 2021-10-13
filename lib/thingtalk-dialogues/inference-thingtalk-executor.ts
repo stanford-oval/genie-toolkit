@@ -516,24 +516,24 @@ export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExe
 
         let value : Ast.Value|null = null;
         switch (variable) {
-            case '$location.current_location': {
-                const location = await this._tryGetCurrentLocation();
-                if (location)
-                    value = new Ast.Value.Location(location);
-                else
-                    value = this._tryGetStoredVariable(dlg, Type.Location, variable);
-                break;
-            }
-            case '$location.home':
-            case '$location.work':
+        case '$location.current_location': {
+            const location = await this._tryGetCurrentLocation();
+            if (location)
+                value = new Ast.Value.Location(location);
+            else
                 value = this._tryGetStoredVariable(dlg, Type.Location, variable);
-                break;
-            case '$time.morning':
-            case '$time.evening':
-                value = this._tryGetStoredVariable(dlg, Type.Time, variable);
-                break;
-            default:
-                throw new TypeError('Invalid variable ' + variable);
+            break;
+        }
+        case '$location.home':
+        case '$location.work':
+            value = this._tryGetStoredVariable(dlg, Type.Location, variable);
+            break;
+        case '$time.morning':
+        case '$time.evening':
+            value = this._tryGetStoredVariable(dlg, Type.Time, variable);
+            break;
+        default:
+            throw new TypeError('Invalid variable ' + variable);
         }
         if (value !== null)
             return value;

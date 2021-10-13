@@ -69,7 +69,7 @@ interface DeviceState {
 /**
  * Information about a running ThingTalk program (app).
  */
- export interface AppInfo {
+export interface AppInfo {
     /**
      * The unique ID of the app.
      */
@@ -218,7 +218,9 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._modules = [];
 
-        const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, Builtins.modules);
+        const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, Builtins.modules, {
+            builtinGettext: this._langPack._
+        });
 
         // inject the abstract interfaces used by the builtin devices into the schema retriever
         for (const kind in Builtins.interfaces) {
@@ -229,7 +231,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
         }
 
         this._devices = new DeviceDatabase(platform, this._db, this._sync,
-                                           deviceFactory, this._schemas);
+            deviceFactory, this._schemas);
 
         this._appdb = new AppDatabase(this);
 
@@ -247,7 +249,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
         if (this._audio)
             this._modules.push(this._audio);
         this._modules.push(this._assistant,
-                           new AppRunner(this._appdb));
+            new AppRunner(this._appdb));
         this._modules.push(this._activityMonitor);
 
         this._running = false;

@@ -147,12 +147,12 @@ function adjustStatementsForInitialRequest(loader : ThingpediaLoader,
                     invoInputParam.push(new Ast.InputParam(null, i.name, new Ast.UndefinedValue()));
             }
             newTable = new Ast.InvocationExpression(null,
-                    new Ast.Invocation(null,
-                        new Ast.DeviceSelector(null, query.class!.name, null, null),
-                        query.name,
-                        invoInputParam,
-                        query),
-                    query);
+                new Ast.Invocation(null,
+                    new Ast.DeviceSelector(null, query.class!.name, null, null),
+                    query.name,
+                    invoInputParam,
+                    query),
+                query);
 
             if (confirm === 'auto')
                 param.value = new Ast.Value.VarRef('id');

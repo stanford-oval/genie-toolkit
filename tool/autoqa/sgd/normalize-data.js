@@ -94,9 +94,9 @@ class Normalizer {
             if (expectedType.type === 'tt:Currency') {
                 if (/^\s*(?:[0-9]+|\.[0-9]+)\s+[a-zA-Z]+/.test(String(value))) {
                     const [, num, currency] = /^\s*(?:[0-9]+|\.[0-9]+)\s+[a-zA-Z]+/.exec(String(value));
-                    return {value: num, code: currency.toLowerCase()};
+                    return { value: num, code: currency.toLowerCase() };
                 }
-                return {value: parseFloat(value), code: 'usd'};
+                return { value: parseFloat(value), code: 'usd' };
             } else if (expectedType.type === 'tt:Number') {
                 return parseFloat(value);
             } else if (expectedType.type === 'tt:Duration') {

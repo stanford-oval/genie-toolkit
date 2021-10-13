@@ -20,7 +20,7 @@
 //         Kevin Tang
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 
 import { DialogueExample, DialogueTurn } from "../dataset-tools/parsers";
 import { ConversationRow, LocalTable } from "../engine/db";

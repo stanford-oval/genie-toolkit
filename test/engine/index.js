@@ -21,7 +21,9 @@
 
 import Q from 'q';
 Q.longStackSupport = true;
-process.on('unhandledRejection', (up) => { throw up; });
+process.on('unhandledRejection', (up) => {
+    throw up; 
+});
 
 // require(thingpedia) to initialize the polyfill
 require('thingpedia');

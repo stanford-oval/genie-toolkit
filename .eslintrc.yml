@@ -10,7 +10,6 @@ extends:
   - 'eslint:recommended'
   - 'plugin:@typescript-eslint/recommended'
 rules:
-  indent: off
   no-console: off
   no-fallthrough: off
   '@typescript-eslint/no-empty-function': off
@@ -68,6 +67,21 @@ rules:
   no-unused-expressions: warn
 
   # code style
+  indent:
+    - error
+    - 4
+    -
+      SwitchCase: 0
+      FunctionDeclaration:
+        parameters: first
+      FunctionExpression:
+        parameters: first
+
+      # we're not very consistent with arrays and object literals, especially in tests
+      ArrayExpression: off
+      ObjectExpression: off
+      ignoreComments: true
+
   linebreak-style:
     - error
     - unix
@@ -89,6 +103,13 @@ rules:
     -
       default: array-simple
   block-spacing: error
+  space-before-blocks:
+    - error
+    - always
+  object-curly-spacing:
+    - error
+    - always
+  brace-style: error
   computed-property-spacing: error
   func-call-spacing: error
   keyword-spacing:
@@ -121,3 +142,4 @@ rules:
     -
       before: true
       after: true
+  no-whitespace-before-property: error

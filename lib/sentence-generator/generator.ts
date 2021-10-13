@@ -489,7 +489,7 @@ class ChartTable {
     chooseUpToDepth(nonTermIndex : number, upToDepth : number) : Derivation<any>|undefined {
         assert(upToDepth >= 0 && upToDepth <= this._maxDepth);
         const depthSizes = this._cumSize.slice(nonTermIndex * (this._maxDepth+1),
-                                               nonTermIndex * (this._maxDepth+1) + (upToDepth+1));
+            nonTermIndex * (this._maxDepth+1) + (upToDepth+1));
         assert(depthSizes.length === upToDepth+1);
         if (depthSizes[upToDepth] === 0)
             return undefined;
@@ -1271,7 +1271,7 @@ function computeWorstCaseGenSize(charts : ChartTable,
                     tmp = 0;
             } else if (currentExpansion instanceof NonTerminal) {
                 tmp *= charts.getSizeUpToDepth(currentExpansion.index,
-                                               k > pivotIdx ? maxdepth : maxdepth-1);
+                    k > pivotIdx ? maxdepth : maxdepth-1);
             }
             assert(Number.isFinite(tmp));
         }
@@ -1454,17 +1454,17 @@ function expandRuleExhaustive(generator : SentenceGenerator,
                     if (constraint) {
                         const [indexName, keyValue] = constraint;
                         candidates = charts.getAtDepthForKey(currentExpansion.index,
-                                                             fixeddepth,
-                                                             indexName, keyValue);
+                            fixeddepth,
+                            indexName, keyValue);
                     } else if (context !== null) {
                         // if we have chosen a context, either pick something with
                         // no context or something with the same context
                         candidates = iterchain(charts.getAtDepthForKey(currentExpansion.index,
-                                                                       fixeddepth,
-                                                                       CONTEXT_KEY_NAME, null),
-                                               charts.getAtDepthForKey(currentExpansion.index,
-                                                                       fixeddepth,
-                                                                       CONTEXT_KEY_NAME, context));
+                            fixeddepth,
+                            CONTEXT_KEY_NAME, null),
+                        charts.getAtDepthForKey(currentExpansion.index,
+                            fixeddepth,
+                            CONTEXT_KEY_NAME, context));
                     } else {
                         candidates = charts.getAtDepth(currentExpansion.index, fixeddepth);
                     }
@@ -1474,17 +1474,17 @@ function expandRuleExhaustive(generator : SentenceGenerator,
                     if (constraint) {
                         const [indexName, keyValue] = constraint;
                         candidates = charts.getUpToDepthForKey(currentExpansion.index,
-                                                               upToDepth,
-                                                               indexName, keyValue);
+                            upToDepth,
+                            indexName, keyValue);
                     } else if (context !== null) {
                         // if we have chosen a context, either pick something with
                         // no context or something with the same context
                         candidates = iterchain(charts.getUpToDepthForKey(currentExpansion.index,
-                                                                         upToDepth,
-                                                                         CONTEXT_KEY_NAME, null),
-                                               charts.getUpToDepthForKey(currentExpansion.index,
-                                                                         upToDepth,
-                                                                         CONTEXT_KEY_NAME, context));
+                            upToDepth,
+                            CONTEXT_KEY_NAME, null),
+                        charts.getUpToDepthForKey(currentExpansion.index,
+                            upToDepth,
+                            CONTEXT_KEY_NAME, context));
                     } else {
                         candidates = charts.getUpToDepth(currentExpansion.index, upToDepth);
                     }
@@ -1692,7 +1692,7 @@ function expandRuleSample(generator : SentenceGenerator,
                 if (constraint) {
                     const [indexName, keyValue] = constraint;
                     choice = charts.chooseAtDepthForKey(currentExpansion.index, depth-1,
-                                                        indexName, keyValue);
+                        indexName, keyValue);
                 } else if (newContext !== null) {
                     // try with no context first, then try with the same context
                     // (see above for longer explanation)
@@ -1714,7 +1714,7 @@ function expandRuleSample(generator : SentenceGenerator,
                 if (constraint) {
                     const [indexName, keyValue] = constraint;
                     choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth,
-                                                          indexName, keyValue);
+                        indexName, keyValue);
                 } else if (newContext !== null) {
                     // try with no context first, then try with the same context
                 // (see above for longer explanation)

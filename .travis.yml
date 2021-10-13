@@ -23,7 +23,6 @@ jobs:
       name: "Unit Tests"
       install:
       - pyenv global 3.7.1
-      - pip install --user torch transformers
       - travis_retry npm ci
       script:
       - TZ="America/Los_Angeles" npx nyc ts-node ./test/unit

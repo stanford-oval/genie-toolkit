@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,12 +19,13 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
+import { TimeEntity } from '../../utils/entity-utils';
 import BaseTokenizer from './base';
 import { makeToken } from './helpers';
 
 // 我觉得这比英语好太多了
 
-const NUMBERS = {
+const NUMBERS : Record<string, number> = {
     〇: 0,
     零: 0,
     一: 1,
@@ -39,18 +40,18 @@ const NUMBERS = {
     九: 9,
 };
 
-const SMALL_MULTIPLIERS = {
+const SMALL_MULTIPLIERS : Record<string, number> = {
     十: 10,
     百: 100,
     千: 1000,
 };
-const BIG_MULTIPLIERS = {
+const BIG_MULTIPLIERS : Record<string, number> = {
     万: 1e4,
     亿: 1e8,
     兆: 1e12
 };
 
-const CURRENCIES = {
+const CURRENCIES : Record<string, string> = {
     '美元': 'usd',
     '美金': 'usd',
     '刀': 'usd',
@@ -72,14 +73,14 @@ const CURRENCIES = {
 };
 
 export default class ChineseTokenizer extends BaseTokenizer {
-    _addIntlPrefix(text) {
+    protected _addIntlPrefix(text : string) {
         // assume PRC
         if (!text.startsWith('+'))
             text = '+86' + text;
         return text;
     }
 
-    _parseWordNumber(text) {
+    private _parseWordNumber(text : string) {
         // numbers in chinese have three levels
         // individual digits: 一 to 九
         // small multipliers: 十，白，千
@@ -137,7 +138,7 @@ export default class ChineseTokenizer extends BaseTokenizer {
         return value;
     }
 
-    _initNumbers() {
+    protected _initNumbers() {
         // numbers in digits
 
         // can be separated by space or comma
@@ -151,24 +152,24 @@ export default class ChineseTokenizer extends BaseTokenizer {
 
         // currencies
         this._lexer.addRule(/{DECIMAL_NUMBER}(?:[美加澳欧]?元|欧|英镑|日圆|日元|块|美金|刀)/, (lexer) => {
-            let unitlength = /[美加澳欧]元|英镑|日[圆元]|美金/.test(lexer.text) ? 2 : 1;
-            let num = lexer.text.substring(0, lexer.text.length-unitlength);
-            let unit = CURRENCIES[lexer.text.substring(lexer.text.length-unitlength)];
-            let value = this._parseDecimalNumber(num);
+            const unitlength = /[美加澳欧]元|英镑|日[圆元]|美金/.test(lexer.text) ? 2 : 1;
+            const num = lexer.text.substring(0, lexer.text.length-unitlength);
+            const unit = CURRENCIES[lexer.text.substring(lexer.text.length-unitlength)];
+            const value = this._parseDecimalNumber(num);
             return makeToken(lexer.index, lexer.text, String(value) + unit, 'CURRENCY', { value, unit });
         });
         this._lexer.addRule(/{DECIMAL_NUMBER}[a-z]{3}/, (lexer) => {
-            let unitlength = 3;
-            let num = lexer.text.substring(0, lexer.text.length-unitlength);
-            let unit = lexer.text.substring(lexer.text.length-unitlength);
-            let value = this._parseDecimalNumber(num);
+            const unitlength = 3;
+            const num = lexer.text.substring(0, lexer.text.length-unitlength);
+            const unit = lexer.text.substring(lexer.text.length-unitlength);
+            const value = this._parseDecimalNumber(num);
             return makeToken(lexer.index, lexer.text, String(value) + unit, 'CURRENCY', { value, unit });
         });
         this._lexer.addRule(/(?:[$£€₩¥]){DECIMAL_NUMBER}/, (lexer) => {
-            let unit = lexer.text.match(/[$£€₩¥]/)[0];
+            let unit = lexer.text.match(/[$£€₩¥]/)![0];
             unit = CURRENCIES[unit];
-            let num = lexer.text.replace(/[$£€₩¥]/, '');
-            let value = this._parseDecimalNumber(num);
+            const num = lexer.text.replace(/[$£€₩¥]/, '');
+            const value = this._parseDecimalNumber(num);
             return makeToken(lexer.index, lexer.text, String(value) + unit, 'CURRENCY', { value, unit });
         });
 
@@ -213,12 +214,12 @@ export default class ChineseTokenizer extends BaseTokenizer {
         });
     }
 
-    _initOrdinals() {
+    protected _initOrdinals() {
         // ordinals are just 第 followed by a number in digit or a number in words
         // we don't need to do anything special for them
     }
 
-    _findAndParseNumberOffset(letterRegex, numberRegex, string, _default) {
+    private _findAndParseNumberOffset(letterRegex : RegExp, numberRegex : RegExp, string : string, _default : number) {
         let match = letterRegex.exec(string);
         if (match) {
             return this._parseWordNumber(match[1]);
@@ -231,18 +232,18 @@ export default class ChineseTokenizer extends BaseTokenizer {
         }
     }
 
-    _parseColloquialTime(timestr) {
-        let hour, minute, second;
+    private _parseColloquialTime(timestr : string) {
+        let hour, minute;
 
         hour = this._findAndParseNumberOffset(/(一?十[一二]|[一二三四五六七八九])点/, /(1[0-2]|[1-9])点/, timestr, 0);
-        second = this._findAndParseNumberOffset(/([一二三四五六七八九]?十[一二三四五六七八九]?|[一二三四五六七八九])秒/, /([1-5][0-9]|0?[1-9])秒/, timestr, 0);
+        const second = this._findAndParseNumberOffset(/([一二三四五六七八九]?十[一二三四五六七八九]?|[一二三四五六七八九])秒/, /([1-5][0-9]|0?[1-9])秒/, timestr, 0);
 
         if (timestr.indexOf('钟') >= 0) {
             minute = 0;
         } else if (timestr.indexOf('半') >= 0) {
             minute = 30;
         } else {
-            let minutematch = /([一三])刻/.exec(timestr);
+            const minutematch = /([一三])刻/.exec(timestr);
             if (minutematch)
                 minute = 15 * this._parseWordNumber(minutematch[1]);
             else
@@ -257,7 +258,7 @@ export default class ChineseTokenizer extends BaseTokenizer {
         return { hour, minute, second };
     }
 
-    _initTimes() {
+    protected _initTimes() {
         // chain up to load ISO time parsing
         super._initTimes();
 
@@ -273,7 +274,7 @@ export default class ChineseTokenizer extends BaseTokenizer {
         });
     }
 
-    _parseWordDate(text, parseTime) {
+    private _parseWordDate(text : string, parseTime : ((time : string) => TimeEntity)|null) {
         const day = this._findAndParseNumberOffset(/(三十一?|[一二]十[一二三四五六七八九]?|[一二三四五六七八九])[号日]/, /(3[01]|[12][0-9]|[1-9])[号日]/, text, -1);
         const month = this._findAndParseNumberOffset(/(一?十[一二]|[一二三四五六七八九])月/, /(1[0-2]|[1-9])月/, text, -1);
 
@@ -281,17 +282,17 @@ export default class ChineseTokenizer extends BaseTokenizer {
         let year = -1;
         const yearmatch = /([〇一二三四五六七八九0-9]{4})年/.exec(text);
         if (yearmatch)
-            year = parseInt(yearmatch[1].replace(/[〇一二三四五六七八九]/g, (char) => NUMBERS[char]));
+            year = parseInt(yearmatch[1].replace(/[〇一二三四五六七八九]/g, (char) => String(NUMBERS[char])));
 
         if (parseTime) {
             // if we have a time, pick the remaining of the string and parse it
-            let weekstr = /星期|周|礼拜/.exec(text);
+            const weekstr = /星期|周|礼拜/.exec(text);
             let dateend;
             if (weekstr) {
                 // skip the week string and the day number after it
                 dateend = weekstr.index + weekstr[0].length + 1;
             } else {
-                let daystr = /[号日]/.exec(text);
+                const daystr = /[号日]/.exec(text);
                 if (daystr)
                     dateend = daystr.index + 1;
                 else
@@ -304,7 +305,7 @@ export default class ChineseTokenizer extends BaseTokenizer {
         }
     }
 
-    _initDates() {
+    protected _initDates() {
         // init ISO date recognition
         super._initDates();
 

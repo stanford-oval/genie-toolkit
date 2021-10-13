@@ -369,11 +369,15 @@ class MockDeviceDatabase extends events.EventEmitter {
     getAllDevices(kind) {
         if (kind)
             return this.getAllDevicesOfKind(kind);
-        return Object.keys(this._devices).map((k) => { return this._devices[k]; });
+        return Object.keys(this._devices).map((k) => {
+            return this._devices[k]; 
+        });
     }
 
     getAllDevicesOfKind(kind) {
-        return this.getAllDevices().filter((d) => { return d.kind === kind; });
+        return this.getAllDevices().filter((d) => {
+            return d.kind === kind; 
+        });
     }
 }
 
@@ -544,11 +548,11 @@ class MockAbstractDatabase {
     getLocalTable(name) {
         if (name in this._localTables) {
             return this._localTables[name];
-	} else {
+        } else {
             const table = new MockLocalTable(name);
             this._localTables[name] = table;
             return table;
-	}
+        }
     }
 }
 

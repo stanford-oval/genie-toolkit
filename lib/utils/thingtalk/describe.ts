@@ -161,12 +161,12 @@ export class Describer {
         } else {
             assert(time instanceof Ast.RelativeTime);
             switch (time.relativeTag) {
-                case 'morning':
-                    return this._const(this._('the morning'));
-                case 'evening':
-                    return this._const(this._('the evening'));
-                default:
-                    return this._const(time.relativeTag);
+            case 'morning':
+                return this._const(this._('the morning'));
+            case 'evening':
+                return this._const(this._('the evening'));
+            default:
+                return this._const(time.relativeTag);
             }
         }
     }
@@ -179,17 +179,17 @@ export class Describer {
         } else if (date instanceof Ast.DatePiece) {
             const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december" ];
             const year = this._(date.year === null ?
-                              "this year" :
-                              date.year.toString());
+                "this year" :
+                date.year.toString());
             const month = this._(date.month === null ?
-                               (date.day === null ? "january" : "this month") :
-                               monthNames[date.month - 1]);
+                (date.day === null ? "january" : "this month") :
+                monthNames[date.month - 1]);
             const day = this._(date.day === null ?
-                             "1" :
-                             date.day.toString());
+                "1" :
+                date.day.toString());
             const time = date.time === null ? this._("start of day") : this._describeTime(date.time);
             base = this._interp(this._("${time} on day ${day} of ${month} , ${year}"),
-                                { year, month, day, time });
+                { year, month, day, time });
         } else if (date instanceof Ast.DateEdge) {
             let unit;
             switch (date.unit) {
@@ -587,9 +587,9 @@ export class Describer {
                     });
 
                     return this._describeOperator(lhs,
-                                                  expr.filter.operator,
-                                                  this.describeArg(expr.filter.value, scope),
-                                                  false,
+                        expr.filter.operator,
+                        this.describeArg(expr.filter.value, scope),
+                        false,
                                                   expr.schema!.getArgType(expr.filter.name)!);
                 } else if (expr.filter instanceof Ast.NotBooleanExpression &&
                            expr.filter.expr instanceof Ast.AtomBooleanExpression) {
@@ -600,9 +600,9 @@ export class Describer {
                     });
 
                     return this._describeOperator(lhs,
-                                                  expr.filter.expr.operator,
-                                                  this.describeArg(expr.filter.expr.value, scope),
-                                                  true,
+                        expr.filter.expr.operator,
+                        this.describeArg(expr.filter.expr.value, scope),
+                        true,
                                                   expr.schema!.getArgType(expr.filter.expr.name)!);
                 } else {
                     // general case
@@ -797,8 +797,8 @@ export class Describer {
                 continue;
 
             const scoreAndNames = this._computeParamMatchingScore(invocation.in_params,
-                                                                forInParams,
-                                                                ex.args);
+                forInParams,
+                ex.args);
             if (scoreAndNames === null)
                 continue;
             let score = scoreAndNames[0];
@@ -979,7 +979,7 @@ export class Describer {
                     two {the ${index}nd ${query}}\
                     few {the ${index}rd ${query}}\
                     other {the ${index}th ${query}}\
-                }"), { index: index.value, query: tabledesc});
+                }"), { index: index.value, query: tabledesc });
             }
         } else {
             return this._interp(this._("the ${query} with index ${index}"), {
@@ -1192,7 +1192,7 @@ export class Describer {
         } else if (table instanceof Ast.SliceExpression && table.expression instanceof Ast.SortExpression &&
             table.base instanceof Ast.NumberValue &&
             (table.base.value === 1 || table.base.value === -1)) {
-                if ((table.base.value === 1 && table.expression.direction === 'asc') ||
+            if ((table.base.value === 1 && table.expression.direction === 'asc') ||
                     (table.base.value === -1 && table.expression.direction === 'desc')) {
                 return this._interp(this._("the ${limit} ${query[plural=other]} with the minimum ${param} [plural=other]"), {
                     limit: this.describeArg(table.limit),
@@ -1661,36 +1661,36 @@ export class Describer {
 
     private _describeSpecial(specialType : string) : string {
         switch (specialType) {
-            case 'yes':
-                return this._("yes");
-            case 'no':
-                return this._("no");
-            case 'failed':
-                return this._("I did not understand");
-            case 'train':
-                return this._("train me again");
-            case 'back':
-                return this._("go back");
-            case 'more':
-                return this._("show more results");
-            case 'empty':
-                return this._("no action");
-            case 'debug':
-                return this._("show debugging information");
-            case 'maybe':
-                return this._("maybe");
-            case 'nevermind':
-                return this._("cancel");
-            case 'stop':
-                return this._("stop");
-            case 'help':
-                return this._("help");
-            case 'makerule':
-                return this._("make a new command");
-            case 'wakeup':
-                return this._("wake up");
-            default:
-                return clean(specialType);
+        case 'yes':
+            return this._("yes");
+        case 'no':
+            return this._("no");
+        case 'failed':
+            return this._("I did not understand");
+        case 'train':
+            return this._("train me again");
+        case 'back':
+            return this._("go back");
+        case 'more':
+            return this._("show more results");
+        case 'empty':
+            return this._("no action");
+        case 'debug':
+            return this._("show debugging information");
+        case 'maybe':
+            return this._("maybe");
+        case 'nevermind':
+            return this._("cancel");
+        case 'stop':
+            return this._("stop");
+        case 'help':
+            return this._("help");
+        case 'makerule':
+            return this._("make a new command");
+        case 'wakeup':
+            return this._("wake up");
+        default:
+            return clean(specialType);
         }
     }
 

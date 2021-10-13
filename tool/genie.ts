@@ -17,7 +17,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-process.on('unhandledRejection', (up) => { throw up; });
+process.on('unhandledRejection', (up) => {
+    throw up; 
+});
 
 import * as argparse from 'argparse';
 

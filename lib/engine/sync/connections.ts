@@ -95,9 +95,9 @@ class ClientConnection extends events.EventEmitter {
         socket.on('ping', () => socket.pong());
 
         if (this._authToken !== undefined) {
-            socket.send(JSON.stringify({control:'auth',
+            socket.send(JSON.stringify({ control:'auth',
                                         identity: this._identity,
-                                        token: this._authToken}));
+                                        token: this._authToken }));
         }
 
         this._outgoingBuffer.forEach((msg) => {
@@ -363,7 +363,7 @@ class ServerConnection extends events.EventEmitter {
 
         return new Promise<void>((callback, errback) => {
             if (connection.socket !== null) {
-                connection.socket.send(JSON.stringify({control:'close'}));
+                connection.socket.send(JSON.stringify({ control:'close' }));
                 connection.closeOk = true;
                 connection.closeCallback = callback;
             } else {

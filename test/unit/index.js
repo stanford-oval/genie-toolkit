@@ -20,7 +20,9 @@
 
 // all tests, in batch form
 
-process.on('unhandledRejection', (up) => { throw up; });
+process.on('unhandledRejection', (up) => {
+    throw up; 
+});
 
 process.env.TEST_MODE = '1';
 
@@ -29,7 +31,7 @@ import '../../lib/index';
 
 
 async function do_test(array) {
-    if (typeof array !== 'undefined' && array instanceof Array ){
+    if (typeof array !== 'undefined' && array instanceof Array ) {
         for (let fn of array) {
             console.log(`Running ${fn}`);
             await (await import(fn)).default();
@@ -45,7 +47,6 @@ do_test([
     ('./test_augment'),
     ('./test_bart_canonical_extractor'),
     ('./test_base_canonical_generator'),
-    ('./test_bert_canonical_generator'),
     ('./test_btrie'),
     ('./test_card_formatter'),
     ('./test_describe'),

@@ -339,7 +339,7 @@ export async function execute(args : any) {
     }
     const simulator = new SimulationDialogueAgent(simulatorOptions);
     let parser = null;
-    if (args.nlu_server){
+    if (args.nlu_server) {
         parser = ParserClient.get(args.nlu_server, args.locale);
         await parser.start();
     }
@@ -347,41 +347,41 @@ export async function execute(args : any) {
     if (args.all_turns) {
         await StreamUtils.waitFinish(
             readAllLines(args.input_file, '====')
-            .pipe(new DialogueParser())
-            .pipe(new DialogueToPartialDialoguesStream()) // convert each dialogues to many partial dialogues
-            .pipe(new SimulatorStream({
-                policy: args.policy,
-                simulator,
-                schemaRetriever,
-                parser,
-                thingpediaClient,
-                outputMistakesOnly: args.output_mistakes_only,
-                locale: args.locale,
-                timezone: args.timezone,
-                rng: simulatorOptions.rng,
-                flags: args.flags,
-            }))
-            .pipe(new DialogueSerializer())
-            .pipe(args.output)
+                .pipe(new DialogueParser())
+                .pipe(new DialogueToPartialDialoguesStream()) // convert each dialogues to many partial dialogues
+                .pipe(new SimulatorStream({
+                    policy: args.policy,
+                    simulator,
+                    schemaRetriever,
+                    parser,
+                    thingpediaClient,
+                    outputMistakesOnly: args.output_mistakes_only,
+                    locale: args.locale,
+                    timezone: args.timezone,
+                    rng: simulatorOptions.rng,
+                    flags: args.flags,
+                }))
+                .pipe(new DialogueSerializer())
+                .pipe(args.output)
         );
     } else {
         await StreamUtils.waitFinish(
             readAllLines(args.input_file, '====')
-            .pipe(new DialogueParser())
-            .pipe(new SimulatorStream({
-                policy: args.policy,
-                simulator,
-                schemaRetriever,
-                parser,
-                thingpediaClient,
-                outputMistakesOnly: args.output_mistakes_only,
-                locale: args.locale,
-                timezone: args.timezone,
-                rng: simulatorOptions.rng,
-                flags: args.flags,
-            }))
-            .pipe(new DialogueSerializer())
-            .pipe(args.output)
+                .pipe(new DialogueParser())
+                .pipe(new SimulatorStream({
+                    policy: args.policy,
+                    simulator,
+                    schemaRetriever,
+                    parser,
+                    thingpediaClient,
+                    outputMistakesOnly: args.output_mistakes_only,
+                    locale: args.locale,
+                    timezone: args.timezone,
+                    rng: simulatorOptions.rng,
+                    flags: args.flags,
+                }))
+                .pipe(new DialogueSerializer())
+                .pipe(args.output)
         );
     }
 
