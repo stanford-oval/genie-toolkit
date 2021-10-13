@@ -35,7 +35,7 @@ import * as TransactionPolicy from '../transaction-dialogues';
 
 import SentenceGenerator, { SentenceGeneratorOptions } from './generator';
 import SynthesisDialogue, {
-    AgentTurn, Continuation, ExtendedAgentReplyRecord
+    AgentTurn, Continuation, ExtendedAgentReplyRecord, UserReplyRecord
 } from '../thingtalk-dialogues/synthesis-dialogue';
 
 import {
@@ -143,8 +143,8 @@ class MinibatchDialogueGenerator {
         const agentTurns : AgentTurn[] = [];
 
         await Promise.all(this._partialDialogues.map((dlg) => dlg.run()));
-        for (const derivation of this._agentGenerator.generate(this._agentGetContextPhrases(), '$dynamic')) {
-            const agentReply : ExtendedAgentReplyRecord = derivation.value;
+        for (const derivation of this._agentGenerator.generate<ExtendedAgentReplyRecord>(this._agentGetContextPhrases(), '$dynamic')) {
+            const agentReply = derivation.value;
 
             const meaning = agentReply.meaning.optimize();
             this._stateValidator.validateAgent(meaning);
@@ -164,17 +164,16 @@ class MinibatchDialogueGenerator {
     private _generateUser(continuations : Map<SynthesisDialogue, Continuation>, agentTurns : AgentTurn[]) {
         const counters = new Map<SynthesisDialogue, number>();
 
-        for (const derivation of this._userGenerator.generate(this._userGetContextPhrases(agentTurns), '$dynamic')) {
+        for (const derivation of this._userGenerator.generate<UserReplyRecord>(this._userGetContextPhrases(agentTurns), '$dynamic')) {
             // the derivation value for the user is directly the thingtalk user state
             // (unlike the agent)
 
-            let meaning : Ast.DialogueState = derivation.value;
-            meaning = meaning.optimize();
+            const reply = derivation.value;
+            const meaning = reply.meaning.optimize();
             assert(meaning !== null); // not-null even after optimize
             this._stateValidator.validateUser(meaning);
 
-            const agentTurn = derivation.context!.value as AgentTurn;
-
+            const agentTurn = reply.agentTurn;
             const agentUtterance = this._postprocessSentence(agentTurn.utterance, agentTurn.meaning, 'agent');
             const userUtterance = this._postprocessSentence(derivation.sentence, meaning, 'user');
 

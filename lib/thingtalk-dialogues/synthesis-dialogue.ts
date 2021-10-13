@@ -66,7 +66,7 @@ export interface ExtendedAgentReplyRecord extends AgentReplyRecord {
 }
 
 export interface UserReplyRecord {
-    dialogue : SynthesisDialogue;
+    agentTurn : AgentTurn;
     meaning : Ast.DialogueState;
 }
 
@@ -299,7 +299,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
             if (result === null)
                 return null;
             return {
-                dialogue: this,
+                agentTurn: ctx,
                 meaning: result,
             };
         });

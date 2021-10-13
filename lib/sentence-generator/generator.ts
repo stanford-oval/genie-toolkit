@@ -1200,8 +1200,8 @@ export default class SentenceGenerator extends events.EventEmitter {
      * Generate a batch of derivations for the given symbol, given the batch of contexts.
      *
      */
-    generate(contextPhrases : Iterable<ContextPhrase>,
-             symbol : string) : Iterable<Derivation<any>> {
+    generate<T=any>(contextPhrases : Iterable<ContextPhrase>,
+                    symbol : string) : Iterable<Derivation<T>> {
         this.finalize();
 
         // enable all rules (in case we called generateOne before)
