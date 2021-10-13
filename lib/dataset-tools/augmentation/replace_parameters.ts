@@ -423,6 +423,7 @@ export default class ParameterReplacer {
     private _blowUpNoQuote : number;
     private _blowUpParaphrasing : number;
     private _blowUpAugmented : number;
+    private _entityDescendants ?: Record<string, string[]>;
 
     private _warned : Set<string>;
 
@@ -524,14 +525,24 @@ export default class ParameterReplacer {
         return ['string', this._getFallbackParamListKey(slot)];
     }
 
-    private async _getDescendants(entityType : string) : Promise<string[]> {
-        const descendants : string[] = [entityType];
+    private async _loadEntityDescendants() {
+        this._entityDescendants = {};
         const entities = await this._tpClient.getAllEntityTypes();
         for (const entity of entities) {
-            if (entity.subtype_of && entity.subtype_of.includes(entityType))
-                descendants.push(entity.type);
+            if (!entity.subtype_of) 
+                continue;
+            for (const parent of entity.subtype_of) {
+                if (!(parent in this._entityDescendants))
+                    this._entityDescendants[parent] = [parent];
+                this._entityDescendants[parent].push(entity.type);
+            }
         }
-        return descendants;
+    }
+
+    private async _getDescendants(entityType : string) : Promise<string[]> {
+        if (!this._entityDescendants)
+            await this._loadEntityDescendants();
+        return this._entityDescendants![entityType] ?? [entityType];
     }
 
     private async _getEntityListKey(entityType : string) : Promise<['string'|'entity', string|string[]]> {
