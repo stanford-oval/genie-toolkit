@@ -22,7 +22,7 @@
 
 import * as Tp from 'thingpedia';
 
-import { getBestEntityMatch } from '../../lib/dialogue-agent/entity-linking/entity-finder';
+import { getBestEntityMatch } from '../../lib/thingtalk-dialogues/entity-linking/entity-finder';
 
 const THINGPEDIA_URL = 'https://dev.almond.stanford.edu/thingpedia';
 

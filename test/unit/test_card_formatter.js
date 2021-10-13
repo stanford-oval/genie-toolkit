@@ -21,7 +21,7 @@
 import assert from 'assert';
 import { SchemaRetriever, Builtin } from 'thingtalk';
 
-import CardFormatter from '../../lib/dialogue-agent/card-output/card-formatter';
+import CardFormatter from '../../lib/dialogue-runtime/card-output/card-formatter';
 
 import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
