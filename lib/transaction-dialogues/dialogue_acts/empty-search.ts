@@ -144,7 +144,7 @@ export function impreciseEmptySearchChangeRequest(ctx : ContextInfo,
         return null;
     if (answerFilter.name !== param.name)
         return null;
-    if (!C.checkFilter(ctx.loader, base, answerFilter))
+    if (!C.checkFilter(loader, base, answerFilter))
         return null;
 
     return emptySearchChangePhraseCommon(ctx, answerFilter, refineFilterForEmptySearch);
