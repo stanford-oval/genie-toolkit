@@ -248,15 +248,15 @@ class CsqaConverter {
         }
         // when projection is null, then we merge two filters according to setOp
         switch (setOp) {
-            case 1: return [domain, null, new Ast.BooleanExpression.Or(null, filters)]; // OR
-            case 2: return [domain, null, new Ast.BooleanExpression.And(null, filters)]; // AND
-            case 3: { // DIFF
-                assert(filters.length === 2);
-                const negateFilter = new Ast.BooleanExpression.Not(null, filters[1]);
-                return [domain, null, new Ast.BooleanExpression.And(null, [filters[0], negateFilter])];
-            }
-            default:
-                throw new Error(`Unknown set_op_choice: ${setOp}`);
+        case 1: return [domain, null, new Ast.BooleanExpression.Or(null, filters)]; // OR
+        case 2: return [domain, null, new Ast.BooleanExpression.And(null, filters)]; // AND
+        case 3: { // DIFF
+            assert(filters.length === 2);
+            const negateFilter = new Ast.BooleanExpression.Not(null, filters[1]);
+            return [domain, null, new Ast.BooleanExpression.And(null, [filters[0], negateFilter])];
+        }
+        default:
+            throw new Error(`Unknown set_op_choice: ${setOp}`);
         }
     }
 
@@ -361,33 +361,33 @@ class CsqaConverter {
     // ques_type_id=7
     private async _quantitativeQuestionsSingleEntity(activeSet : string[][], entities : string[], countQuesSubType : number, utterance : string) : Promise<Ast.Expression|null> {
         switch (countQuesSubType) {
-            case 1: { // Quantitative (count) 
-                assert(activeSet.length === 1);
-                const [domain, projection, filter] = await this._processOneActiveSet(activeSet);
-                return this._quantitativeQuestionCount(domain, projection as string[], filter);
-            }
-            case 2: // Quantitative (min/max) 
-                return this._quantitativeQuestionMinMax(activeSet, utterance);
-            case 3: // Quantitative (atleast/atmost/~~/==)
-                return this._quantitativeQuestionCompareCount(activeSet, utterance);
-            case 4: // Comparative (more/less/~~)
-                return this._comparativeQuestion(activeSet, entities, utterance);
-            case 5: { // Quantitative (count over atleast/atmost/~~/==)
-                const filterTable = await this._quantitativeQuestionCompareCount(activeSet, utterance);
-                return new Ast.AggregationExpression(null, filterTable, '*', 'count', null);
-            }
-            case 6: { // Comparative (count over more/less/~~)
-                const filterTable = await this._comparativeQuestion(activeSet, entities, utterance);
-                return new Ast.AggregationExpression(null, filterTable, '*', 'count', null);
-            }
-            case 7:
-            case 8:
-            case 9: 
+        case 1: { // Quantitative (count) 
+            assert(activeSet.length === 1);
+            const [domain, projection, filter] = await this._processOneActiveSet(activeSet);
+            return this._quantitativeQuestionCount(domain, projection as string[], filter);
+        }
+        case 2: // Quantitative (min/max) 
+            return this._quantitativeQuestionMinMax(activeSet, utterance);
+        case 3: // Quantitative (atleast/atmost/~~/==)
+            return this._quantitativeQuestionCompareCount(activeSet, utterance);
+        case 4: // Comparative (more/less/~~)
+            return this._comparativeQuestion(activeSet, entities, utterance);
+        case 5: { // Quantitative (count over atleast/atmost/~~/==)
+            const filterTable = await this._quantitativeQuestionCompareCount(activeSet, utterance);
+            return new Ast.AggregationExpression(null, filterTable, '*', 'count', null);
+        }
+        case 6: { // Comparative (count over more/less/~~)
+            const filterTable = await this._comparativeQuestion(activeSet, entities, utterance);
+            return new Ast.AggregationExpression(null, filterTable, '*', 'count', null);
+        }
+        case 7:
+        case 8:
+        case 9: 
                 // indirect questions
-                this._unsupportedCounter.indirect += 1;
-                return null;
-            default:
-                throw new Error(`Unknown count_ques_sub_type: ${countQuesSubType}`);    
+            this._unsupportedCounter.indirect += 1;
+            return null;
+        default:
+            throw new Error(`Unknown count_ques_sub_type: ${countQuesSubType}`);    
         }
     }
 
@@ -396,32 +396,32 @@ class CsqaConverter {
          // Somehow set op is reverse of question type 4, there is no diff set op in this category
         const setOp = setOpChoice === 2 ? 1:2;
         switch (countQuesSubType) {
-            case 1: { // Quantitative with logical operators
-                assert(activeSet.length === 2);
-                activeSet = [activeSet[0].concat(activeSet[1])];
-                const [domain, projection, filter] = await this._processOneActiveSetWithSetOp(activeSet, setOp);
-                if (!projection && !filter) {
-                    this._unsupportedCounter.setOp += 1;
-                    return null;
-                }
-                return this._quantitativeQuestionCount(domain, projection as string[], filter!);
+        case 1: { // Quantitative with logical operators
+            assert(activeSet.length === 2);
+            activeSet = [activeSet[0].concat(activeSet[1])];
+            const [domain, projection, filter] = await this._processOneActiveSetWithSetOp(activeSet, setOp);
+            if (!projection && !filter) {
+                this._unsupportedCounter.setOp += 1;
+                return null;
             }
-            case 2: // Quantitative (count)
-            case 3: // Quantitative (min/max)
-            case 4: // Quantitative (atleast/atmost/~~/==) 
-            case 5: // Comparative (more/less/~~)
-            case 6: // Quantitative (count over atleast/atmost/~~/==)
-            case 7: // Comparative (count over more/less/~~)
-                this._unsupportedCounter.typeConstraint += 1;
-                return null;
-            case 8:
-            case 9: 
-            case 10:
+            return this._quantitativeQuestionCount(domain, projection as string[], filter!);
+        }
+        case 2: // Quantitative (count)
+        case 3: // Quantitative (min/max)
+        case 4: // Quantitative (atleast/atmost/~~/==) 
+        case 5: // Comparative (more/less/~~)
+        case 6: // Quantitative (count over atleast/atmost/~~/==)
+        case 7: // Comparative (count over more/less/~~)
+            this._unsupportedCounter.typeConstraint += 1;
+            return null;
+        case 8:
+        case 9: 
+        case 10:
                 // indirect questions
-                this._unsupportedCounter.indirect += 1;
-                return null;
-            default:
-                throw new Error(`Unknown count_ques_sub_type: ${countQuesSubType}`);
+            this._unsupportedCounter.indirect += 1;
+            return null;
+        default:
+            throw new Error(`Unknown count_ques_sub_type: ${countQuesSubType}`);
         }
     }
 
@@ -527,7 +527,7 @@ class CsqaConverter {
     }
 
     // comparative (more/less/~~)
-   private async _comparativeQuestion(activeSet : string[][], entities : string[], utterance : string) : Promise<Ast.Expression> {
+    private async _comparativeQuestion(activeSet : string[][], entities : string[], utterance : string) : Promise<Ast.Expression> {
         assert(activeSet.length === 1 && entities.length === 1);
         const triple = activeSet[0];
         assert(triple[0].startsWith('c') && triple[2].startsWith('c'));
@@ -574,26 +574,26 @@ class CsqaConverter {
             activeSet.push(active.replace(/[^0-9PQc,|]/g, '').split(','));
 
         switch (user.ques_type_id) {
-            case 1: // Simple Question (subject-based)
-                return this._simpleQuestion(activeSet);
-            case 2: // Secondary question
-                return this._secondaryQuestion(activeSet, user.sec_ques_type!, user.sec_ques_sub_type!);
-            case 3: // Clarification (for secondary) question
-                this._unsupportedCounter.indirect += 1;
-                return null; 
-            case 4: // Set-based question
-                return this._setBasedQuestion(activeSet, user.set_op_choice!);
-            case 5: // Boolean (Factual Verification) question
-                return this._booleanQuestion(activeSet, user.bool_ques_type!);
-            case 6: // Incomplete question (for secondary)
-                this._unsupportedCounter.indirect += 1;
-                return null;
-            case 7: // Comparative and Quantitative questions (involving single entity)
-                return this._quantitativeQuestionsSingleEntity(activeSet, user.entities_in_utterance!, user.count_ques_sub_type!, user.utterance);
-            case 8: // Comparative and Quantitative questions (involving multiple(2) entities)
-                return this._quantitativeQuestionsMultiEntity(activeSet, user.entities_in_utterance!, user.count_ques_sub_type!, user.set_op!, user.utterance);
-            default:
-                throw new Error(`Unknown ques_type_id: ${user.ques_type_id}`);
+        case 1: // Simple Question (subject-based)
+            return this._simpleQuestion(activeSet);
+        case 2: // Secondary question
+            return this._secondaryQuestion(activeSet, user.sec_ques_type!, user.sec_ques_sub_type!);
+        case 3: // Clarification (for secondary) question
+            this._unsupportedCounter.indirect += 1;
+            return null; 
+        case 4: // Set-based question
+            return this._setBasedQuestion(activeSet, user.set_op_choice!);
+        case 5: // Boolean (Factual Verification) question
+            return this._booleanQuestion(activeSet, user.bool_ques_type!);
+        case 6: // Incomplete question (for secondary)
+            this._unsupportedCounter.indirect += 1;
+            return null;
+        case 7: // Comparative and Quantitative questions (involving single entity)
+            return this._quantitativeQuestionsSingleEntity(activeSet, user.entities_in_utterance!, user.count_ques_sub_type!, user.utterance);
+        case 8: // Comparative and Quantitative questions (involving multiple(2) entities)
+            return this._quantitativeQuestionsMultiEntity(activeSet, user.entities_in_utterance!, user.count_ques_sub_type!, user.set_op!, user.utterance);
+        default:
+            throw new Error(`Unknown ques_type_id: ${user.ques_type_id}`);
         }
     }
 
@@ -638,7 +638,7 @@ class CsqaConverter {
     async _filterExamples() {
         for (const dir of fs.readdirSync(this._paths.inputDir)) {
             for (const file of fs.readdirSync(path.join(this._paths.inputDir, dir))) {
-                const dialog = JSON.parse(fs.readFileSync(path.join(this._paths.inputDir, dir, file), { encoding: 'utf-8'}));
+                const dialog = JSON.parse(fs.readFileSync(path.join(this._paths.inputDir, dir, file), { encoding: 'utf-8' }));
                 this._filterTurnsByDomain(dialog, file);
             }
         }
@@ -647,7 +647,7 @@ class CsqaConverter {
     }
 
     async _loadFilteredExamples() {
-        this._examples = JSON.parse(await util.promisify(fs.readFile)(this._paths.filteredExamples, { encoding: 'utf-8'}));
+        this._examples = JSON.parse(await util.promisify(fs.readFile)(this._paths.filteredExamples, { encoding: 'utf-8' }));
     }
 
     async _convert() {

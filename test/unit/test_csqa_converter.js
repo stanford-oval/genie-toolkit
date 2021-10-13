@@ -109,7 +109,7 @@ const TEST_CASES = [
         system: { 
             utterance: 'José Eduardo dos Santos',
             active_set: [ '(Q916,P35,c(Q502895))' ],
-    }},
+        } },
     '[head_of_state] of @org.wikidata.country() filter id == "Q916"^^org.wikidata:country("angola")'],
     // 2.1. Secondary question, Subject based question
     ['2.1', {  
@@ -121,7 +121,7 @@ const TEST_CASES = [
         system: {
             utterance: 'French Parliament',
             active_set: [ '(Q142,P194,c(Q1752346))' ],
-    }},
+        } },
     '[legislative_body] of @org.wikidata.country() filter id == "Q142"^^org.wikidata:country("france")'],
     // 2.4. Secondary question, Subject based question, plural
     ['2.4.1', {  
@@ -133,7 +133,7 @@ const TEST_CASES = [
         system: {
             utterance: 'French Parliament',
             active_set: [ '(Q142,P194,c(Q1752346))', '(Q16,P194,c(Q1752346))', '(Q27,P194,c(Q1752346))' ],
-    }},
+        } },
     '[legislative_body] of @org.wikidata.country() filter id == "Q142"^^org.wikidata:country("france") || id == "Q16"^^org.wikidata:country("canada") || id == "Q27"^^org.wikidata:country("ireland")'],
     // 2.4. Secondary question, Subject based question, plural
     // this is often ambiguous from set-based question in CSQA
@@ -146,7 +146,7 @@ const TEST_CASES = [
         system: {
             utterance: '???',
             active_set: [ 'c(Q6256),P37,Q1860)', '(c(Q6256),P37,Q1321)', '(c(Q6256),P37,Q150)' ],
-    }},
+        } },
     '@org.wikidata.country() filter contains(official_language, "Q1860"^^org.wikidata:p_official_language("english")) || contains(official_language, "Q1321"^^org.wikidata:p_official_language("spanish")) || contains(official_language, "Q150"^^org.wikidata:p_official_language("french"))'],
     // 2.2. Secondary question, Object based question 
     ['2.2', {  
@@ -158,7 +158,7 @@ const TEST_CASES = [
         system: {
             utterance: 'France',
             active_set: [ '(c(Q6256),P138,Q43482)' ],
-    }},
+        } },
     '@org.wikidata.country() filter contains(named_after, "Q43482"^^org.wikidata:p_named_after("franks"))'],
     // 4.1. Set-based question OR
     ['4.1.1', {  
@@ -170,7 +170,7 @@ const TEST_CASES = [
         system: {
           utterance: 'Romania, Czechia',
           active_set: [ 'OR((c(Q6256),P206,Q214646)), (c(Q6256),P206,Q1598984))' ],
-    }},
+        } },
     '@org.wikidata.country() filter contains(located_in_or_next_to_body_of_water, "Q214646"^^org.wikidata:p_located_in_or_next_to_body_of_water("dambovita river")) || contains(located_in_or_next_to_body_of_water, "Q1598984"^^org.wikidata:p_located_in_or_next_to_body_of_water("jihlava"))'],
     // 4.1. Set-based question OR
     ['4.1.2', {  
@@ -181,7 +181,7 @@ const TEST_CASES = [
             utterance: 'Which political territories have a diplomatic relationship or share border with United States of America ?' },
         system: {
             utterance: 'Australia, Canada',
-            active_set: [ 'OR((Q30,P530,c(Q1048835)), (Q30,P47,c(Q1048835)))' ]}},
+            active_set: [ 'OR((Q30,P530,c(Q1048835)), (Q30,P47,c(Q1048835)))' ] } },
     '[diplomatic_relation, shares_border_with] of @org.wikidata.country() filter id == "Q30"^^org.wikidata:country("united states of america")'],
     // 4.1. Set-based question OR
     // TODO: not supported yet, requires union operator in thingtalk, or a subquery
@@ -206,7 +206,7 @@ const TEST_CASES = [
             utterance: 'Which country has official language English and Spanish ?' },
         system: { 
             utterance: 'United States of America',
-            active_set: [ 'AND((c(Q6256),P37,Q1860), (c(Q6256),P37,Q1321))' ]}},
+            active_set: [ 'AND((c(Q6256),P37,Q1860), (c(Q6256),P37,Q1321))' ] } },
     '@org.wikidata.country() filter contains(official_language, "Q1860"^^org.wikidata:p_official_language("english")) && contains(official_language, "Q1321"^^org.wikidata:p_official_language("spanish"))'],
     // 4.2. Set-based question AND
     // TODO: not supported yet, multiple domains, and requires intersection operator in thingtalk or subquery
@@ -233,7 +233,7 @@ const TEST_CASES = [
         system: { 
             utterance: 'France, Zambia',
             active_set: [ 'AND((c(Q6256),P37,Q1860), NOT((c(Q6256),P37,Q1321)))' ],
-    }},
+        } },
     '@org.wikidata.country() filter contains(official_language, "Q1860"^^org.wikidata:p_official_language("english")) && !contains(official_language, "Q1321"^^org.wikidata:p_official_language("spanish"))'],
     // 4.3. Set-based question Difference
     // TODO: not supported yet, requires diff operator in thingtalk or a subquery
@@ -259,7 +259,7 @@ const TEST_CASES = [
         system: { 
             utterance: 'Yes',
             active_set: [ '(Q16, P37, Q1860)' ],
-    }},
+        } },
     '[contains(official_language, "Q1860"^^org.wikidata:p_official_language("english"))] of @org.wikidata.country() filter id == "Q16"^^org.wikidata:country("canada")'],
     // 5.4 Verification, 1 subject, 1 object
     ['5.4', {  
@@ -270,7 +270,7 @@ const TEST_CASES = [
         system: { 
             utterance: 'Yes and No respectively',
             active_set: [ '(Q16, P37, Q1860)', '(Q16, P37, Q1321)' ],
-    }},
+        } },
     '[contains(official_language, "Q1860"^^org.wikidata:p_official_language("english")) && contains(official_language, "Q1321"^^org.wikidata:p_official_language("spanish"))] of @org.wikidata.country() filter id == "Q16"^^org.wikidata:country("canada")'],
     // 7.1. Comparative and Quantitative questions (involving single entity), Quantitative (count) single entity
     ['7.1.1', {  
@@ -283,7 +283,7 @@ const TEST_CASES = [
         system: { 
             utterance: '4',
             active_set: [ '(Q414,P530,c(Q15617994))' ],
-    }},
+        } },
     '[count(diplomatic_relation)] of @org.wikidata.country() filter id == "Q414"^^org.wikidata:country("argentina")'],
     // 7.1. Comparative and Quantitative questions (involving single entity), Quantitative (count) single entity
     ['7.1.2', {  
@@ -296,7 +296,7 @@ const TEST_CASES = [
         system: { 
             utterance: '??',
             active_set: [ '(c(Q6256), P37, Q1860)' ],
-    }},
+        } },
     'count(@org.wikidata.country() filter contains(official_language, "Q1860"^^org.wikidata:p_official_language("english")))'],
     // 7.2. Comparative and Quantitative questions (involving single entity), Quantitative (max/min) single entity
     ['7.2', {  
@@ -309,7 +309,7 @@ const TEST_CASES = [
         system: { 
             utterance: '???',
             active_set: [ '(c(Q6256),P37,c(Q34770))' ],
-    }},
+        } },
     'sort(count desc of [count(official_language)] of @org.wikidata.country())[1]'],
     // 7.3. Comparative and Quantitative questions (involving single entity), Quantitative (<=, >=, ==, ~~) single entity
     ['7.3', {  
@@ -322,7 +322,7 @@ const TEST_CASES = [
         system: { 
             utterance: '???',
             active_set: [ '(c(Q6256),P37,c(Q34770))' ],
-    }},
+        } },
     '@org.wikidata.country() filter count(official_language) <= 2'],
     // 7.4. Comparative and Quantitative questions (involving single entity), Comparative (more/less/~~) single entity
     ['7.4', {  
@@ -336,7 +336,7 @@ const TEST_CASES = [
         system: { 
             utterance: '???',
             active_set: [ '(c(Q6256),P37,c(Q34770))' ],
-    }},
+        } },
     '@org.wikidata.country() filter count(official_language) >= any([count(official_language)] of @org.wikidata.country() filter id == "Q16"^^org.wikidata:country("canada"))'],
     // 7.5. Comparative and Quantitative questions (involving single entity), Quantitative (count over <=, >=, ==, ~~) single entity
     ['7.5', {  
@@ -349,7 +349,7 @@ const TEST_CASES = [
         system: { 
             utterance: '???',
             active_set: [ '(c(Q6256),P37,c(Q34770))' ],
-    }},
+        } },
     'count(@org.wikidata.country() filter count(official_language) <= 2)'],
     // 7.6. Comparative and Quantitative questions (involving single entity), Comparative (count over more/less/~~) single entity
     ['7.6', {  
@@ -363,7 +363,7 @@ const TEST_CASES = [
         system: { 
             utterance: '???',
             active_set: [ '(c(Q6256),P37,c(Q34770))' ],
-    }},
+        } },
     'count(@org.wikidata.country() filter count(official_language) >= any([count(official_language)] of @org.wikidata.country() filter id == "Q16"^^org.wikidata:country("canada")))'],
     // 8.1. Comparative and Quantitative questions (involving multiple(2) entities), Quantitative with Logical Operators
     ['8.1.1', {  
@@ -377,7 +377,7 @@ const TEST_CASES = [
        system: { 
             utterance: '2',
             active_set: [ '(c(Q6256), P37, Q1860)', '(c(Q6256), P37, Q1321)' ]
-    }},
+       } },
     'count(@org.wikidata.country() filter contains(official_language, "Q1860"^^org.wikidata:p_official_language("english")) && contains(official_language, "Q1321"^^org.wikidata:p_official_language("spanish")))'],
     // 8.1. Comparative and Quantitative questions (involving multiple(2) entity), Quantitative with Logical Operators
     // TODO: not supported, similar to the corresponding set-based questions

@@ -124,7 +124,7 @@ class SchemaProcessor {
         });
     }
 
-   private async  _genFunctionDef(domain : string) {
+    private async  _genFunctionDef(domain : string) {
         const args = [
             new Ast.ArgumentDef(
                 null,
@@ -132,7 +132,7 @@ class SchemaProcessor {
                 'id',
                 new Type.Entity(`org.wikidata:${domain}`), {
                 nl: { canonical: { base: ['name'], passive_verb: ['named', 'called'] } }
-            })
+                })
         ];
         this._addPrimEntity(domain);
         for (const property of this._propertiesByDomain.get(domain)!) {
@@ -197,7 +197,7 @@ class SchemaProcessor {
                 null, 
                 entity.type.slice('org.wikidata:'.length), 
                 entity.subtype_of!.map((e) => e.slice('org.wikidata:'.length)), 
-                { impl: { has_ner: new Ast.Value.Boolean(!!entity.has_ner_support) }}
+                { impl: { has_ner: new Ast.Value.Boolean(!!entity.has_ner_support) } }
             );
         });
         

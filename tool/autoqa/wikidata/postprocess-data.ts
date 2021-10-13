@@ -230,8 +230,8 @@ export async function execute(args : any) {
     const tpClient = new Tp.FileClient(args);
     const schemas = new ThingTalk.SchemaRetriever(tpClient);
     await postprocess(schemas, 
-                      args.bootleg_types, 
-                      args.bootleg_type_canonicals, 
-                      { examples: args.examples, bootleg: args.bootleg_output }, 
-                      { examples: args.updated_examples, bootleg: args.updated_bootleg_output });
+        args.bootleg_types, 
+        args.bootleg_type_canonicals, 
+        { examples: args.examples, bootleg: args.bootleg_output }, 
+        { examples: args.updated_examples, bootleg: args.updated_bootleg_output });
 }

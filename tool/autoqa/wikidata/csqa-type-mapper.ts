@@ -207,7 +207,7 @@ class CSQATypeMapper {
         };
 
         console.log('write type mapping to file ...');
-        const output = csvstringify({ header: false, delimiter: '\t'});
+        const output = csvstringify({ header: false, delimiter: '\t' });
         output.pipe(fs.createWriteStream(this._output, { encoding: 'utf8' })); 
         for (const [csqaType, counter] of this._typeMap) {
             const label = this._labels.get(csqaType);

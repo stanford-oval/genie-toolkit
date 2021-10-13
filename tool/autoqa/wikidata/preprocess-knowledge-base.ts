@@ -141,7 +141,7 @@ class ParamDatasetGenerator {
 
     private async _outputStringValueSet(type : string, data : string[][]) {
         const outputPath = path.join(this._paths.parameterDataset, `${type}.tsv`);
-        const output = csvstringify({ header: false, delimiter: '\t'});
+        const output = csvstringify({ header: false, delimiter: '\t' });
         output.pipe(fs.createWriteStream(outputPath, { encoding: 'utf8' }));
         const manifestEntry = `string\t${this._locale}\t${type}\tparameter-datasets/${type}.tsv\n`;
         for (const row of data)
