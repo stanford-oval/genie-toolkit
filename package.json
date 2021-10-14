@@ -85,9 +85,9 @@
     "typedoc": "^0.22.5"
   },
   "scripts": {
-    "update-pot": "./po/update-pot.sh",
-    "update-po": "./po/update-po.sh",
-    "translate-po": "make -f po/translate.mk translate_po",
+    "create-pot": "make -f po/po.mk create-pot",
+    "update-po": "make -f po/po.mk update-po",
+    "translate-po": "make -f po/translate.mk translate-po",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx ./lib ./tool ./test",
     "test": "nyc ./test/everything.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
