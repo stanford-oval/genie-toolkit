@@ -279,19 +279,23 @@ $agent : D.AgentReplyRecord = {
 $user : Ast.DialogueState = {
     ctx:ctx_init greeting [weight=0.01, expandchoice=false]
         => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'greet');
+    /*
     ( ctx:ctx_init stmt:initial_command [weight=0.5]
     | ctx:ctx_init greeting stmt:initial_command [weight=0.5]
     | ctx:ctx_sys_greet stmt:initial_command
     ) => D.startNewRequest($loader, ctx, stmt);
+    */
 
     // do you need anything else?
     ( ctx:ctx_sys_anything_else no_thanks_phrase ('goodbye !' | '') [weight=0.01]
     | ctx:ctx_sys_anything_else thanks_phrase ('goodbye !' | '') [weight=0.01]
     ) => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'end');
 
+    /*
     ( ctx:ctx_sys_anything_else stmt:initial_command
     | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
     ) => D.startNewRequest($loader, ctx, stmt);
+    */
 
     ctx:ctx_sys_anything_else yes_please_phrase
         => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'reinit');
@@ -317,7 +321,7 @@ $user : Ast.DialogueState = {
 
     // restarting
 
-    ( ctx:ctx_sys_action_success stmt:initial_command
+    /*( ctx:ctx_sys_action_success stmt:initial_command
     | ctx:ctx_sys_action_success yes_please_phrase stmt:initial_command
     | ctx:ctx_sys_display_result stmt:initial_command
     | ctx:ctx_sys_display_result yes_please_phrase stmt:initial_command
@@ -329,6 +333,7 @@ $user : Ast.DialogueState = {
         | ctx:ctx_sys_recommend_many stmt:initial_command
         ) => D.startNewRequest($loader, ctx, stmt);
     }
+    */
 
     // cancelling
 

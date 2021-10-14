@@ -29,7 +29,8 @@ import {
     Template,
     TemplatePlaceholderMap,
     AgentReply,
-    AgentReplyRecord
+    AgentReplyRecord,
+    UserTemplate
 } from '../sentence-generator/types';
 import { computeNewState, shouldAutoConfirmStatement, StateM } from '../utils/thingtalk';
 import { LogLevel, NonTerminal } from '../sentence-generator/runtime';
@@ -56,6 +57,14 @@ import AbstractThingTalkExecutor, {
 export type SynthesisFunction<ReturnType> = (dlg : DialogueInterface) => Iterable<Template<[Ast.DialogueState, ...any[]], ReturnType>>;
 
 export interface Synthesizer {
+    /**
+     * The thingpedia loader object currently in use to generate agent utterances.
+     *
+     * This property can be accessed only when a valid state has been initialized
+     * previously, and might throw an exception otherwise.
+     */
+    readonly tpLoader : ThingpediaLoader;
+
     synthesize(templates : Iterable<[number|null, Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>]>) : void;
 }
 
@@ -111,6 +120,17 @@ export interface GetOptions {
      */
     acceptQueries ?: string[],
 }
+
+/**
+ * Tag for templates that always applicable, at any point and regardless
+ * of what the agent says.
+ */
+const EITHER_TAG_ALWAYS = -1;
+/**
+ * Tag for templates that are applicable at a certain point of the dialogue,
+ * regardless of what the agent says.
+ */
+const EITHER_TAG_HERE = 0;
 
 /**
  * The interface used by dialogue functions to interact with the user.
@@ -188,14 +208,14 @@ export class DialogueInterface {
     /**
      * Functions to use for synthesis of the user turn.
      *
-     * These templates are registered dynamically by calling {@link expect}
+     * These templates are registered dynamically by calling {@link expect} or {@link expectAlways}
      * while the agent runs. If they are registered inside a call to {@link either},
      * they will be registered with a unique ID corresponding to that parallel
      * branch of {@link either}, and will only be applicable to agent states that
      * were generated in that either branch. Otherwise, they will be registered
-     * with `null` as the key.
+     * with {@link EITHER_TAG_HERE} or {@link EITHER_TAG_ALWAYS} as the tag.
      */
-    private readonly _userTemplates : Map<number|null, Array<Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>>>;
+    private readonly _userTemplates : Map<number, Array<Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>>>;
     private _sayBuffer : AgentReply;
     private _eitherTag : number;
 
@@ -242,7 +262,7 @@ export class DialogueInterface {
         this._userTemplates = new Map;
         this._sayBuffer = [];
         this._inGet = false;
-        this._eitherTag = 0;
+        this._eitherTag = EITHER_TAG_HERE;
     }
 
     /**
@@ -282,15 +302,22 @@ export class DialogueInterface {
         try {
             if (this._synthesizer) {
                 const userTemplates = this._userTemplates;
-                this._synthesizer.synthesize(function*() : Iterable<[number|null, Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>]> {
+                this._synthesizer.synthesize(function*() : Iterable<[number, Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>]> {
                     if (options.followUp) {
                         for (const tmpl of options.followUp)
-                            yield [null, tmpl];
+                            yield [EITHER_TAG_HERE, tmpl];
                     }
                     for (const [tag, templates] of userTemplates) {
                         for (const tmpl of templates)
                             yield [tag, tmpl];
                     }
+
+                    // remove all templates (except those tagged as ALWAYS) from userTemplates,
+                    // as they were consumed and won't be applicable at the next turn
+                    const always = userTemplates.get(EITHER_TAG_ALWAYS);
+                    userTemplates.clear();
+                    if (always)
+                        userTemplates.set(EITHER_TAG_ALWAYS, always);
                 }());
             }
 
@@ -309,28 +336,70 @@ export class DialogueInterface {
     }
 
     /**
-     * Register a synthesis function recording what commands to expect at this
-     * point of the dialogue.
+     * Register a set of user synthesis templates that are applicable at this point.
      *
-     * This method can be called at the beginning of the dialogue function to
-     * register synthesis functions that are valid at any state, or it can be
-     * called inside a call to {@link either} to register synthesis functions
-     * that are valid in that state.
+     * This method registers new templates indicating what the user is likely to say.
+     * Templates registered by this method will be used to synthesize follow-ups at
+     * any state, and will persist for the entire duration of the dialogue.
+     *
+     * It is invalid to call this method while nested inside a call to {@link either},
+     * {@link nest}, {@link par}.
      *
      * The method has no effect outside of synthesis and it is safe to call
-     * unconditionally.
+     * unconditionally. The iterable will not be iterated outside of synthesis mode,
+     * so it is safe to pass a generator.
      */
-    expect(templates : Iterable<Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>>) {
+    expectAlways(templates : Iterable<UserTemplate>|((tpLoader : ThingpediaLoader) => Iterable<UserTemplate>)) {
         if (!this._synthesizer)
             return;
+        if (this._nested !== null)
+            throw new Error(`expectAlways must be called at the beginning of the dialogue`);
+        if (typeof templates === 'function')
+            templates = templates(this._synthesizer.tpLoader);
 
-        const tag = this._eitherTag === 0 ? null : this._eitherTag;
-        const list = this._userTemplates.get(tag);
+        const list = this._userTemplates.get(-1);
         if (list) {
             for (const tmpl of templates)
                 list.push(tmpl);
         } else {
-            this._userTemplates.set(tag, Array.from(templates));
+            this._userTemplates.set(-1, Array.from(templates));
+        }
+    }
+
+    /**
+     * Register a synthesis function recording what commands to expect at this
+     * point of the dialogue.
+     *
+     * This method registers new templates indicating what the user is likely to say.
+     * Templates registered by this method will be used to synthesize follow-ups at
+     * at this state. The method can be called before or after a related call to
+     * {@link say}, but must be called before calling {@link get}.
+     * Inside a call to {@link either}, the templates will be used
+     * only to follow up from the agent utterance in the specific either branch.
+     *
+     * Templates registered by this method will be removed after the next call to
+     * {@link get} and must be registered again.
+     * It is invalid to call this method while nested inside a call to {@link nest}
+     * or {@link par}.
+     *
+     * The method has no effect outside of synthesis and it is safe to call
+     * unconditionally. The iterable will not be iterated outside of synthesis mode,
+     * so it is safe to use a generator.
+     */
+    expect(templates : Iterable<UserTemplate>|((tpLoader : ThingpediaLoader) => Iterable<UserTemplate>)) {
+        if (!this._synthesizer)
+            return;
+        if (this._nested !== null && this._nested !== 'either')
+            throw new Error(`expect cannot be nested inside a call to ${this._nested}`);
+
+        if (typeof templates === 'function')
+            templates = templates(this._synthesizer.tpLoader);
+        const list = this._userTemplates.get(this._eitherTag);
+        if (list) {
+            for (const tmpl of templates)
+                list.push(tmpl);
+        } else {
+            this._userTemplates.set(this._eitherTag, Array.from(templates));
         }
     }
 

@@ -30,7 +30,6 @@ import ThingpediaLoader from '../../templates/load-thingpedia';
 import { StateM } from '../../utils/thingtalk';
 
 import { POLICY_NAME } from '../metadata';
-import { ContextInfo } from '../context-info';
 import {
     findOrMakeFilterExpression
 } from './refinement-helpers';
@@ -185,10 +184,10 @@ function getStatementDevice(stmt : Ast.ChainExpression) {
     return stmt.last.schema!.class!.name;
 }
 
-export function startNewRequest(loader : ThingpediaLoader, ctx : ContextInfo, expr : Ast.Expression) {
+export function startNewRequest(loader : ThingpediaLoader, state : Ast.DialogueState, expr : Ast.Expression) {
     const stmt = C.toChainExpression(expr);
 
-    if (loader.flags.strict_multidomain && ctx.current && getStatementDevice(ctx.current.stmt.expression) === getStatementDevice(stmt))
+    if (loader.flags.strict_multidomain && state.current && getStatementDevice(state.current.stmt.expression) === getStatementDevice(stmt))
         return null;
 
     const newStatements = adjustStatementsForInitialRequest(loader, stmt);
@@ -196,7 +195,7 @@ export function startNewRequest(loader : ThingpediaLoader, ctx : ContextInfo, ex
         return null;
 
     const newItems = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
-    return StateM.makeTargetState(ctx.state, POLICY_NAME, 'execute', [], 'accepted', ...newItems);
+    return StateM.makeTargetState(state, POLICY_NAME, 'execute', [], 'accepted', ...newItems);
 }
 
 export function addInitialDontCare(expr : Ast.Expression, dontcare : C.FilterSlot) : Ast.Expression|null {

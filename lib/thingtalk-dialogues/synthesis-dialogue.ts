@@ -266,7 +266,12 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
 
         assert(reply[0].type === 'text');
         const { text: tmpl, args: placeholders, meaning: semantics } = reply[0];
-        addTemplate(this._agentGenerator, [], tmpl, placeholders, (...args : any[]) : ExtendedAgentReplyRecord|null => {
+
+        // add a contextual non-terminal to the beginning of the template
+        // this ensures that only context phrases coming from this context
+        // get used, and we don't mess up with entirely unrelated sentences
+        const ctxNonTerm = new NonTerminal('ctx_dynamic_any', undefined, ['dialogue', this]);
+        addTemplate(this._agentGenerator, [ctxNonTerm], tmpl, placeholders, (ctx : Ast.DialogueState /* unused */, ...args : any[]) : ExtendedAgentReplyRecord|null => {
             const result = semantics!(...args);
             if (result === null)
                 return null;
@@ -286,12 +291,12 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
         return null;
     }
 
-    private _addDynamicUserTemplate(tag : number | null,
+    private _addDynamicUserTemplate(tag : number,
                                     tmpl : string,
                                     placeholders : TemplatePlaceholderMap,
                                     semantics : SemanticAction<[Ast.DialogueState, ...any[]], Ast.DialogueState>) {
         let ctxNonTerm;
-        if (tag === null)
+        if (tag <= 0)
             ctxNonTerm = new NonTerminal('ctx_sys_dynamic_any', undefined, ['dialogue', this]);
         else
             ctxNonTerm = new NonTerminal('ctx_sys_dynamic_any', undefined, ['tag', combineDialogueAgentTags(this._id, tag)]);
@@ -312,7 +317,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
      *
      * @param templates templates that are available for synthesis at this state
      */
-    synthesize(templates : Iterable<[number|null, Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>]>) {
+    synthesize(templates : Iterable<[number, Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>]>) {
         for (const [tag, [tmpl, placeholders, semantics]] of templates)
             this._addDynamicUserTemplate(tag, tmpl, placeholders, semantics);
     }

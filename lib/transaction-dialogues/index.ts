@@ -21,7 +21,7 @@
 import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 
-import { ContextTable } from '../sentence-generator/types';
+import { ContextTable, SemanticAction, UserTemplate } from '../sentence-generator/types';
 import { NonTerminal } from '../sentence-generator/runtime';
 import ThingpediaLoader from '../templates/load-thingpedia';
 import * as C from '../templates/ast_manip';
@@ -53,7 +53,24 @@ import { CancellationError } from '../dialogue-runtime';
  * This module defines the basic logic of transaction dialogues: how
  * the dialogue is started, how the agent handles each state, and how
  * the agent follows up.
+ *
+ * @module
  */
+
+/**
+ * Helper to create a user template from a single non-terminal, with
+ * extra type-safety.
+ *
+ * @param nonTerm
+ * @param fn
+ * @returns
+ */
+function mkUserTmpl<T>(nonTerm : NonTerminal<T>, fn : SemanticAction<[Ast.DialogueState, T], Ast.DialogueState>) : UserTemplate {
+    const name = nonTerm.name ?? nonTerm.symbol;
+    const tmpl = '${' + name + '}';
+    const args = { [name]: nonTerm };
+    return [tmpl, args, fn];
+}
 
 function actionShouldHaveResult(ctx : ContextInfo) : boolean {
     const schema = ctx.currentFunction!;
@@ -63,6 +80,16 @@ function actionShouldHaveResult(ctx : ContextInfo) : boolean {
 function greet(dlg : DialogueInterface, ctx : ContextInfo) {
     dlg.say(dlg._("{hello|hi}{!|,} {how can i help you|what are you interested in|what can i do for you}?"),
         () => D.makeAgentReply(ctx, StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_greet'), null, null, { end: false }));
+
+    dlg.expect(function*(tpLoader : ThingpediaLoader) {
+        yield mkUserTmpl(Templates.greeting, (state) => StateM.makeSimpleState(state, POLICY_NAME, 'greet'));
+        yield mkUserTmpl(Templates.initial_command, (state, stmt) => D.startNewRequest(tpLoader, state, stmt));
+        yield [dlg._("${greeting} ${stmt}"), {
+            greeting: Templates.greeting,
+            stmt: Templates.initial_command,
+        }, (state : Ast.DialogueState, greeting : string, stmt : Ast.Expression) => D.startNewRequest(tpLoader, state, stmt)];
+    });
+
     return dlg.flush();
 }
 
@@ -235,9 +262,9 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<
  */
 export async function policy(dlg : DialogueInterface, startMode : PolicyStartMode) {
     // TODO call "expect" here a bunch of times to register the templates
-    dlg.expect([
-        ["TODO user", {}, (state) => StateM.makeSimpleState(state, POLICY_NAME, 'cancel')]
-    ]);
+    dlg.expectAlways(function*() {
+        yield mkUserTmpl(Templates.thanks_phrase, (state) => StateM.makeSimpleState(state, POLICY_NAME, 'cancel'));
+    });
 
     if (dlg.interactive && dlg.debug)
         console.log('Policy start');
@@ -258,6 +285,7 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
 
     for (;;) {
         try {
+
             const cmd = await dlg.get({
                 expecting: lastReply?.expecting,
                 rawHandler: lastReply?.raw ? ((cmd, loader) => interpretAnswer(dlg.state, new Ast.StringValue(cmd), loader)) : undefined,

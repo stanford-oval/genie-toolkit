@@ -56,7 +56,7 @@ system_list_proposal : D.ListProposal = {
     ["${proposal}. {they|all of them} are ${info[plural=other]}.", priority=11]: (proposal : ctx_thingpedia_list_result, info : result_info_phrase)
         => D.checkThingpediaListProposal(proposal, info.info);
 
-    ["{i see|i have|i have found} ${name_list}. {action}.", priority=-1]: (name_list : ctx_result_name_list, action : action_coref_list_proposal)
+    ["{i see|i have|i have found} ${name_list}. ${action}.", priority=-1]: (name_list : ctx_result_name_list, action : action_coref_list_proposal)
         => D.addActionToListProposal(name_list, action);
 
     // hard case: not all results share the same property, so we talk about each result

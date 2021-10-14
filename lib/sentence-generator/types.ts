@@ -116,6 +116,11 @@ export type Template<ArgTypes extends unknown[], ReturnType> =
     [string, TemplatePlaceholderMap, SemanticAction<ArgTypes, ReturnType>];
 
 /**
+ * A template representing one command from the user.
+ */
+export type UserTemplate = Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>;
+
+/**
  * A textual reply from the agent.
  */
 export type AgentTextMessage = {
