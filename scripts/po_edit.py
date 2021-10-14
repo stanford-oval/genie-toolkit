@@ -35,8 +35,9 @@ args = parser.parse_args()
 PUNCTUATIONS = {
                 '.', '?', '!', ',', # english
                 '؟', '،', # persian
-                '？', '。', '！' # cjk
+                '？', '。',# cjk
                 }
+PERIODS = {'.', '。'}
 SPECIAL_CHARS = {':', '#'}
 
 placeholder_regex_fw = "|".join(
@@ -106,7 +107,10 @@ def clean_translated_output(text):
     text = text.strip()
     text = re.sub(r"\s{2,}", " ", text)
 
-    if text[-1] in PUNCTUATIONS:
+    # translation likes ending phrases in periods
+    # remove them here
+    # post-editors add it back if necessary
+    if text[-1] in PERIODS:
         text = text[:-1]
         text = text.strip()
 
@@ -143,13 +147,7 @@ def create_final():
         for i, part in enumerate(parts):
             if base_id + '/' + str(i) in translated_mapping:
                 sent = translated_mapping[base_id + '/' + str(i)]
-
-                # translation likes ending sentences "gracefully"
-                # remove all ending punctuation
-                # post-editors add it back if necessary
-                if sent[-1] in PUNCTUATIONS:
-                    sent = sent[:-1]
-                    sent = sent.strip()
+                sent = sent.strip()
                 parts[i] = sent
 
         output = ' '.join(parts)
