@@ -131,6 +131,9 @@ class GenieTypeError extends Error {
 // size multiplied by this factor
 const NON_CONTEXTUAL_PRUNING_SIZE_MULTIPLIER = 3;
 
+// root is multiplied by this factor, because there is little use in pruning root
+const ROOT_MULTIPLIER = 10;
+
 // powers grow by 2 until depth 5, then go down by 0.8
 const POWERS = [1];
 for (let i = 1; i < 6; i++)
@@ -144,7 +147,7 @@ const MAX_SAMPLE_SIZE = 1000000;
 // the automatically added derivation key considering the context
 const CONTEXT_KEY_NAME = '$context';
 
-interface GenericSentenceGeneratorOptions extends GrammarOptions {
+export interface SentenceGeneratorOptions extends GrammarOptions {
     locale : string;
     templateFiles ?: string[];
     rootSymbol ?: string;
@@ -153,20 +156,8 @@ interface GenericSentenceGeneratorOptions extends GrammarOptions {
     maxConstants : number;
     rng : () => number;
     logPrefix ?: string;
+    contextual : boolean;
 }
-
-interface BasicSentenceGeneratorOptions {
-    contextual : false;
-}
-
-interface ContextualSentenceGeneratorOptions {
-    contextual : true;
-    rootSymbol ?: string;
-}
-
-export type SentenceGeneratorOptions =
-    GenericSentenceGeneratorOptions &
-    (BasicSentenceGeneratorOptions | ContextualSentenceGeneratorOptions);
 
 interface Constant {
     token : string;
@@ -546,6 +537,7 @@ export default class SentenceGenerator extends events.EventEmitter {
     private _rules : Array<Array<Rule<any[], any>>>;
     private _contextTable : Record<string, number>;
     private _dynamicNonTerm : number;
+    private _rootNonTerm : number;
 
     private _constantMap : MultiMap<string, [number, KeyFunction<any>]>;
 
@@ -589,6 +581,10 @@ export default class SentenceGenerator extends events.EventEmitter {
         this._progress = 0;
 
         this._dynamicNonTerm = this._internalDeclareSymbol('$dynamic');
+        if (options.rootSymbol)
+            this._rootNonTerm = this._internalDeclareSymbol(options.rootSymbol);
+        else
+            this._rootNonTerm = this._dynamicNonTerm;
     }
 
     get tpLoader() {
@@ -1031,6 +1027,8 @@ export default class SentenceGenerator extends events.EventEmitter {
                 // to a large number (integer, to avoid floating point computations)
                 if (this._contextual && depth === 0 && this.hasContext(this._nonTermList[index]))
                     this._charts.init(index, depth, INFINITY);
+                else if (index === this._dynamicNonTerm || index === this._rootNonTerm)
+                    this._charts.init(index, depth, ROOT_MULTIPLIER * targetPruningSize) // multiply root by a factor to avoid unnecessary pruning
                 else if (this._contextual && !this._nonTermHasContext[index]) // multiply non-contextual non-terminals by a factor
                     this._charts.init(index, depth, NON_CONTEXTUAL_PRUNING_SIZE_MULTIPLIER * targetPruningSize);
                 else
