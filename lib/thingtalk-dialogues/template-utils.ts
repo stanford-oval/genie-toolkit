@@ -22,6 +22,7 @@
  * Utilities for converting dynamic templates to rules in a {@link SentenceGenerator}
  */
 
+import { Ast } from 'thingtalk';
 import {
     PlaceholderReplacement,
     Replaceable,
@@ -65,6 +66,16 @@ function processPlaceholderMap(tmpl : string,
         } else if (typeof symbol === 'string') {
             needsReplacePartial = true;
             replacePartialCtx.replacements.push({ value: symbol, text: generator.tpLoader.describer.getEntity('QUOTED_STRING', symbol) });
+        } else if (typeof symbol === 'number') {
+            needsReplacePartial = true;
+            replacePartialCtx.replacements.push({ value: symbol, text: generator.tpLoader.describer.getEntity('NUMBER', symbol) });
+        } else if (symbol instanceof Ast.Value) {
+            needsReplacePartial = true;
+            const description = generator.tpLoader.describer.describeArg(symbol);
+            if (description === null)
+                replacePartialCtx.replacements.push(null);
+            else
+                replacePartialCtx.replacements.push({ value: symbol.toJS(), text: description });
         } else {
             needsReplacePartial = true;
             replacePartialCtx.replacements.push(symbol);

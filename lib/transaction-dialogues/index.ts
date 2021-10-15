@@ -143,7 +143,13 @@ async function ctxIncompleteSearchCommand(dlg : DialogueInterface, ctx : Context
                 dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
             },
             async () => {
-                dlg.say(Templates.system_generic_proposal, (prop) => prop);
+                D.searchResultPreamble(dlg, ctx);
+                dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
+            },
+            async () => {
+                if (!dlg.flags.multiwoz)
+                    return;
+                await D.systemGenericProposal(dlg, ctx);
             },
         ]);
     } else {
@@ -155,7 +161,13 @@ async function ctxIncompleteSearchCommand(dlg : DialogueInterface, ctx : Context
                 dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
             },
             async () => {
-                dlg.say(Templates.system_generic_proposal, (prop) => prop);
+                D.searchResultPreamble(dlg, ctx);
+                dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
+            },
+            async () => {
+                if (!dlg.flags.multiwoz)
+                    return;
+                await D.systemGenericProposal(dlg, ctx);
             },
         ]);
     }

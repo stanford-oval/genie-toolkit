@@ -22,6 +22,7 @@ import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
 import * as C from '../../templates/ast_manip';
+import { DialogueInterface, PolicyFunction } from '../../thingtalk-dialogues';
 
 import { ContextInfo } from '../context-info';
 import {
@@ -35,6 +36,8 @@ import {
     refineFilterToAnswerQuestion,
     proposalReply
 } from './refinement-helpers';
+import * as Templates from '../templates/index.genie.out';
+import * as CommonTemplates from '../../templates/common.genie.out';
 
 // Refinement dialogue acts
 //
@@ -53,19 +56,6 @@ export function negativeProposalReplyKeyFn([preamble, request] : NegativeProposa
     return {
         functionName: preamble ? preamble.schema!.qualifiedName : request!.schema!.qualifiedName
     };
-}
-
-function checkSearchResultPreamble(ctx : ContextInfo, base : Ast.FunctionDef, num : Ast.Value|null, more : boolean) {
-    if (!C.isSameFunction(base, ctx.currentFunction!))
-        return null;
-    if (num !== null) {
-        if (!num.equals(ctx.current!.results!.count))
-            return null;
-        if (more !== ctx.current!.results!.more)
-            return null;
-    }
-
-    return ctx;
 }
 
 /**
@@ -93,6 +83,38 @@ function makeRefinementProposal(ctx : ContextInfo, proposal : Ast.Expression) {
     return makeAgentReply(ctx, sysState, proposal);
 }
 
+export function searchResultPreamble(dlg : DialogueInterface, ctx : ContextInfo) {
+    dlg.say(dlg._("{there are|i can see|i have found|i have} {{many|several} ${base[plural=other]}|${result_length} ${result_length:plural:one{${base[plural=one]}}other{${base[plural=other]}}}} {matching your request|matching your constraints|with those characteristics|like that|in my database}."), {
+        base: CommonTemplates.base_noun_phrase.withConstraint(['functionName', ctx.key.currentFunction]),
+        result_length: ctx.key.resultLength
+    });
+}
+
+export function* systemGenericProposal(dlg : DialogueInterface, ctx : ContextInfo) : Iterable<PolicyFunction> {
+    yield async () => {
+        dlg.say(dlg._("{are you looking for a|how about a|how about the} ${proposal[plural=one]}"), {
+            proposal: Templates.answer_noun_phrase.withConstraint(['functionName', ctx.key.currentFunction])
+        }, (proposal : Ast.Expression) => makeRefinementProposal(ctx, proposal));
+    };
+    yield async () => {
+        dlg.say(dlg._("{are you looking for|how about|how about} ${proposal}"), {
+            proposal: Templates.anything_phrase.withConstraint(['functionName', ctx.key.currentFunction])
+        }, (proposal : Ast.Expression) => makeRefinementProposal(ctx, proposal));
+    };
+    yield async () => {
+        searchResultPreamble(dlg, ctx);
+        dlg.say(dlg._("{are you looking for a|how about a|how about the} ${proposal[plural=one]}"), {
+            proposal: Templates.answer_noun_phrase.withConstraint(['functionName', ctx.key.currentFunction])
+        }, (proposal : Ast.Expression) => makeRefinementProposal(ctx, proposal));
+    };
+    yield async () => {
+        searchResultPreamble(dlg, ctx);
+        dlg.say(dlg._("{are you looking for|how about|how about} ${proposal}"), {
+            proposal: Templates.anything_phrase.withConstraint(['functionName', ctx.key.currentFunction])
+        }, (proposal : Ast.Expression) => makeRefinementProposal(ctx, proposal));
+    };
+}
+
 function negativeProposalReply(ctx : ContextInfo, [preamble, request] : [Ast.Expression|null, Ast.Expression|null]) {
     // discard if we have a preamble, because it's too complicated to check if the preamble is meaningful
     if (preamble !== null)
@@ -116,8 +138,6 @@ function positiveProposalReply(ctx : ContextInfo) {
 }
 
 export {
-    checkSearchResultPreamble,
-    makeRefinementProposal,
     positiveProposalReply,
     negativeProposalReply,
 };

@@ -32,26 +32,6 @@ import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 import * as D from '../dialogue_acts';
 
-search_result_preamble : D.ContextInfo = {
-    ["{there are|i can see|i have found|i can recommend} {many|several} ${base[plural=other]} {matching your request|matching your constraints|with those characteristics|like that|}."]: (ctx:ctx_search_command, base:base_noun_phrase<functionName = ctx.currentFunction>)
-        => D.checkSearchResultPreamble(ctx, base, null, false),
-
-    ["{there are|i can see|i have found|i have} ${ctx.resultLength} ${ctx.resultLength:plural:one{${base[plural=one]}}other{${base[plural=other]}}} {in my database|like that|}."]: (ctx:ctx_search_command, base:base_noun_phrase<functionName = ctx.currentFunction>)
-        => D.checkSearchResultPreamble(ctx, base, null, false);
-}
-
-system_generic_proposal : D.AgentReplyRecord = {
-    ["{are you looking for a|how about a|how about the} ${proposal[plural=one]}"]: (ctx:ctx_search_command, proposal:answer_noun_phrase<functionName = ctx.currentFunction>)
-        => D.makeRefinementProposal(ctx, proposal),
-    ["{are you looking for|how about|how about} ${proposal}"]: (ctx:ctx_search_command, proposal:anything_phrase<functionName = ctx.currentFunction>)
-        => D.makeRefinementProposal(ctx, proposal),
-
-    ["${preamble} {are you looking for a|how about a|how about the} ${proposal[plural=one]}"]: (preamble:search_result_preamble, proposal:answer_noun_phrase<functionName = preamble.currentFunction>)
-        => D.makeRefinementProposal(preamble, proposal),
-    ["${preamble} {are you looking for|how about|how about} ${proposal}"]: (preamble:search_result_preamble, proposal:anything_phrase<functionName = preamble.currentFunction>)
-        => D.makeRefinementProposal(preamble, proposal),
-}
-
 negative_proposal_request : Ast.Expression = {
     ?multiwoz counterproposal_preamble ('a' | 'any') request:answer_noun_phrase '.' => request;
     counterproposal_preamble request:anything_phrase '.' => request;

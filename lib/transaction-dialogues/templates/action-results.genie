@@ -29,8 +29,6 @@ import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
 import * as D from '../dialogue_acts';
 
-import { SlotBag } from '../../templates/slot_bag';
-
 complete_past_action_phrase : Ast.Expression = {
     // using a constant
     ( action:thingpedia_complete_action_past
@@ -74,47 +72,6 @@ action_success_phrase_with_result : D.ActionSuccessPhraseWithResult = {
 
     'i' action:complete_past_action_phrase '.' result:direct_result_info_phrase with { functionName = action.functionName } [priority=2]
         => [action, result.info];
-}
-
-action_success_phrase : D.AgentReplyRecord = {
-    ctx:ctx_completed_action_success generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
-        => D.makeThingpediaActionSuccessPhrase(ctx, result);
-
-    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase with { functionName = ctx.currentFunction } '.' [priority=2]
-        => D.makeCompleteActionSuccessPhrase(ctx, action, null);
-
-    ctx:ctx_completed_action_success generic_excitement_phrase phrase:action_success_phrase_with_result => {
-        const [action, info] = phrase;
-        if (action)
-            return D.makeCompleteActionSuccessPhrase(ctx, action, info);
-        else
-            return D.makeThingpediaActionSuccessPhrase(ctx, info);
-    };
-
-    // purely generic fallback, so we always say something, even if we cannot use a better template
-    ctx:ctx_completed_action_success generic_excitement_phrase generic_action_success_phrase [priority=-10]
-        => D.makeGenericActionSuccessPhrase(ctx);
-
-}
-
-action_notification_phrase : D.AgentReplyRecord = {
-    ctx:ctx_action_notification generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
-        => D.makeThingpediaActionSuccessPhrase(ctx, result);
-
-    ctx:ctx_action_notification generic_excitement_phrase 'i' action:complete_past_action_phrase with { functionName = ctx.currentFunction } '.' [priority=2]
-        => D.makeCompleteActionSuccessPhrase(ctx, action, null);
-
-    ctx:ctx_action_notification generic_excitement_phrase phrase:action_success_phrase_with_result => {
-        const [action, info] = phrase;
-        if (action)
-            return D.makeCompleteActionSuccessPhrase(ctx, action, info);
-        else
-            return D.makeThingpediaActionSuccessPhrase(ctx, info);
-    };
-
-    // purely generic fallback, so we always say something, even if we cannot use a better template
-    ctx:ctx_action_notification generic_excitement_phrase generic_action_success_phrase [priority=-10]
-        => D.makeGenericActionSuccessPhrase(ctx);
 }
 
 short_action_error_message : D.ContextInfo = {

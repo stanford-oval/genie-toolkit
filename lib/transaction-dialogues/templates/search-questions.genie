@@ -42,10 +42,6 @@ one_param_direct_search_question : C.ParamSlot[] = {
     };
 }
 
-one_param_direct_search_question_with_preamble : C.ParamSlot[] = {
-    search_result_preamble question:one_param_direct_search_question => question;
-}
-
 two_param_direct_search_question : C.ParamSlot[] = {
     ( 'what' p1:out_param_Any with { filterable = true } 'and' p2:out_param_Any with { functionName = p1.functionName } prefer_question_phrase '?'
     | p1:thingpedia_search_question with { filterable = true } 'and' 'what' p2:out_param_Any with { functionName = p1.functionName } prefer_question_phrase '?'
@@ -75,10 +71,6 @@ one_param_yesno_direct_search_question : C.ParamSlot[] = {
             return null;
         return [p];
     };
-}
-
-one_param_yesno_direct_search_question_with_preamble : C.ParamSlot[] = {
-    search_result_preamble question:one_param_yesno_direct_search_question => question;
 }
 
 two_param_yesno_direct_search_question : C.ParamSlot[] = {
@@ -148,7 +140,7 @@ generic_question : never[] = {
     'do you have any more information to narrow down the search ?' => [];
 }
 
-simple_search_question : C.ParamSlot[] = {
+search_question : C.ParamSlot[] = {
     one_param_direct_search_question [priority=0.1];
     two_param_direct_search_question;
 
@@ -157,12 +149,6 @@ simple_search_question : C.ParamSlot[] = {
     one_param_yesno_direct_search_question [priority=0.1];
     two_param_yesno_direct_search_question;
 }
-
-search_question : C.ParamSlot[] = {
-    simple_search_question;
-    search_result_preamble question:simple_search_question [weight=0.1] => question;
-}
-
 
 verbose_search_answer : Ast.Expression = {
     // complete answer, like "I am looking for a bla restaurant"

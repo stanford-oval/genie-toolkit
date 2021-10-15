@@ -255,7 +255,7 @@ export class ReplacedList extends ReplacedResult {
  * An object that represents the value with which to replace a placeholder.
  */
 export interface PlaceholderReplacement {
-    value : any;
+    value : unknown;
     text : ReplacedResult;
 }
 
