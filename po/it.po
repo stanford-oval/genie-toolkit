@@ -6241,8 +6241,8 @@ msgstr ""
 #: lib/utils/thingtalk/describe.ts:258 lib/utils/thingtalk/describe.ts:517
 msgid "the ${name} [plural=name[plural]]"
 msgstr ""
-"${name:plural: one{${name[gender]:select: m{il} f{la}} other{${name[gender]:"
-"select: m{i} f{le}}} ${name} [plural=name[plural],gender=name[gender]]"
+"${name:plural: one{${name[gender]:select: m{il} f{la}}} other{${name[gender]:"
+"select: m{i} f{le}}}} ${name} [plural=name[plural],gender=name[gender]]"
 
 #: lib/utils/thingtalk/describe.ts:267
 msgid "${offset} past ${base}"
@@ -6323,8 +6323,7 @@ msgstr "${value} per qui ${filter}"
 #: lib/utils/thingtalk/describe.ts:342
 msgid "the ${field} of ${value}"
 msgstr ""
-"${field[gender]:select: m{il ${field}} f{la ${field}}} di ${value} "
-"[gender=field[gender]]"
+"${field[gender]:select: m{il ${field} di ${value} [gender=m]} f{la ${field} di ${value} [gender=f]}}"
 
 #: lib/utils/thingtalk/describe.ts:361
 msgid "the program ID"
@@ -7180,7 +7179,7 @@ msgstr "Quanti dati farlocchi vuoi?"
 #. queries.get_data2.result.list[0]
 #: po/tmp/org.thingpedia.builtin.test.js:20
 msgid "the answers for ${count} items of size ${size} are ${data}"
-msgstr "le risposte per ${counti} elementi di dimensione ${size} sono ${data}"
+msgstr "le risposte per ${count} elementi di dimensione ${size} sono ${data}"
 
 #. queries.get_data2.canonical
 #: po/tmp/org.thingpedia.builtin.test.js:22
