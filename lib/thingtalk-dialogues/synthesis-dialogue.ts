@@ -166,7 +166,10 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
     get state() {
         return this._dlg.state;
     }
-    get tpLoader() {
+    get userTpLoader() {
+        return this._userGenerator.tpLoader;
+    }
+    get agentTpLoader() {
         return this._agentGenerator.tpLoader;
     }
 

@@ -241,7 +241,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
      *
      * This is used by certain code paths to handle raw commands.
      */
-    get tpLoader() {
+    get agentTpLoader() {
         return this._agentGenerator.tpLoader;
     }
 

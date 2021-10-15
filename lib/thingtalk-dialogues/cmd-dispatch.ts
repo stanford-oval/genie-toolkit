@@ -95,7 +95,7 @@ export interface AbstractCommandIO {
      * This property can be accessed only when a valid state has been initialized
      * previously, and might throw an exception otherwise.
      */
-    readonly tpLoader : ThingpediaLoader;
+    readonly agentTpLoader : ThingpediaLoader;
 
     /**
      * Fetch the next command from the user.
@@ -123,7 +123,7 @@ export interface AbstractCommandIO {
 }
 
 export class DummyCommandIO implements AbstractCommandIO {
-    get tpLoader() : never {
+    get agentTpLoader() : never {
         throw new Error(`No thingpedia loader available`);
     }
 
@@ -255,7 +255,7 @@ export class SimpleCommandDispatcher implements CommandDispatcher {
 
             const compat = isCommandCompatible(cmd, options);
             if (compat === Compatibility.RAW) {
-                const handled = options.rawHandler!(cmd.utterance, this._io.tpLoader);
+                const handled = options.rawHandler!(cmd.utterance, this._io.agentTpLoader);
                 if (handled === null)
                     throw new UnexpectedCommandError(cmd);
                 return new Command(cmd.utterance, cmd.context, handled, Confidence.ABSOLUTE, cmd.platformData);
@@ -365,7 +365,7 @@ export class ParallelCommandDispatcher {
             // first check for some waiting dialogue in raw mode
             const raw = this._waiters.filter((w, i) => compat[i] === Compatibility.RAW);
             for (const choice of raw) {
-                const handled = choice.getCmdOptions!.rawHandler!(cmd.utterance, this._io.tpLoader);
+                const handled = choice.getCmdOptions!.rawHandler!(cmd.utterance, this._io.agentTpLoader);
                 if (handled !== null) {
                     const cmd2 = new Command(cmd.utterance, cmd.context, handled, Confidence.ABSOLUTE, cmd.platformData);
                     choice.resolve!(cmd2);

@@ -133,6 +133,7 @@ interface FollowUpRecord {
  *
  * This class should not be constructed directly. Instead, an appropriately
  * initialized loader can be retrieved from {@link SentenceGenerator.tpLoader}.
+ * The loader is also passed to the templates in the `$loader` global variable.
  */
 export default class ThingpediaLoader {
     private _grammar : SentenceGenerator;
@@ -342,7 +343,7 @@ export default class ThingpediaLoader {
                 for (const entry of type.entries!) {
                     const value = new Ast.Value.Enum(entry);
                     value.getType = function() {
-                        return type; 
+                        return type;
                     };
                     this._addRule('constant_' + typestr, [], ThingTalkUtils.clean(entry),
                         () => value, keyfns.valueKeyFn);

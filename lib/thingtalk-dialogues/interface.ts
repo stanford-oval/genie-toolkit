@@ -56,6 +56,10 @@ import AbstractThingTalkExecutor, {
  */
 export type SynthesisFunction<ReturnType> = (dlg : DialogueInterface) => Iterable<Template<[Ast.DialogueState, ...any[]], ReturnType>>;
 
+/**
+ * Internal interface used by {@link DialogueInterface} to register user templates
+ * for synthesis.
+ */
 export interface Synthesizer {
     /**
      * The thingpedia loader object currently in use to generate agent utterances.
@@ -63,7 +67,7 @@ export interface Synthesizer {
      * This property can be accessed only when a valid state has been initialized
      * previously, and might throw an exception otherwise.
      */
-    readonly tpLoader : ThingpediaLoader;
+    readonly userTpLoader : ThingpediaLoader;
 
     synthesize(templates : Iterable<[number|null, Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>]>) : void;
 }
@@ -355,7 +359,7 @@ export class DialogueInterface {
         if (this._nested !== null)
             throw new Error(`expectAlways must be called at the beginning of the dialogue`);
         if (typeof templates === 'function')
-            templates = templates(this._synthesizer.tpLoader);
+            templates = templates(this._synthesizer.userTpLoader);
 
         const list = this._userTemplates.get(-1);
         if (list) {
@@ -393,7 +397,7 @@ export class DialogueInterface {
             throw new Error(`expect cannot be nested inside a call to ${this._nested}`);
 
         if (typeof templates === 'function')
-            templates = templates(this._synthesizer.tpLoader);
+            templates = templates(this._synthesizer.userTpLoader);
         const list = this._userTemplates.get(this._eitherTag);
         if (list) {
             for (const tmpl of templates)
