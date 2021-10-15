@@ -16,13 +16,33 @@
 #: lib/templates/projections.genie.out.ts:119
 #: lib/templates/projections.genie.out.ts:122
 #: lib/templates/projections.genie.out.ts:124
+#: lib/templates/projections.genie.out.ts:129
+#: lib/templates/projections.genie.out.ts:131
+#: lib/templates/projections.genie.out.ts:134
+#: lib/templates/projections.genie.out.ts:136
+#: lib/templates/projections.genie.out.ts:141
+#: lib/templates/projections.genie.out.ts:143
+#: lib/templates/projections.genie.out.ts:145
+#: lib/templates/projections.genie.out.ts:147
+#: lib/templates/projections.genie.out.ts:150
+#: lib/templates/projections.genie.out.ts:152
+#: lib/templates/projections.genie.out.ts:154
+#: lib/templates/projections.genie.out.ts:156
+#: lib/templates/projections.genie.out.ts:161
+#: lib/templates/projections.genie.out.ts:163
+#: lib/templates/projections.genie.out.ts:166
+#: lib/templates/projections.genie.out.ts:168
+#: lib/templates/projections.genie.out.ts:173
+#: lib/templates/projections.genie.out.ts:175
+#: lib/templates/projections.genie.out.ts:178
+#: lib/templates/projections.genie.out.ts:180
 #: lib/templates/common-constants.genie.out.ts:74
 msgid ""
 msgstr ""
 "Project-Id-Version: genie-toolkit 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-07 21:42-0700\n"
-"PO-Revision-Date: 2021-10-07 21:55-0700\n"
+"POT-Creation-Date: 2021-10-15 14:42-0700\n"
+"PO-Revision-Date: 2021-10-15 15:03-0700\n"
 "Last-Translator: Giovanni Campagna <gcampagn@cs.stanford.edu>\n"
 "Language-Team: Italian <it@li.org>\n"
 "Language: it\n"
@@ -3201,7 +3221,7 @@ msgstr ""
 msgid "is {the|} ${table} ${p}"
 msgstr ""
 
-#: lib/templates/projections.genie.out.ts:129
+#: lib/templates/projections.genie.out.ts:185
 #, fuzzy
 msgid "the ${outParam} of ${table}"
 msgstr ""
@@ -3209,7 +3229,7 @@ msgstr ""
 "#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
 "la media di %s in %s"
 
-#: lib/templates/projections.genie.out.ts:130
+#: lib/templates/projections.genie.out.ts:186
 #, fuzzy
 msgid "the ${outParam} of the ${table}"
 msgstr ""
@@ -3217,12 +3237,12 @@ msgstr ""
 "#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
 "la media di %s in %s"
 
-#: lib/templates/projections.genie.out.ts:132
-#: lib/templates/projections.genie.out.ts:133
+#: lib/templates/projections.genie.out.ts:188
+#: lib/templates/projections.genie.out.ts:189
 msgid "${outParam} {do|does} {the|} ${table} have"
 msgstr ""
 
-#: lib/templates/projections.genie.out.ts:136
+#: lib/templates/projections.genie.out.ts:192
 #, fuzzy
 msgid "the ${outParam} of new ${table}"
 msgstr ""
@@ -3230,7 +3250,7 @@ msgstr ""
 "#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
 "la media di %s in %s"
 
-#: lib/templates/projections.genie.out.ts:137
+#: lib/templates/projections.genie.out.ts:193
 #, fuzzy
 msgid "the ${outParam} of the new ${table}"
 msgstr ""
@@ -3238,215 +3258,215 @@ msgstr ""
 "#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
 "la media di %s in %s"
 
-#: lib/templates/projections.genie.out.ts:138
+#: lib/templates/projections.genie.out.ts:194
 #, fuzzy
 msgid "new ${table}"
 msgstr "il numero di %s"
 
-#: lib/templates/projections.genie.out.ts:141
-#: lib/templates/projections.genie.out.ts:183
+#: lib/templates/projections.genie.out.ts:197
+#: lib/templates/projections.genie.out.ts:239
 msgid "some number"
 msgstr "un qualche numero"
 
-#: lib/templates/projections.genie.out.ts:142
-#: lib/templates/projections.genie.out.ts:144
+#: lib/templates/projections.genie.out.ts:198
+#: lib/templates/projections.genie.out.ts:200
 msgid "some value"
 msgstr "un qualche valore"
 
-#: lib/templates/projections.genie.out.ts:143
+#: lib/templates/projections.genie.out.ts:199
 msgid "something"
 msgstr "qualcosa"
 
-#: lib/templates/projections.genie.out.ts:145
+#: lib/templates/projections.genie.out.ts:201
 msgid "some amount"
 msgstr "un certo quantitativo"
 
-#: lib/templates/projections.genie.out.ts:146
-#: lib/templates/projections.genie.out.ts:150
+#: lib/templates/projections.genie.out.ts:202
+#: lib/templates/projections.genie.out.ts:206
 msgid "some time"
 msgstr "qualche orario"
 
-#: lib/templates/projections.genie.out.ts:147
-#: lib/templates/projections.genie.out.ts:151
+#: lib/templates/projections.genie.out.ts:203
+#: lib/templates/projections.genie.out.ts:207
 msgid "a certain time"
 msgstr "un certo orario"
 
-#: lib/templates/projections.genie.out.ts:148
+#: lib/templates/projections.genie.out.ts:204
 msgid "some date"
 msgstr "una qualche data"
 
-#: lib/templates/projections.genie.out.ts:149
+#: lib/templates/projections.genie.out.ts:205
 msgid "a certain date"
 msgstr "una certa data"
 
-#: lib/templates/projections.genie.out.ts:152
+#: lib/templates/projections.genie.out.ts:208
 #, fuzzy
 msgid "some location"
 msgstr "la mia posizione"
 
-#: lib/templates/projections.genie.out.ts:153
+#: lib/templates/projections.genie.out.ts:209
 #, fuzzy
 msgid "a location"
 msgstr "la mia posizione"
 
-#: lib/templates/projections.genie.out.ts:154
+#: lib/templates/projections.genie.out.ts:210
 #, fuzzy
 msgid "some place"
 msgstr "qualche data"
 
-#: lib/templates/projections.genie.out.ts:155
+#: lib/templates/projections.genie.out.ts:211
 #, fuzzy
 msgid "a place"
 msgstr "qualche località"
 
-#: lib/templates/projections.genie.out.ts:156
+#: lib/templates/projections.genie.out.ts:212
 msgid "a certain place"
 msgstr ""
 
-#: lib/templates/projections.genie.out.ts:157
+#: lib/templates/projections.genie.out.ts:213
 #, fuzzy
 msgid "somewhere"
 msgstr "qualcuno"
 
-#: lib/templates/projections.genie.out.ts:158
+#: lib/templates/projections.genie.out.ts:214
 #, fuzzy
 msgid "some duration"
 msgstr "la mia posizione"
 
-#: lib/templates/projections.genie.out.ts:159
+#: lib/templates/projections.genie.out.ts:215
 #, fuzzy
 msgid "some amount of time"
 msgstr "qualche orario"
 
-#: lib/templates/projections.genie.out.ts:160
-#: lib/templates/projections.genie.out.ts:166
+#: lib/templates/projections.genie.out.ts:216
+#: lib/templates/projections.genie.out.ts:222
 #, fuzzy
 msgid "some size"
 msgstr "qualche orario"
 
-#: lib/templates/projections.genie.out.ts:161
-#: lib/templates/projections.genie.out.ts:167
+#: lib/templates/projections.genie.out.ts:217
+#: lib/templates/projections.genie.out.ts:223
 #, fuzzy
 msgid "a certain size"
 msgstr "una dimensione"
 
-#: lib/templates/projections.genie.out.ts:162
+#: lib/templates/projections.genie.out.ts:218
 #, fuzzy
 msgid "a certain weight"
 msgstr "un peso"
 
-#: lib/templates/projections.genie.out.ts:163
+#: lib/templates/projections.genie.out.ts:219
 #, fuzzy
 msgid "a certain temperature"
 msgstr "una temperatura"
 
-#: lib/templates/projections.genie.out.ts:164
+#: lib/templates/projections.genie.out.ts:220
 #, fuzzy
 msgid "some distance"
 msgstr "qualche data"
 
-#: lib/templates/projections.genie.out.ts:165
+#: lib/templates/projections.genie.out.ts:221
 #, fuzzy
 msgid "some length"
 msgstr "una lunghezza"
 
-#: lib/templates/projections.genie.out.ts:168
+#: lib/templates/projections.genie.out.ts:224
 #, fuzzy
 msgid "some volume"
 msgstr "qualche orario"
 
-#: lib/templates/projections.genie.out.ts:169
+#: lib/templates/projections.genie.out.ts:225
 msgid "a certain volume"
 msgstr ""
 
-#: lib/templates/projections.genie.out.ts:170
+#: lib/templates/projections.genie.out.ts:226
 #, fuzzy
 msgid "some speed"
 msgstr "una velocità"
 
-#: lib/templates/projections.genie.out.ts:171
+#: lib/templates/projections.genie.out.ts:227
 #, fuzzy
 msgid "a certain speed"
 msgstr "una velocità"
 
-#: lib/templates/projections.genie.out.ts:172
+#: lib/templates/projections.genie.out.ts:228
 #, fuzzy
 msgid "some image"
 msgstr "qualche orario"
 
-#: lib/templates/projections.genie.out.ts:173
+#: lib/templates/projections.genie.out.ts:229
 #, fuzzy
 msgid "some picture"
 msgstr "qualche squadra"
 
-#: lib/templates/projections.genie.out.ts:174
+#: lib/templates/projections.genie.out.ts:230
 #, fuzzy
 msgid "some photo"
 msgstr "qualche squadra"
 
-#: lib/templates/projections.genie.out.ts:175
-#: lib/templates/projections.genie.out.ts:179
-#: lib/templates/projections.genie.out.ts:185
+#: lib/templates/projections.genie.out.ts:231
+#: lib/templates/projections.genie.out.ts:235
+#: lib/templates/projections.genie.out.ts:241
 #, fuzzy
 msgid "somebody"
 msgstr "qualcuno"
 
-#: lib/templates/projections.genie.out.ts:176
-#: lib/templates/projections.genie.out.ts:180
-#: lib/templates/projections.genie.out.ts:186
+#: lib/templates/projections.genie.out.ts:232
+#: lib/templates/projections.genie.out.ts:236
+#: lib/templates/projections.genie.out.ts:242
 msgid "someone"
 msgstr "qualcuno"
 
-#: lib/templates/projections.genie.out.ts:177
-#: lib/templates/projections.genie.out.ts:181
-#: lib/templates/projections.genie.out.ts:187
+#: lib/templates/projections.genie.out.ts:233
+#: lib/templates/projections.genie.out.ts:237
+#: lib/templates/projections.genie.out.ts:243
 #, fuzzy
 msgid "some one"
 msgstr "qualcuno"
 
-#: lib/templates/projections.genie.out.ts:178
-#: lib/templates/projections.genie.out.ts:182
-#: lib/templates/projections.genie.out.ts:188
+#: lib/templates/projections.genie.out.ts:234
+#: lib/templates/projections.genie.out.ts:238
+#: lib/templates/projections.genie.out.ts:244
 #, fuzzy
 msgid "some person"
 msgstr "qualcuno"
 
-#: lib/templates/projections.genie.out.ts:184
+#: lib/templates/projections.genie.out.ts:240
 #, fuzzy
 msgid "some phone number"
 msgstr "Qual è il tuo numero di telefono?"
 
-#: lib/templates/projections.genie.out.ts:189
+#: lib/templates/projections.genie.out.ts:245
 #, fuzzy
 msgid "some email address"
 msgstr "Qual è il tuo indirizzo email?"
 
-#: lib/templates/projections.genie.out.ts:190
+#: lib/templates/projections.genie.out.ts:246
 #, fuzzy
 msgid "some file"
 msgstr "qualche orario"
 
-#: lib/templates/projections.genie.out.ts:191
+#: lib/templates/projections.genie.out.ts:247
 #, fuzzy
 msgid "some directory"
 msgstr "qualche società"
 
-#: lib/templates/projections.genie.out.ts:192
+#: lib/templates/projections.genie.out.ts:248
 #, fuzzy
 msgid "some folder"
 msgstr "qualche data"
 
-#: lib/templates/projections.genie.out.ts:193
+#: lib/templates/projections.genie.out.ts:249
 #, fuzzy
 msgid "some url"
 msgstr "apri $url"
 
-#: lib/templates/projections.genie.out.ts:194
+#: lib/templates/projections.genie.out.ts:250
 #, fuzzy
 msgid "some website"
 msgstr "qualche squadra"
 
-#: lib/templates/projections.genie.out.ts:195
+#: lib/templates/projections.genie.out.ts:251
 #, fuzzy
 msgid "some link"
 msgstr "apri url su builtin"
@@ -4050,11 +4070,11 @@ msgid ""
 "${table} {and|and have|and also|and in addition|but also} ${p} ${subquery}"
 msgstr ""
 
-#: lib/templates/load-thingpedia.ts:1057
+#: lib/templates/load-thingpedia.ts:1059
 msgid "{anything|one|something}"
 msgstr ""
 
-#: lib/templates/load-thingpedia.ts:1058
+#: lib/templates/load-thingpedia.ts:1060
 msgid "{option|choice}"
 msgstr ""
 
@@ -4101,15 +4121,15 @@ msgid "now"
 msgstr "adesso"
 
 #: lib/templates/constants.genie.out.ts:85 lib/utils/thingtalk/describe.ts:209
-#: lib/i18n/default.ts:508
+#: lib/i18n/default.ts:641
 msgid "today"
 msgstr "oggi"
 
-#: lib/templates/constants.genie.out.ts:86 lib/i18n/default.ts:514
+#: lib/templates/constants.genie.out.ts:86 lib/i18n/default.ts:647
 msgid "yesterday"
 msgstr "ieri"
 
-#: lib/templates/constants.genie.out.ts:88 lib/i18n/default.ts:520
+#: lib/templates/constants.genie.out.ts:88 lib/i18n/default.ts:653
 msgid "tomorrow"
 msgstr "domani"
 
@@ -4471,59 +4491,52 @@ msgid "${date} ${time}"
 msgstr ""
 
 #: lib/templates/constants.genie.out.ts:204
-#, fuzzy
 msgid "${num} ms"
-msgstr "qualche numero"
+msgstr "${num} ms"
 
 #: lib/templates/constants.genie.out.ts:207
-#, fuzzy
 msgid "${num} milliseconds"
-msgstr "questo millisecondo"
+msgstr "${num} millisecondi"
 
 #: lib/templates/constants.genie.out.ts:210
-#, fuzzy
 msgid "${num} s"
-msgstr "qualche numero"
+msgstr "${num} s"
 
 #: lib/templates/constants.genie.out.ts:213
 msgid "${num} seconds"
-msgstr ""
+msgstr "${num} secondi"
 
 #: lib/templates/constants.genie.out.ts:215
-#, fuzzy
 msgid "${num} min"
-msgstr "qualche numero"
+msgstr "${num} min"
 
 #: lib/templates/constants.genie.out.ts:216
 msgid "${num} minutes"
-msgstr ""
+msgstr "${num} minuti"
 
 #: lib/templates/constants.genie.out.ts:217
-#, fuzzy
 msgid "${num} h"
-msgstr "qualche numero"
+msgstr "${num} ore"
 
 #: lib/templates/constants.genie.out.ts:218
 msgid "${num} hours"
-msgstr ""
+msgstr "${num} ore"
 
 #: lib/templates/constants.genie.out.ts:219
-#, fuzzy
 msgid "${num} days"
-msgstr "qualche numero"
+msgstr "${num} giorni"
 
 #: lib/templates/constants.genie.out.ts:221
 msgid "${num} weeks"
-msgstr ""
+msgstr "${num} settimane"
 
 #: lib/templates/constants.genie.out.ts:224
 msgid "${num} months"
-msgstr ""
+msgstr "${num} mesi"
 
 #: lib/templates/constants.genie.out.ts:227
-#, fuzzy
 msgid "${num} years"
-msgstr "qualche numero"
+msgstr "${num} anni"
 
 #: lib/templates/constants.genie.out.ts:231
 msgid "minute"
@@ -4550,325 +4563,288 @@ msgid "year"
 msgstr "anno"
 
 #: lib/templates/constants.genie.out.ts:240
-#, fuzzy
 msgid "${num} byte"
-msgstr "qualche numero"
+msgstr "${num} byte"
 
 #: lib/templates/constants.genie.out.ts:242
-#, fuzzy
 msgid "${num} kb"
-msgstr "qualche numero"
+msgstr "${num} kb"
 
 #: lib/templates/constants.genie.out.ts:243
-#, fuzzy
 msgid "${num} mb"
-msgstr "qualche numero"
+msgstr "${num} mb"
 
 #: lib/templates/constants.genie.out.ts:244
-#, fuzzy
 msgid "${num} gb"
-msgstr "qualche numero"
+msgstr "${num} gb"
 
 #: lib/templates/constants.genie.out.ts:245
-#, fuzzy
 msgid "${num} tb"
-msgstr "qualche numero"
+msgstr "${num} tb"
 
 #: lib/templates/constants.genie.out.ts:246
 msgid "${num} kilobytes"
-msgstr ""
+msgstr "${num} kilobyte"
 
 #: lib/templates/constants.genie.out.ts:247
 msgid "${num} megabytes"
-msgstr ""
+msgstr "${num} megabyte"
 
 #: lib/templates/constants.genie.out.ts:248
 msgid "${num} gigabytes"
-msgstr ""
+msgstr "${num} gigabyte"
 
 #: lib/templates/constants.genie.out.ts:249
 msgid "${num} terabytes"
-msgstr ""
+msgstr "${num} terabyte"
 
 #: lib/templates/constants.genie.out.ts:254
 msgid "${num} grams"
-msgstr ""
+msgstr "${num} grammi"
 
 #: lib/templates/constants.genie.out.ts:256
 msgid "${num} kilograms"
-msgstr ""
+msgstr "${num} {chilogrammi|kilogrammi}"
 
 #: lib/templates/constants.genie.out.ts:257
-#, fuzzy
 msgid "${num} kg"
-msgstr "qualche numero"
+msgstr "${num} kg"
 
 #: lib/templates/constants.genie.out.ts:258
 msgid "${num} pounds"
-msgstr ""
+msgstr "${num} libbre"
 
 #: lib/templates/constants.genie.out.ts:259
-#, fuzzy
 msgid "${num} lbs"
-msgstr "qualche numero"
+msgstr "${num} lb"
 
 #: lib/templates/constants.genie.out.ts:260
 msgid "${num} ounces"
-msgstr ""
+msgstr "${num} once"
 
 #: lib/templates/constants.genie.out.ts:261
-#, fuzzy
 msgid "${num} oz"
-msgstr "qualche numero"
+msgstr "${num} oz"
 
 #: lib/templates/constants.genie.out.ts:266
-#, fuzzy
 msgid "${num} c"
-msgstr "qualche numero"
+msgstr "${num} c"
 
 #: lib/templates/constants.genie.out.ts:267
 msgid "${num} centigrade"
-msgstr ""
+msgstr "${num} gradi centigradi"
 
 #: lib/templates/constants.genie.out.ts:268
 msgid "${num} celsius"
-msgstr ""
+msgstr "${num} celsius"
 
 #: lib/templates/constants.genie.out.ts:269
 msgid "${num} degrees celsius"
-msgstr ""
+msgstr "${num} gradi celsius"
 
 #: lib/templates/constants.genie.out.ts:271
-#, fuzzy
 msgid "${num} f"
-msgstr "qualche numero"
+msgstr "${num} f"
 
 #: lib/templates/constants.genie.out.ts:272
 msgid "${num} fahrenheit"
-msgstr ""
+msgstr "${num} fahrenheit"
 
 #: lib/templates/constants.genie.out.ts:273
 msgid "${num} degrees fahrenheit"
-msgstr ""
+msgstr "${num} gradi fahrenheit"
 
 #: lib/templates/constants.genie.out.ts:274
-#, fuzzy
 msgid "${num} degrees"
-msgstr "qualche numero"
+msgstr "${num} gradi"
 
 #: lib/templates/constants.genie.out.ts:279
-#, fuzzy
 msgid "${num} m"
-msgstr "qualche numero"
+msgstr "${num} m"
 
 #: lib/templates/constants.genie.out.ts:281
-#, fuzzy
 msgid "${num} meters"
-msgstr "qualche numero"
+msgstr "${num} metri"
 
 #: lib/templates/constants.genie.out.ts:282
-#, fuzzy
 msgid "${num} km"
-msgstr "qualche numero"
+msgstr "${num} km"
 
 #: lib/templates/constants.genie.out.ts:283
 msgid "${num} kilometers"
-msgstr ""
+msgstr "${num} chilometri"
 
 #: lib/templates/constants.genie.out.ts:284
-#, fuzzy
 msgid "${num} mi"
-msgstr "qualche numero"
+msgstr "${num} mi"
 
 #: lib/templates/constants.genie.out.ts:285
 msgid "${num} miles"
-msgstr ""
+msgstr "${num} miglia"
 
 #: lib/templates/constants.genie.out.ts:286
-#, fuzzy
 msgid "${num} ft"
-msgstr "qualche numero"
+msgstr "${num} ft"
 
 #: lib/templates/constants.genie.out.ts:287
-#, fuzzy
 msgid "${num} in"
-msgstr "qualche numero"
+msgstr "${num} in"
 
 #: lib/templates/constants.genie.out.ts:288
 msgid "${num} inches"
-msgstr ""
+msgstr "${num} pollici"
 
 #: lib/templates/constants.genie.out.ts:289
-#, fuzzy
 msgid "${num} cm"
-msgstr "qualche numero"
+msgstr "${num} cm"
 
 #: lib/templates/constants.genie.out.ts:293
 msgid "${num} square meters"
-msgstr ""
+msgstr "${num} metri {quadri|quadrati}"
 
 #: lib/templates/constants.genie.out.ts:294
 msgid "${num} square km"
-msgstr ""
+msgstr "${num} km quadrati"
 
 #: lib/templates/constants.genie.out.ts:295
 msgid "${num} square kilometers"
-msgstr ""
+msgstr "${num} chilometri quadrati"
 
 #: lib/templates/constants.genie.out.ts:296
 msgid "${num} square ft"
-msgstr ""
+msgstr "${num} ft quadrati"
 
 #: lib/templates/constants.genie.out.ts:297
 msgid "${num} square feet"
-msgstr ""
+msgstr "${num} piedi quadrati"
 
 #: lib/templates/constants.genie.out.ts:301
 msgid "${num} cubic meters"
-msgstr ""
+msgstr "${num} metri cubi"
 
 #: lib/templates/constants.genie.out.ts:302
 msgid "${num} cubic km"
-msgstr ""
+msgstr "${num} km cubi"
 
 #: lib/templates/constants.genie.out.ts:303
 msgid "${num} cubic kilometers"
-msgstr ""
+msgstr "${num} chilometri cubi"
 
 #: lib/templates/constants.genie.out.ts:304
 msgid "${num} cubic ft"
-msgstr ""
+msgstr "${num} ft cubi"
 
 #: lib/templates/constants.genie.out.ts:305
 msgid "${num} cubic feet"
-msgstr ""
+msgstr "${num} piedi cubi"
 
 #: lib/templates/constants.genie.out.ts:306
-#, fuzzy
 msgid "${num} liter"
-msgstr "qualche numero"
+msgstr "${num} litri"
 
 #: lib/templates/constants.genie.out.ts:307
-#, fuzzy
 msgid "${num} l"
-msgstr "qualche numero"
+msgstr "${num} l"
 
 #: lib/templates/constants.genie.out.ts:308
-#, fuzzy
 msgid "${num} cl"
-msgstr "qualche numero"
+msgstr "${num} cl"
 
 #: lib/templates/constants.genie.out.ts:309
-#, fuzzy
 msgid "${num} hl"
-msgstr "qualche numero"
+msgstr "${num} hl"
 
 #: lib/templates/constants.genie.out.ts:310
-#, fuzzy
 msgid "${num} ml"
-msgstr "qualche numero"
+msgstr "${num} ml"
 
 #: lib/templates/constants.genie.out.ts:311
-#, fuzzy
 msgid "${num} floz"
-msgstr "qualche numero"
+msgstr "${num} floz"
 
 #: lib/templates/constants.genie.out.ts:312
 msgid "${num} gallon"
-msgstr ""
+msgstr "${num} galloni"
 
 #: lib/templates/constants.genie.out.ts:313
 msgid "${num} quart"
-msgstr ""
+msgstr "${num} quarti"
 
 #: lib/templates/constants.genie.out.ts:314
-#, fuzzy
 msgid "${num} pint"
-msgstr "qualche numero"
+msgstr "${num} pinte"
 
 #: lib/templates/constants.genie.out.ts:315
-#, fuzzy
 msgid "${num} cup"
-msgstr "qualche numero"
+msgstr "${num} tazze"
 
 #: lib/templates/constants.genie.out.ts:316
 msgid "${num} teaspoon"
-msgstr ""
+msgstr "${num} cucchiaini"
 
 #: lib/templates/constants.genie.out.ts:317
 msgid "${num} tablespoon"
-msgstr ""
+msgstr "${num} cucchiai"
 
 #: lib/templates/constants.genie.out.ts:321
-#, fuzzy
 msgid "${num} mph"
-msgstr "qualche numero"
+msgstr "${num} mph"
 
 #: lib/templates/constants.genie.out.ts:323
-#, fuzzy
 msgid "${num} m/s"
-msgstr "qualche numero"
+msgstr "${num} m/s"
 
 #: lib/templates/constants.genie.out.ts:325
-#, fuzzy
 msgid "${num} kph"
-msgstr "qualche numero"
+msgstr "${num} kph"
 
 #: lib/templates/constants.genie.out.ts:326
 msgid "${num} miles per hour"
-msgstr ""
+msgstr "${num} miglia orarie"
 
 #: lib/templates/constants.genie.out.ts:327
 msgid "${num} kilometers per hour"
-msgstr ""
+msgstr "${num} chilometri orari"
 
 #: lib/templates/constants.genie.out.ts:328
-#, fuzzy
 msgid "${num} km/h"
-msgstr "qualche numero"
+msgstr "${num} km/h"
 
 #: lib/templates/constants.genie.out.ts:332
-#, fuzzy
 msgid "${num} w"
-msgstr "qualche numero"
+msgstr "${num} w"
 
 #: lib/templates/constants.genie.out.ts:333
-#, fuzzy
 msgid "${num} watt"
-msgstr "qualche numero"
+msgstr "${num} watt"
 
 #: lib/templates/constants.genie.out.ts:334
-#, fuzzy
 msgid "${num} kw"
-msgstr "qualche numero"
+msgstr "${num} kw"
 
 #: lib/templates/constants.genie.out.ts:335
 msgid "${num} kilowatt"
-msgstr ""
+msgstr "${num} kilowatt"
 
 #: lib/templates/constants.genie.out.ts:339
-#, fuzzy
 msgid "${num} lx"
-msgstr "qualche numero"
+msgstr "${num} lx"
 
 #: lib/templates/constants.genie.out.ts:343
-#, fuzzy
 msgid "${num} lm"
-msgstr "qualche numero"
+msgstr "${num} lm"
 
 #: lib/templates/constants.genie.out.ts:347
-#, fuzzy
 msgid "${num} db"
-msgstr "qualche numero"
+msgstr "${num} db"
 
 #: lib/templates/constants.genie.out.ts:348
 msgid "${num} decibels"
-msgstr ""
+msgstr "${num} decibel"
 
 #: lib/templates/constants.genie.out.ts:352
-#, fuzzy
 msgid "${num} dbm"
-msgstr "qualche numero"
+msgstr "${num} dbm"
 
 #: lib/templates/constants.genie.out.ts:356
 #: lib/templates/filters.genie.out.ts:439 lib/utils/thingtalk/describe.ts:141
@@ -4876,9 +4852,8 @@ msgid "here"
 msgstr "qui"
 
 #: lib/templates/constants.genie.out.ts:358
-#, fuzzy
 msgid "where i am now"
-msgstr "Dove sei ora?"
+msgstr "dove sono {ora|adesso}"
 
 #: lib/templates/constants.genie.out.ts:360
 #, fuzzy
@@ -4895,9 +4870,8 @@ msgid "home"
 msgstr "casa"
 
 #: lib/templates/constants.genie.out.ts:363
-#, fuzzy
 msgid "my home"
-msgstr "casa"
+msgstr "casa {mia|}"
 
 #: lib/templates/constants.genie.out.ts:364
 msgid "my neighborhood"
@@ -4909,23 +4883,23 @@ msgstr "lavoro"
 
 #: lib/templates/constants.genie.out.ts:366
 msgid "my office"
-msgstr ""
+msgstr "il {mio|} ufficio"
 
 #: lib/templates/constants.genie.out.ts:367
 msgid "my workplace"
-msgstr ""
+msgstr "il {mio|} posto di lavoro"
 
 #: lib/templates/constants.genie.out.ts:370
 msgid "${c1} and ${c2}"
-msgstr ""
+msgstr "${c1} e ${c2}"
 
 #: lib/templates/constants.genie.out.ts:377
 msgid "${c1} or ${c2}"
-msgstr ""
+msgstr "${c1} o ${c2}"
 
 #: lib/templates/constants.genie.out.ts:384
 msgid "${c1} nor ${c2}"
-msgstr ""
+msgstr "né ${c1} né ${c2}"
 
 #: lib/templates/constants.genie.out.ts:392
 #: lib/templates/shared.genie.out.ts:44
@@ -4943,11 +4917,13 @@ msgstr "esso"
 
 #: lib/templates/shared.genie.out.ts:41
 msgid "them"
-msgstr ""
+msgstr "loro"
 
 #: lib/templates/shared.genie.out.ts:45
 msgid "that"
 msgstr ""
+"{quello [gender=m,plural=one]|quella [gender=f,plural=one]|quegli [gender=m,"
+"plural=other]|quelle [gender=f,plural=other]}"
 
 #: lib/templates/shared.genie.out.ts:47
 msgid "either one"
@@ -6919,19 +6895,243 @@ msgstr "sveglia"
 msgid "choice number ${choice}"
 msgstr "scelta numero ${choice}"
 
-#: lib/i18n/default.ts:525
+#: lib/i18n/default.ts:95
+msgid "${value:plural: one{${value} decade} other{${value} decades}}"
+msgstr "${value:plural: one{${value} decennio} other{${value} decenni}}"
+
+#: lib/i18n/default.ts:96
+msgid "${value:plural: one{${value} century} other{${value} centuries}}"
+msgstr "${value:plural: one{${value} secolo} other{${value} secoli}}"
+
+#: lib/i18n/default.ts:105
+msgid "${value:plural: one{${value} light-year} other{${value} light-years}}"
+msgstr "${value:plural: one{${value} anno luce} other{${value} anni luce}}"
+
+#. area
+#: lib/i18n/default.ts:107
+msgid ""
+"${value:plural: one{${value} square meter} other{${value} square meters}}"
+msgstr ""
+"${value:plural: one{${value} metro quadrato} other{${value} metri quadrati}}"
+
+#: lib/i18n/default.ts:108
+msgid ""
+"${value:plural: one{${value} square kilometer} other{${value} square "
+"kilometers}}"
+msgstr ""
+"${value:plural: one{${value} chilometro quadrato} other{${value} chilometri "
+"quadrati}}"
+
+#: lib/i18n/default.ts:109
+msgid ""
+"${value:plural: one{${value} square millimeter} other{${value} square "
+"millimeters}}"
+msgstr ""
+"${value:plural: one{${value} millimetro quadrato} other{${value} millimetri "
+"quadrati}}"
+
+#: lib/i18n/default.ts:110
+msgid ""
+"${value:plural: one{${value} square centimeter} other{${value} square "
+"centimeters}}"
+msgstr ""
+"${value:plural: one{${value} centimetro quadrato} other{${value} centimetri "
+"quadrati}}"
+
+#: lib/i18n/default.ts:111
+msgid "${value:plural: one{${value} square mile} other{${value} square miles}}"
+msgstr ""
+"${value:plural: one{${value} miglio quadrato} other{${value} miglia "
+"quadrate}}"
+
+#: lib/i18n/default.ts:112
+msgid ""
+"${value:plural: one{${value} square inch} other{${value} square inches}}"
+msgstr ""
+"${value:plural: one{${value} pollice quadrato} other{${value} pollici "
+"quadrati}}"
+
+#: lib/i18n/default.ts:113
+msgid "${value:plural: one{${value} square foot} other{${value} square feet}}"
+msgstr ""
+"${value:plural: one{${value} piede quadrato} other{${value} piedi quadrati}}"
+
+#. volume
+#: lib/i18n/default.ts:115
+msgid "${value:plural: one{${value} cubic meter} other{${value} cubic meters}}"
+msgstr "${value:plural: one{${value} metro cubo} other{${value} metri cubi}}"
+
+#: lib/i18n/default.ts:116
+msgid ""
+"${value:plural: one{${value} cubic kilometer} other{${value} cubic "
+"kilometers}}"
+msgstr ""
+"${value:plural: one{${value} chilometro cubo} other{${value} chilometri "
+"cubi}}"
+
+#: lib/i18n/default.ts:117
+msgid ""
+"${value:plural: one{${value} cubic millimeter} other{${value} cubic "
+"millimeters}}"
+msgstr ""
+"${value:plural: one{${value} millimetro cubo} other{${value} millimetri "
+"cubi}}"
+
+#: lib/i18n/default.ts:118
+msgid ""
+"${value:plural: one{${value} cubic centimeter} other{${value} cubic "
+"kilometers}}"
+msgstr ""
+"${value:plural: one{${value} centimetro cubo} other{${value} centimetri "
+"cubi}}"
+
+#: lib/i18n/default.ts:119
+msgid "${value:plural: one{${value} cubic mile} other{${value} cubic miles}}"
+msgstr ""
+"${value:plural: one{${value} miglio cubico} other{${value} miglia cubiche}}"
+
+#: lib/i18n/default.ts:120
+msgid "${value:plural: one{${value} cubic inch} other{${value} cubic inches}}"
+msgstr ""
+"${value:plural: one{${value} pollice cubo} other{${value} pollici cubi}}"
+
+#: lib/i18n/default.ts:121
+msgid "${value:plural: one{${value} cubic foot} other{${value} cubic feed}}"
+msgstr "${value:plural: one{${value} piede cubo} other{${value} piedi cubi}}"
+
+#: lib/i18n/default.ts:123
+msgid "${value:plural: one{${value} UK gallon} other{${value} UK gallons}}"
+msgstr ""
+"${value:plural: one{${value} gallone britannico} other{${value} galloni "
+"britannici}}"
+
+#: lib/i18n/default.ts:124
+msgid "${value:plural: one{${value} quart} other{${value} quarts}}"
+msgstr "${value:plural: one{${value} quarto} other{${value} quarti}}"
+
+#: lib/i18n/default.ts:125
+msgid "${value:plural: one{${value} UK quart} other{${value} UK quarts}}"
+msgstr ""
+"${value:plural: one{${value} quarto britannico} other{${value} quarti "
+"britannici}}"
+
+#: lib/i18n/default.ts:126
+msgid "${value:plural: one{${value} pint} other{${value} pints}}"
+msgstr "${value:plural: one{${value} pinta} other{${value} pinte}}"
+
+#: lib/i18n/default.ts:127
+msgid "${value:plural: one{${value} UK pint} other{${value} UK pints}}"
+msgstr ""
+"${value:plural: one{${value} pinta britannica} other{${value} pinte "
+"britannice}}"
+
+#: lib/i18n/default.ts:129
+msgid "${value:plural: one{${value} hectoliter} other{${value} hectoliters}}"
+msgstr "${value:plural: one{${value} ettolitri} other{${value} ettolitri}}"
+
+#: lib/i18n/default.ts:130
+msgid "${value:plural: one{${value} centiliter} other{${value} centiliters}}"
+msgstr "${value:plural: one{${value} centilitri} other{${value} centilitri}}"
+
+#: lib/i18n/default.ts:132
+msgid "${value:plural: one{${value} teaspoon} other{${value} teaspoons}}"
+msgstr "${value:plural: one{${value} cucchiaino} other{${value} cucchiaini}}"
+
+#: lib/i18n/default.ts:133
+msgid "${value:plural: one{${value} tablespoon} other{${value} tablespoons}}"
+msgstr "${value:plural: one{${value} cucchiaio} other{${value} cucchiai}}"
+
+#: lib/i18n/default.ts:134
+msgid "${value:plural: one{${value} cup} other{${value} cups}}"
+msgstr "${value:plural: one{${value} tazza} other{${value} tazze}}"
+
+#: lib/i18n/default.ts:143
+msgid "${value:plural: one{${value} milligram} other{${value} milligrams}}"
+msgstr "${value:plural: one{${value} milligrammo} other{${value} milligrammi}}"
+
+#. pressure (for weather or blood)
+#: lib/i18n/default.ts:147
+msgid "${value} Pascal"
+msgstr "${value} Pascal"
+
+#: lib/i18n/default.ts:148
+msgid "${value} bar"
+msgstr "${value} bar"
+
+#: lib/i18n/default.ts:149
+msgid "${value} psi"
+msgstr "${value} psi"
+
+#: lib/i18n/default.ts:150
+msgid "${value} mmHg"
+msgstr "${value} mmHg"
+
+#: lib/i18n/default.ts:151
+msgid "${value} inHg"
+msgstr "${value} inHg"
+
+#: lib/i18n/default.ts:152
+msgid "${value} atmosphere"
+msgstr "${value:plural: one{${value} atmosfera} other{${value} atmosfere}}"
+
+#: lib/i18n/default.ts:156
+msgid ""
+"${value:plural: one{${value} degree Kelvin} other{${value} degrees Kelvin}}"
+msgstr ""
+"${value:plural: one{${value} grado Kelvin} other{${value} gradi Kelvin}}"
+
+#. energy
+#. note: calories refers to kilocalories in common usage
+#: lib/i18n/default.ts:159
+msgid "${value:plural: one{${value} calorie} other{${value} calories}}"
+msgstr "${value:plural: one{${value} caloria} other{${value} calorie}}"
+
+#: lib/i18n/default.ts:160
+msgid "${value:plural: one{${value} kilojoule} other{${value} kilojoules}}"
+msgstr "${value} kilojoule"
+
+#. power
+#: lib/i18n/default.ts:172
+msgid "${value} watt"
+msgstr "${value} watt"
+
+#: lib/i18n/default.ts:173
+msgid "${value} kilowatt"
+msgstr "${value} kilowatt"
+
+#. luminous flux, luminous power
+#: lib/i18n/default.ts:175
+msgid "${value} lumen"
+msgstr "${value} lumen"
+
+#. luminous emittance (luminous flux emitted from a surface)
+#: lib/i18n/default.ts:177
+msgid "${value} lux"
+msgstr "${value} lux"
+
+#. decibel
+#: lib/i18n/default.ts:179
+msgid "${value} decibel"
+msgstr "${value} decibel"
+
+#. decibel-milliwatt
+#: lib/i18n/default.ts:181
+msgid "${value} decibel-milliwatt"
+msgstr "${value} decibel-milliwatt"
+
+#: lib/i18n/default.ts:658
 msgid "last ${weekday}"
 msgstr "${weekday:select: sunday{domenica scorsa} _{${weekday} scorso}}"
 
-#: lib/i18n/default.ts:525
+#: lib/i18n/default.ts:658
 msgid "next ${weekday}"
-msgstr "${weekday:select: sunday{domenica prossima} _{${weekday} scorsa}}"
+msgstr "${weekday:select: sunday{domenica prossima} _{${weekday} prossimo}}"
 
-#: lib/i18n/default.ts:564
+#: lib/i18n/default.ts:697
 msgid "${date} at ${time}"
 msgstr "${date} alle ${time}"
 
-#: lib/i18n/default.ts:655
+#: lib/i18n/default.ts:788
 msgid "[Latitude: ${latitude} deg, Longitude: ${longitude} deg]"
 msgstr "[Latitudine: ${latitude} gradi, Longitudine: ${longitude} gradi]"
 
