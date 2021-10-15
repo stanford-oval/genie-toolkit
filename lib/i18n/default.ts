@@ -73,6 +73,114 @@ const POS_RENAME : Record<string, string> = {
     'apv': 'adjective',
 };
 
+// translation marker
+function _(x : string) {
+    return { text: x };
+}
+
+/**
+ * Map a unit either to a Unicode unit name (to pass to {@link Intl.NumberFormat})
+ * or to a replaced string.
+ */
+const UnitTranslation : Record<string, string|{ text : string }> = {
+    // time
+    'ms': 'millisecond',
+    's': 'second',
+    'min': 'minute',
+    'h': 'hour',
+    'day': 'day',
+    'week': 'week',
+    'mon': 'month',
+    'year': 'year',
+    'decade': _("${value:plural: one{${value} decade} other{${value} decades}}"),
+    'century': _("${value:plural: one{${value} century} other{${value} centuries}}"),
+    // length
+    'm': 'meter',
+    'km': 'kilometer',
+    'mm': 'millimeter',
+    'cm': 'centimeter',
+    'mi': 'mile',
+    'in': 'inch',
+    'ft': 'foot',
+    'ly': _("${value:plural: one{${value} light-year} other{${value} light-years}}"),
+    // area
+    'm2': _("${value:plural: one{${value} square meter} other{${value} square meters}}"),
+    'km2': _("${value:plural: one{${value} square kilometer} other{${value} square kilometers}}"),
+    'mm2': _("${value:plural: one{${value} square millimeter} other{${value} square millimeters}}"),
+    'cm2': _("${value:plural: one{${value} square centimeter} other{${value} square centimeters}}"),
+    'mi2': _("${value:plural: one{${value} square mile} other{${value} square miles}}"),
+    'in2': _("${value:plural: one{${value} square inch} other{${value} square inches}}"),
+    'ft2': _("${value:plural: one{${value} square foot} other{${value} square feet}}"),
+    // volume
+    'm3': _("${value:plural: one{${value} cubic meter} other{${value} cubic meters}}"),
+    'km3': _("${value:plural: one{${value} cubic kilometer} other{${value} cubic kilometers}}"),
+    'mm3': _("${value:plural: one{${value} cubic millimeter} other{${value} cubic millimeters}}"),
+    'cm3': _("${value:plural: one{${value} cubic centimeter} other{${value} cubic kilometers}}"),
+    'mi3': _("${value:plural: one{${value} cubic mile} other{${value} cubic miles}}"),
+    'in3': _("${value:plural: one{${value} cubic inch} other{${value} cubic inches}}"),
+    'ft3': _("${value:plural: one{${value} cubic foot} other{${value} cubic feed}}"),
+    'gal': 'gallon',
+    'galuk': _("${value:plural: one{${value} UK gallon} other{${value} UK gallons}}"),
+    'qt': _("${value:plural: one{${value} quart} other{${value} quarts}}"),
+    'qtuk': _("${value:plural: one{${value} UK quart} other{${value} UK quarts}}"),
+    'pint': _("${value:plural: one{${value} pint} other{${value} pints}}"),
+    'pintuk': _("${value:plural: one{${value} UK pint} other{${value} UK pints}}"),
+    'l': 'liter',
+    'hl': _("${value:plural: one{${value} hectoliter} other{${value} hectoliters}}"),
+    'cl': _("${value:plural: one{${value} centiliter} other{${value} centiliters}}"),
+    'ml': 'milliliter',
+    'tsp': _("${value:plural: one{${value} teaspoon} other{${value} teaspoons}}"),
+    'tbsp': _("${value:plural: one{${value} tablespoon} other{${value} tablespoons}}"),
+    'cup': _("${value:plural: one{${value} cup} other{${value} cups}}"),
+    'floz': 'fluid-ounce',
+    // speed
+    'mps': 'meter-per-second',
+    'kmph': 'kilometer-per-hour',
+    'mph': 'mile-per-hour',
+    // weight
+    'kg': 'kilogram',
+    'g': 'gram',
+    'mg': _("${value:plural: one{${value} milligram} other{${value} milligrams}}"),
+    'lb': 'pound',
+    'oz': 'ounce',
+    // pressure (for weather or blood)
+    'Pa': _("${value} Pascal"),
+    'bar': _("${value} bar"),
+    'psi': _("${value} psi"),
+    'mmHg': _("${value} mmHg"),
+    'inHg': _("${value} inHg"),
+    'atm': _("${value} atmosphere"),
+    // temperature
+    'C': 'celsius',
+    'F': 'fahrenheit',
+    'K': _("${value:plural: one{${value} degree Kelvin} other{${value} degrees Kelvin}}"),
+    // energy
+    // note: calories refers to kilocalories in common usage
+    'kcal': _("${value:plural: one{${value} calorie} other{${value} calories}}"),
+    'kJ': _("${value:plural: one{${value} kilojoule} other{${value} kilojoules}}"),
+    // file and memory sizes
+    'byte': 'byte',
+    'KB': 'kilobyte',
+    'KiB': 'kilobyte',
+    'MB': 'megabyte',
+    'MiB': 'megabyte',
+    'GB': 'gigabyte',
+    'GiB': 'gigabyte',
+    'TB': 'terabyte',
+    'TiB': 'terabyte',
+    // power
+    'W': _("${value} watt"),
+    'kW': _("${value} kilowatt"),
+    // luminous flux, luminous power
+    'lm': _("${value} lumen"),
+    // luminous emittance (luminous flux emitted from a surface)
+    'lx': _("${value} lux"),
+    // decibel
+    'dB': _("${value} decibel"),
+    // decibel-milliwatt
+    'dBm': _("${value} decibel-milliwatt")
+};
+
 /**
  * Base class for all code that is specific to a certain natural language
  * in Genie.
@@ -478,12 +586,37 @@ export default class LanguagePack {
         return possibleUnits[0].unit;
     }
 
+    private _measureFormatFallback(value : number, format : string, precision : number) {
+        const tmpl = Replaceable.get(format, this, ['value']);
+        const replaced = tmpl.replace({
+            constraints: [],
+            replacements: [
+                { value: value, text: new Phrase(this._numberToString(value, precision), {}).toReplaced() }
+            ]
+        });
+        assert(replaced);
+        return replaced.chooseBest();
+    }
+
     private _measureToString(value : number, unit : string, precision = 1) : string {
         const transformed = Units.transformFromBaseUnit(value, unit);
-        // TODO use value.toLocaleString() with unit formatting
-        //      it depends on https://github.com/tc39/proposal-unified-intl-numberformat
-        //      which is part of ES2020 (so node 14 or later?)
-        return this._numberToString(transformed, precision) + ' ' + unit;
+        assert(Number.isFinite(transformed));
+
+        const format = UnitTranslation[unit];
+        if (!format)
+            return this._numberToString(transformed, precision) + ' ' + unit;
+
+        if (typeof format === 'string') {
+            return transformed.toLocaleString(this.locale, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: precision,
+                style: 'unit',
+                unitDisplay: 'long',
+                unit: format
+            });
+        } else {
+            return this._measureFormatFallback(transformed, this._(format.text), precision);
+        }
     }
 
     private _numberToString(value : number, precision = 1) : string {
