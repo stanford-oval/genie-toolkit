@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,10 +18,23 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-// The URL of the Cloud version of ThingEngine (used for Cloud sync)
+/**
+ * The URL of the Cloud version of Genie (used for cloud sync)
+ */
 export const THINGENGINE_URL = 'https://thingpedia.stanford.edu';
 
-// The default URL of Thingpedia, used if the platform layer does not provide
-// a different URL or a platform-specific ThingpediaClient
+/**
+ * The default URL of Thingpedia, used if the platform layer does not provide
+ * a different URL or a platform-specific ThingpediaClient.
+ *
+ * This is also used by command-line tools if no other URL is provided.
+ */
 export const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
+
+
+/**
+ * The default URL of the NLP model server.
+ *
+ * This is used by command-line tools if no other URL is provided.
+ */
+export const NLP_SERVER_URL = 'https://nlp.almond.stanford.edu';

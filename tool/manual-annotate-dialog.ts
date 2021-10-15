@@ -26,11 +26,17 @@ import * as events from 'events';
 import seedrandom from 'seedrandom';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
+import interpolate from 'string-interp';
 
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
 import * as StreamUtils from '../lib/utils/stream-utils';
 import { EntityMap } from '../lib/utils/entity-utils';
+import { randint } from '../lib/utils/random';
 import * as ParserClient from '../lib/prediction/parserclient';
+import AbstractDialogueAgent from '../lib/dialogue-agent/abstract_dialogue_agent';
+import ExecutionDialogueAgent from '../lib/dialogue-agent/execution_dialogue_agent';
+import Engine from '../lib/engine';
+import ValueCategory from '../lib/dialogue-agent/value-category';
 import {
     DialogueParser,
     DialogueSerializer,
@@ -40,14 +46,18 @@ import {
 
 import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
+import Platform from './lib/cmdline-platform';
+import { THINGPEDIA_URL, NLP_SERVER_URL } from '../lib/config';
 
 interface AnnotatorOptions {
     locale : string;
     timezone : string;
-    thingpedia : string;
+    thingpedia_url : string;
+    thingpedia_dir : string[]|undefined;
     user_nlu_server : string;
     agent_nlu_server : string;
     database_file : string|undefined;
+    execution_mode : 'simulation'|'real';
     target_language : string;
 
     existing_annotations : boolean;
@@ -66,13 +76,16 @@ class Annotator extends events.EventEmitter {
     private _maxTurns : number|undefined;
     private _locale : string;
     private _timezone : string;
+    private _rng : () => number;
+    private _platform : Tp.BasePlatform;
     private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _userParser : ParserClient.ParserClient;
     private _agentParser : ParserClient.ParserClient;
-    private _simulator : ThingTalkUtils.Simulator;
+    private _executor : AbstractDialogueAgent<unknown>;
     private _simulatorOverrides : Map<string, string>;
-    private _database : MultiJSONDatabase|undefined;
+    private _simulatorDatabase : MultiJSONDatabase|undefined;
+    private _engine : Engine|undefined;
 
     private _state : 'loading'|'input'|'context'|'done'|'top3'|'full'|'code';
     private _serial : number;
@@ -106,27 +119,39 @@ class Annotator extends events.EventEmitter {
 
         this._locale = options.locale;
         this._timezone = options.timezone;
-        this._tpClient = new Tp.FileClient(options);
-        this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
         this._userParser = ParserClient.get(options.user_nlu_server, options.locale);
         this._agentParser = ParserClient.get(options.agent_nlu_server, options.locale);
 
-        this._simulatorOverrides = new Map;
-        const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
-            rng: seedrandom.alea('almond is awesome'),
-            locale: options.locale,
-            timezone: options.timezone,
-            thingpediaClient: this._tpClient,
-            schemaRetriever: this._schemas,
-            overrides: this._simulatorOverrides,
-            interactive: true
-        };
-        if (options.database_file) {
-            this._database = new MultiJSONDatabase(options.database_file);
-            simulatorOptions.database = this._database;
-        }
+        this._simulatorOverrides = new Map();
+        this._platform = new Platform(undefined, options.locale, options.thingpedia_url);
+        const prefs = this._platform.getSharedPreferences();
+        if (options.thingpedia_dir && options.thingpedia_dir.length)
+            prefs.set('developer-dir', options.thingpedia_dir);
+        this._tpClient = this._platform.getCapability('thingpedia-client')!;
+        this._rng = seedrandom.alea('almond is awesome');
 
-        this._simulator = ThingTalkUtils.createSimulator(simulatorOptions);
+        if (options.execution_mode === 'simulation') {
+            this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
+
+            const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
+                rng: this._rng,
+                locale: options.locale,
+                timezone: options.timezone,
+                thingpediaClient: this._tpClient,
+                schemaRetriever: this._schemas,
+                interactive: true
+            };
+            if (options.database_file) {
+                this._simulatorDatabase = new MultiJSONDatabase(options.database_file);
+                simulatorOptions.database = this._simulatorDatabase;
+            }
+
+            this._executor = ThingTalkUtils.createSimulator(simulatorOptions);
+        } else {
+            this._engine = new Engine(this._platform);
+            this._executor = new ExecutionDialogueAgent(this._engine, this, false);
+            this._schemas = this._engine.schemas;
+        }
 
         this._state = 'loading';
 
@@ -226,6 +251,70 @@ class Annotator extends events.EventEmitter {
         });
     }
 
+    // implementation of the abstract dialogue loop interface, which the
+    // execution dialogue agent calls sometimes
+
+    get _() {
+        return (x : string) => x;
+    }
+    get icon() {
+        return null;
+    }
+    set icon(v : string|null) {
+        // do nothing
+    }
+    get isAnonymous() {
+        return false;
+    }
+    get platformData() {
+        return {};
+    }
+    get conversation() {
+        return {
+            id: 'main',
+
+            getState() {
+                return {
+                    history: [],
+                    dialogueState: {},
+                    lastMessageId: 0,
+                    expected: null
+                };
+            }
+        };
+    }
+    async reply(msg : string) {
+        console.log('A: ' + msg);
+    }
+    async replyLink(title : string, link : string) {
+        console.log('A: ' + title + ' ' + link);
+    }
+
+    interpolate(msg : string, args : Record<string, unknown>) : string {
+        return interpolate(msg, args, {
+            locale: this._locale,
+            timezone: this._platform.timezone
+        })||'';
+    }
+    async replyInterp(msg : string, args ?: Record<string, unknown>) {
+        if (args === undefined)
+            return this.reply(msg);
+        else
+            return this.reply(this.interpolate(msg, args));
+    }
+
+    async ask(cat : ValueCategory, question : string) : Promise<ThingTalk.Ast.Value> {
+        if (cat === ValueCategory.Location)
+            return new ThingTalk.Ast.LocationValue(new ThingTalk.Ast.AbsoluteLocation(37.4299908, -122.175519, "Gates Computer Science"));
+        if (cat === ValueCategory.Time)
+            return new ThingTalk.Ast.TimeValue(new ThingTalk.Ast.AbsoluteTime(randint(9, 12, this._rng), 0, 0));
+
+        throw new TypeError(`Unexpected question of type ${cat}`);
+    }
+    async askChoices(question : string, choices : string[]) : Promise<number> {
+        return randint(0, choices.length-1, this._rng);
+    }
+
     private _quit() {
         if (this._editMode) {
             if (this._currentTurnIdx > 0)
@@ -258,14 +347,18 @@ class Annotator extends events.EventEmitter {
     }
 
     async start() {
-        if (this._database)
-            await this._database.load();
+        if (this._simulatorDatabase)
+            await this._simulatorDatabase.load();
+        if (this._engine)
+            await this._engine.open();
         await this._userParser.start();
         await this._agentParser.start();
     }
     async stop() {
         await this._userParser.stop();
         await this._agentParser.stop();
+        if (this._engine)
+            await this._engine.stop();
     }
 
     private async _learnThingTalk(code : string) {
@@ -421,7 +514,7 @@ class Annotator extends events.EventEmitter {
             this._extractSimulatorOverrides(currentTurn.agent!);
 
             // "execute" the context
-            const { newDialogueState, newExecutorState } = await this._simulator.execute(this._context!, this._simulatorState);
+            const { newDialogueState, newExecutorState } = await this._executor.execute(this._context!, this._simulatorState);
             this._context = newDialogueState;
             this._simulatorState = newExecutorState;
 
@@ -478,7 +571,7 @@ class Annotator extends events.EventEmitter {
 
             let anyChange = true;
             while (anyChange) {
-                const { newDialogueState, newExecutorState, anyChange: newAnyChange } = await this._simulator.execute(this._context!, this._simulatorState);
+                const { newDialogueState, newExecutorState, anyChange: newAnyChange } = await this._executor.execute(this._context!, this._simulatorState);
                 this._context = newDialogueState;
                 this._simulatorState = newExecutorState;
                 anyChange = newAnyChange;
@@ -636,9 +729,15 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: undefined,
         help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
-    parser.add_argument('--thingpedia', {
-        required: true,
-        help: 'Path to ThingTalk file containing class definitions.'
+    parser.add_argument('--thingpedia-url', {
+        required: false,
+        default: THINGPEDIA_URL,
+        help: 'URL of Thingpedia to use, or local path pointing to a thingpedia.tt file.'
+    });
+    parser.add_argument('--thingpedia-dir', {
+        required: false,
+        nargs: '+',
+        help: 'Path to a directory containing Thingpedia device definitions (overrides --thingpedia-url).'
     });
     parser.add_argument('-t', '--target-language', {
         required: false,
@@ -646,18 +745,24 @@ export function initArgparse(subparsers : argparse.SubParser) {
         choices: ['thingtalk', 'dlgthingtalk'],
         help: `The programming language to generate`
     });
+    parser.add_argument('--execution-mode', {
+        required: false,
+        default: 'simulation',
+        choices: ['simulation', 'real'],
+        help: `Whether to simulate API calls or execute them for real.`
+    });
     parser.add_argument('--database-file', {
         required: false,
         help: `Path to a file pointing to JSON databases used to simulate queries.`,
     });
     parser.add_argument('--user-nlu-server', {
         required: false,
-        default: 'http://127.0.0.1:8400',
+        default: NLP_SERVER_URL,
         help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
     });
     parser.add_argument('--agent-nlu-server', {
         required: false,
-        default: 'http://127.0.0.1:8400',
+        default: NLP_SERVER_URL,
         help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
     });
     parser.add_argument('--offset', {

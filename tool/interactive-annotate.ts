@@ -42,6 +42,7 @@ import DialoguePolicy from '../lib/dialogue-agent/dialogue_policy';
 import ValueCategory from '../lib/dialogue-agent/value-category';
 import Engine from '../lib/engine';
 import * as I18n from '../lib/i18n';
+import { THINGPEDIA_URL, NLP_SERVER_URL } from '../lib/config';
 
 import MultiJSONDatabase from './lib/multi_json_database';
 import Platform from './lib/cmdline-platform';
@@ -520,9 +521,6 @@ class Annotator extends events.EventEmitter {
     }
 }
 
-const THINGPEDIA_URL = 'https://almond.stanford.edu/thingpedia';
-const NL_SERVER_URL = 'https://nlp.almond.stanford.edu';
-
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('interactive-annotate', {
         add_help: true,
@@ -557,7 +555,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('--nlu-server', {
         required: false,
-        default: NL_SERVER_URL,
+        default: NLP_SERVER_URL,
         help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
     });
     parser.add_argument('--execution-mode', {

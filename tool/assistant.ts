@@ -27,9 +27,7 @@ import Platform from './lib/cmdline-platform';
 
 import Conversation from '../lib/dialogue-agent/conversation';
 import { Message } from '../lib/dialogue-agent/protocol';
-
-const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
-const NL_SERVER_URL = 'https://nlp.almond.stanford.edu';
+import { THINGPEDIA_URL, NLP_SERVER_URL } from '../lib/config';
 
 class CommandLineDelegate {
     private _rl : readline.Interface;
@@ -246,7 +244,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('--nlu-server', {
         required: false,
-        default: NL_SERVER_URL,
+        default: NLP_SERVER_URL,
         help: 'NLP server URL to use for NLU (can be a file:/// URL).'
     });
     parser.add_argument('--nlg-server', {
