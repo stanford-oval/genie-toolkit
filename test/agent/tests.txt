@@ -130,7 +130,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit and the humidity is 91.3 %.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -138,7 +138,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The temperature is 60.1 F.
+A: The temperature is 60.1 degrees Fahrenheit.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; [ temperature ] of @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , status = enum sunny } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6}}
 A: >> expecting = null
 
@@ -155,7 +155,7 @@ A: >> expecting = location
 # let's use the location picker!
 U: \t bookkeeping(answer(new Location(37.442156, -122.1634471, "Palo Alto, California")));
 
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit and the humidity is 91.3 %.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -382,7 +382,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [distance(geo, $location.current_location)] of (@com.yelp.restaurant()) => notify;
 
-A: The distance is 1.2 mi.
+A: The distance is 1.2 miles.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ distance ( geo , LOCATION_0 ) ] of @com.yelp . restaurant ( ) #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , distance = MEASURE_m_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"LOCATION_0":{"latitude":37.4275,"longitude":-122.1697,"display":null},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"MEASURE_m_0":{"unit":"m","value":2004.0661629148217},"NUMBER_0":50}
 A: >> expecting = null
 
@@ -554,7 +554,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit and the humidity is 91.3 %.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . album ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:album_0 , release_date = DATE_0 } ] ] #[ count = 4 ] ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z","LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -730,7 +730,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit and the humidity is 91.3 %.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -765,7 +765,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
 
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; [ temperature ] of @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , status = enum sunny } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6}}
 A: >> expecting = null
 
@@ -832,19 +832,19 @@ A: >> expecting = null
 
 U: \t @org.thingpedia.builtin.test.get_data(size=5byte, count=2);
 
-A: First answer for 2 items of size 5 byte is !!!!! 2 nd answer is """"".
+A: First answer for 2 items of size 5 bytes is !!!!! 2 nd answer is """"".
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_two ; @org.thingpedia.builtin.test . get_data ( count = 2 , size = MEASURE_byte_0 ) #[ results = [ { data = QUOTED_STRING_0 , count = 2 , size = MEASURE_byte_0 } ] ] #[ count = 2 ] ; // {"MEASURE_byte_0":{"unit":"byte","value":5},"QUOTED_STRING_0":"!!!!!"}
 A: >> expecting = null
 
 U: \t @org.thingpedia.builtin.test.get_data(size=5byte, count=3);
 
-A: First answer for 3 items of size 5 byte is !!!!! 2 nd answer is """"". 3 rd answer is #####.
+A: First answer for 3 items of size 5 bytes is !!!!! 2 nd answer is """"". 3 rd answer is #####.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_three ; @org.thingpedia.builtin.test . get_data ( count = 3 , size = MEASURE_byte_0 ) #[ results = [ { data = QUOTED_STRING_0 , count = 3 , size = MEASURE_byte_0 } ] ] #[ count = 3 ] ; // {"MEASURE_byte_0":{"unit":"byte","value":5},"QUOTED_STRING_0":"!!!!!"}
 A: >> expecting = null
 
 U: \t @org.thingpedia.builtin.test.get_data2(size=5byte, count=3);
 
-A: The answers for 3 items of size 5 byte are AAAAA, BBBBB, and CCCCC.
+A: The answers for 3 items of size 5 bytes are AAAAA, BBBBB, and CCCCC.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_three ; @org.thingpedia.builtin.test . get_data ( count = 3 , size = MEASURE_byte_0 ) #[ results = [ { data = QUOTED_STRING_0 , count = 3 , size = MEASURE_byte_0 } ] ] #[ count = 3 ] ; @org.thingpedia.builtin.test . get_data2 ( count = 3 , size = MEASURE_byte_0 ) #[ results = [ { data = QUOTED_STRING_1 , count = 3 , size = MEASURE_byte_0 } ] ] #[ count = 3 ] ; // {"MEASURE_byte_0":{"unit":"byte","value":5},"QUOTED_STRING_0":"!!!!!","QUOTED_STRING_1":"AAAAA"}
 A: >> expecting = null
 
@@ -859,7 +859,7 @@ A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; timer
 A: >> expecting = phone_number
 U: \t $answer("555-12345678"^^tt:phone_number);
 
-A: Alright, I will get the cat picture every 60 min.
+A: Alright, I will get the cat picture every 60 minutes.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_rule_enable_success ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) #[ results = [ ] ] ; // {"DURATION_0":{"unit":"h","value":1}}
 A: >> expecting = null
 
@@ -1034,7 +1034,7 @@ A: >> expecting = generic
 # alert me when't is hotter than 70 degrees outside
 U: \t monitor(@org.thingpedia.weather.current()), temperature >= 70defaultTemperature;
 
-A: Alright, I will notify you when the current weather in [Latitude: 37.428 deg, Longitude: -122.170 deg] changes and it becomes true that the temperature is greater than or equal to 70 F.
+A: Alright, I will notify you when the current weather in [Latitude: 37.428 deg, Longitude: -122.170 deg] changes and it becomes true that the temperature is greater than or equal to 70 degrees Fahrenheit.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_rule_enable_success ; monitor ( @org.thingpedia.weather . current ( location = LOCATION_0 ) ) filter temperature >= MEASURE_C_0 #[ results = [ ] ] ; // {"LOCATION_0":{"latitude":37.4275,"longitude":-122.1697,"display":null},"MEASURE_C_0":{"unit":"F","value":70}}
 A: >> expecting = null
 
