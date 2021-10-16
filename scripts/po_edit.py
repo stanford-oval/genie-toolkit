@@ -25,9 +25,10 @@ import polib
 
 parser = argparse.ArgumentParser('PO parser')
 
-parser.add_argument('--input_file', type=str)
+parser.add_argument('-i', '--input_file', type=str)
+parser.add_argument('-o', '--output_file', type=str)
 parser.add_argument('--translated_file', type=str)
-parser.add_argument('--output_file', type=str)
+
 parser.add_argument('--transformation', choices=['prepare_for_translation', 'create_final'], type=str)
 
 args = parser.parse_args()
@@ -57,15 +58,14 @@ placeholder_regex_fw = '(' + placeholder_regex_fw + ')'
 
 multi_option_regex_bw = re.compile('[{(](.+? \| )(.+? \| )*.+?[})]')
 
-# evil as in not amenable to machine translation
-# update if describe.ts is modified
-EVIL_LINES = {'lib/utils/thingtalk/describe.ts:452',
-              'lib/utils/thingtalk/describe.ts:931',
-              'lib/utils/thingtalk/describe.ts:942',
-              'lib/utils/thingtalk/describe.ts:965',
-              'lib/utils/thingtalk/describe.ts:974',
-              'lib/utils/thingtalk/describe.ts:1093',
-              'lib/utils/thingtalk/describe.ts:1104'}
+# total of 7 entries, all in describe.ts
+# update if more are added later
+UNTRANSLATABLE_LINES = {
+              '${op_key:select:',
+              '${input_param[pos]:select:',
+              '${index:ordinal:',
+              '${filter[pos]:select:'
+              }
 
 def prepare_for_translation():
     pofile = polib.pofile(args.input_file)
@@ -74,8 +74,8 @@ def prepare_for_translation():
             line = entry.msgid
             base_id = ':'.join(entry.occurrences[0])
 
-            # skip this evil lines!
-            if base_id in EVIL_LINES:
+            # skip these lines
+            if any(line.startswith(string) for string in UNTRANSLATABLE_LINES):
                 continue
 
             line = line.strip('\n').strip('"')

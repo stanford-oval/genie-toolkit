@@ -19,6 +19,7 @@
 // Author: Mehrad Moradshahi <mehrad@cs.stanford.edu>
 
 import * as argparse from 'argparse';
+import * as gettextParser from 'gettext-parser';
 import assert from 'assert';
 import * as fs from 'fs';
 import { promises as pfs } from 'fs';
@@ -29,16 +30,6 @@ export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('translate-schema-annotations', {
         add_help: true,
         description: "Translate a thingpedia file's annotations to another language."
-    });
-    parser.add_argument('-l', '--locale', {
-        required: false,
-        default: 'en-US',
-        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
-    });
-    parser.add_argument('--timezone', {
-        required: false,
-        default: undefined,
-        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--translations-file', {
         required: true,
@@ -53,6 +44,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
 }
 
+const translationDict = new Map<string, string>();
 
 function* returnAllKeys(key : string, str : unknown) : any {
     if (typeof str === 'string') {
@@ -71,23 +63,28 @@ function* returnAllKeys(key : string, str : unknown) : any {
     }
 }
 
-function processEnum(arg : any, iterKey : string,  translationDict : Map<string, string>) {
-    const valList = [];
+function processEnum(arg : any, iterKey : string,) {
+    const valList : Array<string | undefined> = [];
+    assert(typeof arg.type === 'object');
     for (const k of returnAllKeys(iterKey, arg.type)) {
         if (k === null)
             continue;
-        assert(typeof arg.type === 'object');
         valList.push(translationDict.get(k));
     }
 
+    const keys : string[] = arg.type.entries;
+    assert(keys.length === valList.length);
+
+    const valueEnum = Object.fromEntries(keys.map((_, i) => [keys[i], [valList[i]]]));
+
     if (typeof arg.metadata['canonical'] === 'string' || Array.isArray(arg.metadata['canonical']))
-        arg.metadata['canonical'] = { 'base': arg.metadata['canonical'], 'enum_display': valList };
+        arg.metadata['canonical'] = { 'base': arg.metadata['canonical'], 'value_enum': valueEnum };
     else
-        arg.metadata['canonical']['enum_display'] = valList;
+        arg.metadata['canonical']['value_enum'] = valueEnum;
 
 }
 
-function process(obj : any, iterKey : string,  translationDict : Map<string, string>) {
+function process(obj : any, iterKey : string) {
     for (const key in obj) {
         for (const k of returnAllKeys(iterKey + `.${key}`, obj[key])) {
             if (k === null)
@@ -126,27 +123,48 @@ export async function execute(args : any) {
     });
     assert(parsed instanceof ThingTalk.Ast.Library);
 
-    const translationDict = new Map<string, string>();
-    if (args.translations_file) {
-        const translations = (await pfs.readFile(args.translations_file)).toString().split("\n");
-        translations.forEach((line) => {
-            const [origKey, value] = line.split('\t');
-            translationDict.set(origKey, value);
-        });
-        for (const _class of parsed.classes) {
-            for (const key in _class.metadata)
-                _class.metadata[key] = translationDict.get(key);
-            for (const what of ['queries', 'actions'] as Array<'queries' | 'actions'>) {
-                for (const name in _class[what]) {
-                    process(_class[what][name].metadata, `${what}.${name}`, translationDict);
-                    for (const argname of _class[what][name].args) {
-                        const arg = _class[what][name].getArgument(argname)!;
-                        process(arg.metadata, `${what}.${name}.args.${argname}`, translationDict);
+    const pofile = gettextParser.po.parse(await pfs.readFile(args.translations_file, { encoding: 'utf8' }));
 
-                        if (arg.type.isEnum)
-                            processEnum(arg, `${what}.${name}.args.${argname}.enum`, translationDict);
-                    }
+    // get translations for the default context
+    const poObjects = pofile.translations[''];
+    for (const msgid in poObjects) {
+        const entry : gettextParser.GetTextTranslation = poObjects[msgid];
+        if (!entry.comments?.reference) {
+            continue;
+        }
+        const keys : string[]|undefined = entry.comments?.reference.split('\n');
+        if (!keys)
+            continue;
+        for (const k of keys) {
+            assert(entry.msgstr.length === 1);
+            translationDict.set(k, entry.msgstr[0]);
+        }
+    }
+
+    // translate manifest
+    for (const _class of parsed.classes) {
+        for (const key in _class.metadata)
+            _class.metadata[key] = translationDict.get(key);
+        for (const what of ['queries', 'actions'] as Array<'queries' | 'actions'>) {
+            for (const name in _class[what]) {
+                process(_class[what][name].metadata, `${what}.${name}`);
+                for (const argname of _class[what][name].args) {
+                    const arg = _class[what][name].getArgument(argname)!;
+                    process(arg.metadata, `${what}.${name}.args.${argname}`);
+
+                    if (arg.type.isEnum)
+                        processEnum(arg, `${what}.${name}.args.${argname}.enum`);
                 }
+            }
+        }
+    }
+
+    // parse dataset
+    for (const _class of parsed.datasets) {
+        for (const [ex_id, ex] of _class.examples.entries()) {
+            for (const [uttr_id, _] of ex.utterances.entries()) {
+                const key = `${_class.name}.${ex_id}.${uttr_id}`;
+                ex.utterances[uttr_id] = translationDict.get(key)!;
             }
         }
     }

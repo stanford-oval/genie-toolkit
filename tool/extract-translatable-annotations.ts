@@ -31,16 +31,6 @@ export function initArgparse(subparsers : argparse.SubParser) {
         add_help: true,
         description: "Extract translatable annotations from a thingpedia file."
     });
-    parser.add_argument('-l', '--locale', {
-        required: false,
-        default: 'en-US',
-        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
-    });
-    parser.add_argument('--timezone', {
-        required: false,
-        default: undefined,
-        help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
-    });
     parser.add_argument('--output-format', {
         choices: ['gettext', 'translation'],
         default: 'gettext',
@@ -54,11 +44,6 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: true,
         help: 'Output Thingpedia file to write to'
     });
-    parser.add_argument('--append', {
-        required: false,
-        action: 'store_true',
-        help: `append to the output file instead of replacing`
-    });
 }
 
 let output : fs.WriteStream;
@@ -68,9 +53,9 @@ function extract(key : string, str : unknown) {
     if (typeof str === 'boolean' || typeof str === 'number')
         return;
     if (typeof str === 'string') {
-        if (output_format === 'po') {
+        if (output_format === 'gettext') {
             output.write(`/* ${key} */\n`);
-            output.write(`var x = _(${stringEscape(str)});\n`);
+            output.write(`let x = _(${stringEscape(str)});\n`);
         } else {
             // trim "
             output.write(`${key}\t${stringEscape(str).slice(1, -1)}\n`);
@@ -97,13 +82,14 @@ export async function execute(args : any) {
     });
     assert(parsed instanceof ThingTalk.Ast.Library);
 
-    output = fs.createWriteStream(args.output, { flags: args.append ? 'a' : 'w' });
+    output = fs.createWriteStream(args.output);
     output_format = args.output_format;
 
+    // parse manifests
     for (const _class of parsed.classes) {
         for (const key in _class.metadata)
             extract(`${key}`, _class.metadata[key]);
-        for (const what of ['queries', 'actions'] as Array<'queries'|'actions'>) {
+        for (const what of ['queries', 'actions'] as const) {
             for (const name in _class[what]) {
                 for (const key in _class[what][name].metadata)
                     extract(`${what}.${name}.${key}`, _class[what][name].metadata[key]);
@@ -114,12 +100,24 @@ export async function execute(args : any) {
                     for (const key in arg.metadata)
                         extract(`${what}.${name}.args.${argname}.${key}`, arg.metadata[key]);
 
-                    // only output Enum for machine translation
-                    // we don't use gettext for Enums and handle their translation differently
-                    if (arg.type.isEnum && args.output_format === 'translation')
+                    // handle enums
+                    if (arg.type.isEnum)
                         extract(`${what}.${name}.args.${argname}.enum`, arg.type);
                 }
             }
         }
     }
+
+    // parse datasets
+    for (const _class of parsed.datasets) {
+        for (const [ex_id, ex] of _class.examples.entries()) {
+            for (const [uttr_id, uttr] of ex.utterances.entries()) {
+                const key = `${_class.name}.${ex_id}.${uttr_id}`;
+                output.write(`/* ${key} */\n`);
+                output.write(`let x = _(${stringEscape(uttr)});\n`);
+            }
+        }
+    }
+
+
 }

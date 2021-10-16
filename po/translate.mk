@@ -1,7 +1,7 @@
-GENIENLP_EMBEDDINGS ?= ./genienlp/.embeddings
+GENIENLP_EMBEDDINGS ?= ../genienlp/.embeddings
 
 geniedir ?= .
-genienlp ?=  export GENIENLP_EMBEDDINGS=$(GENIENLP_EMBEDDINGS) ; $(shell which genienlp)
+genienlp ?= GENIENLP_EMBEDDINGS=$(GENIENLP_EMBEDDINGS) ; genienlp
 
 skip_po_creation = true
 skip_translation = false
@@ -49,9 +49,9 @@ $(geniedir)/po/$(tgt_lang): $(geniedir)/po
 	# create final po
 	python3 $(geniedir)/scripts/po_edit.py --transformation create_final --input_file $@/input.po --translated_file $@/valid/almond_translate.tsv --output_file $@/output.po
 
-	# move to main po directory
-	mv $@/output.po $(tgt_lang).po
+	# cp to main po directory
+	cp $@/output.po $</$(tgt_lang).po
 
-translate_po: $(geniedir)/po/$(tgt_lang)
+translate-po: $(geniedir)/po/$(tgt_lang)
 	# done!
 	echo $@
