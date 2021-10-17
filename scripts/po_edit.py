@@ -20,6 +20,7 @@
 # Author: Mehrad Moradshahi <mehrad@cs.stanford.edu>
 
 import argparse
+import os
 import re
 import polib
 
@@ -68,6 +69,8 @@ UNTRANSLATABLE_LINES = {
               }
 
 def prepare_for_translation():
+    if not os.path.exists(args.input_file):
+        raise ValueError(f'Input file: {args.input_file} is not found')
     pofile = polib.pofile(args.input_file)
     with open(args.output_file, 'w') as fout:
         for entry in pofile:
@@ -107,6 +110,9 @@ def clean_translated_output(text):
     text = text.strip()
     text = re.sub(r"\s{2,}", " ", text)
 
+    if text == '':
+        return ''
+
     # translation likes ending phrases in periods
     # remove them here
     # post-editors add it back if necessary
@@ -137,6 +143,9 @@ def create_final():
     
     # modifies entries inplace
     for entry in pofile:
+        # Add fuzzy to indicate translation need post-editing
+        entry.flags += ['fuzzy']
+
         line = entry.msgid
         base_id = ':'.join(entry.occurrences[0])
 
