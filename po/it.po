@@ -6809,7 +6809,7 @@ msgstr "ogni giorno alle ${time}"
 
 #: lib/utils/thingtalk/describe.ts:1323
 msgid "at ${date}"
-msgstr "alle ${data}"
+msgstr "alle ${date}"
 
 #. try both plural forms, but prefer the plural if available
 #: lib/utils/thingtalk/describe.ts:1344
