@@ -307,7 +307,7 @@ export default class ThingpediaLoader {
         }
     }
 
-    private _recordType(type : Type) {
+    private _recordType(type : Type, arg : undefined|Ast.ArgumentDef = undefined) {
         if (type instanceof Type.Compound) {
             for (const field in type.fields)
                 this._recordType(type.fields[field].type);
@@ -339,13 +339,27 @@ export default class ThingpediaLoader {
                 identity, keyfns.valueKeyFn);
 
             if (type instanceof Type.Enum) {
-                for (const entry of type.entries!) {
-                    const value = new Ast.Value.Enum(entry);
-                    value.getType = function() {
-                        return type; 
-                    };
-                    this._addRule('constant_' + typestr, [], ThingTalkUtils.clean(entry),
-                        () => value, keyfns.valueKeyFn);
+                if (this._langPack.nonEnglish && arg && arg.nl_annotations?.canonical?.value_enum) {
+                    for (const [_, translatedValues] of Object.entries(arg.nl_annotations.canonical.value_enum)) {
+                        assert(Array.isArray(translatedValues));
+                        for (const val of translatedValues) {
+                            const value = new Ast.Value.Enum(val);
+                            value.getType = function() {
+                                return type;
+                            };
+                            this._addRule('constant_' + typestr, [], ThingTalkUtils.clean(val),
+                                () => value, keyfns.valueKeyFn);
+                        }
+                    }
+                } else {
+                    for (const entry of type.entries!) {
+                        const value = new Ast.Value.Enum(entry);
+                        value.getType = function() {
+                            return type;
+                        };
+                        this._addRule('constant_' + typestr, [], ThingTalkUtils.clean(entry),
+                            () => value, keyfns.valueKeyFn);
+                    }
                 }
             }
         }
@@ -502,7 +516,7 @@ export default class ThingpediaLoader {
     private _recordOutputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
-        if (!this._recordType(ptype))
+        if (!this._recordType(ptype, arg))
             return;
 
         const filterable = arg.getImplementationAnnotation<boolean>('filterable') ?? true;

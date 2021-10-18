@@ -206,6 +206,7 @@ export default class LanguagePack {
      * the language implementing this language pack.
      */
     readonly locale : string;
+    public nonEnglish : boolean;
 
     private _gt : Gettext;
     gettext : (x : string) => string;
@@ -220,8 +221,11 @@ export default class LanguagePack {
         this.gettext = this._gt.dgettext.bind(this._gt, 'genie-toolkit');
         this._ = this.gettext;
 
-        if (!/^en(-|$)/.test(locale))
+        this.nonEnglish = false;
+        if (!/^en(-|$)/.test(locale)) {
+            this.nonEnglish = true;
             this._loadTranslations();
+        }
     }
 
     private _loadTranslations() {
