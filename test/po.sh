@@ -10,7 +10,7 @@ genie="node $srcdir/dist/tool/genie.js"
 npm run create-pot custom_skills=org.thingpedia.weather custom_path=$srcdir/test/data/main/
 
 # translate English pot to German
-npm run translate-po val_batch_size=100 skip_po_creation=false tgt_lang=de non_interactive=true
+npm run translate-po val_batch_size=100 temperature=0.0 skip_po_creation=false tgt_lang=de non_interactive=true
 
 # translate weather English schema.tt and dataset.tt to German
 ${genie} translate-schema-annotations --po-file $srcdir/po/de.po -o $srcdir/test/data/main/org.thingpedia.weather/manifest.de.tt $srcdir/test/data/main/org.thingpedia.weather/manifest.tt

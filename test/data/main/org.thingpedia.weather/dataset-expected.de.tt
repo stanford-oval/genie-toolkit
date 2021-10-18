@@ -25,7 +25,7 @@ dataset @org.thingpedia.weather
   #[name="WeatherForecastWithTime"];
 
   query = @org.thingpedia.weather.forecast(date=$end_of(day))
-  #_[utterances=["Morgen das Wetter"]]
+  #_[utterances=["das Wetter morgen"]]
   #[name="WeatherForecastWithTimeTomorrow"];
 
   query = [humidity] of @org.thingpedia.weather.current()
@@ -52,7 +52,7 @@ dataset @org.thingpedia.weather
   #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByStatusRaining"];
 
   stream (p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter status == enum snowy
-  #_[utterances=["wenn es beginnt zu schneien $p_location"]]
+  #_[utterances=["wenn es beginnt zu schneien in $p_location"]]
   #[id=53258814]
   #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByStatusSnowy"];
 
@@ -77,7 +77,7 @@ dataset @org.thingpedia.weather
   #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByStatus"];
 
   stream (p_temperature : Measure(C), p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter temperature >= p_temperature
-  #_[utterances=["bei der Temperatur in $p_location is above $p_temperature", "wenn es heißer als $p_temperature in $p_location"]]
+  #_[utterances=["wenn die Temperatur in $p_location is above $p_temperature", "wenn es heißer ist als $p_temperature in $p_location"]]
   #[id=53266931]
   #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByTemperatureGreaterThan"];
 
@@ -87,12 +87,12 @@ dataset @org.thingpedia.weather
   #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByTemperatureLessThan"];
 
   stream (p_temperature : Measure(C)) = monitor(@org.thingpedia.weather.current()) filter temperature >= p_temperature
-  #_[utterances=["wenn die Temperatur draußen oben ist $p_temperature", "wenn es draußen heißer ist als $p_temperature"]]
+  #_[utterances=["wenn die Temperatur draußen über ist $p_temperature", "wenn es draußen heißer ist als $p_temperature"]]
   #[id=53266935]
   #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByTemperatureGreaterThan1"];
 
   stream (p_temperature : Measure(C)) = monitor(@org.thingpedia.weather.current()) filter temperature <= p_temperature
-  #_[utterances=["wenn die Temperatur außerhalb unter ist $p_temperature", "wenn es draußen kälter ist als $p_temperature"]]
+  #_[utterances=["wenn die Temperatur draußen unter ist $p_temperature", "wenn es draußen kälter ist als $p_temperature"]]
   #[id=53266937]
   #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByTemperatureLessThan1"];
 

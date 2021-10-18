@@ -12,7 +12,7 @@ class @org.thingpedia.weather
                             #_[prompt="Für welchen Ort wollen Sie Sonnenzeitinformationen?"]
                             #_[canonical={
                               default="preposition",
-                              base=["Standort:", "Position des", "Ort:"],
+                              base=["Standort:", "Position:", "Ort:"],
                               property=[],
                               preposition=["in #", "bei #", "um #", "für Standort #", "für #"]
                             }]
@@ -27,7 +27,7 @@ class @org.thingpedia.weather
                             #_[canonical="Sonnenaufgangszeit"],
                             out sunset_time : Time
                             #_[canonical="Sonnenuntergangszeit"])
-  #_[result=["in der ${location} Die Sonne geht auf ${sunrise_time} und setzt ${sunset_time}", "am am ${date} die Sonne geht auf ${sunrise_time} und setzt an ${sunset_time} in der ${location}", "am am ${date} die Sonne geht auf ${sunrise_time}", "am: ${date} die Sonne untergeht ${sunset_time}"]]
+  #_[result=["in der ${location} Die Sonne geht auf ${sunrise_time} und setzt an ${sunset_time}", "am am ${date} die Sonne geht auf ${sunrise_time} und setzt an ${sunset_time} in der ${location}", "am am ${date} die Sonne geht auf ${sunrise_time}", "am am ${date} die Sonne untergeht bei ${sunset_time}"]]
   #_[canonical=["Sonnenaufgang und Sonnenuntergang Zeit", "Sonnenaufgangszeit", "Sonnenuntergangszeit"]]
   #_[confirmation="die Sonnenaufgangs- und Sonnenuntergangszeit für die Lage $location"]
   #[minimal_projection=["sunrise_time", "sunset_time"]]
@@ -35,10 +35,10 @@ class @org.thingpedia.weather
   #[doc="Information about sunrise and sunset"];
 
   monitorable query moon(in opt location : Location
-                         #_[prompt="für welchen Ort Sie Mondzeitinfos wünschen"]
+                         #_[prompt="welcher Ort Sie Mondzeit Info für"]
                          #_[canonical={
                            default="preposition",
-                           base=["Standort:", "Position des", "Ort:"],
+                           base=["Standort:", "Position:", "Ort:"],
                            property=[],
                            preposition=["in #", "bei #", "um #", "für Standort #", "für #"]
                          }]
@@ -56,14 +56,14 @@ class @org.thingpedia.weather
                              new_moon=["Neuer_Mond"],
                              waxing_crescent=["Wachsendes Wachstum"],
                              first_quarter=["Erstes Quartal"],
-                             waxing_gibbous=["Wachsendes"],
+                             waxing_gibbous=["Wachsende"],
                              full_moon=["Vollmond"],
                              waning_gibbous=["schwindelerregend"],
                              third_quarter=["Drittes Quartal"],
-                             waning_crescent=["Abklingzeit"]
+                             waning_crescent=["Abklingendes"]
                            }
                          }])
-  #_[result=["in der ${location} der Mond ist ${phase}", "in der ${location} die Mondphase ist ${phase}", "am am ${date} der Mond ist ${phase} im Jahr ${location}", "Der Mond ist ${phase}"]]
+  #_[result=["in der ${location} der Mond ist ${phase}", "in der ${location} die Mondphase ist ${phase}", "am am ${date} der Mond ist ${phase} in der ${location}", "der Mond ist ${phase}"]]
   #_[canonical=["Mondphase", "Phase des Mondes"]]
   #_[confirmation="die Mondphase für $location"]
   #[poll_interval=86400000ms]
@@ -75,7 +75,7 @@ class @org.thingpedia.weather
                             #_[prompt="Für welchen Ort wollen Sie das aktuelle Wetter?"]
                             #_[canonical={
                               default="preposition",
-                              base=["Standort:", "Position des", "Ort:"],
+                              base=["Standort:", "Position:", "Ort:"],
                               property=[],
                               preposition=["in #", "bei #", "um #", "für Standort #", "für #"]
                             }]
@@ -104,11 +104,11 @@ class @org.thingpedia.weather
                             #_[canonical={
                               base="Status:",
                               value_enum={
-                                raining=["regnet"],
+                                raining=["Regenfälle"],
                                 cloudy=["bewölkte"],
-                                sunny=["sonniger"],
+                                sunny=["sonnige"],
                                 snowy=["Schneebedeckt"],
-                                sleety=["schlafmüde"],
+                                sleety=["Schläfrigkeit"],
                                 drizzling=["Nieselregen"],
                                 windy=["Windig"],
                                 foggy=["Nebelig"]
@@ -117,23 +117,23 @@ class @org.thingpedia.weather
                             out icon : Entity(tt:picture)
                             #_[canonical="Symbol:"])
   #_[result=["Es ist ${status} heute in ${location} und die Temperatur ist ${temperature}", "das aktuelle Wetter in ${location} wird. ${status} . die Temperatur ist ${temperature} und die Feuchtigkeit ist ${humidity} % %", "das aktuelle Wetter in ${location} wird. ${status} . die Temperatur ist ${temperature}", "das aktuelle Wetter in ${location} wird. ${status} . die Feuchtigkeit ist ${humidity} % %", "das aktuelle Wetter in ${location} wird. ${status}", "das Wetter in ${location} wird. ${status}"]]
-  #_[canonical=["aktuelles Wetter", "Wetterlage", "Wetter heute", "Wetter jetzt", "Wetter draußen"]]
+  #_[canonical=["Aktuelles Wetter", "Wetterlage", "Wetter heute", "Wetter jetzt", "Wetter draußen"]]
   #[minimal_projection=["status"]]
   #[poll_interval=3600000ms]
   #[doc="Information about current weather"]
   #[confirm=false];
 
   monitorable query forecast(in opt location : Location
-                             #_[prompt="welcher Ort wollen Sie die Wettervorhersage für"]
+                             #_[prompt="für welchen Ort Sie die Wettervorhersage für"]
                              #_[canonical={
                                default="preposition",
-                               base=["Standort:", "Position des", "Ort:"],
+                               base=["Standort:", "Position:", "Ort:"],
                                property=[],
                                preposition=["in #", "um #", "für Standort #", "für #"]
                              }]
                              #[default=$location.current_location],
                              in opt date : Date
-                             #_[prompt="für welches Datum oder zu welcher Uhrzeit Sie die Prognose für"]
+                             #_[prompt="welches Datum oder welche Uhrzeit Sie die Vorhersage für"]
                              #_[canonical={
                                default="preposition",
                                base=["Zeit n", "Datum der"],
@@ -165,11 +165,11 @@ class @org.thingpedia.weather
                              #_[canonical={
                                base="Status:",
                                value_enum={
-                                 raining=["regnet"],
+                                 raining=["Regenfälle"],
                                  cloudy=["bewölkte"],
-                                 sunny=["sonniger"],
+                                 sunny=["sonnige"],
                                  snowy=["Schneebedeckt"],
-                                 sleety=["schlafmüde"],
+                                 sleety=["Schläfrigkeit"],
                                  drizzling=["Nieselregen"],
                                  windy=["Windig"],
                                  foggy=["Nebelig"]
@@ -177,7 +177,7 @@ class @org.thingpedia.weather
                              }],
                              out icon : Entity(tt:picture)
                              #_[canonical="Symbol:"])
-  #_[result=["wird es ${status} am am ${date} in der ${location} und die Temperatur wird ${temperature}", "am am ${date} das Wetter in ${location} wird beglaubigt ${status} . die Temperatur wird ${temperature} und die Feuchtigkeit wird ${humidity} % %", "am am ${date} das Wetter in ${location} wird beglaubigt ${status} . die Temperatur wird ${temperature}", "am am ${date} das Wetter in ${location} wird geglüht haben ${status} . die Feuchtigkeit wird ${humidity} % %", "am am ${date} das Wetter in ${location} wird beglaubigt ${status}", "das Wetter in ${location} wird beglaubigt ${status} am am ${date}"]]
+  #_[result=["es wird ${status} am am ${date} in der ${location} und die Temperatur wird ${temperature}", "am am ${date} das Wetter in ${location} wird beglaubigt ${status} . die Temperatur wird ${temperature} und die Feuchtigkeit wird ${humidity} % %", "am am ${date} das Wetter in ${location} wird beglaubigt ${status} . die Temperatur wird ${temperature}", "am am ${date} das Wetter in ${location} wird beglaubigt ${status} . die Feuchtigkeit wird ${humidity} % %", "am am ${date} das Wetter in ${location} wird beglaubigt ${status}", "das Wetter in ${location} wird beglaubigt ${status} am am ${date}"]]
   #_[on_error={
     no_past_forecast=["Ich kann Wettervorhersagen in der Vergangenheit nicht abrufen"],
     not_available=["die Prognose für ${date} ist noch nicht verfügbar"]
