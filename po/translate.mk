@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 GENIENLP_EMBEDDINGS ?= ../genienlp/.embeddings
 
 geniedir ?= .

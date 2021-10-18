@@ -1,8 +1,14 @@
+SHELL := /bin/bash
+
 po_file ?=
 geniedir = .
 genie ?= node --experimental_worker --max_old_space_size=8400 $(geniedir)/dist/tool/genie.js
 
 builtin_skills = $(foreach d,$(wildcard $(geniedir)/data/builtins/*/manifest.tt),$(patsubst %/manifest.tt,$$(basename %),$(d)))
+builtin_path = $(geniedir)/data/builtins/
+
+custom_skills ?=
+custom_path ?=
 
 create-pot: $(geniedir)/po
 	make all
@@ -12,11 +18,20 @@ create-pot: $(geniedir)/po
 
 	mkdir -p $</tmp
 	for fname in manifest dataset ; do \
-		for skill in $(builtin_skills) ; do \
-			kind=$$skill-$$fname ; \
-			echo "processing $$kind" ; \
-			$(genie) extract-translatable-annotations $(geniedir)/data/builtins/$$skill/"$$fname".tt -o $</tmp/$$kind.js ; \
-			echo $</tmp/$$kind.js >> po/POTFILES ; \
+  		for option in builtin custom ; do \
+  		  	if [ "$$option" == "builtin" ] ; then \
+  		  		skills="$(builtin_skills)" ; \
+  		  		path=$(builtin_path) ; \
+  		  	elif [ "$$option" == "custom" ] ; then \
+  		  		skills="$(custom_skills)" ; \
+  		  		path=$(custom_path) ; \
+  		  	fi ; \
+			for skill in $$skills ; do \
+				kind=$$skill-$$fname ; \
+				echo "processing $$kind" ; \
+				$(genie) extract-translatable-annotations $$path/$$skill/"$$fname".tt -o $</tmp/$$kind.js ; \
+				echo $</tmp/$$kind.js >> po/POTFILES ; \
+			done ; \
 		done ; \
 	done
 
