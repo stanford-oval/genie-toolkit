@@ -31,12 +31,6 @@ export function initArgparse(subparsers : argparse.SubParser) {
         add_help: true,
         description: "Extract translatable annotations from a thingpedia file."
     });
-    parser.add_argument('--output-format', {
-        choices: ['gettext', 'translation'],
-        default: 'gettext',
-        help: 'gettext: use for builtin skills to print annotations in _() format later picked up by gettext' +
-              ' translation: use for customs skills to print them in tsv format accepted by genienlp'
-    });
     parser.add_argument('input_file', {
         help: 'Input Thingpedia file to read from'
     });
@@ -47,19 +41,13 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 let output : fs.WriteStream;
-let output_format : string;
 
 function extract(key : string, str : unknown) {
     if (typeof str === 'boolean' || typeof str === 'number')
         return;
     if (typeof str === 'string') {
-        if (output_format === 'gettext') {
-            output.write(`/* ${key} */\n`);
-            output.write(`let x = _(${stringEscape(str)});\n`);
-        } else {
-            // trim "
-            output.write(`${key}\t${stringEscape(str).slice(1, -1)}\n`);
-        }
+        output.write(`/* ${key} */\n`);
+        output.write(`let x = _(${stringEscape(str)});\n`);
     } else if (Array.isArray(str)) {
         for (let i = 0; i < str.length; i++)
             extract(`${key}[${i}]`, str[i]);
@@ -83,7 +71,6 @@ export async function execute(args : any) {
     assert(parsed instanceof ThingTalk.Ast.Library);
 
     output = fs.createWriteStream(args.output);
-    output_format = args.output_format;
 
     // parse manifest
     for (const _class of parsed.classes) {
