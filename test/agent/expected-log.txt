@@ -292,7 +292,7 @@ C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -309,7 +309,7 @@ C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, status=enum sunny }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The temperature is 60.1 F.
+A: The temperature is 60.1 degrees Fahrenheit.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -341,7 +341,7 @@ C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -850,7 +850,7 @@ C: ]]
 C: #[count=50]
 C: #[more=true];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The distance is 1.2 mi.
+A: The distance is 1.2 miles.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1200,7 +1200,7 @@ C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1527,7 +1527,7 @@ C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.greet;
@@ -1596,7 +1596,7 @@ C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, status=enum sunny }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1746,7 +1746,7 @@ C:   { data="!!!!!", count=2, size=5byte },
 C:   { data="\"\"\"\"\"", count=2, size=5byte }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: First answer for 2 items of size 5 byte is !!!!! 2 nd answer is """"".
+A: First answer for 2 items of size 5 bytes is !!!!! 2 nd answer is """"".
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.builtin.test.get_data(count=3, size=5byte);
@@ -1769,7 +1769,7 @@ C:   { data="\"\"\"\"\"", count=3, size=5byte },
 C:   { data="#####", count=3, size=5byte }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: First answer for 3 items of size 5 byte is !!!!! 2 nd answer is """"". 3 rd answer is #####.
+A: First answer for 3 items of size 5 bytes is !!!!! 2 nd answer is """"". 3 rd answer is #####.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.builtin.test.get_data2(count=3, size=5byte);
@@ -1798,7 +1798,7 @@ C:   { data="BBBBB", count=3, size=5byte },
 C:   { data="CCCCC", count=3, size=5byte }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The answers for 3 items of size 5 byte are AAAAA, BBBBB, and CCCCC.
+A: The answers for 3 items of size 5 bytes are AAAAA, BBBBB, and CCCCC.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1819,7 +1819,7 @@ C: timer(base=$now, interval=1h) => @com.thecatapi.get()
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: What is your phone number?
-A: Alright, I will get the cat picture every 60 min.
+A: Alright, I will get the cat picture every 60 minutes.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -2223,7 +2223,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: monitor(@org.thingpedia.weather.current(location=new Location(37.4275, -122.1697))) filter temperature >= 70F
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Alright, I will notify you when the current weather in [Latitude: 37.428 deg, Longitude: -122.170 deg] changes and it becomes true that the temperature is greater than or equal to 70 F.
+A: Alright, I will notify you when the current weather in [Latitude: 37.428 deg, Longitude: -122.170 deg] changes and it becomes true that the temperature is greater than or equal to 70 degrees Fahrenheit.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
 #! vote: down
 #! comment: test comment for dialogue turns

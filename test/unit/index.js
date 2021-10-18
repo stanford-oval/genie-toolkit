@@ -21,7 +21,7 @@
 // all tests, in batch form
 
 process.on('unhandledRejection', (up) => {
-    throw up; 
+    throw up;
 });
 
 process.env.TEST_MODE = '1';
@@ -59,6 +59,7 @@ do_test([
     ('./test_exact_matcher'),
     ('./test_helpers'),
     ('./test_i18n_chinese'),
+    ('./test_i18n_unit'),
     ('./test_infix_to_postfix'),
     ('./test_ip_address'),
     ('./test_linked_list'),

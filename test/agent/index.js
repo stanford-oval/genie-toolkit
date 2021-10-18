@@ -20,7 +20,7 @@
 
 
 process.on('unhandledRejection', (up) => {
-    throw up; 
+    throw up;
 });
 
 import assert from 'assert';

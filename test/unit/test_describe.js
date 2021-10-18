@@ -59,10 +59,10 @@ const TEST_CASES = [
     `Send me a message it's the evening every day in the evening.`,//'
     'Say'],
     [`timer(base=new Date(), interval=2h) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
-    `Send me a message it's the evening every 2 h.`,//'
+    `Send me a message it's the evening every 2 hours.`,//'
     'Say'],
     [`timer(base=new Date(), interval=2h, frequency=2) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
-    `Send me a message it's the evening 2 times every 2 h.`,//'
+    `Send me a message it's the evening 2 times every 2 hours.`,//'
     'Say'],
 
     [`now => @com.xkcd.get_comic() => notify;`,
@@ -269,13 +269,13 @@ const TEST_CASES = [
     `Security Camera ⇒ Yandex Translate ⇒ Twitter`],
 
     [`(monitor (@org.thingpedia.weather.current(location=$?))) filter temperature >= 5defaultTemperature => notify;`,
-    'Notify me when the current weather in ____ changes and it becomes true that the temperature is greater than or equal to 5 F.', 'Weather'],
+    'Notify me when the current weather in ____ changes and it becomes true that the temperature is greater than or equal to 5 degrees Fahrenheit.', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10defaultTemperature => notify;`,
-    'Get the current weather in ____ such that the temperature is greater than or equal to 10 F.', 'Weather'],
+    'Get the current weather in ____ such that the temperature is greater than or equal to 10 degrees Fahrenheit.', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.2defaultTemperature => notify;`,
-    'Get the current weather in ____ such that the temperature is greater than or equal to 10.2 F.', 'Weather'],
+    'Get the current weather in ____ such that the temperature is greater than or equal to 10.2 degrees Fahrenheit.', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.33defaultTemperature => notify;`,
-    'Get the current weather in ____ such that the temperature is greater than or equal to 10.3 F.', 'Weather'],
+    'Get the current weather in ____ such that the temperature is greater than or equal to 10.3 degrees Fahrenheit.', 'Weather'],
 
     [`now => (@com.yelp.restaurant()), true(cuisines) => notify;`,
     `Get restaurants such that any value of cuisines is acceptable.`,
@@ -342,7 +342,7 @@ const TEST_CASES = [
     'Wsj'],
 
     [`timer(base=$now, interval=1h) => @org.thingpedia.iot.light-bulb(id="io.home-assistant/lights.living_room_1"^^tt:device_id("Living Room")).set_power(power=enum off);`,
-    'Shut down the Living Room lights every 60 min.',
+    'Shut down the Living Room lights every 60 minutes.',
     'Light Bulb'],
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -377,7 +377,7 @@ const TEST_CASES = [
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
     ontimer(date=[$now + 5min]) => @org.thingpedia.builtin.thingengine.builtin.alert();`,
-    `Alert at 5 min past now.`,
+    `Alert at 5 minutes past now.`,
     ``],
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
