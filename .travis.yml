@@ -49,6 +49,15 @@ jobs:
       script: npx nyc ./test/cmdline.sh
       after_success: npm run coverage
     -
+      name: "Translation Tests"
+      install:
+      - pyenv global 3.7.1
+      - ./travis/install-starter-deps.sh
+      - pip3 install polib
+      - travis_retry npm ci
+      script: npx nyc ./test/translate.sh
+      after_success: npm run coverage
+    -
       name: "Starter Code Tests (Basic)"
       install:
       - pyenv global 3.7.1

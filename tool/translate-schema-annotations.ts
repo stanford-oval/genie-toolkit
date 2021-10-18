@@ -77,7 +77,9 @@ function processEnum(arg : any, iterKey : string,) {
 
     const valueEnum = Object.fromEntries(keys.map((_, i) => [keys[i], [valList[i]]]));
 
-    if (typeof arg.metadata['canonical'] === 'string' || Array.isArray(arg.metadata['canonical']))
+    if (!arg.metadata['canonical'])
+        arg.metadata['canonical'] = { 'value_enum': valueEnum } ;
+    else if (typeof arg.metadata['canonical'] === 'string' || Array.isArray(arg.metadata['canonical']))
         arg.metadata['canonical'] = { 'base': arg.metadata['canonical'], 'value_enum': valueEnum };
     else
         arg.metadata['canonical']['value_enum'] = valueEnum;
