@@ -1,0 +1,103 @@
+dataset @org.thingpedia.weather
+#[language="en"] {
+  query = [temperature] of @org.thingpedia.weather.current()
+  #_[utterances=["die Temperatur außerhalb", "die Wettertemperatur"]]
+  #[name="TemperatureOfWeather"];
+
+  query (p_location : Location) = [temperature] of @org.thingpedia.weather.current(location=p_location)
+  #_[utterances=["die Temperatur in ${p_location}"]]
+  #[name="TemperatureOfWeatherWithLocation"];
+
+  query (p_location : Location) = [humidity] of @org.thingpedia.weather.current(location=p_location)
+  #_[utterances=["die Feuchtigkeit in ${p_location}"]]
+  #[name="HumidityOfWeatherWithLocation"];
+
+  query (p_location : Location, p_date : Date) = [temperature] of @org.thingpedia.weather.forecast(date=p_date, location=p_location)
+  #_[utterances=["die Temperatur in ${p_location} am am ${p_date}"]]
+  #[name="TemperatureOfWeatherForecastWithLocation"];
+
+  query (p_location : Location, p_date : Date) = [humidity] of @org.thingpedia.weather.forecast(date=p_date, location=p_location)
+  #_[utterances=["die Feuchtigkeit in ${p_location} am am ${p_date}"]]
+  #[name="HumidityOfWeatherForecastWithLocation"];
+
+  query (p_date : Date) = @org.thingpedia.weather.forecast(date=p_date)
+  #_[utterances=["das Wetter auf ${p_date}"]]
+  #[name="WeatherForecastWithTime"];
+
+  query = @org.thingpedia.weather.forecast(date=$end_of(day))
+  #_[utterances=["Morgen das Wetter"]]
+  #[name="WeatherForecastWithTimeTomorrow"];
+
+  query = [humidity] of @org.thingpedia.weather.current()
+  #_[utterances=["die Feuchtigkeit außerhalb"]]
+  #[name="HumidityOfWeather"];
+
+  query = [wind_speed] of @org.thingpedia.weather.current()
+  #_[utterances=["die Windgeschwindigkeit draußen"]]
+  #[name="WindSpeedOfWeather"];
+
+  stream (p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter temperature <= 0C
+  #_[utterances=["wenn die Temperatur in $p_location is below freezing"]]
+  #[id=53258809]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByTemperatureLessThan2"];
+
+  stream (p_humidity : Number, p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter humidity <= p_humidity
+  #_[utterances=["wenn die Feuchtigkeit in $p_location is below $p_humidity"]]
+  #[id=53258812]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByHumidityLessThan"];
+
+  stream (p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter status == enum raining
+  #_[utterances=["wenn es beginnt zu regnen in $p_location"]]
+  #[id=53258813]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByStatusRaining"];
+
+  stream (p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter status == enum snowy
+  #_[utterances=["wenn es beginnt zu schneien $p_location"]]
+  #[id=53258814]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByStatusSnowy"];
+
+  stream (p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter !(status == enum raining)
+  #_[utterances=["wenn es aufhört zu regnen $p_location"]]
+  #[id=53258815]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationNotByStatusRaining"];
+
+  stream (p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter !(status == enum snowy)
+  #_[utterances=["wenn es aufhört zu schneien $p_location"]]
+  #[id=53258816]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationNotByStatusSnowy"];
+
+  stream (p_wind_speed : Measure(mps), p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter wind_speed >= p_wind_speed
+  #_[utterances=["wenn der Wind in $p_location is above $p_wind_speed"]]
+  #[id=53258817]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByWindSpeedGreaterThan"];
+
+  stream (p_status : Enum(raining, cloudy, sunny, snowy, sleety, drizzling, windy, foggy), p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter status == p_status
+  #_[utterances=["Wenn es $p_status at location $p_location", "wenn es wird $p_status at $p_location"]]
+  #[id=53266921]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByStatus"];
+
+  stream (p_temperature : Measure(C), p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter temperature >= p_temperature
+  #_[utterances=["bei der Temperatur in $p_location is above $p_temperature", "wenn es heißer als $p_temperature in $p_location"]]
+  #[id=53266931]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByTemperatureGreaterThan"];
+
+  stream (p_temperature : Measure(C), p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter temperature <= p_temperature
+  #_[utterances=["wenn die Temperatur in $p_location is below $p_temperature", "wenn es kälter ist als $p_temperature in $p_location"]]
+  #[id=53266933]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByTemperatureLessThan"];
+
+  stream (p_temperature : Measure(C)) = monitor(@org.thingpedia.weather.current()) filter temperature >= p_temperature
+  #_[utterances=["wenn die Temperatur draußen oben ist $p_temperature", "wenn es draußen heißer ist als $p_temperature"]]
+  #[id=53266935]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByTemperatureGreaterThan1"];
+
+  stream (p_temperature : Measure(C)) = monitor(@org.thingpedia.weather.current()) filter temperature <= p_temperature
+  #_[utterances=["wenn die Temperatur außerhalb unter ist $p_temperature", "wenn es draußen kälter ist als $p_temperature"]]
+  #[id=53266937]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByTemperatureLessThan1"];
+
+  stream (p_humidity : Number, p_location : Location) = monitor(@org.thingpedia.weather.current(location=p_location)) filter humidity >= p_humidity
+  #_[utterances=["wenn die Feuchtigkeit in $p_location is above $p_humidity", "wenn es feuchter ist als $p_humidity in $p_location"]]
+  #[id=53266939]
+  #[name="MonitorGetCurrentWeatherOnWeatherapiWithLocationByHumidityGreaterThan"];
+}
