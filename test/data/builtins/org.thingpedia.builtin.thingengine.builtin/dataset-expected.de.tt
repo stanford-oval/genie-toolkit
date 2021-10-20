@@ -1,0 +1,164 @@
+dataset @org.thingpedia.builtin.thingengine.builtin
+#[language="en"] {
+  stream = monitor(@org.thingpedia.builtin.thingengine.builtin.get_gps())
+  #_[utterances=["wenn mein Standort sich ändert", "wenn ich mich bewege", "wenn ich mich bewege", "wenn ich den Standort ändere", "wenn meine Position sich ändert"]]
+  #[id=53269105]
+  #[name="MonitorGetCurrentLocation"];
+
+  stream (p_location : Location) = monitor(@org.thingpedia.builtin.thingengine.builtin.get_gps()) filter location == p_location
+  #_[utterances=["wenn mein Standort sich ändert $p_location", "wenn ich erreiche $p_location", "wenn ich zu $p_location", "wenn ich ankomme $p_location"]]
+  #[id=53269110]
+  #[name="MonitorGetCurrentLocationByLocation"];
+
+  stream (p_location : Location) = monitor(@org.thingpedia.builtin.thingengine.builtin.get_gps()) filter !(location == p_location)
+  #_[utterances=["wenn ich weg von $p_location", "wenn mein Standort sich von $p_location", "wenn ich gehe $p_location"]]
+  #[id=53269117]
+  #[name="MonitorGetCurrentLocationNotByLocation"];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.get_time()
+  #_[utterances=["Wie spät ist es"]]
+  #[id=53269120]
+  #[name="GetTime"];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.get_date()
+  #_[utterances=["was heute ist", "welcher Tag ist es"]]
+  #[id=53269122]
+  #[name="GetDate"];
+
+  query = @org.thingpedia.builtin.thingengine.builtin.get_random_between()
+  #_[utterances=[", wählen Sie eine zufällige Zahl", ", werfen Sie einen Würfel"]]
+  #[id=53269126]
+  #[name="GetRandomInteger"];
+
+  query (p_low : Number, p_high : Number) = @org.thingpedia.builtin.thingengine.builtin.get_random_between(high=p_high, low=p_low)
+  #_[utterances=["eine zufällige Zahl zwischen ${p_low:const} und und ${p_high:const}", "eine zufällige Ganzzahl zwischen ${p_low:const} und und ${p_high:const}", ", werfen Sie einen Würfel zwischen ${p_low:const} und und ${p_high:const}", ", erzeugen Sie eine zufällige Zahl zwischen ${p_low:const} und und ${p_high:const}", ", wählen Sie eine Zahl zwischen ${p_low:const} und und ${p_high:const}"]]
+  #[id=53269129]
+  #[name="GetRandomIntegerWithLowWithHigh"];
+
+  query (p_device : Entity(tt:device)) = @org.thingpedia.builtin.thingengine.builtin.device_info(id=p_device)
+  #_[utterances=["Informationen über ${p_device}", "Hilfe bei ${p_device}", "${p_device} Hilfe!", "${p_device} Dokumentationen"]]
+  #[name="DeviceInfoWithDevice"];
+
+  action (p_message : String) = @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
+  #_[utterances=["Schick mir eine Nachricht ${p_message:const}", "Sag mir, $p_message", "sagen: $p_message"]]
+  #[id=53269140]
+  #[name="SayWithMessage"];
+
+  action (p_url : Entity(tt:url)) = @org.thingpedia.builtin.thingengine.builtin.open_url(url=p_url)
+  #_[utterances=["geöffnet. $p_url", "Datei öffnen unter $p_url", "geöffnet. $p_url in the browser", "zu durchsuchen $p_url"]]
+  #[id=53269149]
+  #[name="OpenUrlOnBuiltinWithUrl"];
+
+  action (p_device : Entity(tt:device)) = @org.thingpedia.builtin.thingengine.builtin.configure(device=p_device)
+  #_[utterances=["konfigurieren. $p_device", "Einrichtung: $p_device", "aktivieren. $p_device", "installieren. $p_device", "Verbindung zu $p_device", "Neue hinzufügen $p_device account"]]
+  #[id=53269136]
+  #[name="ConfigureWithDevice"];
+
+  action (p_status : Enum(on, off)) = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=p_status)
+  #_[utterances=["drehen. ${p_status:no-undefined} Sprachausgabe"]];
+
+  program (p_status : Enum(on, off)) = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=p_status)
+  #_[utterances=["drehen. ${p_status:no-undefined} deine Stimme"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=enum on)
+  #_[utterances=["Fangen Sie an zu sprechen", "Sprich mit mir", "mit Stimme zu sprechen", "Sprich mit mir"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=enum off)
+  #_[utterances=["Sprachausgabe deaktivieren"]];
+
+  action (p_status : Enum(on, off)) = @org.thingpedia.builtin.thingengine.builtin.set_voice_input(status=p_status)
+  #_[utterances=["drehen. ${p_status} Spracheingabe"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.set_voice_input(status=enum on)
+  #_[utterances=["Hör zu", "Ich will meine Stimme benutzen", "Hör mir zu"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.set_voice_input(status=enum off)
+  #_[utterances=["Spracheingabe deaktivieren", "Hör nicht auf zu hören"]];
+
+  program (p_name : String) = @org.thingpedia.builtin.thingengine.builtin.set_name(name=p_name)
+  #_[utterances=["Ruf mich an. ${p_name:no-undefined}", "Ich beziehe mich auf mich als ${p_name:no-undefined}", "Ich bin ${p_name:no-undefined}", "Mein Name ist ${p_name:no-undefined}", "Ich möchte, dass du mich anrufst ${p_name:no-undefined}"]];
+
+  action (p_type : Enum(current, home, work)) = @org.thingpedia.builtin.thingengine.builtin.set_location(type=p_type)
+  #_[utterances=["stellen Sie meine ${p_type:no-undefined} Standort:", "stellen Sie meine ${p_type:no-undefined} Anschrift:", "Erinnern Sie sich an meine ${p_type:no-undefined} Standort:", "ändern meine ${p_type:no-undefined} Anschrift:"]];
+
+  program (p_location : Location) = @org.thingpedia.builtin.thingengine.builtin.set_location(location=p_location)
+  #_[utterances=["Meine Adresse ist ${p_location:no-undefined}", "Mein Standort ist ${p_location:no-undefined}"]];
+
+  program (p_type : Enum(current, home, work), p_location : Location) = @org.thingpedia.builtin.thingengine.builtin.set_location(location=p_location, type=p_type)
+  #_[utterances=["meins ${p_type:no-undefined} Adresse ist ${p_location:no-undefined}", "meins ${p_type:no-undefined} ist bei ${p_location:no-undefined}"]];
+
+  program (p_unit : Enum(celsius, fahrenheit, kelvin)) = @org.thingpedia.builtin.thingengine.builtin.set_temperature_unit(unit=p_unit)
+  #_[utterances=["Verwendung: ${p_unit:no-undefined} für Temperaturen", "Verwendung: ${p_unit:no-undefined} zur Anzeige von Temperaturen", "Sagen Sie mir die Temperatur in ${p_unit:no-undefined}"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_identity)
+  #_[utterances=["Wer sind Sie?", "Was sind Sie?", "Was ist Genie?", "Bist du Genie?", "Wie heißt du?", "Wie heißt du?", "Wie heißt du?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_age)
+  #_[utterances=["Wie alt bist du?", "Wann wurden Sie geboren?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_how_are_you)
+  #_[utterances=["Wie geht's?", "Wie geht es u?", "Wie geht's dir?", "Wie geht es dir?", "Wie geht es dir heute?", "Wie geht es dir heute?", "Wie fühlst du dich heute?", "Wie fühlst du dich heute?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_location)
+  #_[utterances=["Wo sind Sie?", "Wo sind Sie jetzt?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_comparison)
+  #_[utterances=["Bist du besser als Cortana?", "Bist du besser als Siri?", "Bist du besser als Alexa?", "Sind Sie besser als Google?", "Sind Sie besser als Google Assistant?", "Sind Sie besser als Google Home?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_training)
+  #_[utterances=["Bist du gut im Training?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_partner)
+  #_[utterances=["Haben Sie einen Partner?", "Haben Sie einen bedeutenden anderen?", "Haben Sie einen GF?", "Hast du eine Freundin?", "Haben Sie einen Bf?", "Hast du einen Freund?", "Hast du einen Freund?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_junk)
+  #_[utterances=["Weißt du, was Porno ist?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_preference)
+  #_[utterances=["Was ist dein Lieblingslied?", "Was ist dein Lieblingsfilm?", "Was ist dein Lieblingsbuch?", "Was ist dein Lieblingslied?", "Was ist dein Lieblingsfilm?", "Was ist dein Lieblingsbuch?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum check_capability_home_assistant)
+  #_[utterances=["Arbeiten Sie mit Home Assistant?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum check_capability_phone)
+  #_[utterances=["Unterstützen Sie irgendwelche Telefone?", "Welche Handys unterstützen Sie?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum general_help)
+  #_[utterances=["Was kannst du tun?", "Was kann ich tun?", "Was kannst du für mich tun?", "Hilfe!", "Befehle auflisten", "Hilfefähigkeit", "Was soll ich sagen?", "Was machst du?", "Was können Sie tun?", "Was kann u tun?", "Was soll ich tun?", "Welchen Befehl gibt es?", "Welche Fähigkeiten gibt es?", "Was kannst du überhaupt tun?", "Was könntest du für mich tun?", "Befehle:", "Geräte:", "Beispiele:", "Können Sie mir noch einen Vorschlag machen?", "Fähigkeiten anzeigen"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum iot_help)
+  #_[utterances=["Was für IoT-Geräte", "Mit welchen IoT-Geräten können Sie arbeiten?", "Mit welchen Geräten kann ich Sie verbinden?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum positive_emotion_thanks)
+  #_[utterances=["Lol", "Kühl", "Schön", "Ich liebe dich", "Großartig", "Gute Arbeit", "Sehr lustig", "Super", ":- )", ":o", "Guter Junge", "Du bist unglaublich"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum positive_emotion_cool)
+  #_[utterances=["Lustig", "- Ich weiß", "Wow! - Was ist das?", "- Ich weiß", "Lustig haha", "Ich liebe Programmieren"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum abusive)
+  #_[utterances=["Du bist scheiße", "Töte dich selbst", "Geh sterben", "Leck mich am Arsch!"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum revoke_consent)
+  #_[utterances=["Wiedererweckte Zustimmung", "Hör auf, meine Befehle aufzuzeichnen"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_train)
+  #_[utterances=["Wie lerne ich dich?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_configure_skill)
+  #_[utterances=["Was bedeutet es, etwas zu konfigurieren?", "Wie konfiguriere ich neue Fähigkeiten?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_disable_skill)
+  #_[utterances=["Wie kann ich eine Fähigkeit deaktivieren?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_set_language)
+  #_[utterances=["Wie ändere ich die Sprache?", "Welche Sprachen kennst du?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_access_settings)
+  #_[utterances=["Wo sind Genie-Einstellungen?", "Wie man Präferenzen ändert?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_use_wakeword)
+  #_[utterances=["Wie verwende ich Sprachbefehle?", "Wie verwende ich Hotword-Erkennung?", "Wie verwende ich Weckworterkennung?", "Was ist das Weckwort?", "Wie kann ich Audio aktivieren?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum troubleshooting_home_assistant)
+  #_[utterances=["Hilfe bei der Erkennung von Home Assistant Entities"]];
+}
