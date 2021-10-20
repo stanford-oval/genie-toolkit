@@ -219,6 +219,32 @@ export default class SlotExtractor {
         return String(value.toJS()).toLowerCase();
     }
 
+    async resolveSlots(program : Ast.Node) {
+        const entityValues : Ast.EntityValue[] = [];
+        program.visit(new class extends Ast.NodeVisitor {
+            visitInvocation(invocation : Ast.Invocation) {
+                for (const in_param of invocation.in_params) {
+                    if (in_param.value instanceof Ast.EntityValue)
+                        entityValues.push(in_param.value);
+                }
+                return false;
+            }
+
+            visitAtomBooleanExpression(expr : Ast.AtomBooleanExpression) {
+                const values = expr.value instanceof Ast.ArrayValue ? expr.value.value : [expr.value];
+                for (const value of values) {
+                    if (value instanceof Ast.EntityValue)
+                        entityValues.push(value);
+                }
+                return false;
+            }
+        });
+        for (const value of entityValues) {
+            const resolvedEntityRecord = await this._resolveEntity(value);
+            value.value = resolvedEntityRecord.value;
+        }
+    }
+
     async extractSlots(state : Ast.Node) {
         const slotValues : Record<string, Ast.Value> = {};
         let currentDomain : string|undefined;

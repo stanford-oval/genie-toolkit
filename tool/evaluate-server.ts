@@ -28,6 +28,7 @@ import * as ParserClient from '../lib/prediction/parserclient';
 
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
 import { outputResult } from './lib/evaluate-common';
+import FileThingpediaClient from './lib/file_thingpedia_client';
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('evaluate-server', {
@@ -60,6 +61,10 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--thingpedia', {
         required: true,
         help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('--parameter-datasets', {
+        required: false,
+        help: 'TSV file containing the paths to datasets for strings and entity types.'
     });
     parser.add_argument('input_file', {
         nargs: '+',
@@ -149,12 +154,15 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: "Ignore the exact entity type when evaluate",
         default: false
     });
+    parser.add_argument('--resolve-entity-value', {
+        action: 'store_true',
+        help: "Resolve entity value by local entity lookup if not present in the parse",
+        default: false
+    });
 }
 
 export async function execute(args : any) {
-    let tpClient = null;
-    if (args.thingpedia)
-        tpClient = new Tp.FileClient(args);
+    const tpClient = args.parameter_datasets ? new FileThingpediaClient(args) : new Tp.FileClient(args);
     const parser = ParserClient.get(args.url, args.locale);
     await parser.start();
 
@@ -170,7 +178,8 @@ export async function execute(args : any) {
             complexityMetric: args.complexity_metric,
             oracle: args.oracle,
             includeEntityValue: args.include_entity_value,
-            ignoreEntityType: args.ignore_entity_type
+            ignoreEntityType: args.ignore_entity_type,
+            resolveEntityValue: args.resolve_entity_value
         }))
         .pipe(new CollectSentenceStatistics({
             minComplexity: args.min_complexity,

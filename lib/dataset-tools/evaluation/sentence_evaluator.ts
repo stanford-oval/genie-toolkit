@@ -21,6 +21,7 @@
 
 import assert from 'assert';
 import Stream from 'stream';
+import { SchemaRetriever, } from 'thingtalk';
 
 import * as Utils from '../../utils/misc-utils';
 import { requoteProgram, getFunctions, getDevices } from '../requoting';
@@ -29,6 +30,7 @@ import * as I18n from '../../i18n';
 import * as ThingTalkUtils from '../../utils/thingtalk';
 import { ParserClient, PredictionResult } from '../../prediction/parserclient';
 import { SentenceExample } from '../parsers';
+import SlotExtractor from './slot_extractor';
 
 function iterEquals<T>(iterable1 : Iterable<T>, iterable2 : Iterable<T>) : boolean {
     const iter1 = iterable1[Symbol.iterator]();
@@ -80,8 +82,9 @@ type SentenceEvaluatorOptions = {
     tokenized ?: boolean;
     oracle ?: boolean;
     complexityMetric ?: keyof typeof COMPLEXITY_METRICS;
-    includeEntityValue ?: boolean
-    ignoreEntityType ?: boolean
+    includeEntityValue ?: boolean;
+    ignoreEntityType ?: boolean;
+    resolveEntityValue ?: boolean;
 } & ThingTalkUtils.ParseOptions;
 
 export interface ExampleEvaluationResult {
@@ -139,7 +142,9 @@ class SentenceEvaluator {
     private _oracle : boolean;
     private _includeEntityValue : boolean;
     private _ignoreEntityType : boolean;
+    private _resolveEntityValue : boolean;
     private _tokenizer : I18n.BaseTokenizer;
+    private _slotExtractor ?: SlotExtractor;
     private _computeComplexity : ((id : string, code : string) => number)|undefined;
 
     private _id : string;
@@ -161,7 +166,12 @@ class SentenceEvaluator {
         this._oracle = !!options.oracle;
         this._includeEntityValue = !!options.includeEntityValue;
         this._ignoreEntityType = !!options.ignoreEntityType;
+        this._resolveEntityValue = !!options.resolveEntityValue;
         this._tokenizer = tokenizer;
+        if (options.thingpediaClient) {
+            const schemaRetriever = new SchemaRetriever(options.thingpediaClient, null, true);
+            this._slotExtractor = new SlotExtractor(options.locale, options.thingpediaClient, schemaRetriever, undefined);
+        }
 
         if (options.complexityMetric)
             this._computeComplexity = COMPLEXITY_METRICS[options.complexityMetric];
@@ -240,6 +250,8 @@ class SentenceEvaluator {
         const firstTargetCode = this._targetPrograms[0];
         try {
             const parsed = await ThingTalkUtils.parsePrediction(firstTargetCode, entities, this._options, true);
+            if (this._resolveEntityValue && this._slotExtractor)
+                await this._slotExtractor.resolveSlots(parsed);
             normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                locale: this._locale,
                timezone: this._options.timezone,
