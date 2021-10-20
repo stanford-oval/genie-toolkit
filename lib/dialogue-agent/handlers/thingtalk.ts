@@ -539,29 +539,45 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 this._dialogueState = null;
                 return null;
             } else {
-                const parsed = await ThingTalkUtils.parse(initialState, {
-                    locale: this._engine.platform.locale,
-                    timezone: this._engine.platform.timezone,
-                    schemaRetriever: this._engine.schemas,
-                    thingpediaClient: this._engine.thingpedia
-                });
-                assert(parsed instanceof Ast.DialogueState);
-                this._dialogueState = parsed;
+                try {
+                    const parsed = await ThingTalkUtils.parse(initialState, {
+                        locale: this._engine.platform.locale,
+                        timezone: this._engine.platform.timezone,
+                        schemaRetriever: this._engine.schemas,
+                        thingpediaClient: this._engine.thingpedia
+                    });
+                    assert(parsed instanceof Ast.DialogueState);
+                    this._dialogueState = parsed;
 
-                if (!this._dialogueState.dialogueAct.startsWith('sys_')) {
-                    // execute the current dialogue state
-                    // this will attempt to run all the programs that failed in the
-                    // previous conversation (most likely because they were executed
-                    // in the anonymous context)
-                    return this._executeCurrentState();
-                } else {
-                    this.icon = getProgramIcon(this._dialogueState);
+                    if (!this._dialogueState.dialogueAct.startsWith('sys_')) {
+                        // execute the current dialogue state
+                        // this will attempt to run all the programs that failed in the
+                        // previous conversation (most likely because they were executed
+                        // in the anonymous context)
+                        // note: we need "return await" here or try/catch won't work
+                        return await this._executeCurrentState();
+                    } else {
+                        this.icon = getProgramIcon(this._dialogueState);
+                        return null;
+                    }
+                } catch(e) {
+                    if (e.code === 'ECANCELLED')
+                        return null;
+                    console.error(`Failed to restore conversation state: ${e.message}`);
                     return null;
                 }
             }
         } else if (showWelcome) {
-            // if we want to show the welcome message, we run the policy on the `null` state, which will return the sys_greet intent
-            return this._showWelcome();
+            try {
+                // if we want to show the welcome message, we run the policy on the `null` state, which will return the sys_greet intent
+                // note: we need "return await" here or try/catch won't work
+                return await this._showWelcome();
+            } catch(e) {
+                if (e.code === 'ECANCELLED')
+                    return null;
+                console.error(`Failed to show welcome message: ${e.message}`);
+                return null;
+            }
         } else {
             return null;
         }
