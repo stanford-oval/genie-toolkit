@@ -1,0 +1,417 @@
+class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume-control
+#_[thingpedia_name="Verschiedene Schnittstellen"]
+#_[thingpedia_description="Zeit, Zufallszahlen und andere Befehle, die nicht spezifisch für jede Fähigkeit sind"]
+#_[name="Verschiedene Schnittstellen"]
+#_[description="Zeit, Zufallszahlen und andere Befehle, die nicht spezifisch für jede Fähigkeit sind"]
+#_[canonical="Verschiedene Schnittstellen"]
+#_[help="Ich kann Ihnen das aktuelle Datum und die Uhrzeit geben, zufällige Zahlen auswählen und Ihnen helfen, verschiedene Einstellungen festzulegen"]
+#[repository="https://github.com/stanford-oval/genie-toolkit"]
+#[subcategory="service"]
+#[license="Apache-2.0"]
+#[license_gplcompatible=true] {
+  import loader from @org.thingpedia.builtin();
+
+  import config from @org.thingpedia.config.builtin();
+
+  monitorable query get_gps(out location : Location
+                            #_[canonical={
+                              default="preposition",
+                              base=["Koordinaten:"],
+                              preposition=["in #", "bei #", "um #"]
+                            }],
+                            out altitude : Measure(m)
+                            #_[canonical={
+                              default="base",
+                              base=["Höhe der"],
+                              preposition=["auf # über dem Meeresspiegel"]
+                            }]
+                            #[min_number=0m]
+                            #[max_number=15000m],
+                            out bearing : Number
+                            #_[canonical={
+                              base=["Lagern"],
+                              passive_verb=["mit Blick #"]
+                            }],
+                            out speed : Measure(mps)
+                            #_[canonical={
+                              base=["Geschwindigkeits"],
+                              passive_verb=["auf # gehen", "bewegt sich auf #"],
+                              preposition=["bei #"]
+                            }])
+  #_[canonical=["Mein aktueller Standort", "meine aktuelle Position", "meine aktuellen Geokoordinaten"]]
+  #_[result=["Ihr aktueller Standort ist ${location}", "Sie sind derzeit in ${location}"]]
+  #_[on_error={
+    unsupported_platform=["Ich kann nicht auf Ihren Standort in dieser Version von Genie zugreifen"]
+  }]
+  #[minimal_projection=["location"]]
+  #[poll_interval=0ms]
+  #[doc="get last known GPS location"]
+  #[confirm=false];
+
+  query get_time(out time : Time
+                 #_[canonical=["Zeit n"]]
+                 #[filterable=false])
+  #_[canonical=["Aktuelle Zeit", "Zeit n", "Tageszeit"]]
+  #_[result=["Jetzt ist es ${time}", "Es ist ${time}", "die aktuelle Zeit ist ${time}"]]
+  #[doc="get the current time"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  query get_date(out date : Date
+                 #_[canonical=["Datum der"]]
+                 #[filterable=false])
+  #_[canonical=["Datum von heute", "Datum der", "Datum der Anwendung"]]
+  #_[confirmation="Datum von heute"]
+  #_[result=["Heute ist ${date} - Absolut"]]
+  #[doc="get the current date"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  query get_random_between(in opt low : Number
+                           #_[canonical={
+                             base=["untere Grenze", "Mindestzahl"],
+                             passive_verb=["höher als #", "mehr als #"]
+                           }],
+                           in opt high : Number
+                           #_[canonical={
+                             base=["Obergrenze", "Höchstzahl"],
+                             passive_verb=["höher als #", "mehr als #"]
+                           }],
+                           out random : Number
+                           #_[canonical={
+                             base=["Anzahl:", "Ergebnis:"]
+                           }]
+                           #[filterable=false])
+  #_[canonical=["Zufallszahl", "zufällige Ganzzahl"]]
+  #_[result=["${random}", "Ihre Nummer ist ${random}", "Ich habe gewählt ${random}"]]
+  #_[confirmation="eine zufällige Ganzzahl zwischen $low and $high"]
+  #[doc="get a uniform random integer between `low` and `high`"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  query get_name(out name : String
+                 #_[canonical=["Bezeichnung:"]]
+                 #[string_values="tt:person_first_name"]
+                 #[filterable=false])
+  #_[canonical=["Mein Name", "Name des Benutzers"]]
+  #_[result=["Ihr Name ist ${name}", "du wirst ${name}"]]
+  #_[on_error={
+    unset=["Ich kenne Ihren Namen noch nicht. Möchten Sie mir sagen?", "du hast mir deinen Namen noch nicht gesagt"]
+  }]
+  #_[confirmation="Ihr Name"]
+  #[doc="get the user's preferred name (a setting)"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  query device_info(in req id : Entity(tt:device)
+                    #_[canonical={
+                      base=["Bezeichnung:"],
+                      passive_verb=["genannt #", "aufgerufen #"]
+                    }],
+                    out help : String
+                    #_[canonical={
+                      base=["Hilfe!", "Dokumentationen"]
+                    }]
+                    #[string_values="tt:long_free_text"]
+                    #[filterable=false],
+                    out description : String
+                    #_[canonical={
+                      base=["Beschreibung:"]
+                    }]
+                    #[string_values="tt:long_free_text"]
+                    #[filterable=false],
+                    out category : Enum(service, media, social_network, communication, home, health, data_management)
+                    #_[canonical={
+                      base=["Kategorie:"],
+                      adjective=["#"],
+                      preposition=["in der Kategorie #"],
+                      value_enum={
+                        service=["Dienstleistungen"],
+                        media=["Medien und"],
+                        social_network=["soziales_Netzwerk"],
+                        communication=["Kommunikation und"],
+                        home=["Zuhause"],
+                        health=["Gesundheit und"],
+                        data_management=["Daten_Verwaltung"]
+                      }
+                    }],
+                    out thingpedia_url : Entity(tt:url)
+                    #_[canonical={
+                      base=["Seite der Sache", "dingpedia link"]
+                    }]
+                    #[filterable=false],
+                    out website : Entity(tt:url)
+                    #_[canonical={
+                      base=["Website:", "Verknüpfungen", "URl"]
+                    }]
+                    #[filterable=false],
+                    out issue_tracker : Entity(tt:url)
+                    #_[canonical={
+                      base=["Website zur Fehlerverfolgung", "Fehlerbericht url"]
+                    }]
+                    #[filterable=false])
+  #_[canonical=["Informationen über ein Gerät", "Informationen über eine Fertigkeit", "Informationen über ein Thingpedia-Gerät", "Informationen über eine unterstützte Fähigkeit", "Hilfe über eine Fähigkeit", "Geschicklichkeitshilfen", "Geschicklichkeitsdokumentation", "Hilfe mit einer Fähigkeit"]]
+  #_[result=["mit dem ${id} , ${help} . besuchen Sie die thingpedia Seite für weitere Informationen", "die Beschreibung der ${id} wird. ${description} . besuchen Sie die thingpedia Seite für weitere Informationen"]]
+  #_[formatted=["${thingpedia_url}"]]
+  #[doc="query info about supported Thingpedia devices"]
+  #[minimal_projection=[]]
+  #[confirm=false];
+
+  action open_url(in req url : Entity(tt:url)
+                  #_[prompt=["Was URL wollen Sie öffnen", "was wollen Sie öffnen"]]
+                  #_[canonical={
+                    base=["URl", "Verknüpfungen", "Seite:"],
+                    preposition=["auf #"]
+                  }])
+  #_[canonical=["Öffnen Sie eine URL", "Link öffnen"]]
+  #_[on_error={
+    unsupported_platform=["Dateien öffnen ist in dieser Version von Genie nicht möglich"]
+  }]
+  #[doc="open a file/link"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action say(in req message : String
+             #_[prompt="Was soll ich sagen?"]
+             #_[canonical="Nachricht:"]
+             #[string_values="tt:long_free_text"],
+             out message_output : String
+             #_[canonical="Nachricht:"])
+  #_[result="${message_output}"]
+  #_[canonical="sagen:"]
+  #[doc="makes Genie say something"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action alert(out time : Time
+               #_[canonical=["Zeit n"]])
+  #_[result="Es ist ${time}"]
+  #_[formatted=["Alarm-Uhr-verstrichen"]]
+  #_[canonical="Warnung:"]
+  #[doc="makes Genie show/play a generic alert"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action timer_expire(out duration : Measure(ms)
+                      #_[canonical="Dauer der Maßnahme"])
+  #_[result="Es ist ${duration}"]
+  #_[formatted=["Alarm-Uhr-verstrichen"]]
+  #_[canonical="Zeiterlöschung"]
+  #[doc="makes Genie play a generic alert and show/say the elapsed time"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action debug_log(in req message : String
+                   #_[prompt=["was soll ich in die Logs schreiben?", "Was soll ich schreiben?"]]
+                   #_[canonical="Nachricht:"]
+                   #[string_values="tt:long_free_text"])
+  #_[canonical=["Protokollieren einer Nachricht", "eine Nachricht aufnehmen", "eine Nachricht in die Protokolle schreiben"]]
+  #_[confirmation="schreiben. $message in the developer logs"]
+  #[doc="log a message in the developer logs"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action faq_reply(in req question : Enum(about_almond_identity, about_almond_age, about_almond_how_are_you, about_almond_location, about_almond_comparison, about_almond_training, about_almond_partner, about_almond_junk, about_almond_preference, check_capability_home_assistant, check_capability_phone, general_help, iot_help, positive_emotion_thanks, positive_emotion_cool, abusive, revoke_consent, how_to_train, how_to_configure_skill, how_to_disable_skill, how_to_set_language, how_to_access_settings, how_to_use_wakeword, troubleshooting_home_assistant)
+                   #_[prompt="was möchten Sie wissen"]
+                   #_[canonical={
+                     base="Nachricht:",
+                     value_enum={
+                       about_almond_identity=["über_Mandel_Identität"],
+                       about_almond_age=["über_Mandel_age"],
+                       about_almond_how_are_you=["über den Mandelbaum, wie du bist"],
+                       about_almond_location=["über_Mandel_Standort"],
+                       about_almond_comparison=["über_Mandel_Vergleich"],
+                       about_almond_training=["über_Mandel_Training"],
+                       about_almond_partner=["über_almond_partner"],
+                       about_almond_junk=["über_Mandel_Junk"],
+                       about_almond_preference=["über_almond_vorwahl"],
+                       check_capability_home_assistant=["check_capability_home_assistant"],
+                       check_capability_phone=["check_capability_phone"],
+                       general_help=["allgemeine_Hilfe"],
+                       iot_help=["iot_help"],
+                       positive_emotion_thanks=["positive_emotion_danke"],
+                       positive_emotion_cool=["positive_emotion_cool"],
+                       abusive=["missbräuchlich"],
+                       revoke_consent=["widerruf_einwilligung"],
+                       how_to_train=["how_to_train"],
+                       how_to_configure_skill=["Wie_konfiguriert_Skill"],
+                       how_to_disable_skill=["Wie_zu_deaktivieren_skill"],
+                       how_to_set_language=["how_to_set_language"],
+                       how_to_access_settings=["how_to_access_settings"],
+                       how_to_use_wakeword=["Wie_verwenden_Wachwort"],
+                       troubleshooting_home_assistant=["Fehlerbehebung_home_assistant"]
+                     }
+                   }],
+                   out reply : String
+                   #_[canonical=["Antwort:", "Antwort:"]])
+  #_[result="${reply}"]
+  #_[canonical="Frage stellen über Genie"]
+  #_[confirmation="Antwort auf $question"]
+  #[doc="asks a question about Genie"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action configure(in req device : Entity(tt:device)
+                   #_[prompt="welches Gerät Sie konfigurieren möchten"])
+  #_[canonical=["eine neue Fertigkeit konfigurieren", "eine neue Fertigkeit ermöglichen"]]
+  #_[on_error={
+    unsupported_skill=["ich weiß nicht ${device} noch nicht", "${device} wird noch nicht unterstützt"],
+    unsupported_platform=["Sie müssen auf die Seite neue Fähigkeiten konfigurieren gehen, um neue Fähigkeiten zu ermöglichen"]
+  }]
+  #_[confirmation="eine neue Konfiguration einrichten $device"]
+  #[doc="configure a specific device by type"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action set_language(in req language : Entity(tt:iso_lang_code)
+                      #_[canonical={
+                        base=["Sprache:"],
+                        preposition=["auf #"]
+                      }])
+  #_[canonical=["Sprache festlegen", "Sprache ändern", "Die Assistentensprache festlegen", "die Sprache des Assistenten festlegen"]]
+  #_[on_error={
+    unsupported_language=["${language} wird noch nicht unterstützt", "ich unterstütze nicht ${language} noch nicht"],
+    unsupported_platform_cloud=["Sie müssen auf die Benutzerprofilseite gehen, um die Sprache zu ändern"]
+  }]
+  #_[confirmation="die Sprache auf $language"]
+  #[doc="change the assistant language (not supported on all platforms)"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action set_timezone(in req timezone : Entity(tt:timezone)
+                      #_[canonical={
+                        base=["Zeitzonen"],
+                        preposition=["auf #"]
+                      }])
+  #_[canonical=["Zeitzone festlegen", "die Zeitzone ändern", "die Zeitzone des Assistenten festlegen"]]
+  #_[on_error={
+    unsupported_platform=["Ich kann die Zeitzone auf diesem System nicht ändern. Verwenden Sie die Systemeinstellungen, um meine Zeitzone zu ändern"],
+    unsupported_platform_cloud=["Sie müssen auf die Benutzerprofilseite gehen, um die Zeitzone zu ändern"]
+  }]
+  #_[confirmation="die Zeitzone auf $timezone"]
+  #[doc="change the assistant time zone (not supported on all platforms)"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action set_wake_word(in req word : String
+                       #_[canonical={
+                         base=["Wort:"],
+                         preposition=["auf #"]
+                       }]
+                       #[string_values="tt:word"])
+  #_[canonical=["den Namen des Assistenten festlegen", "das Weckwort setzen", "das heiße Wort setzen", "Ändern Sie das Weckwort", "den Namen des Assistenten festlegen", "den Namen des Assistenten ändern"]]
+  #_[on_error={
+    unsupported=["das Weckwort zu ändern wird noch nicht unterstützt", "Ich unterstütze noch nicht, meinen Namen zu ändern"]
+  }]
+  #_[confirmation="das Weckwort auf $language"]
+  #[doc="change the assistant name (wake word) (not supported yet)"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action set_voice_output(in req status : Enum(on, off)
+                          #_[canonical={
+                            base=["Status:", "Präferenzen"],
+                            preposition=["auf #"],
+                            value_enum={
+                               on =["am am"],
+                              off=["Aus-"]
+                            }
+                          }])
+  #_[canonical=["die Einstellung der Sprachausgabe ändern"]]
+  #_[on_error={
+    unsupported=["Sprachausgabe wird auf dieser Plattform nicht unterstützt"]
+  }]
+  #_[confirmation="drehen. ${status} Sprachausgabe"]
+  #[doc="turn on or off voice output"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action set_voice_input(in req status : Enum(on, off)
+                         #_[canonical={
+                           base=["Status:", "Präferenzen"],
+                           preposition=["auf #"],
+                           value_enum={
+                              on =["am am"],
+                             off=["Aus-"]
+                           }
+                         }])
+  #_[canonical=["Änderung der Spracheingabeeinstellung"]]
+  #_[on_error={
+    unsupported=["Spracheingabe wird auf dieser Plattform nicht unterstützt"]
+  }]
+  #_[confirmation="drehen. ${status} Spracheingabe"]
+  #[doc="turn on or off voice input"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action set_name(in req name : String
+                  #_[canonical={
+                    base=["Bezeichnung:"],
+                    preposition=["auf #"]
+                  }]
+                  #[string_values="tt:person_first_name"])
+  #_[canonical=["meinen Namen ändern", "meinen Namen setzen"]]
+  #_[confirmation="ändern Sie Ihren Namen in ${name}"]
+  #[doc="change the user's preferred name (a setting)"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action set_location(in opt type : Enum(current, home, work)
+                      #_[prompt="welche Art von Standort Sie ändern möchten"]
+                      #_[canonical={
+                        value_enum={
+                          current=["Aktueller"],
+                          home=["Zuhause"],
+                          work=["Arbeit arbeit"]
+                        }
+                      }]
+                      #[default=enum current],
+                      in req location : Location
+                      #_[canonical={
+                        base=["Standort:", "Ort:", "Anschrift:"],
+                        preposition=["auf #", "als #"]
+                      }])
+  #_[canonical=["meinen Standort festlegen", "meine Adresse festlegen", "Erinnere dich an meinen Standort", "meinen Standort konfigurieren"]]
+  #_[confirmation="ändern Sie Ihre ${type} Ort zu ${name}"]
+  #[doc="change the user's preferred locations (a setting)"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action set_temperature_unit(in req unit : Enum(celsius, fahrenheit, kelvin)
+                              #_[prompt="welche Einheit ich verwenden soll"]
+                              #_[canonical={
+                                base=["Einheit:"],
+                                preposition=["auf #", "als #"],
+                                value_enum={
+                                  celsius=["Zelsius"],
+                                  fahrenheit=["Gastfreundschaft"],
+                                  kelvin=["Kelvin"]
+                                }
+                              }])
+  #_[canonical=["meine bevorzugte Temperatureinheit einstellen", "Temperatureinheit ändern", "Standardtemperatureinheit einstellen"]]
+  #[doc="change the user's preferred temperature unit (a setting)"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action stop()
+  #_[canonical=["Audio stoppen", "Hör auf zu spielen", "Wiedergabe beenden"]]
+  #[doc="pause the currently playing skill"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action pause()
+  #_[canonical=["Pausen", "Pause Audio", "Wiedergabe der Pause", "Pause spielen"]]
+  #[doc="pause the currently playing skill"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+
+  action resume()
+  #_[canonical=["Zusammenfassung der", "Audio fortsetzen", "Wiedergabe fortsetzen", "Wiedergabe fortsetzen", "wieder spielen", "Wiedergabe fortsetzen", "Weiterspielen"]]
+  #_[on_error={
+    unsupported=["die aktuelle Fähigkeit unterstützt nicht die Wiederaufnahme von Audio. bitte melden Sie diese Frage an den Geschicklichkeitsentwickler"],
+    no_device_playing=["noch nichts spielt. Musik zu spielen, kann man sagen Musik zu spielen"]
+  }]
+  #[doc="resume the currently playing skill"]
+  #[confirm=false]
+  #[minimal_projection=[]];
+}

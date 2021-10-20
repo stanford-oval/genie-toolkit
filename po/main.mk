@@ -1,8 +1,11 @@
+SHELL := /bin/bash
+
 po_file ?=
 geniedir = .
 genie ?= node --experimental_worker --max_old_space_size=8400 $(geniedir)/dist/tool/genie.js
 
 builtin_skills = $(foreach d,$(wildcard $(geniedir)/data/builtins/*/manifest.tt),$(patsubst %/manifest.tt,$$(basename %),$(d)))
+builtin_path = $(geniedir)/data/builtins/
 
 create-pot: $(geniedir)/po
 	make all
@@ -15,7 +18,7 @@ create-pot: $(geniedir)/po
 		for skill in $(builtin_skills) ; do \
 			kind=$$skill-$$fname ; \
 			echo "processing $$kind" ; \
-			$(genie) extract-translatable-annotations $(geniedir)/data/builtins/$$skill/"$$fname".tt -o $</tmp/$$kind.js ; \
+			$(genie) extract-translatable-annotations $(builtin_path)/$$skill/"$$fname".tt -o $</tmp/$$kind.js ; \
 			echo $</tmp/$$kind.js >> po/POTFILES ; \
 		done ; \
 	done

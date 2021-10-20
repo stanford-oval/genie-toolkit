@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 GENIENLP_EMBEDDINGS ?= ../genienlp/.embeddings
 
 geniedir ?= .
@@ -5,6 +7,8 @@ genienlp ?= GENIENLP_EMBEDDINGS=$(GENIENLP_EMBEDDINGS) ; genienlp
 
 skip_po_creation = true
 skip_translation = false
+
+non_interactive =
 
 model_name_or_path=Helsinki-NLP/opus-mt-$(src_lang)-$(tgt_lang)
 # model_name_or_path=facebook/mbart-large-50-one-to-many-mmt
@@ -23,7 +27,7 @@ $(geniedir)/po/$(tgt_lang): $(geniedir)/po
 
 	# prepare po
 	if ! $(skip_po_creation) ; then \
-		cd $< ; rm -rf $(tgt_lang).po ; msginit -i genie-toolkit.pot -l $(tgt_lang) ; \
+		cd $< ; rm -rf $(tgt_lang).po ; msginit -i genie-toolkit.pot -l $(tgt_lang) $(if $(non_interactive),--no-translator,) ; \
 	fi
 	mkdir -p $@
 	cp $</$(tgt_lang).po $@/input.po
