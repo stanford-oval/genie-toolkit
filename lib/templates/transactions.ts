@@ -241,7 +241,7 @@ export function notifyError(appName : string|null, program : Ast.Program, error 
     assert(stmt instanceof Ast.ExpressionStatement);
 
     return new Ast.DialogueState(null, S.POLICY_NAME, 'notification', appName ? [new Ast.Value.String(appName)] : null,
-        [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [], new Ast.NumberValue(1), false, error), 'confirmed')]);
+        [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [], new Ast.NumberValue(0), false, error), 'confirmed')]);
 }
 
 /**
