@@ -254,13 +254,12 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
     preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action'|'stream', forSide : 'user'|'agent', isList : boolean) : Phrase[] {
         const normalized = super.preprocessFunctionCanonical(canonical, forItem, forSide, isList);
 
-        // if we have any form that already has the [plural] flag, we do nothing
-        // and assume the developer already did the work
-        if (normalized.some((form) => !!form.flags.plural))
-            return normalized;
-
         if (forItem === 'query' && isList) {
             return normalized.flatMap((form) => {
+                // if this form already has the [plural] flag, we do nothing
+                if (form.flags.plural)
+                    return [form];
+
                 const clone = form.clone();
                 clone.text = this.pluralize(form.text);
                 if (clone.text !== form.text) {
