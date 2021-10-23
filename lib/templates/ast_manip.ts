@@ -1079,7 +1079,7 @@ function addFilter(loader : ThingpediaLoader,
     return addFilterInternal(table, filter.ast, options);
 }
 
-function tableToStream(table : Ast.Expression) : Ast.Expression|null {
+function tableToStream(table : Ast.Expression, options : { monitorItemID : boolean }) : Ast.Expression|null {
     if (!table.schema!.is_monitorable)
         return null;
 
@@ -1095,6 +1095,8 @@ function tableToStream(table : Ast.Expression) : Ast.Expression|null {
 
         if (projArg[0] === '$event')
             return null;
+    } else if (options.monitorItemID && table.schema!.is_list && table.schema!.hasArgument('id')) {
+        projArg = ['id'];
     }
 
     let stream;
@@ -1538,7 +1540,7 @@ function makeComputeExpression(table : Ast.Expression,
     return new Ast.ProjectionExpression(null, table, [], [expression], [null], resolveProjection(table.schema!, [], [expression]));
 }
 
-function makeComputeFilterExpression(loader : ThingpediaLoader, 
+function makeComputeFilterExpression(loader : ThingpediaLoader,
                                      table : Ast.Expression,
                                      operation : 'distance',
                                      operands : Ast.Value[],
@@ -2043,6 +2045,13 @@ function makeGenericJoin(tpLoader : ThingpediaLoader,
         return null;
     const join =  new Ast.JoinExpression(null, lhs, rhs, schema);
     return makeJoinExpressionHelper(join, condition, ['first.id', `second.${rhsParam.name}`]);
+}
+
+export function whenDoRule(table : Ast.Expression, action : ExpressionWithCoreference, options : { monitorItemID : boolean }) {
+    const stream = tableToStream(table, { monitorItemID: false });
+    if (!stream)
+        return null;
+    return addParameterPassing(stream, action);
 }
 
 export {

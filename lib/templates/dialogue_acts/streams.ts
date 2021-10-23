@@ -28,11 +28,11 @@ import {
 } from '../state_manip';
 
 
-export function makeMonitor(ctx : ContextInfo) {
+export function makeMonitor(ctx : ContextInfo, options : { monitorItemID : boolean }) {
     const currentExpression = ctx.current!.stmt.expression;
     if (currentExpression.first.schema!.functionType === 'stream')
         return null;
-    const stream = C.tableToStream(currentExpression);
+    const stream = C.tableToStream(currentExpression, options);
     if (!stream)
         return null;
 

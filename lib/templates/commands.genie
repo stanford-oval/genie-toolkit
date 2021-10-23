@@ -74,18 +74,16 @@ forward_when_do_rule : Ast.ChainExpression = {
     | stream:stream action:action_coref_same_sentence with { corefFunctionName = stream.functionName }
     ) => C.addParameterPassing(stream, action);
 
-    ( ('monitor' | 'watch' | 'check for new') table:with_filtered_table with { is_monitorable = true } ('and then' | 'then') action:action_coref_same_sentence with { corefType = table.implicitParamPassingType }
-    | ('monitor' | 'watch') table:projection_Any with { is_monitorable = true } ('and then' | 'then') action:action_coref_same_sentence with { corefType = table.projectionType }
-    | ('monitor' | 'watch' | 'check for new') table:with_filtered_table with { is_monitorable = true } ('and then' | 'then') action:action_coref_same_sentence with { corefFunctionName = table.functionName }
-    ) => {
-        const stream = C.tableToStream(table);
-        if (!stream)
-            return null;
-        return C.addParameterPassing(stream, action);
-    };
+    ["{monitor|watch} ${table} {and then|then} ${action}"]: (table:with_filtered_table<is_monitorable = true>, action:action_coref_same_sentence<corefType = table.implicitParamPassingType>) => C.whenDoRule(table, action, { monitorItemID: false }),
+    ["{monitor|watch} ${table} {and then|then} ${action}"]: (table:projection_Any<is_monitorable = true>, action:action_coref_same_sentence<corefType = table.projectionType>) => C.whenDoRule(table, action, { monitorItemID: false }),
+    ["{monitor|watch} ${table} {and then|then} ${action}"]: (table:projection_Any<is_monitorable = true>, action:action_coref_same_sentence<corefFunctionName = table.functionName>) => C.whenDoRule(table, action, { monitorItemID: false }),
 
-    !turking rule:forward_when_do_rule ('with the same' | 'with identical' | 'using the same') joinArg:out_param_Any with { functionName = rule.functionName }
-        => C.addSameNameParameterPassing($loader, rule, joinArg);
+    ["{check for new ${table} {and then|then} ${action}|when there are new ${table} ${action}}"]: (table:with_filtered_table<is_monitorable = true>, action:action_coref_same_sentence<corefType = table.implicitParamPassingType>) => C.whenDoRule(table, action, { monitorItemID: true }),
+    ["{check for new ${table} {and then|then} ${action}|when there are new ${table} ${action}}"]: (table:projection_Any<is_monitorable = true>, action:action_coref_same_sentence<corefFunctionName = table.functionName>) => C.whenDoRule(table, action, { monitorItemID: true }),
+
+    !turking {
+        ["${rule} {with the same|with identical|using the same} ${joinArg}"]: (rule:forward_when_do_rule, joinArg:out_param_Any<functionName = rule.functionName>) => C.addSameNameParameterPassing($loader, rule, joinArg),
+    }
 }
 
 backward_when_do_rule : Ast.ChainExpression = {
@@ -97,14 +95,9 @@ backward_when_do_rule : Ast.ChainExpression = {
     | action:action_coref_same_sentence stream:stream with { functionName = action.corefFunctionName }
     ) => C.addParameterPassing(stream, action);
 
-    ( action:action_coref_same_sentence 'after checking for new' table:complete_table with { implicitParamPassingType = action.corefType }
-    | action:action_coref_same_sentence 'after checking for new' table:complete_table with { functionName = action.corefFunctionName }
-    ) => {
-        const stream = C.tableToStream(table);
-        if (!stream)
-            return null;
-        return C.addParameterPassing(stream, action);
-    };
+    ( action:action_coref_same_sentence ('when there are new'|'after checking for new') table:complete_table with { implicitParamPassingType = action.corefType }
+    | action:action_coref_same_sentence ('when there are new'|'after checking for new') table:complete_table with { functionName = action.corefFunctionName }
+    ) => C.whenDoRule(table, action, { monitorItemID: true });
 }
 
 when_get_stream : Ast.ChainExpression = {
@@ -387,7 +380,7 @@ explicit_when_condition : Ast.Expression = {
         const withFilter = C.addFilter($loader, table, filter, { ifFilter: true });
         if (!withFilter)
             return null;
-        return C.tableToStream(withFilter);
+        return C.tableToStream(withFilter, { monitorItemID : false });
     },
 
     ["{if|when} ${filter} in ${table}"]: (table:complete_table<is_monitorable=true>, filter:edge_filter<functionName=table.functionName>) => {
@@ -398,7 +391,7 @@ explicit_when_condition : Ast.Expression = {
         const withFilter = C.addFilter($loader, table, filter, { ifFilter: true });
         if (!withFilter)
             return null;
-        return C.tableToStream(withFilter);
+        return C.tableToStream(withFilter, { monitorItemID : false });
     };
 }
 
@@ -412,7 +405,7 @@ when_command : Ast.Expression = {
     ) => stream;
 
     !turking ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' proj:projection_Any with { is_monitorable = true }
-        => C.tableToStream(proj);
+        => C.tableToStream(proj, { monitorItemID : false });
     !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') stream:explicit_when_condition
         => stream;
 
@@ -438,7 +431,10 @@ monitor_command : Ast.Expression = {
     ( ('monitor' | 'watch') table:with_filtered_table with { is_monitorable = true }
     | ('monitor' | 'watch') table:projection_Any with { is_monitorable = true }
     | ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' table:if_filtered_table with { is_monitorable = true }
-    ) => C.tableToStream(table);
+    ) => C.tableToStream(table, { monitorItemID : false });
+
+    ["{let me know|notify me} {{of|about} new ${table}|when there are new ${table}}"]: (table:if_filtered_table<is_monitorable = true>)
+        => C.tableToStream(table, { monitorItemID : true });
 
     !nofilter {
         ( ('monitor' | 'watch') table:complete_table with { is_monitorable = true }
@@ -453,7 +449,7 @@ monitor_command : Ast.Expression = {
             const withFilter = C.addFilter($loader, table, filter);
             if (!withFilter)
                 return null;
-            return C.tableToStream(withFilter);
+            return C.tableToStream(withFilter, { monitorItemID : true });
         };
     }
 }

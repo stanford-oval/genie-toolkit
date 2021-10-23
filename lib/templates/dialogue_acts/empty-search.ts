@@ -65,7 +65,7 @@ export function makeEmptySearchError(ctx : ContextInfo, [base, question, offerMo
         type = arg.type;
         state = makeSimpleState(ctx, 'sys_empty_search_question', [question.name]);
     } else if (offerMonitor) {
-        const monitor = C.tableToStream(ctx.current!.stmt.lastQuery!);
+        const monitor = C.tableToStream(ctx.current!.stmt.lastQuery!, { monitorItemID : true });
         if (!monitor)
             return null;
         state = addNewStatement(ctx, 'sys_empty_search', null, 'proposed', monitor);
