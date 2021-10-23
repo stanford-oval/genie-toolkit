@@ -26,7 +26,6 @@ import * as I18n from '../../i18n';
 import { clean, cleanKind, tokenizeExample } from '../misc-utils';
 import { AnyEntity } from '../entity-utils';
 import {
-    Phrase,
     Replaceable,
     Choice,
     Placeholder,
@@ -49,7 +48,7 @@ export class Describer {
 
     private _datasets : Map<string, Ast.Dataset> = new Map;
     private _preprocessedArgumentCanonicals : WeakMap<Ast.ArgumentDef, I18n.NormalizedParameterCanonical>;
-    private _preprocessedFunctionCanonicals : WeakMap<Ast.FunctionDef, Phrase[]>;
+    private _preprocessedFunctionCanonicals : WeakMap<Ast.FunctionDef, Replaceable[]>;
 
     constructor(locale : string,
                 timezone : string|undefined,
@@ -1259,7 +1258,8 @@ export class Describer {
         const arg = schema.getArgument(argname)!;
         const normalized = this._preprocessParameterCanonical(arg);
 
-        const phrases : ReplacedResult[] = normalized.base.map((phrase) => phrase.toReplaced());
+        const phrases : ReplacedResult[] = normalized.base.map((phrase) => phrase.replace({ constraints: [], replacements: [] }))
+            .filter((p) : p is ReplacedResult => p !== null);
         if (phrases.length === 0)
             return this._const(clean(argname));
         if (phrases.length === 1)

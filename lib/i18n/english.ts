@@ -25,7 +25,7 @@ import { Tag } from 'en-pos';
 import * as lexicon from 'en-lexicon';
 
 import { coin } from '../utils/random';
-import { Phrase } from '../utils/template-string';
+import { Phrase, Replaceable } from '../utils/template-string';
 import {
     EntityMap,
 } from '../utils/entity-utils';
@@ -251,13 +251,13 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         return sentence.trim();
     }
 
-    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action'|'stream', forSide : 'user'|'agent', isList : boolean) : Phrase[] {
+    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action'|'stream', forSide : 'user'|'agent', isList : boolean) : Replaceable[] {
         const normalized = super.preprocessFunctionCanonical(canonical, forItem, forSide, isList);
 
         if (forItem === 'query' && isList) {
             return normalized.flatMap((form) => {
-                // if this form already has the [plural] flag, we do nothing
-                if (form.flags.plural)
+                // if this form already has the [plural] flag, or if it is not a simple Phrase, we do nothing
+                if (!(form instanceof Phrase) || form.flags.plural)
                     return [form];
 
                 const clone = form.clone();

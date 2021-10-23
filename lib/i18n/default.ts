@@ -31,7 +31,8 @@ import BaseTokenizer from './tokenizer/base';
 import {
     Phrase,
     Concatenation,
-    Replaceable
+    Replaceable,
+    Choice
 } from '../utils/template-string';
 import {
     EntityMap,
@@ -56,13 +57,13 @@ export interface NormalizedParameterCanonical {
     default : string;
     projection_pronoun ?: string[];
 
-    base : Phrase[];
-    base_projection : Phrase[];
-    argmin : Phrase[];
-    argmax : Phrase[];
-    filter : Concatenation[];
-    enum_filter : Record<string, Phrase[]>;
-    projection : Phrase[];
+    base : Array<Phrase|Concatenation>;
+    base_projection : Array<Phrase|Concatenation>;
+    argmin : Array<Phrase|Concatenation>;
+    argmax : Array<Phrase|Concatenation>;
+    filter : Array<Phrase|Concatenation>;
+    enum_filter : Record<string, Array<Phrase|Concatenation>>;
+    projection : Array<Phrase|Concatenation>;
 }
 
 const POS_RENAME : Record<string, string> = {
@@ -262,10 +263,7 @@ export default class LanguagePack {
         return this._tokenizer = new BaseTokenizer();
     }
 
-    private _toTemplatePhrase(canonical : unknown, forSide : 'user'|'agent', isFilter : true) : Concatenation;
-    private _toTemplatePhrase(canonical : unknown, forSide : 'user'|'agent', isFilter ?: false) : Phrase;
-    private _toTemplatePhrase(canonical : unknown, forSide : 'user'|'agent', isFilter : boolean) : Phrase|Concatenation;
-    private _toTemplatePhrase(canonical : unknown, forSide : 'user'|'agent', isFilter = false) : Replaceable {
+    private _toTemplatePhrases(canonical : unknown, forSide : 'user'|'agent', isFilter = false) : Array<Phrase|Concatenation> {
         let tmpl = String(canonical);
         if (forSide === 'agent')
             tmpl = this.toAgentSideUtterance(tmpl);
@@ -279,15 +277,18 @@ export default class LanguagePack {
             tmpl = tmpl.replace('|', '//');
         }
         const parsed = Replaceable.parse(tmpl).preprocess(this, isFilter ? ['value'] : []);
-        if (isFilter) {
-            if (parsed instanceof Concatenation)
-                return parsed;
-            // this can happen if the original template was empty
-            return new Concatenation([parsed], {}, {});
-        } else {
-            assert(parsed instanceof Phrase);
+        if (parsed instanceof Phrase || parsed instanceof Concatenation)
+            return [parsed];
+
+        if (parsed instanceof Choice) {
+            return parsed.variants.map((v) => {
+                if (v instanceof Phrase || v instanceof Concatenation)
+                    return v;
+
+                return new Concatenation([v], {}, {});
+            });
         }
-        return parsed;
+        return [new Concatenation([parsed], {}, {})];
     }
 
     /**
@@ -295,13 +296,13 @@ export default class LanguagePack {
      * the form to the expected sets of POS, and adds any automatically generated
      * plural/gender/case forms as necessary.
      */
-    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action'|'stream', forSide : 'user'|'agent', isList : boolean) : Phrase[] {
+    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action'|'stream', forSide : 'user'|'agent', isList : boolean) : Replaceable[] {
         if (canonical === undefined || canonical === null)
             return [];
         if (Array.isArray(canonical))
-            return canonical.map((c) => this._toTemplatePhrase(c, forSide));
+            return canonical.flatMap((c) => this._toTemplatePhrases(c, forSide));
         else
-            return [this._toTemplatePhrase(canonical, forSide)];
+            return this._toTemplatePhrases(canonical, forSide);
     }
 
     /**
@@ -337,8 +338,8 @@ export default class LanguagePack {
         if (canonical === undefined || canonical === null)
             return normalized;
         if (typeof canonical === 'string') {
-            normalized.base = [this._toTemplatePhrase(canonical, forSide)];
-            normalized.filter = [this._toTemplatePhrase(canonical, forSide, true)];
+            normalized.base = this._toTemplatePhrases(canonical, forSide);
+            normalized.filter = this._toTemplatePhrases(canonical, forSide, true);
             for (const phrase of normalized.filter) {
                 if (!phrase.flags.pos)
                     phrase.flags.pos = 'property';
@@ -346,8 +347,8 @@ export default class LanguagePack {
             return normalized;
         }
         if (Array.isArray(canonical)) {
-            normalized.base = canonical.map((c) => this._toTemplatePhrase(c, forSide));
-            normalized.filter = canonical.map((c) => this._toTemplatePhrase(c, forSide, true));
+            normalized.base = canonical.flatMap((c) => this._toTemplatePhrases(c, forSide));
+            normalized.filter = canonical.flatMap((c) => this._toTemplatePhrases(c, forSide, true));
             for (const phrase of normalized.filter) {
                 if (!phrase.flags.pos)
                     phrase.flags.pos = 'property';
@@ -395,9 +396,9 @@ export default class LanguagePack {
                 }
                 let phrases;
                 if (Array.isArray(value))
-                    phrases = value.map((c) => this._toTemplatePhrase(c, forSide));
+                    phrases = value.flatMap((c) => this._toTemplatePhrases(c, forSide));
                 else
-                    phrases = [this._toTemplatePhrase(value, forSide)];
+                    phrases = this._toTemplatePhrases(value, forSide);
 
                 pos = POS_RENAME[pos]||pos;
                 for (const phrase of phrases)
@@ -415,9 +416,9 @@ export default class LanguagePack {
                         continue;
                     let enumNormalized;
                     if (Array.isArray(enumCanonical))
-                        enumNormalized = enumCanonical.map((c) => this._toTemplatePhrase(c, forSide));
+                        enumNormalized = enumCanonical.flatMap((c) => this._toTemplatePhrases(c, forSide));
                     else
-                        enumNormalized = [this._toTemplatePhrase(enumCanonical, forSide)];
+                        enumNormalized = this._toTemplatePhrases(enumCanonical, forSide);
 
                     if (key !== 'enumerands') {
                         let pos = key.substring(0, key.length - '_enum'.length);
@@ -465,18 +466,16 @@ export default class LanguagePack {
 
                 let phrases;
                 if (Array.isArray(value))
-                    phrases = value.map((c) => this._toTemplatePhrase(c, forSide, isFilter));
+                    phrases = value.flatMap((c) => this._toTemplatePhrases(c, forSide, isFilter));
                 else
-                    phrases = [this._toTemplatePhrase(value, forSide, isFilter)];
+                    phrases = this._toTemplatePhrases(value, forSide, isFilter);
 
                 if (pos !== undefined) {
                     pos = POS_RENAME[pos]||pos;
                     for (const phrase of phrases)
                         phrase.flags.pos = pos;
                 }
-                // HACK: this is not the right type signature, but it works in practice
-                // due to the logic around isFilter
-                normalized[into].push(...(phrases as Array<Concatenation & Phrase>));
+                normalized[into].push(...phrases);
             }
         }
 
