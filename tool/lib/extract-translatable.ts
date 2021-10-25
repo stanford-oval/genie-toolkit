@@ -77,7 +77,7 @@ function* extractFunctionCanonical(langPack : I18n.LanguagePack, key : string, f
 }
 
 function* extractParameterCanonical(langPack : I18n.LanguagePack, key : string, argdef : ThingTalk.Ast.ArgumentDef) : IterableIterator<TranslatableString> {
-    const normalized = langPack.preprocessParameterCanonical(argdef.nl_annotations.canonical || clean(argdef.name), 'user');
+    const normalized = langPack.preprocessParameterCanonical(argdef, 'user');
 
     // remove the canonical form, and replace them with the translated/normalized form
     const newCanonical : any = {};
@@ -120,6 +120,24 @@ function* extractParameterCanonical(langPack : I18n.LanguagePack, key : string, 
             field: enum_
         };
     }
+
+    if (argdef.type instanceof ThingTalk.Type.Enum) {
+        const typekey = `enum.${argdef.type.entries!.join(',')}`;
+        newCanonical.enum_value = {};
+        for (const enum_ in normalized.enum_value) {
+            const enum_options = normalized.enum_value[enum_];
+            const fullkey = `${key}.enum.${enum_}`;
+            newCanonical.enum_value[enum_] = makeChoice(enum_options);
+            yield {
+                key: fullkey,
+                // note: the context includes the enum type but it does not include the class/function/argument name
+                // this is because enums must be translated consistently across the whole codebase as they are unified by type
+                context: typekey,
+                object: newCanonical.enum_value,
+                field: enum_
+            };
+        }
+    }
 }
 
 export function* processLibrary(library : ThingTalk.Ast.Library) : IterableIterator<TranslatableString> {
@@ -132,26 +150,22 @@ export function* processLibrary(library : ThingTalk.Ast.Library) : IterableItera
         for (const what of ['queries', 'actions'] as const) {
             for (const name in _class[what]) {
                 const fndef = _class[what][name];
+                yield* extractFunctionCanonical(langPack, `${what}.${name}.canonical`, fndef);
                 for (const key in fndef.nl_annotations) {
                     if (key === 'canonical')
-                        yield* extractFunctionCanonical(langPack, `${what}.${name}.${key}`, fndef);
-                    else
-                        yield* extract(`${what}.${name}.${key}`, fndef.nl_annotations, key);
+                        continue;
+                    yield* extract(`${what}.${name}.${key}`, fndef.nl_annotations, key);
                 }
 
                 for (const argname of _class[what][name].args) {
                     const arg = _class[what][name].getArgument(argname)!;
 
+                    yield* extractParameterCanonical(langPack, `${what}.${name}.args.${argname}.canonical`, arg);
                     for (const key in arg.nl_annotations) {
                         if (key === 'canonical')
-                            yield* extractParameterCanonical(langPack, `${what}.${name}.args.${argname}.${key}`, arg);
-                        else
-                            yield* extract(`${what}.${name}.args.${argname}.${key}`, arg.nl_annotations, key);
+                            continue;
+                        yield* extract(`${what}.${name}.args.${argname}.${key}`, arg.nl_annotations, key);
                     }
-
-                    // handle enums
-                    if (arg.type.isEnum)
-                        yield* extract(`${what}.${name}.args.${argname}.enum`, arg, 'type');
                 }
             }
         }
