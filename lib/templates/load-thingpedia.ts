@@ -443,7 +443,7 @@ export default class ThingpediaLoader {
         for (const form of canonical.base)
             this._addRule('input_param', [], String(form), () => pslot, keyfns.paramKeyFn, {});
 
-        const filterforms = this._collectByPOS(canonical.filter);
+        const filterforms = this._collectByPOS(canonical.filter_phrase);
         for (const pos in filterforms) {
             const forms = filterforms[pos];
             const attributes = this._getRuleAttributes(canonical, pos);
@@ -613,7 +613,7 @@ export default class ThingpediaLoader {
                 }
             }
 
-            const filterforms = this._collectByPOS(canonical.filter);
+            const filterforms = this._collectByPOS(canonical.filter_phrase);
             for (const pos in filterforms) {
                 const forms = filterforms[pos];
                 const attributes = this._getRuleAttributes(canonical, pos);
@@ -1174,7 +1174,7 @@ export default class ThingpediaLoader {
                     ast = table.clone();
                     ast.invocation.in_params = inparams;
                 }
-                for (const form of canonical.filter) {
+                for (const form of canonical.filter_phrase) {
                     if (form.flags.pos !== 'reverse_property')
                         continue;
 

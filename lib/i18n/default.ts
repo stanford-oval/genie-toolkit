@@ -63,7 +63,7 @@ export interface NormalizedParameterCanonical {
     base_projection : Array<Phrase|Concatenation>;
     argmin : Array<Phrase|Concatenation>;
     argmax : Array<Phrase|Concatenation>;
-    filter : Array<Phrase|Concatenation>;
+    filter_phrase : Array<Phrase|Concatenation>;
     enum_value : Record<string, Array<Phrase|Concatenation>>;
     enum_filter : Record<string, Array<Phrase|Concatenation>>;
     projection : Array<Phrase|Concatenation>;
@@ -344,7 +344,7 @@ export default class LanguagePack {
             base_projection: [],
             argmin: [],
             argmax: [],
-            filter: [],
+            filter_phrase: [],
             enum_value: {},
             enum_filter: {},
             projection: [],
@@ -360,8 +360,8 @@ export default class LanguagePack {
 
         if (typeof canonical === 'string') {
             normalized.base = this._toTemplatePhrases(canonical, forSide);
-            normalized.filter = this._toTemplatePhrases(canonical, forSide, true);
-            for (const phrase of normalized.filter) {
+            normalized.filter_phrase = this._toTemplatePhrases(canonical, forSide, true);
+            for (const phrase of normalized.filter_phrase) {
                 if (!phrase.flags.pos)
                     phrase.flags.pos = 'property';
             }
@@ -371,8 +371,8 @@ export default class LanguagePack {
         }
         if (Array.isArray(canonical)) {
             normalized.base = canonical.flatMap((c) => this._toTemplatePhrases(c, forSide));
-            normalized.filter = canonical.flatMap((c) => this._toTemplatePhrases(c, forSide, true));
-            for (const phrase of normalized.filter) {
+            normalized.filter_phrase = canonical.flatMap((c) => this._toTemplatePhrases(c, forSide, true));
+            for (const phrase of normalized.filter_phrase) {
                 if (!phrase.flags.pos)
                     phrase.flags.pos = 'property';
             }
@@ -479,7 +479,7 @@ export default class LanguagePack {
                         normalized.enum_filter[enumerand] = enumNormalized;
                 }
             } else {
-                let into : 'base' | 'base_projection' | 'filter' | 'projection' | 'argmin' | 'argmax';
+                let into : 'base' | 'base_projection' | 'filter_phrase' | 'projection' | 'argmin' | 'argmax';
                 let pos : string|undefined;
                 let isFilter = false;
                 if (key === 'base' || key === 'base_projection') {
@@ -494,13 +494,13 @@ export default class LanguagePack {
                 } else if (key.endsWith('_argmax')) {
                     into = 'argmax';
                     pos = key.substring(0, key.length - '_argmax'.length);
-                } else if (key === 'filter' || key === 'projection'
+                } else if (key === 'filter_phrase' || key === 'projection'
                             || key === 'argmin' || key === 'argmax') {
                     into = key;
                     pos = undefined;
-                    isFilter = key === 'filter';
+                    isFilter = key === 'filter_phrase';
                 } else {
-                    into = 'filter';
+                    into = 'filter_phrase';
                     pos = key;
                     isFilter = true;
                 }

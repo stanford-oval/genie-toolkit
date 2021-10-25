@@ -92,7 +92,7 @@ function* extractParameterCanonical(langPack : I18n.LanguagePack, key : string, 
         field: 'default'
     };
 
-    for (const subkey of ['base', 'base_projection', 'argmin', 'argmax', 'projection', 'filter'] as const) {
+    for (const subkey of ['base', 'base_projection', 'argmin', 'argmax', 'projection', 'filter_phrase'] as const) {
         if (normalized[subkey].length === 0)
             continue;
         const fullkey = `${key}.${subkey}`;

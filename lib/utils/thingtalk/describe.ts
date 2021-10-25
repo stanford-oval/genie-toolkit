@@ -912,7 +912,7 @@ export class Describer {
                 constraints: {}
             };
             const phrases : ReplacedResult[] = [];
-            for (const phrase of canonical.filter) {
+            for (const phrase of canonical.filter_phrase) {
                 const replaced = phrase.replace(ctx);
                 if (replaced)
                     phrases.push(replaced);
@@ -1042,7 +1042,7 @@ export class Describer {
                 constraints: {}
             };
             const phrases : ReplacedResult[] = [];
-            for (const phrase of canonical.filter) {
+            for (const phrase of canonical.filter_phrase) {
                 const replaced = phrase.replace(ctx);
                 if (replaced)
                     phrases.push(replaced);
