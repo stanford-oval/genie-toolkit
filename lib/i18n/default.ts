@@ -62,6 +62,7 @@ export interface NormalizedParameterCanonical {
     argmin : Array<Phrase|Concatenation>;
     argmax : Array<Phrase|Concatenation>;
     filter : Array<Phrase|Concatenation>;
+    enum_value : Record<string, Array<Phrase|Concatenation>>;
     enum_filter : Record<string, Array<Phrase|Concatenation>>;
     projection : Array<Phrase|Concatenation>;
 }
@@ -332,6 +333,7 @@ export default class LanguagePack {
             argmin: [],
             argmax: [],
             filter: [],
+            enum_value: {},
             enum_filter: {},
             projection: [],
         };
@@ -408,6 +410,22 @@ export default class LanguagePack {
                     normalized.enum_filter[boolean].push(...phrases);
                 else
                     normalized.enum_filter[boolean] = phrases;
+            } else if (key === 'value_enum' || key === 'enum_value') {
+                for (const enumerand in value as Record<string, unknown>) {
+                    const enumCanonical = (value as Record<string, unknown>)[enumerand];
+                    if (enumCanonical === null || enumCanonical === undefined)
+                        continue;
+                    let enumNormalized;
+                    if (Array.isArray(enumCanonical))
+                        enumNormalized = enumCanonical.flatMap((c) => this._toTemplatePhrases(c, forSide));
+                    else
+                        enumNormalized = this._toTemplatePhrases(enumCanonical, forSide);
+
+                    if (normalized.enum_value[enumerand])
+                        normalized.enum_value[enumerand].push(...enumNormalized);
+                    else
+                        normalized.enum_value[enumerand] = enumNormalized;
+                }
             } else if (key === 'enum_filter' || key.endsWith('_enum')) {
                 // new-style canonical for enums
                 for (const enumerand in value as Record<string, unknown>) {
@@ -420,7 +438,7 @@ export default class LanguagePack {
                     else
                         enumNormalized = this._toTemplatePhrases(enumCanonical, forSide);
 
-                    if (key !== 'enumerands') {
+                    if (key !== 'enum_filter') {
                         let pos = key.substring(0, key.length - '_enum'.length);
                         pos = POS_RENAME[pos]||pos;
                         for (const phrase of enumNormalized)

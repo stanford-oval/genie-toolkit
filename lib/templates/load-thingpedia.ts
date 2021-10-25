@@ -294,14 +294,14 @@ export default class ThingpediaLoader {
         }
     }
 
-    private _recordType(type : Type) {
+    private _recordType(type : Type, fromArgument ?: Ast.ArgumentDef) {
         if (type instanceof Type.Compound) {
             for (const field in type.fields)
-                this._recordType(type.fields[field].type);
+                this._recordType(type.fields[field].type, fromArgument);
             return null;
         }
         if (type instanceof Type.Array)
-            this._recordType(type.elem as Type);
+            this._recordType(type.elem as Type, fromArgument);
         const typestr = typeToStringSafe(type);
         if (this.types.has(typestr)) {
             if (type.isArray)
@@ -326,12 +326,18 @@ export default class ThingpediaLoader {
                 identity, keyfns.valueKeyFn);
 
             if (type instanceof Type.Enum) {
+                const argcanonical = fromArgument ?
+                    this._langPack.preprocessParameterCanonical(fromArgument.metadata.canonical || ThingTalkUtils.clean(fromArgument.name), this._options.forSide)
+                    : undefined;
+
                 for (const entry of type.entries!) {
                     const value = new Ast.Value.Enum(entry);
                     value.getType = function() {
                         return type;
                     };
-                    this._addRule('constant_' + typestr, [], ThingTalkUtils.clean(entry),
+
+                    const canonical = argcanonical?.enum_value?.[entry] || [ThingTalkUtils.clean(entry)];
+                    this._addRule('constant_' + typestr, [], '{' + canonical.join('|') + '}',
                         () => value, keyfns.valueKeyFn);
                 }
             }
@@ -394,7 +400,7 @@ export default class ThingpediaLoader {
     private _recordInputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
-        const ptypestr = this._recordType(ptype);
+        const ptypestr = this._recordType(ptype, arg);
         if (!ptypestr)
             return;
         const pslot : ParamSlot = { schema, name: pname, type: ptype,
@@ -489,7 +495,7 @@ export default class ThingpediaLoader {
     private _recordOutputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
-        if (!this._recordType(ptype))
+        if (!this._recordType(ptype, arg))
             return;
 
         const filterable = arg.getImplementationAnnotation<boolean>('filterable') ?? true;
@@ -1291,7 +1297,7 @@ export default class ThingpediaLoader {
 
                         // TODO store opt somewhere
 
-                        assert(this._recordType(arg.type));
+                        assert(this._recordType(arg.type, arg));
                     }
                     return true;
                 });
