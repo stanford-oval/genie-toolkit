@@ -24,10 +24,12 @@ import * as path from 'path';
 import Gettext from 'node-gettext';
 import * as gettextParser from 'gettext-parser';
 import * as Units from 'thingtalk-units';
+import { Ast, Type } from 'thingtalk';
 import { Temporal, toTemporalInstant } from '@js-temporal/polyfill';
 
 import BaseTokenizer from './tokenizer/base';
 
+import { clean } from '../utils/misc-utils';
 import {
     Phrase,
     Concatenation,
@@ -306,12 +308,22 @@ export default class LanguagePack {
             return this._toTemplatePhrases(canonical, forSide);
     }
 
+    private _ensureDefaultEnumValues(fromArgument : Ast.ArgumentDef, normalized : NormalizedParameterCanonical, forSide : 'user'|'agent') {
+        const type = fromArgument.type;
+        if (type instanceof Type.Enum) {
+            for (const entry of type.entries!) {
+                if (!normalized.enum_value[entry])
+                    normalized.enum_value[entry] = this._toTemplatePhrases(clean(entry), forSide);
+            }
+        }
+    }
+
     /**
      * Apply load-time transformations to the canonical annotation of a parameter. This normalizes
      * the form to the expected sets of POS, and adds any automatically generated
      * plural/gender/case forms as necessary.
      */
-    preprocessParameterCanonical(canonical : unknown, forSide : 'user'|'agent') : NormalizedParameterCanonical {
+    preprocessParameterCanonical(fromArgument : Ast.ArgumentDef, forSide : 'user'|'agent') : NormalizedParameterCanonical {
         // NOTE: we don't make singular/plural forms of parameters, even in English,
         // because things like "with Chinese and Italian foods" are awkward
         // and "with Chinese and Italian food" is better
@@ -337,8 +349,15 @@ export default class LanguagePack {
             enum_filter: {},
             projection: [],
         };
-        if (canonical === undefined || canonical === null)
+        const canonical : unknown = fromArgument.nl_annotations.canonical;
+        if (canonical === undefined || canonical === null) {
+            // make up a completely default canonical
+            normalized.base = this._toTemplatePhrases(clean(fromArgument.name), forSide);
+
+            this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
             return normalized;
+        }
+
         if (typeof canonical === 'string') {
             normalized.base = this._toTemplatePhrases(canonical, forSide);
             normalized.filter = this._toTemplatePhrases(canonical, forSide, true);
@@ -346,6 +365,8 @@ export default class LanguagePack {
                 if (!phrase.flags.pos)
                     phrase.flags.pos = 'property';
             }
+
+            this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
             return normalized;
         }
         if (Array.isArray(canonical)) {
@@ -355,6 +376,8 @@ export default class LanguagePack {
                 if (!phrase.flags.pos)
                     phrase.flags.pos = 'property';
             }
+
+            this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
             return normalized;
         }
 
@@ -497,6 +520,7 @@ export default class LanguagePack {
             }
         }
 
+        this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
         return normalized;
     }
 

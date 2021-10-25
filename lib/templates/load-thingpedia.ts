@@ -327,7 +327,7 @@ export default class ThingpediaLoader {
 
             if (type instanceof Type.Enum) {
                 const argcanonical = fromArgument ?
-                    this._langPack.preprocessParameterCanonical(fromArgument.metadata.canonical || ThingTalkUtils.clean(fromArgument.name), this._options.forSide)
+                    this._langPack.preprocessParameterCanonical(fromArgument, this._options.forSide)
                     : undefined;
 
                 for (const entry of type.entries!) {
@@ -435,7 +435,7 @@ export default class ThingpediaLoader {
             }
         }*/
 
-        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || ThingTalkUtils.clean(arg.name), this._options.forSide);
+        const canonical = this._langPack.preprocessParameterCanonical(arg, this._options.forSide);
 
         const corefconst = new SentenceGeneratorRuntime.NonTerminal('coref_constant', 'value');
         const constant = this._getConstantNT(ptype, 'value');
@@ -468,12 +468,11 @@ export default class ThingpediaLoader {
     }
 
     private _recordBooleanOutputParam(pslot : ParamSlot, arg : Ast.ArgumentDef) {
-        const pname = arg.name;
         const ptype = arg.type;
         if (!this._recordType(ptype))
             return;
 
-        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || ThingTalkUtils.clean(pname), this._options.forSide);
+        const canonical = this._langPack.preprocessParameterCanonical(arg, this._options.forSide);
 
         for (const form of canonical.base)
             this._addOutParam(pslot, String(form));
@@ -544,7 +543,7 @@ export default class ThingpediaLoader {
                 this._addRule('out_param_ArrayCount', [], form, () => pslot, keyfns.paramKeyFn);
         }
 
-        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || ThingTalkUtils.clean(pname), this._options.forSide);
+        const canonical = this._langPack.preprocessParameterCanonical(arg, this._options.forSide);
 
         const vtype = ptype;
         let op = '==';
@@ -1140,7 +1139,7 @@ export default class ThingpediaLoader {
         for (const argname of q.args) {
             const arg = q.getArgument(argname)!;
 
-            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical, this._options.forSide);
+            const canonical = this._langPack.preprocessParameterCanonical(arg, this._options.forSide);
 
             let op = '==';
             let vtype : Type[] = [arg.type];
