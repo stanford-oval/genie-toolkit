@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as argparse from 'argparse';
 import * as gettextParser from 'gettext-parser';
 import { promises as pfs } from 'fs';
 import * as path from 'path';
@@ -49,7 +50,14 @@ function getNonTermNames(tmpl : string) {
     return names;
 }
 
-async function main() {
+export function initArgparse(subparsers : argparse.SubParser) {
+    subparsers.add_parser('lint-po-files', {
+        add_help: true,
+        description: "Check the syntax of translations in a PO directory."
+    });
+}
+
+export async function execute() {
     let anyError = false;
     for (const filename of await pfs.readdir('./po')) {
         if (!filename.endsWith('.po'))
@@ -95,4 +103,3 @@ async function main() {
     if (anyError)
         process.exit(1);
 }
-main();
