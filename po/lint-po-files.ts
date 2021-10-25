@@ -56,7 +56,7 @@ async function main() {
             continue;
 
         const pathname = path.resolve('./po', filename);
-        const locale = path.basename(filename, '.po');
+        const locale = path.basename(filename, '.po').replace(/[-_.@]/g, '-');
         console.log();
         console.log('##########');
         console.log(`Validating ${locale}`);
