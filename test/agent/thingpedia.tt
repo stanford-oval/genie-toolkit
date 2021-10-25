@@ -844,7 +844,6 @@ class @com.spotify
     rate_limit_error=["spotify is temporarily unavailable"]
   }]
   #[minimal_projection=["id"]]
-  #_[formatted=[{type="text",text="${id} by ${artists}"}]]
   #[doc="search for content on Spotify"];
 
 
@@ -899,7 +898,6 @@ class @com.spotify
     rate_limit_error=["spotify is temporarily unavailable"]
   }]
   #[minimal_projection=["id"]]
-  #_[formatted=[{type="text",text="${id} by ${artists}"}]]
   #[doc="search for songs on Spotify"];
 
   list query album extends playable (out id: Entity(com.spotify:album)
@@ -917,7 +915,6 @@ class @com.spotify
     rate_limit_error=["spotify is temporarily unavailable"]
   }]
   #[minimal_projection=["id"]]
-  #_[formatted=[{type="text",text="${id} by ${artists}"}]]
   #[doc="search for albums on Spotify"];
 
   list query playlist extends playable (out id: Entity(com.spotify:playlist)
@@ -936,7 +933,6 @@ class @com.spotify
     rate_limit_error=["spotify is temporarily unavailable"]
   }]
   #[minimal_projection=["id"]]
-  #_[formatted=[{type="text",text="${id}"}]]
   #[doc="search for playlists on Spotify"];
 
   list query show extends playable(out id: Entity(com.spotify:show)
@@ -954,7 +950,6 @@ class @com.spotify
     rate_limit_error=["spotify is temporarily unavailable"]
   }]
   #[minimal_projection=["id"]]
-  #_[formatted=[{type="text",text="${id}"}]]
   #[doc="search for shows on Spotify"];
 
   action play (in req playable: Entity(com.spotify:playable)
@@ -1078,7 +1073,6 @@ class @com.spotify
       rate_limit_error=["spotify is temporarily unavailable"]
     }]
     #[minimal_projection=["id"]]
-    #_[formatted=[{type="text",text="${id}"}]]
     #[doc="search for artists on Spotify"];
 
     monitorable query get_currently_playing extends song()
@@ -1100,7 +1094,6 @@ class @com.spotify
     #_[on_error={
       rate_limit_error=["spotify is temporarily unavailable"]
     }]
-    #_[formatted=[{type="text",text="${song}"}]]
     #[poll_interval=3600000ms]
     #[doc="get user's top tracks in the last 4 weeks"];
 

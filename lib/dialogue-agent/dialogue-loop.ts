@@ -567,6 +567,8 @@ export class DialogueLoop {
     async replyGeneric(message : string|Tp.FormatObjects.FormattedObject, icon ?: string|null) {
         if (typeof message === 'string')
             await this.reply(message, icon);
+        else if (message.type === 'text')
+            await this.reply(message.text, icon);
         else if (message.type === 'picture' || message.type === 'audio' || message.type === 'video')
             await this.conversation.sendMedia(message.type, message.url, message.alt, icon || this.icon);
         else if (message.type === 'rdl')
