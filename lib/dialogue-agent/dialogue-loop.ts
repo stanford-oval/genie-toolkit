@@ -600,18 +600,26 @@ export class DialogueLoop {
         this._pushQueueItem(item);
     }
 
+    async _tryLoop(showWelcome : boolean, initialState : Record<string, unknown>|null) {
+        while (!this._stopped) {
+            try {
+                await this._loop(showWelcome, initialState);
+            } catch(e) {
+                console.error('Uncaught error in dialog loop', e);
+                // loop
+            }
+            showWelcome = false;
+            initialState = null;
+        }
+    }
+
     async start(showWelcome : boolean, initialState : Record<string, unknown>|null) {
         await this._nlu.start();
         await this._nlg.start();
         this._dynamicHandlers.start();
 
         const promise = this._waitNextCommand();
-        this._loop(showWelcome, initialState).then(() => {
-            throw new Error('Unexpected end of dialog loop');
-        }, (err) => {
-            console.error('Uncaught error in dialog loop', err);
-            throw err;
-        });
+        this._tryLoop(showWelcome, initialState);
         return promise;
     }
 
