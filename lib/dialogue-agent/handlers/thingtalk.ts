@@ -564,6 +564,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                     if (e.code === 'ECANCELLED')
                         return null;
                     console.error(`Failed to restore conversation state: ${e.message}`);
+                    this._dialogueState = null;
                     return null;
                 }
             }
@@ -576,6 +577,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 if (e.code === 'ECANCELLED')
                     return null;
                 console.error(`Failed to show welcome message: ${e.message}`);
+                this._dialogueState = null;
                 return null;
             }
         } else {
