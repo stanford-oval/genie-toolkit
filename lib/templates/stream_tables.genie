@@ -575,15 +575,15 @@ edge_stream : Ast.Expression = {
 stream : Ast.Expression = {
     thingpedia_complete_stream;
     !turking {
-        ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:with_filtered_table with { is_monitorable = true } ('change' | 'update') => C.tableToStream(table);
+        ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:with_filtered_table with { is_monitorable = true } ('change' | 'update') => C.tableToStream(table, { monitorItemID : false });
     }
-    ?turking ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:with_filtered_table with { is_monitorable = true } 'update' => C.tableToStream(table);
+    ?turking ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:with_filtered_table with { is_monitorable = true } 'update' => C.tableToStream(table, { monitorItemID : false });
 
     !turking {
-        ('in case of changes' | 'in case of variations' | 'in case of updates' | 'if something changes' | 'when something changes' | 'if there are changes' | 'if there are updates') 'in' table:with_filtered_table with { is_monitorable = true } => C.tableToStream(table);
+        ('in case of changes' | 'in case of variations' | 'in case of updates' | 'if something changes' | 'when something changes' | 'if there are changes' | 'if there are updates') 'in' table:with_filtered_table with { is_monitorable = true } => C.tableToStream(table, { monitorItemID : false });
 
         ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'anytime') proj:projection_Any with { is_monitorable = true } 'changes'
-            => C.tableToStream(proj);
+            => C.tableToStream(proj, { monitorItemID : false });
     }
     !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table with { is_monitorable = true } 'change and' filter:edge_filter with { functionName = table.functionName } => {
         if (!table.schema!.is_monitorable || !C.checkFilter($loader, table, filter) || table.schema!.is_list)
@@ -591,7 +591,7 @@ stream : Ast.Expression = {
         const withFilter = C.addFilter($loader, table, filter, { ifFilter: true });
         if (!withFilter)
             return null;
-        return C.tableToStream(withFilter);
+        return C.tableToStream(withFilter, { monitorItemID : false });
     };
     !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table with { is_monitorable = true } 'change and' filter:if_filter with { functionName = table.functionName } => {
         if (!table.schema!.is_monitorable || !C.checkFilter($loader, table, filter))
@@ -601,7 +601,7 @@ stream : Ast.Expression = {
         const withFilter = C.addFilter($loader, table, filter, { ifFilter: true });
         if (!withFilter)
             return null;
-        return C.tableToStream(withFilter);
+        return C.tableToStream(withFilter, { monitorItemID : false });
     };
     !nofilter edge_stream;
 }

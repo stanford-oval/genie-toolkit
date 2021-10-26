@@ -313,7 +313,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                     schemaRetriever: this._engine.schemas,
                     loadMetadata: true,
                 }, true);
-            } catch(e) {
+            } catch(e : any) {
                 // Likely, a type error in the ThingTalk code; not a big deal, but we still log it
                 console.log(`Failed to parse beam ${beamposition}: ${e.message}`);
                 parsed = new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'failed'));
@@ -560,7 +560,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                         this.icon = getProgramIcon(this._dialogueState);
                         return null;
                     }
-                } catch(e) {
+                } catch(e : any) {
                     if (e.code === 'ECANCELLED')
                         return null;
                     console.error(`Failed to restore conversation state: ${e.message}`);
@@ -572,7 +572,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 // if we want to show the welcome message, we run the policy on the `null` state, which will return the sys_greet intent
                 // note: we need "return await" here or try/catch won't work
                 return await this._showWelcome();
-            } catch(e) {
+            } catch(e : any) {
                 if (e.code === 'ECANCELLED')
                     return null;
                 console.error(`Failed to show welcome message: ${e.message}`);

@@ -88,19 +88,6 @@ const TIMER_SCHEMA = Operators.Functions['timer'];
 const ATTIMER_SCHEMA = Operators.Functions['attimer'];
 const ONTIMER_SCHEMA = Operators.Functions['ontimer'];
 
-interface CanonicalForm {
-    default : string;
-    projection_pronoun ?: string[];
-
-    base : SentenceGeneratorRuntime.Phrase[];
-    base_projection : SentenceGeneratorRuntime.Phrase[];
-    argmin : SentenceGeneratorRuntime.Phrase[];
-    argmax : SentenceGeneratorRuntime.Phrase[];
-    filter : SentenceGeneratorRuntime.Concatenation[];
-    enum_filter : Record<string, SentenceGeneratorRuntime.Phrase[]>;
-    projection : SentenceGeneratorRuntime.Phrase[];
-}
-
 type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
 
 export interface ParsedPlaceholderPhrase {
@@ -342,7 +329,7 @@ export default class ThingpediaLoader {
                 for (const entry of type.entries!) {
                     const value = new Ast.Value.Enum(entry);
                     value.getType = function() {
-                        return type; 
+                        return type;
                     };
                     this._addRule('constant_' + typestr, [], ThingTalkUtils.clean(entry),
                         () => value, keyfns.valueKeyFn);
@@ -394,7 +381,7 @@ export default class ThingpediaLoader {
         return pos;
     }
 
-    private _getRuleAttributes(canonical : CanonicalForm, cat : string) : RuleAttributes {
+    private _getRuleAttributes(canonical : I18n.NormalizedParameterCanonical, cat : string) : RuleAttributes {
         const attributes = { priority: ANNOTATION_PRIORITY[cat] };
         assert(Number.isFinite(attributes.priority), cat);
         if (cat === canonical.default ||
@@ -588,7 +575,7 @@ export default class ThingpediaLoader {
     private _recordOutputParamByType(pslot : ParamSlot,
                                      op : string,
                                      vtype : Type,
-                                     canonical : CanonicalForm,
+                                     canonical : I18n.NormalizedParameterCanonical,
                                      canUseBothForm : boolean) {
         const ptype = pslot.type;
         if (!this._recordType(ptype))

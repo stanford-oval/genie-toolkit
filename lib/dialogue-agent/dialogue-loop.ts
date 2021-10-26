@@ -256,7 +256,7 @@ export class DialogueLoop {
             }));
 
             return pickHandler(this._currentHandler, handlerCandidates, command);
-        } catch(e) {
+        } catch(e : any) {
             if (e.code === 'EHOSTUNREACH' || e.code === 'ETIMEDOUT') {
                 await this.reply(this._("Sorry, I cannot contact the Genie service. Please check your Internet connection and try again later."), null);
                 throw new CancellationError();
@@ -385,7 +385,7 @@ export class DialogueLoop {
                     await this._handleUserInput(item.command);
                 else
                     await this._handleAPICall(item);
-            } catch(e) {
+            } catch(e : any) {
                 if (e.code === 'ECANCELLED') {
                     for (const handler of this._iterateDialogueHandlers())
                         handler.reset();
@@ -396,6 +396,8 @@ export class DialogueLoop {
                     // in a new turn with an empty utterance from the user
                     await this.conversation.dialogueFinished();
                 } else {
+                    console.error(`Error processing queue item`, item);
+                    console.error(e);
                     if (item instanceof QueueItem.UserInput) {
                         await this.replyInterp(this._("Sorry, I had an error processing your command: ${error}."), { //"
                             error: this._formatError(e)
@@ -405,7 +407,6 @@ export class DialogueLoop {
                             error: this._formatError(e)
                         });
                     }
-                    console.error(e);
                 }
             }
         }
@@ -566,6 +567,8 @@ export class DialogueLoop {
     async replyGeneric(message : string|Tp.FormatObjects.FormattedObject, icon ?: string|null) {
         if (typeof message === 'string')
             await this.reply(message, icon);
+        else if (message.type === 'text')
+            await this.reply(message.text, icon);
         else if (message.type === 'picture' || message.type === 'audio' || message.type === 'video')
             await this.conversation.sendMedia(message.type, message.url, message.alt, icon || this.icon);
         else if (message.type === 'rdl')
