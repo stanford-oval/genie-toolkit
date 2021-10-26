@@ -407,6 +407,8 @@ export class DialogueLoop {
                             error: this._formatError(e)
                         });
                     }
+                    for (const handler of this._iterateDialogueHandlers())
+                        handler.reset();
                 }
             }
         }
