@@ -326,7 +326,6 @@ export function makeAgentReply(ctx : ContextInfo,
     else
         mainTag = contextTable['ctx_' + state.dialogueAct];
     */
-
     return {
         meaning,
 

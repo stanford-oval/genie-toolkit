@@ -48,6 +48,7 @@ export * from './metadata';
 import { POLICY_NAME } from './metadata';
 import { makeContextPhrase } from './context-phrases';
 import { CancellationError } from '../dialogue-runtime';
+import { addNewStatement } from '../utils/thingtalk/state-manipulation';
 
 /**
  * This module defines the basic logic of transaction dialogues: how
@@ -80,7 +81,6 @@ function actionShouldHaveResult(ctx : ContextInfo) : boolean {
 function greet(dlg : DialogueInterface, ctx : ContextInfo) {
     dlg.say(dlg._("{hello|hi}{!|,} {how can i help you|what are you interested in|what can i do for you}?"),
         () => D.makeAgentReply(ctx, StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_greet'), null, null, { end: false }));
-
     dlg.expect(function*(tpLoader : ThingpediaLoader) {
         yield mkUserTmpl(Templates.greeting, (state) => StateM.makeSimpleState(state, POLICY_NAME, 'greet'));
         yield mkUserTmpl(Templates.initial_command, (state, stmt) => D.startNewRequest(tpLoader, state, stmt));
@@ -115,18 +115,183 @@ async function ctxNotification(dlg : DialogueInterface, ctx : ContextInfo) {
 }
 
 async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextInfo) {
-    if (ctx.results!.length > 1) {
-        return dlg.either([
-            async () => {
-                dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
-            },
-            async () => {
+    var proposal : Ast.Program;
+    var proposal_expression : Ast.ExpressionStatement;
+    const keyword = ctx.results?.map((item) => item.raw && item.raw.keyword ? item.raw.keyword : "");
+    if (keyword?.includes("covid")) {
+        if (ctx.results!.length === 1)
+            dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+        else
+            dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+        /* ask about booster shot */
+        proposal = await dlg._T`@com.smartnews.article(keyword="booster shot")[1];` as Ast.Program;
+        proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
+        dlg.say("Do you want to know more about the booster shot?", 
+                addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));   
+        
+        let cmd = await dlg.get({
+            expecting: Type.Boolean,
+            acceptActs: ['*'],
+            acceptQueries: ['com.smartnews.article'],
+            acceptActions: ['*']
+        });
+        dlg.updateState();
+        if (cmd.type === POLICY_NAME + '.cancel') {
+            /* ask about side effect */
+            proposal = await dlg._T`@com.smartnews.article(keyword="booster side effect")[1];` as Ast.Program;
+            proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
+            dlg.say("CDC said something on the booster shot's side effects. Would you like to hear it?", 
+                    addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
+            
+            cmd = await dlg.get({
+                expecting: Type.Boolean,
+                acceptActs: ['*'],
+                acceptQueries: ['com.smartnews.article'],
+                acceptActions: ['*']
+            });
+            dlg.updateState();
+            if (cmd.type === POLICY_NAME + '.cancel') {
+                /* ask about jab time */
+                proposal = await dlg._T`@com.smartnews.article(keyword="booster time")[1];` as Ast.Program;
+                proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
+                dlg.say("There is new information about the booster jab time. Do you want to know about it?", 
+                        addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
+                
+                cmd = await dlg.get({
+                    expecting: Type.Boolean,
+                    acceptActs: ['*'],
+                    acceptQueries: ['com.smartnews.article'],
+                    acceptActions: ['*']
+                });
+
+                if (cmd.type === POLICY_NAME + '.cancel') {
+                    dlg.say("All good. Let me know if you need me.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+                    return dlg.flush();
+                } else {
+                    await dlg.execute(cmd.meaning);
+                    // console.log(dlg.state?.prettyprint());
+                    return dlg.either([
+                        async () => {
+                            dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+                        },
+                        async () => {
+                            dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+                        }
+                    ]);
+                }
+            } else {
+                await dlg.execute(cmd.meaning);
+                if (ctx.results!.length === 1)
+                    dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+                else
+                    dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+                
+                proposal = await dlg._T`@com.smartnews.article(keyword="booster time")[1];` as Ast.Program;
+                proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
+                dlg.say("Do you want to know about the booster jab time news?", 
+                        addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
+                
+                cmd = await dlg.get({
+                    expecting: Type.Boolean,
+                    acceptActs: ['*'],
+                    acceptQueries: ['com.smartnews.article'],
+                    acceptActions: ['*']
+                });
+                
+                dlg.updateState();
+                
+                if (cmd.type === POLICY_NAME + '.cancel') {
+                    dlg.say("OK. See ya!", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+                    return dlg.flush();
+                } else {
+                    await dlg.execute(cmd.meaning);
+                    return dlg.either([
+                        async () => {
+                            dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+                        },
+                        async () => {
+                            dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+                        }
+                    ]);
+                }
+            }  
+        } else {
+            await dlg.execute(cmd.meaning);
+            // console.log(dlg.state?.prettyprint());
+            if (ctx.results!.length === 1)
                 dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+            else
+                dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+            
+            proposal = await dlg._T`@com.smartnews.article(keyword="booster shot")[1];` as Ast.Program;
+            proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
+            dlg.say("More news on the covid-19 vaccine booster shot?", 
+                    addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
+            
+            cmd = await dlg.get({
+                expecting: Type.Boolean,
+                acceptActs: ['*'],
+                acceptQueries: ['com.smartnews.article'],
+                acceptActions: ['*']
+            });
+            
+            dlg.updateState();
+            
+            if (cmd.type === POLICY_NAME + '.cancel') {
+                proposal = await dlg._T`@com.smartnews.article(keyword="booster otherside")[1];` as Ast.Program;
+                proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
+                dlg.say("Do you wanna hear stories from the other side?", 
+                        addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
+                
+                cmd = await dlg.get({
+                    expecting: Type.Boolean,
+                    acceptActs: ['*'],
+                    acceptQueries: ['com.smartnews.article'],
+                    acceptActions: ['*']
+                });
+
+                dlg.updateState();
+                
+                if (cmd.type === POLICY_NAME + '.cancel') {
+                    dlg.say("Have a nice day!", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+                    return dlg.flush();
+                } else {
+                    await dlg.execute(cmd.meaning);
+                    return dlg.either([
+                        async () => {
+                            dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+                        },
+                        async () => {
+                            dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+                        }
+                    ]);
+                }
+            } else {
+                await dlg.execute(cmd.meaning);
+                return dlg.either([
+                    async () => {
+                        dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+                    },
+                    async () => {
+                        dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+                    }
+                ]);
             }
-        ]);
+        }
     } else {
-        dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
-        return dlg.flush();
+        if (ctx.results!.length >= 1) {
+            return dlg.either([
+                async () => {
+                    dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+                },
+                async () => {
+                    dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+                }
+            ]);
+        } else {
+            dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+            return dlg.flush();
+        }
     }
 }
 
@@ -170,7 +335,6 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<
         // we have an action we want to execute, or a query that needs confirmation
         if (ctx.nextInfo.chainParameter === null || ctx.nextInfo.chainParameterFilled) {
             // we don't need to fill any parameter from the current query
-
             if (ctx.nextInfo.isComplete) {
                 // we have all the parameters but we didn't execute: we need to confirm
                 dlg.say(Templates.action_confirm_phrase, (phrase) => phrase);
@@ -285,7 +449,6 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
 
     for (;;) {
         try {
-
             const cmd = await dlg.get({
                 expecting: lastReply?.expecting,
                 rawHandler: lastReply?.raw ? ((cmd, loader) => interpretAnswer(dlg.state, new Ast.StringValue(cmd), loader)) : undefined,
@@ -314,49 +477,49 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
             if (dlg.interactive && dlg.debug)
                 console.log(`After execution:`, dlg.state?.prettyprint());
             const ctx = ContextInfo.get(dlg.state);
-
+            
             switch (cmd.type) {
-            case POLICY_NAME + '.end':
-                dlg.say(dlg._("alright, {bye|good bye}!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
-                return;
-
-            case POLICY_NAME + '.greet':
-            case POLICY_NAME + '.reinit':
-                lastReply = await greet(dlg, ctx);
-                break;
-
-            case POLICY_NAME + '.action_question':
-                lastReply = await D.ctxCompletedActionSuccess(dlg, ctx);
-                break;
-
-            case POLICY_NAME + '.learn_more':
-                dlg.say(Templates.system_learn_more, () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_learn_more_what'), null, null, { end: false }));
-                lastReply = await dlg.flush();
-                break;
-
-            case POLICY_NAME + '.cancel':
-                if (dlg.flags.anything_else)
-                    dlg.say(Templates.anything_else_phrase, () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
-                else
-                    dlg.say(dlg._("alright, let me know if I can help you with anything else!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
-                return;
-
-            case POLICY_NAME + '.notification':
-                lastReply = await ctxNotification(dlg, ctx);
-                break;
-
-            case POLICY_NAME + '.init':
-            case POLICY_NAME + '.insist':
-            case POLICY_NAME + '.execute':
-            case POLICY_NAME + '.ask_recommend':
-            case CommandType.THINGTALK_ACTION:
-            case CommandType.THINGTALK_QUERY:
-            case CommandType.THINGTALK_STREAM:
-                lastReply = await ctxExecute(dlg, ctx);
-                break;
-
-            default:
-                throw new Error(`Unexpected user dialogue act ${ctx.state.dialogueAct}`);
+                case POLICY_NAME + '.end':{
+                    dlg.say(dlg._("alright, {bye|good bye}!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
+                    return;
+                }
+                case POLICY_NAME + '.greet':
+                case POLICY_NAME + '.reinit': {
+                    lastReply = await greet(dlg, ctx);
+                    break;
+                }
+                case POLICY_NAME + '.action_question': {
+                    lastReply = await D.ctxCompletedActionSuccess(dlg, ctx);
+                    break;
+                }
+                case POLICY_NAME + '.learn_more':{
+                    dlg.say(Templates.system_learn_more, () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_learn_more_what'), null, null, { end: false }));
+                    lastReply = await dlg.flush();
+                    break;
+                }
+                case POLICY_NAME + '.cancel':{
+                    if (dlg.flags.anything_else)
+                        dlg.say(Templates.anything_else_phrase, () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
+                    else
+                        dlg.say(dlg._("alright, let me know if I can help you with anything else!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
+                    return;
+                }
+                case POLICY_NAME + '.notification':{
+                    lastReply = await ctxNotification(dlg, ctx);
+                    break;
+                }
+                case POLICY_NAME + '.init':
+                case POLICY_NAME + '.insist':
+                case POLICY_NAME + '.execute':
+                case POLICY_NAME + '.ask_recommend':
+                case CommandType.THINGTALK_ACTION:
+                case CommandType.THINGTALK_QUERY:
+                case CommandType.THINGTALK_STREAM:{
+                    lastReply = await ctxExecute(dlg, ctx);
+                    break;
+                }
+                default:
+                    throw new Error(`Unexpected user dialogue act ${ctx.state.dialogueAct}`);
             }
         } catch(e) {
             // catch legacy cancellation errors coming from dlg.execute()
