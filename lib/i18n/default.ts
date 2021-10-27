@@ -654,7 +654,7 @@ export default class LanguagePack {
             // less than a week apart
             if (Math.abs(date.epochMilliseconds - now.epochMilliseconds) <= 7 * 86400 * 1000) {
                 const weekday = date.toLocaleString(this.locale, { weekday: 'long' });
-                return (date.epochMilliseconds < now.epochMilliseconds ? this._("last ${weekday}") : this._("next ${weekday}")).replace('${weekday}',  weekday);
+                return weekday;
             }
         }
 
