@@ -193,7 +193,10 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         if (forTarget === 'user' && sentence.endsWith(' ?') && rng && coin(0.5, rng))
             sentence = sentence.substring(0, sentence.length-2);
 
-        sentence = sentence.replace(/ (1|one|a) ([a-z]+)s /g, ' $1 $2 ');
+        // apply some light grammar fixes to user utterances
+        // agent utterances are already good because we're more careful in writing the templates
+        if (forTarget === 'user')
+            sentence = sentence.replace(/ (1|one|a) ([a-z]+)s /g, ' $1 $2 ');
 
         if (forTarget === 'agent' || (rng && coin(0.5, rng)))
             sentence = sentence.replace(/ with (no|zero) /g, ' without ');
