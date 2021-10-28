@@ -1730,8 +1730,7 @@ function getContextPhrasesCommon(ctx : ContextInfo, phrases : SentenceGeneratorT
     } else {
         if (ctx.resultInfo.argMinMaxField)
             phrases.push(makeContextPhrase(contextTable.ctx_with_result_argminmax, ctx));
-        else
-            phrases.push(makeContextPhrase(contextTable.ctx_with_result_noquestion, ctx));
+        phrases.push(makeContextPhrase(contextTable.ctx_with_result_noquestion, ctx));
         if (ctx.nextInfo)
             phrases.push(makeContextPhrase(contextTable.ctx_with_result_and_action, ctx));
 
