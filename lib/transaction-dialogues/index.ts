@@ -124,7 +124,7 @@ async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextIn
         else
             dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
         /* ask about booster shot */
-        proposal = await dlg._T`@com.smartnews.article(keyword="booster shot")[1];` as Ast.Program;
+        proposal = await dlg._T`(@com.smartnews.article(keyword="booster shot") filter contains(category, "health"^^com.smartnews:category("health")))[1];` as Ast.Program;
         proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
         dlg.say("Do you want to know more about the booster shot?", 
                 addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));   
@@ -138,7 +138,7 @@ async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextIn
         dlg.updateState();
         if (cmd.type === POLICY_NAME + '.cancel') {
             /* ask about side effect */
-            proposal = await dlg._T`@com.smartnews.article(keyword="booster side effect")[1];` as Ast.Program;
+            proposal = await dlg._T`(@com.smartnews.article(keyword="booster side effect") filter contains(category, "health"^^com.smartnews:category("health")))[1];` as Ast.Program;
             proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
             dlg.say("CDC said something on the booster shot's side effects. Would you like to hear it?", 
                     addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
@@ -152,7 +152,7 @@ async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextIn
             dlg.updateState();
             if (cmd.type === POLICY_NAME + '.cancel') {
                 /* ask about jab time */
-                proposal = await dlg._T`@com.smartnews.article(keyword="booster time")[1];` as Ast.Program;
+                proposal = await dlg._T`(@com.smartnews.article(keyword="booster time") filter contains(category, "health"^^com.smartnews:category("health")))[1];` as Ast.Program;
                 proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
                 dlg.say("There is new information about the booster jab time. Do you want to know about it?", 
                         addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
@@ -186,7 +186,7 @@ async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextIn
                 else
                     dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
                 
-                proposal = await dlg._T`@com.smartnews.article(keyword="booster time")[1];` as Ast.Program;
+                proposal = await dlg._T`(@com.smartnews.article(keyword="booster time") filter contains(category, "health"^^com.smartnews:category("health")))[1];` as Ast.Program;
                 proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
                 dlg.say("Do you want to know about the booster jab time news?", 
                         addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
@@ -223,7 +223,7 @@ async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextIn
             else
                 dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
             
-            proposal = await dlg._T`@com.smartnews.article(keyword="booster shot")[1];` as Ast.Program;
+            proposal = await dlg._T`(@com.smartnews.article(keyword="booster shot") filter contains(category, "health"^^com.smartnews:category("health")))[1];` as Ast.Program;
             proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
             dlg.say("More news on the covid-19 vaccine booster shot?", 
                     addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
@@ -238,7 +238,7 @@ async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextIn
             dlg.updateState();
             
             if (cmd.type === POLICY_NAME + '.cancel') {
-                proposal = await dlg._T`@com.smartnews.article(keyword="booster otherside")[1];` as Ast.Program;
+                proposal = await dlg._T`(@com.smartnews.article(keyword="booster otherside") filter contains(category, "health"^^com.smartnews:category("health")))[1];` as Ast.Program;
                 proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
                 dlg.say("Do you wanna hear stories from the other side?", 
                         addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
