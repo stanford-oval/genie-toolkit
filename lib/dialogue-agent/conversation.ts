@@ -330,9 +330,12 @@ export default class Conversation extends events.EventEmitter {
 
     async saveState(lastMessageId : number) {
         const conversationState = this.getState();
+
+        const serializedDialogueState = JSON.stringify(conversationState.dialogueState);
+        console.log(`Saving conversation state for ${this._conversationId} (${serializedDialogueState.length} characters)`);
         const row = {
             history: JSON.stringify(/* FIXME conversationState.history */ []),
-            dialogueState: JSON.stringify(conversationState.dialogueState),
+            dialogueState: serializedDialogueState,
             lastMessageId: lastMessageId,
         };
         await this._conversationStateDB.insertOne(this._conversationId, row);
