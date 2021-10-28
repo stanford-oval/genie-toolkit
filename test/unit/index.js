@@ -58,6 +58,7 @@ do_test([
     ('./test_entity_match'),
     ('./test_exact_matcher'),
     ('./test_helpers'),
+    ('./test_i18n_english'),
     ('./test_i18n_chinese'),
     ('./test_i18n_unit'),
     ('./test_infix_to_postfix'),
