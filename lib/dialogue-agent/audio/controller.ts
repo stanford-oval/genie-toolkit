@@ -31,7 +31,8 @@ import { AudioDevice, AudioPlayer, CustomPlayerSpec } from './interface';
  * currently playing on it.
  */
 interface ConversationAudioState {
-    player : AudioPlayer;
+    conversationId : string;
+    player : AudioPlayer|null;
     device : Tp.BaseDevice|null;
     iface : AudioDevice|null;
 
@@ -81,15 +82,27 @@ export default class AudioController extends events.EventEmitter {
     }
 
     async addPlayer(player : AudioPlayer) {
-        this._players.set(player.conversationId, {
-            player,
-            device: null,
-            iface: null,
-            timestamp: Date.now()
-        });
+        const existing = this._players.get(player.conversationId);
+        if (existing) {
+            existing.player = player;
+            existing.timestamp = Date.now();
+        } else {
+            this._players.set(player.conversationId, {
+                conversationId: player.conversationId,
+                player,
+                device: null,
+                iface: null,
+                timestamp: Date.now()
+            });
+        }
     }
     async removePlayer(player : AudioPlayer) {
-        this._players.delete(player.conversationId);
+        const state = this._players.get(player.conversationId);
+        if (!state)
+            return;
+        // set the player interface to null but keep the state
+        // so the next time the client reconnects we'll be able to stop/resume
+        state.player = null;
     }
 
     async start() {
@@ -123,7 +136,7 @@ export default class AudioController extends events.EventEmitter {
      */
     getPlayer(conversationId ?: string) : AudioPlayer|undefined {
         const state = this._getPlayer(conversationId);
-        return state?.player;
+        return state?.player || undefined;
     }
 
     /**
@@ -141,9 +154,9 @@ export default class AudioController extends events.EventEmitter {
 
         state.timestamp = Date.now();
         if (state.iface && state.iface.resume)
-            await state.iface.resume(state.player.conversationId);
+            await state.iface.resume(state.conversationId);
         else
-            await state.player.resume();
+            await state.player?.resume();
     }
 
     private _normalizeCompatIface(iface : AudioDevice|(() => Promise<void>)) {
@@ -169,7 +182,7 @@ export default class AudioController extends events.EventEmitter {
      */
     async checkCustomPlayer(spec : CustomPlayerSpec, conversationId ?: string) : Promise<boolean> {
         const state = this._getPlayer(conversationId);
-        if (!state)
+        if (!state || !state.player)
             return false;
         return state.player.checkCustomPlayer(spec);
     }
@@ -197,7 +210,7 @@ export default class AudioController extends events.EventEmitter {
                        conversationId ?: string,
                        spec ?: CustomPlayerSpec) {
         const state = this._getPlayer(conversationId);
-        if (!state)
+        if (!state || !state.player)
             throw new CustomError(`unsupported`, `No player is available to complete this request`);
 
         if (device === state.device) {
@@ -226,12 +239,12 @@ export default class AudioController extends events.EventEmitter {
                    urls : string[],
                    conversationId ?: string) {
         const state = this._getPlayer(conversationId);
-        if (!state)
+        if (!state || !state.player)
             throw new CustomError(`unsupported`, `No player is available to complete this request`);
 
         state.timestamp = Date.now();
         if (state.iface)
-            await state.iface.stop(state.player.conversationId);
+            await state.iface.stop(state.conversationId);
         state.device = device;
         state.iface = null;
         console.log(`Switching audio to ${state.device.uniqueId}`);
@@ -245,12 +258,12 @@ export default class AudioController extends events.EventEmitter {
      */
     async requestSystemAudio(iface : AudioDevice, conversationId ?: string) {
         const state = this._getPlayer(conversationId);
-        if (!state)
+        if (!state || !state.player)
             throw new CustomError(`unsupported`, `No player is available to complete this request`);
 
         state.timestamp = Date.now();
         if (state.iface)
-            await state.iface.stop(state.player.conversationId);
+            await state.iface.stop(state.conversationId);
         state.device = null;
         console.log(`Switching audio to system`);
         state.iface = this._normalizeCompatIface(iface);
@@ -303,24 +316,24 @@ export default class AudioController extends events.EventEmitter {
             if (!state)
                 return;
 
-            await state.player.pause();
+            await state.player?.pause();
             if (state.iface !== null) {
                 if (state.iface.pause)
-                    await state.iface.pause(state.player.conversationId);
+                    await state.iface.pause(state.conversationId);
                 else
-                    await state.iface.stop(state.player.conversationId);
+                    await state.iface.stop(state.conversationId);
             }
 
             // the interface continues to be the current audio interface
             // so it will be resumed on a resume command later
         } else {
             for (const state of this._players.values()) {
-                await state.player.pause();
+                await state.player?.pause();
                 if (state.iface !== null) {
                     if (state.iface.pause)
-                        await state.iface.pause(state.player.conversationId);
+                        await state.iface.pause(state.conversationId);
                     else
-                        await state.iface.stop(state.player.conversationId);
+                        await state.iface.stop(state.conversationId);
                 }
             }
         }
@@ -343,15 +356,15 @@ export default class AudioController extends events.EventEmitter {
             if (!state)
                 return;
 
-            await state.player.stop();
-            await state.iface?.stop(state.player.conversationId);
+            await state.player?.stop();
+            await state.iface?.stop(state.conversationId);
             state.device = null;
             state.iface = null;
         } else {
             for (const state of this._players.values()) {
-                await state.player.stop();
+                await state.player?.stop();
                 if (state.iface !== null)
-                    await state.iface.stop(state.player.conversationId);
+                    await state.iface.stop(state.conversationId);
                 state.device = null;
                 state.iface = null;
             }
