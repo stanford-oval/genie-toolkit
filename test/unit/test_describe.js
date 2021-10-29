@@ -383,7 +383,17 @@ const TEST_CASES = [
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
     now => (@com.spotify2.song(), id =~ ("despacito")) => @com.spotify2.play(playable=id);`,
     'Get songs that have name despacito and then play them on Spotify.',
-    `Spotify2 ⇒ Spotify2`]
+    `Spotify2 ⇒ Spotify2`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.yelp.restaurant(), phone == "+1123456789"^^tt:phone_number;`,
+    'Get restaurants such that the phone number is equal to (123) 456789.',
+    `Yelp`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.yelp.restaurant(), phone == "+39123456789"^^tt:phone_number;`,
+    'Get restaurants such that the phone number is equal to +39123456789.',
+    `Yelp`]
 ];
 
 async function test(i) {

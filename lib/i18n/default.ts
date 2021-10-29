@@ -702,6 +702,10 @@ export default class LanguagePack {
         return 'C';
     }
 
+    protected displayPhoneNumber(phone : string) {
+        return phone;
+    }
+
     protected displayEntity(token : string,
                             entityValue : AnyEntity,
                             delegate : UnitPreferenceDelegate,
@@ -717,6 +721,8 @@ export default class LanguagePack {
             return '@' + entityValue;
         if (token.startsWith('HASHTAG_'))
             return '#' + entityValue;
+        if (token.startsWith('PHONE_NUMBER_'))
+            return this.displayPhoneNumber(entityValue as string);
 
         if (token.startsWith('MEASURE_')) {
             const [,baseUnit] = /^MEASURE_([A-Za-z0-9_]+)_[0-9]+$/.exec(token)!;
