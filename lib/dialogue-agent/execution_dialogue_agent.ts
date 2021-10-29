@@ -30,7 +30,7 @@ import { ReplacedList, ReplacedConcatenation } from '../utils/template-string';
 import ValueCategory from './value-category';
 import StatementExecutor from './statement_executor';
 import { CancellationError } from './errors';
-import { EntityRecord } from './entity-linking/entity-finder';
+import { EntityRecord, getBestEntityMatch } from './entity-linking/entity-finder';
 import { Contact } from './entity-linking/contact_search';
 import { PlatformData } from './protocol';
 import { ConversationState } from './conversation';
@@ -294,19 +294,25 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return new Ast.ExpressionStatement(null, filteredTable);
     }
 
-    protected async lookupEntityCandidates(entityType : string,
-                                           entityDisplay : string,
-                                           hints : DisambiguationHints) : Promise<EntityRecord[]> {
+    protected async resolveEntity(entityType : string,
+                                  entityDisplay : string,
+                                  hints : DisambiguationHints) : Promise<EntityRecord> {
+        const hintsCandidates = hints.idEntities.get(entityType);
+        if (hintsCandidates)
+            return getBestEntityMatch(entityDisplay, entityType, hintsCandidates);
+
         // HACK this should be made generic with some new Genie annotation
         if (entityType === 'org.freedesktop:app_id') {
             const appLauncher = this._platform.getCapability('app-launcher');
-            if (appLauncher)
-                return appLauncher.listApps();
+            if (appLauncher) {
+                const apps = await appLauncher.listApps();
+                return getBestEntityMatch(entityDisplay, entityType, apps);
+            }
         }
 
         const { data: tpCandidates, meta } = await this._tpClient.lookupEntity(entityType, entityDisplay);
         if (tpCandidates.length > 0)
-            return tpCandidates;
+            return getBestEntityMatch(entityDisplay, entityType, tpCandidates);
 
         let stmt;
         try {
@@ -344,7 +350,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             });
             throw new CancellationError();
         }
-        return candidates;
+        return candidates[0];
     }
 
     private async _tryGetCurrentLocation() : Promise<Ast.AbsoluteLocation|null> {
