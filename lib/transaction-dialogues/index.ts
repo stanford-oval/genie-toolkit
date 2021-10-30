@@ -118,6 +118,8 @@ async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextIn
     var proposal : Ast.Program;
     var proposal_expression : Ast.ExpressionStatement;
     const keyword = ctx.results?.map((item) => item.raw && item.raw.keyword ? item.raw.keyword : "");
+    const mentions = ctx.results?.map((item) => item.raw && item.raw.mention ? item.raw.mention : []).flat();
+    console.log(mentions);
     if (keyword?.includes("covid")) {
         if (ctx.results!.length === 1)
             dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
