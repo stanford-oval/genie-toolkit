@@ -1690,6 +1690,20 @@ export function getAgentContextPhrases(ctx : ContextInfo) : SentenceGeneratorTyp
     return phrases;
 }
 
+function isMissingProjection(ctx : ContextInfo) {
+    if (!ctx.resultInfo!.projection)
+        return false;
+
+    const topResult = ctx.results![0];
+    if (!topResult)
+        return false;
+    for (const p of ctx.resultInfo!.projection) {
+        if (!topResult.value[p])
+            return true;
+    }
+    return false;
+}
+
 function getContextPhrasesCommon(ctx : ContextInfo, phrases : SentenceGeneratorTypes.ContextPhrase[]) {
     const contextTable = ctx.contextTable;
 
@@ -1715,6 +1729,9 @@ function getContextPhrasesCommon(ctx : ContextInfo, phrases : SentenceGeneratorT
         return;
     if (ctx.resultInfo.hasStream && ctx.state.dialogueAct !== 'notification')
         return;
+
+    if (isMissingProjection(ctx))
+        phrases.push(makeContextPhrase(contextTable.ctx_with_missing_projection, ctx));
 
     assert(ctx.results && ctx.results.length > 0);
     phrases.push(makeContextPhrase(contextTable.ctx_with_result, ctx));
