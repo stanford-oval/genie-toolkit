@@ -51,7 +51,9 @@ constant_Entity__tt__function : Ast.EntityValue = {}
 constant_Entity__tt__program  : Ast.EntityValue = {}
 constant_Entity__tt__device   : Ast.EntityValue = {}
 constant_Boolean : Ast.Value = {}
-constant_RecurrentTimeSpecification : Ast.Value = {}
+constant_RecurrentTimeSpecification : Ast.Value = {
+    ?inference const(RECURRENT_TIME_SPECIFICATION, Type.RecurrentTimeSpecification);
+}
 
 constant_Measure_ms : Ast.Value = {
     ?inference const(MEASURE_ms, new Type.Measure('ms'));

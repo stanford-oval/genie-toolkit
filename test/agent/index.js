@@ -337,7 +337,7 @@ Hello! How can I help you?
             '#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ')
         .replace(/^# test\/[0-9a-f-]{36}$/gm, '# test')
         .replace(/#\[error_stack="([^\\]*)\\n[^"]*"\]/gm, '#[error_stack="$1"]');
-    //fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
+    fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
     const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
     assert(log === expectedLog);
 

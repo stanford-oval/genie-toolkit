@@ -268,6 +268,8 @@ interface ReplacementContext {
 export abstract class Replaceable {
     private static _cache = new Map<string, Replaceable>();
 
+    static EMPTY : Replaceable;
+
     /**
      * Parse a template string into a replaceable object.
      */
@@ -362,6 +364,42 @@ export class Placeholder extends Replaceable {
         }
     }
 }
+
+/**
+ * A phrase that is already expressed as a replaced result.
+ *
+ * This is a Replaceable that does not contain any placeholder.
+ */
+export class ReplacedPhrase extends Replaceable {
+    constructor(public text : ReplacedResult) {
+        super();
+    }
+
+    clone() {
+        return new ReplacedPhrase(this.text);
+    }
+
+    toString() {
+        return this.text.toString();
+    }
+
+    visit(cb : (repl : Replaceable) => boolean) {
+        cb(this);
+    }
+
+    preprocess(langPack : LanguagePack, placeholders : string[]) {
+        return this;
+    }
+
+    optimize() {
+        return this;
+    }
+
+    replace(ctx : ReplacementContext) : ReplacedResult|null {
+        return this.text;
+    }
+}
+Replaceable.EMPTY = new ReplacedPhrase(ReplacedResult.EMPTY);
 
 function templateEscape(str : string) {
     return str.replace(/[${}|[\]\\]/g, '\\$0');

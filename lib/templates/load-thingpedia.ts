@@ -310,8 +310,6 @@ export default class ThingpediaLoader {
         }
         this.types.set(typestr, type);
 
-        if (type.isRecurrentTimeSpecification)
-            return typestr;
         if (type.isArray)
             return 'Any';
 
@@ -557,7 +555,7 @@ export default class ThingpediaLoader {
             if (ptype instanceof Type.Array) {
                 vtypes = [ptype.elem as Type];
                 op = 'contains';
-            } else if (ptype.isRecurrentTimeSpecification) {
+            } else if (ptype.isRecurrentTimeSpecification && this._options.forSide === 'user') {
                 vtypes = [Type.Date, Type.Time];
                 op = 'contains';
             } else if (pname === 'id' && !this._options.flags.no_soft_match_id) {

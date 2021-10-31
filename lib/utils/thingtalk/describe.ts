@@ -405,7 +405,127 @@ export class Describer {
         if (arg instanceof Ast.TimeValue)
             return this._describeTime(arg.value);
 
+        if (arg instanceof Ast.RecurrentTimeSpecificationValue)
+            return this._describeRecurrentTimeSpec(arg);
+
         return new ReplacedConcatenation([String(arg)], {}, {});
+    }
+
+    private _describeRecurrentTimeSpec(value : Ast.RecurrentTimeSpecificationValue) {
+        // preprocess the time rules to collapse multiple days of the week
+        interface PreprocessedTimeRule {
+            beginTime : Ast.AbsoluteTime,
+            endTime : Ast.AbsoluteTime,
+            daysOfWeek : Set<string>|null
+        }
+        const preprocessed : PreprocessedTimeRule[] = [];
+        const other : Ast.RecurrentTimeRule[] = [];
+
+        for (const rule of value.rules) {
+            if (rule.beginDate || rule.endDate || rule.frequency !== 1 || rule.interval.toJS() !== 86400000) {
+                other.push(rule);
+                continue;
+            }
+            let found = false;
+            for (const candidate of preprocessed) {
+                if (candidate.beginTime.equals(rule.beginTime) && candidate.endTime.equals(rule.endTime)) {
+                    found = true;
+
+                    if (candidate.daysOfWeek && !rule.dayOfWeek)
+                        candidate.daysOfWeek = null;
+                    else if (candidate.daysOfWeek && rule.dayOfWeek)
+                        candidate.daysOfWeek.add(rule.dayOfWeek);
+                    // else !candidate.daysOfWeek && rule.daysOfWeek, rule is redundant
+
+                    break;
+                }
+            }
+            if (!found) {
+                preprocessed.push({
+                    beginTime: rule.beginTime,
+                    endTime: rule.endTime,
+                    daysOfWeek: rule.dayOfWeek ? new Set([rule.dayOfWeek]) : null
+                });
+            }
+        }
+
+        const normalHours = preprocessed.map((r) => {
+            if (r.daysOfWeek === null) {
+                return this._interp(this._("from ${begin_time} to ${end_time} every day"), {
+                    begin_time: this._describeTime(r.beginTime),
+                    end_time: this._describeTime(r.endTime),
+                });
+            } else {
+                if (r.daysOfWeek.size > 3) {
+                    const [begin,end] = daysOfWeekConsecutive(r.daysOfWeek);
+                    if (begin && end) {
+                        return this._interp(this._("from ${begin_time} to ${end_time} ${begin_weekday} to ${end_weekday}"), {
+                            begin_time: this._describeTime(r.beginTime),
+                            end_time: this._describeTime(r.endTime),
+                            begin_weekday: this._(begin),
+                            end_weekday: this._(end),
+                        });
+                    }
+                }
+
+                return this._interp(this._("from ${begin_time} to ${end_time} on ${weekdays}"), {
+                    begin_time: this._describeTime(r.beginTime),
+                    end_time: this._describeTime(r.endTime),
+                    weekdays: this._makeList(Array.from(r.daysOfWeek).map((x) => this._const(this._(x))))
+                });
+            }
+        });
+        const specialHours = other.map((r) => {
+            const timeSpec = this._interp(this._("from ${begin_time} to ${end_time}"), {
+                begin_time: this._describeTime(r.beginTime),
+                end_time: this._describeTime(r.endTime),
+            });
+
+            let dateSpec : ReplacedResult|null = ReplacedResult.EMPTY;
+            if (r.beginDate && r.endDate) {
+                dateSpec = this._interp(this._("between ${begin_date} and ${end_date}"), {
+                    begin_date: this._describeDate(r.beginDate),
+                    end_date: this._describeDate(r.endDate),
+                });
+            } else if (r.beginDate) {
+                dateSpec = this._interp(this._("after ${begin_date}"), {
+                    begin_date: this._describeDate(r.beginDate),
+                });
+            } else if (r.endDate) {
+                dateSpec = this._interp(this._("before ${end_date}"), {
+                    end_date: this._describeDate(r.endDate),
+                });
+            }
+
+            let intervalSpec : ReplacedResult|null = ReplacedResult.EMPTY;
+            if (r.interval.toJS() !== 86400000 || r.frequency !== 1) {
+                if (r.frequency !== 1) {
+                    intervalSpec = this._interp(this._("${frequency:select:=1{once}=2{twice}_{${frequency} times}} every ${interval}"), {
+                        interval: this.describeArg(r.interval),
+                        frequency: r.frequency
+                    });
+                } else {
+                    intervalSpec = this._interp("every ${interval}", {
+                        interval: this.describeArg(r.interval)
+                    });
+                }
+            }
+
+            let weekDaySpec : ReplacedResult|null = ReplacedResult.EMPTY;
+            if (r.dayOfWeek) {
+                const weekday = this._(r.dayOfWeek);
+                weekDaySpec = this._interp(this._("on ${weekday}"), { weekday });
+            }
+
+            return this._interp(this._("${time_spec} ${interval_spec} ${weekday_spec} ${date_spec}"), {
+                time_spec: timeSpec,
+                interval_spec: intervalSpec,
+                weekday_spec: weekDaySpec,
+                date_spec: dateSpec
+            });
+        });
+
+        return this._makeList(normalHours.concat(specialHours), 'conjunction');
     }
 
     private _describeOperator(argcanonical : ReplacedResult|null,
@@ -466,7 +586,7 @@ export class Describer {
             not_suffix_of {${argcanonical} is not a suffix of ${value}} \
             suffix_of {${argcanonical} is a suffix of ${value}} \
             not_eq {${argcanonical} is not equal to ${value}} \
-            eq {${argcanonical} is equal to ${value}} \
+            eq {${argcanonical} is equal to ${value[list_type=conjunction]}} \
             not_geq {${argcanonical} is less than ${value}} \
             geq {${argcanonical} is greater than or equal to ${value}} \
             not_leq {${argcanonical} is greater than ${value}} \
@@ -1755,3 +1875,47 @@ export function getProgramName(program : Ast.Program) : string {
     }
     return descriptions.join(" ⇒ ");
 }
+
+const ALL_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+
+/**
+ * Check if daysOfWeek represents a consecutive set of days of the week, and
+ * and return the boundaries if so
+ *
+ * @param daysOfWeek C
+ */
+function daysOfWeekConsecutive(daysOfWeek : Set<string>) : [string|null, string|null] {
+    // find the beginning of the first interval
+    let begin = -1;
+    for (let i = 0; i < ALL_DAYS.length; i++) {
+        const day = ALL_DAYS[i];
+        if (!daysOfWeek.has(day))
+            continue;
+        begin = i;
+        break;
+    }
+    if (begin < 0) // empty set???
+        return [null, null];
+
+    // find the end (inclusive) of this interval
+    let end = begin;
+    for (let j = begin+1; j < ALL_DAYS.length; j++) {
+        const day = ALL_DAYS[j];
+        if (!daysOfWeek.has(day))
+            break;
+        end = j;
+    }
+    if (end === begin) // 1 day interval
+        return [null, null];
+
+    // check if there are other intervals
+    // if so, we return nothing
+    for (let k = end+1; k < ALL_DAYS.length; k++) {
+        const day = ALL_DAYS[k];
+        if (daysOfWeek.has(day))
+            return [null, null];
+    }
+
+    return [ALL_DAYS[begin], ALL_DAYS[end]];
+}
+
