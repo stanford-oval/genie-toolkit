@@ -114,12 +114,25 @@ async function ctxNotification(dlg : DialogueInterface, ctx : ContextInfo) {
     return dlg.flush();
 }
 
+// async function offerFollowUp(dlg : DialogueInterface, ctx : ContextInfo, entity : Array<String>|null, template_str : TemplateStringsArray) {
+//     const proposal = await dlg._T(template_str) as Ast.Program;
+//     const proposal_expression = proposal.statements[0] as Ast.ExpressionStatement
+//     dlg.say(`Do you want to know more about the ${entity}?`, 
+//             addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
+//     let cmd = await dlg.get({
+//         expecting: Type.Boolean,
+//         acceptActs: ['*'],
+//         acceptQueries: ['com.smartnews.article'],
+//         acceptActions: ['*']
+//     });
+//     dlg.updateState();
+//     return cmd;
+// }
+
 async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextInfo) {
     var proposal : Ast.Program;
     var proposal_expression : Ast.ExpressionStatement;
     const keyword = ctx.results?.map((item) => item.raw && item.raw.keyword ? item.raw.keyword : "");
-    const mentions = ctx.results?.map((item) => item.raw && item.raw.mention ? item.raw.mention : []).flat();
-    console.log(mentions);
     if (keyword?.includes("covid")) {
         if (ctx.results!.length === 1)
             dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
@@ -281,7 +294,7 @@ async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextIn
             }
         }
     } else {
-        if (ctx.results!.length >= 1) {
+        if (ctx.results!.length > 1) {
             return dlg.either([
                 async () => {
                     dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
@@ -290,9 +303,110 @@ async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextIn
                     dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
                 }
             ]);
-        } else {
+        } else {  
             dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
-            return dlg.flush();
+            const mentions = ctx.results?.map((item) => item.raw && item.raw.mention ? item.raw.mention : []).flat();
+            if(mentions) {
+                for (var i = 0; i < mentions.length; i++){
+                    const entity = new Ast.StringValue(mentions[i] as string);
+                    // if category list is not sorted in the database
+                    // const top_category = ctx.results?.map((item) => item.raw && item.raw.category ? item.raw.category : [])
+                    //                                  .flat()
+                    //                                  .map((item) => String(item))
+                    //                                  .sort((a, b) => b.length - a.length)[0];
+                    // if category list is already sorted in the database
+                    const top_category = ctx.results?.map((item) => item.raw && item.raw.category ? item.raw.category : [])
+                                                     .flat()
+                                                     .map((item) => String(item))[0];
+                    const article_category = new Ast.StringValue(top_category as string);
+                    proposal = await dlg._T`(@com.smartnews.article(keyword=${entity}) filter contains(category, ${article_category}^^com.smartnews:category(${article_category})));` as Ast.Program;
+                    proposal_expression = proposal.statements[0] as Ast.ExpressionStatement;
+                    dlg.say(`Do you want to know more about the ${mentions[i]}?`, 
+                        addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
+                    
+                    let cmd = await dlg.get({
+                        expecting: Type.Boolean,
+                        acceptActs: ['*'],
+                        acceptQueries: ['com.smartnews.article'],
+                        acceptActions: ['*']
+                    });
+
+                    dlg.updateState();
+
+                    if (cmd.type === POLICY_NAME + '.cancel') {
+                        if (i >= 2) {
+                            let new_source_select = "";
+                            if (top_category?.includes("politic") || top_category?.includes("policy")) {
+                                const LEFT_LEANING_MEDIA = ["buzzfeed", "the daily beast", "huffpost", "the intercept",
+                                                            "mother jones", "vox", "alternet", "npr", 
+                                                            "new york times", "pbs", "washington post", 
+                                                            "the economist", "huffington post", "politico", "cnn", 
+                                                            "msnbc"];
+                                const RIGHT_LEANING_MEDIA = ["fox news", "drudge report", "the dispatch", "washington times",
+                                                             "daily mail"];
+                                const CENTRIST_MEDIA = ["yahoo news", "wall street journal", "cbs", "google", "abc", "usa today",
+                                                        "bloomberg", "the guardian", "nbc news", "bbc", "reuters", "the hill"];
+                                const source = ctx.results?.map((item) => item.raw && item.raw.source ? item.raw.source : [])[0];
+                                
+                                if (source && LEFT_LEANING_MEDIA.includes(source as string))
+                                    new_source_select = RIGHT_LEANING_MEDIA[Math.floor(Math.random() * RIGHT_LEANING_MEDIA.length)];
+                                else if (source && RIGHT_LEANING_MEDIA.includes(source as string))
+                                    new_source_select = LEFT_LEANING_MEDIA[Math.floor(Math.random() * LEFT_LEANING_MEDIA.length)];
+                                else if (source && CENTRIST_MEDIA.includes(source as string))
+                                    new_source_select = CENTRIST_MEDIA[Math.floor(Math.random() * CENTRIST_MEDIA.length)];
+                                else
+                                    new_source_select = CENTRIST_MEDIA[Math.floor(Math.random() * CENTRIST_MEDIA.length)];
+                                
+                                const new_source = new Ast.StringValue(new_source_select as string);
+                                proposal = await dlg._T`@com.smartnews.article(keyword=${entity}), source =~ (${new_source});` as Ast.Program;
+                                proposal_expression = proposal.statements[0] as Ast.ExpressionStatement;
+                                dlg.say(`Do you want to hear more stories about ${mentions[i]} from a different political spectrum?`, 
+                                    addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
+                                
+                                cmd = await dlg.get({
+                                    expecting: Type.Boolean,
+                                    acceptActs: ['*'],
+                                    acceptQueries: ['com.smartnews.article'],
+                                    acceptActions: ['*']
+                                });
+
+                                dlg.updateState();
+
+                                if (cmd.type === POLICY_NAME + '.cancel') {
+                                    dlg.say("All good. Let me know if you need me.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+                                    return dlg.flush();
+                                } else {
+                                    await dlg.execute(cmd.meaning);
+                                    break;
+                                }
+                            } else {
+                                dlg.say("All good. Let me know if you need me.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+                                return dlg.flush();
+                            }
+                        }
+                    } else {
+                        await dlg.execute(cmd.meaning);
+                        break;
+                    }
+                }
+                return dlg.either([
+                    async () => {
+                        dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+                    },
+                    async () => {
+                        dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+                    }
+                ]);
+            } else {
+                return dlg.either([
+                    async () => {
+                        dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+                    },
+                    async () => {
+                        dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+                    }
+                ]);
+            }
         }
     }
 }
