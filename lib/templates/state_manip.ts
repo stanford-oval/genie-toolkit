@@ -444,8 +444,10 @@ export function getContextInfo(loader : ThingpediaLoader,
 
 export function isUserAskingResultQuestion(ctx : ContextInfo) : boolean {
     // is the user asking a question about the result (or a specific element), or refining a search?
-    // we say it's a question if the user is asking a projection question, and it's not the first turn,
-    // and the projection was different at the previous turn
+    // we say it's a question if any of the following is true:
+    // - it's a computation question
+    // - there is an id filter
+    // - it's a projection question and the projection was different at the previous turn
     // we also treat it as a question for all compute questions because that simplifies
     // writing the templates
 
@@ -461,12 +463,12 @@ export function isUserAskingResultQuestion(ctx : ContextInfo) : boolean {
     if (currentTable instanceof Ast.ProjectionExpression && currentTable.computations.length > 0)
         return true;
 
-    if (ctx.currentIdx === 0) {
-        const filterTable = C.findFilterExpression(currentStmt.expression);
-        if (!filterTable)
-            return false;
-        return C.filterUsesParam(filterTable.filter, 'id');
-    }
+    const filterTable = C.findFilterExpression(currentStmt.expression);
+    if (filterTable && C.filterUsesParam(filterTable.filter, 'id'))
+        return true;
+
+    if (ctx.currentIdx === 0)
+        return false;
 
     const currentProjection = ctx.resultInfo!.projection;
     if (!currentProjection)

@@ -35,13 +35,13 @@ direct_answer_phrase : D.DirectAnswerPhrase = {
         => D.checkDirectAnswerPhrase(info, name.name),
 
     // short answers to a single question
-    ["${name} ${filter[plural=one]}", priority=0.1]: (name: ctx_result_name, filter:avp_filter<functionName = name.currentFunction>)
+    ["${name} ${filter[plural=one]}", priority=1]: (name: ctx_result_name, filter:avp_filter<functionName = name.currentFunction>)
         => D.makeFilterStyleDirectAnswerPhrase(name.ctx, name.name, filter),
-    ["${name} is ${filter[plural=one]}", priority=0.1]: (name: ctx_result_name, filter:pvp_filter<functionName = name.currentFunction>)
+    ["${name} is ${filter[plural=one]}", priority=1]: (name: ctx_result_name, filter:pvp_filter<functionName = name.currentFunction>)
         => D.makeFilterStyleDirectAnswerPhrase(name.ctx, name.name, filter),
-    ["${name} is ${filter[plural=one]}", priority=0.1]: (name: ctx_result_name, filter:apv_filter<functionName = name.currentFunction>)
+    ["${name} is ${filter[plural=one]}", priority=1]: (name: ctx_result_name, filter:apv_filter<functionName = name.currentFunction>)
         => D.makeFilterStyleDirectAnswerPhrase(name.ctx, name.name, filter),
-    ["${name} has ${filter[plural=one]}", priority=0.1]: (name: ctx_result_name, filter:npp_filter<functionName = name.currentFunction>)
+    ["${name} has ${filter[plural=one]}", priority=1]: (name: ctx_result_name, filter:npp_filter<functionName = name.currentFunction>)
         => D.makeFilterStyleDirectAnswerPhrase(name.ctx, name.name, filter),
 }
 
