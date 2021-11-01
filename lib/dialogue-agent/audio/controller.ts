@@ -82,6 +82,7 @@ export default class AudioController extends events.EventEmitter {
     }
 
     async addPlayer(player : AudioPlayer) {
+        console.log(`Adding new audio player on ${player.conversationId}`);
         const existing = this._players.get(player.conversationId);
         if (existing) {
             existing.player = player;
@@ -97,6 +98,7 @@ export default class AudioController extends events.EventEmitter {
         }
     }
     async removePlayer(player : AudioPlayer) {
+        console.log(`Removing audio player from ${player.conversationId}`);
         const state = this._players.get(player.conversationId);
         if (!state)
             return;
