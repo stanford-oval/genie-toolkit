@@ -411,6 +411,61 @@ export class Describer {
         return new ReplacedConcatenation([String(arg)], {}, {});
     }
 
+    private _describeRecurrentTimeRule(r : Ast.RecurrentTimeRule) {
+        const timeSpec = this._interp(this._("from ${begin_time} to ${end_time}"), {
+            begin_time: this._describeTime(r.beginTime),
+            end_time: this._describeTime(r.endTime),
+        });
+
+        let dateSpec : ReplacedResult|null = ReplacedResult.EMPTY;
+        if (r.beginDate instanceof Date && r.endDate instanceof Date &&
+            r.endDate.getTime() === r.beginDate.getTime() + 86400000) {
+            dateSpec = this._interp(this._("on ${begin_date}"), {
+                begin_date: this._describeDate(r.beginDate),
+            });
+        } else if (r.beginDate && r.endDate) {
+            dateSpec = this._interp(this._("between ${begin_date} and ${end_date}"), {
+                begin_date: this._describeDate(r.beginDate),
+                end_date: this._describeDate(r.endDate),
+            });
+        } else if (r.beginDate) {
+            dateSpec = this._interp(this._("after ${begin_date}"), {
+                begin_date: this._describeDate(r.beginDate),
+            });
+        } else if (r.endDate) {
+            dateSpec = this._interp(this._("before ${end_date}"), {
+                end_date: this._describeDate(r.endDate),
+            });
+        }
+
+        let intervalSpec : ReplacedResult|null = ReplacedResult.EMPTY;
+        if (r.interval.toJS() !== 86400000 || r.frequency !== 1) {
+            if (r.frequency !== 1) {
+                intervalSpec = this._interp(this._("${frequency:select:=1{once}=2{twice}_{${frequency} times}} every ${interval}"), {
+                    interval: this.describeArg(r.interval),
+                    frequency: r.frequency
+                });
+            } else {
+                intervalSpec = this._interp("every ${interval}", {
+                    interval: this.describeArg(r.interval)
+                });
+            }
+        }
+
+        let weekDaySpec : ReplacedResult|null = ReplacedResult.EMPTY;
+        if (r.dayOfWeek) {
+            const weekday = this._(r.dayOfWeek);
+            weekDaySpec = this._interp(this._("on ${weekday}"), { weekday });
+        }
+
+        return this._interp(this._("${time_spec} ${interval_spec} ${weekday_spec} ${date_spec}"), {
+            time_spec: timeSpec,
+            interval_spec: intervalSpec,
+            weekday_spec: weekDaySpec,
+            date_spec: dateSpec
+        });
+    }
+
     private _describeRecurrentTimeSpec(value : Ast.RecurrentTimeSpecificationValue) {
         // preprocess the time rules to collapse multiple days of the week
         interface PreprocessedTimeRule {
@@ -420,8 +475,22 @@ export class Describer {
         }
         const preprocessed : PreprocessedTimeRule[] = [];
         const other : Ast.RecurrentTimeRule[] = [];
+        const subtractdays : Date[] = [];
+        const subtractother : Ast.RecurrentTimeRule[] = [];
 
         for (const rule of value.rules) {
+            if (rule.subtract) {
+                if (rule.beginTime.hour === 0 && rule.beginTime.minute === 0 && rule.beginTime.hour === 0 &&
+                    rule.endTime.hour === 0 && rule.endTime.minute === 0 && rule.endTime.hour === 0 &&
+                    rule.frequency === 1 && rule.interval.toJS() === 86400000 &&
+                    rule.beginDate instanceof Date && rule.endDate instanceof Date &&
+                    rule.endDate.getTime() === rule.beginDate.getTime() + 86400000)
+                    subtractdays.push(rule.beginDate);
+                else
+                    subtractother.push(rule);
+                continue;
+            }
+
             if (rule.beginDate || rule.endDate || rule.frequency !== 1 || rule.interval.toJS() !== 86400000) {
                 other.push(rule);
                 continue;
@@ -475,57 +544,30 @@ export class Describer {
                 });
             }
         });
-        const specialHours = other.map((r) => {
-            const timeSpec = this._interp(this._("from ${begin_time} to ${end_time}"), {
-                begin_time: this._describeTime(r.beginTime),
-                end_time: this._describeTime(r.endTime),
+        const specialHours = other.map(this._describeRecurrentTimeRule, this);
+        const subtractHours = subtractother.map(this._describeRecurrentTimeRule, this);
+
+        const positive = this._makeList(normalHours.concat(specialHours), 'conjunction');
+
+        if (subtractdays.length && subtractother.length) {
+            return this._interp("${positive_hours}, except on ${subtract_days} and ${subtract_other}", {
+                positive_hours: positive,
+                subtract_days: this._makeList(subtractdays.map((d) => this._describeDate(d)), ','),
+                subtract_other: this._makeList(subtractHours, 'disjunction')
             });
-
-            let dateSpec : ReplacedResult|null = ReplacedResult.EMPTY;
-            if (r.beginDate && r.endDate) {
-                dateSpec = this._interp(this._("between ${begin_date} and ${end_date}"), {
-                    begin_date: this._describeDate(r.beginDate),
-                    end_date: this._describeDate(r.endDate),
-                });
-            } else if (r.beginDate) {
-                dateSpec = this._interp(this._("after ${begin_date}"), {
-                    begin_date: this._describeDate(r.beginDate),
-                });
-            } else if (r.endDate) {
-                dateSpec = this._interp(this._("before ${end_date}"), {
-                    end_date: this._describeDate(r.endDate),
-                });
-            }
-
-            let intervalSpec : ReplacedResult|null = ReplacedResult.EMPTY;
-            if (r.interval.toJS() !== 86400000 || r.frequency !== 1) {
-                if (r.frequency !== 1) {
-                    intervalSpec = this._interp(this._("${frequency:select:=1{once}=2{twice}_{${frequency} times}} every ${interval}"), {
-                        interval: this.describeArg(r.interval),
-                        frequency: r.frequency
-                    });
-                } else {
-                    intervalSpec = this._interp("every ${interval}", {
-                        interval: this.describeArg(r.interval)
-                    });
-                }
-            }
-
-            let weekDaySpec : ReplacedResult|null = ReplacedResult.EMPTY;
-            if (r.dayOfWeek) {
-                const weekday = this._(r.dayOfWeek);
-                weekDaySpec = this._interp(this._("on ${weekday}"), { weekday });
-            }
-
-            return this._interp(this._("${time_spec} ${interval_spec} ${weekday_spec} ${date_spec}"), {
-                time_spec: timeSpec,
-                interval_spec: intervalSpec,
-                weekday_spec: weekDaySpec,
-                date_spec: dateSpec
+        } else if (subtractdays.length) {
+            return this._interp("${positive_hours}, except on ${subtract_days}", {
+                positive_hours: positive,
+                subtract_days: this._makeList(subtractdays.map((d) => this._describeDate(d)), ','),
             });
-        });
-
-        return this._makeList(normalHours.concat(specialHours), 'conjunction');
+        } else if (subtractother.length) {
+            return this._interp("${positive_hours}, except ${subtract_other}", {
+                positive_hours: positive,
+                subtract_other: this._makeList(subtractHours, 'disjunction')
+            });
+        } else {
+            return positive;
+        }
     }
 
     private _describeOperator(argcanonical : ReplacedResult|null,
