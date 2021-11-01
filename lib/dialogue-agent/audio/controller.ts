@@ -98,10 +98,10 @@ export default class AudioController extends events.EventEmitter {
         }
     }
     async removePlayer(player : AudioPlayer) {
-        console.log(`Removing audio player from ${player.conversationId}`);
         const state = this._players.get(player.conversationId);
-        if (!state)
+        if (!state || state.player !== player)
             return;
+        console.log(`Removing audio player from ${player.conversationId}`);
         // set the player interface to null but keep the state
         // so the next time the client reconnects we'll be able to stop/resume
         state.player = null;
