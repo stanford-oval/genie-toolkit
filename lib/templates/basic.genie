@@ -43,6 +43,8 @@ bookkeeping : Ast.ControlCommand = {
     ('stop'
     | 'stop it'
     | 'shut up'
+    | 'stop . stop'
+    | 'stopped'
     | 'shush'
     | 'quiet'
     | 'close'
