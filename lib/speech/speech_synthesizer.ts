@@ -69,7 +69,7 @@ export default class SpeechSynthesizer extends events.EventEmitter {
         return this._speaking;
     }
 
-    async clearQueue() {
+    clearQueue() {
         if (this._outputStream)
             this._outputStream.discard();
         this._queue.length = 0;

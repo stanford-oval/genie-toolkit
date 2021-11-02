@@ -74,6 +74,7 @@ export interface ConversationDelegate {
         entities : EntityMap;
     }) : Promise<void>;
     addMessage(msg : Message) : Promise<void>;
+    destroy() : void;
 }
 
 export interface ConversationState {
@@ -274,7 +275,7 @@ export default class Conversation extends events.EventEmitter {
             await this._callDelegate(out, (out) => out.setExpected(what, this._context));
         }
     }
-    async removeOutput(out : ConversationDelegate) {
+    removeOutput(out : ConversationDelegate) {
         this._delegates.delete(out);
     }
 
@@ -284,7 +285,7 @@ export default class Conversation extends events.EventEmitter {
             return true;
         } catch(e) {
             // delegate disappeared (likely a disconnected websocket)
-            this._delegates.delete(out);
+            out.destroy();
             return false;
         }
     }
