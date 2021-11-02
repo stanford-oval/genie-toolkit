@@ -258,10 +258,17 @@ export class Describer {
         }
         if (arg instanceof Ast.ComputationValue) {
             if ((arg.op === '+' || arg.op === '-') &&
-                arg.operands[0].isDate) {
-                const base = this.describeArg(arg.operands[0], scope);
+                arg.operands[0] instanceof Ast.DateValue) {
                 const offset = this.describeArg(arg.operands[1], scope);
 
+                if (arg.operands[0].value === null) {
+                    if (arg.op === '+')
+                        return this._interp(this._("${offset} from now"), { offset });
+                    else
+                        return this._interp(this._("${offset} ago"), { offset });
+                }
+
+                const base = this.describeArg(arg.operands[0], scope);
                 if (arg.op === '+')
                     return this._interp(this._("${offset} past ${base}"), { offset, base });
                 else
@@ -1480,10 +1487,21 @@ export class Describer {
     }
 
     private _describeOnTimer(stream : Ast.FunctionCallExpression) {
-        const date = stream.in_params.find((ip) => ip.name === 'date');
+        const date = stream.in_params.find((ip) => ip.name === 'date')?.value;
+
+        if (date instanceof Ast.ArrayValue &&
+            date.value.length === 1 &&
+            date.value[0] instanceof Ast.ComputationValue &&
+            date.value[0].op === '+' &&
+            date.value[0].operands[0] instanceof Ast.DateValue &&
+            date.value[0].operands[0].value === null) {
+            return this._interp(this._("in ${interval}"), {
+                interval: this.describeArg(date.value[0].operands[1])
+            });
+        }
 
         return this._interp(this._("at ${date}"), {
-            date: this.describeArg(date ? date.value : new Ast.Value.Undefined())
+            date: this.describeArg(date ?? new Ast.Value.Undefined())
         });
     }
 
