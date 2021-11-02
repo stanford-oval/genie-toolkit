@@ -73,6 +73,8 @@ class ResultGenerator {
         if (value.isBoolean || value.isEnum)
             return;
 
+        if (value instanceof Ast.DateValue || value instanceof Ast.RecurrentTimeSpecificationValue)
+            value = value.normalize(this._timezone);
         const jsValue = value.toJS();
 
         if (value.isString) {

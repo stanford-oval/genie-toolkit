@@ -84,7 +84,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant() => notify;
 
-A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is a restaurant rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
+A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
 A: rdl: Ramen Nagi https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Evvia Estiatorio https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Oren's Hummus https://www.yelp.com/biz/orens-hummus-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -382,8 +382,8 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [distance(geo, $location.current_location)] of (@com.yelp.restaurant()) => notify;
 
-A: The distance is 1.2 miles.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ distance ( geo , LOCATION_0 ) ] of @com.yelp . restaurant ( ) #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , distance = MEASURE_m_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"LOCATION_0":{"latitude":37.4275,"longitude":-122.1697,"display":null},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"MEASURE_m_0":{"unit":"m","value":2004.0661629148217},"NUMBER_0":50}
+A: The distance is 1.3 miles.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ distance ( geo , LOCATION_0 ) ] of @com.yelp . restaurant ( ) #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , distance = MEASURE_m_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"LOCATION_0":{"latitude":37.4275,"longitude":-122.1697,"display":null},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"MEASURE_m_0":{"unit":"m","value":2155.6170081160226},"NUMBER_0":50}
 A: >> expecting = null
 
 ====
@@ -515,7 +515,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [release_date] of (@com.spotify.song(), id =~ "hello") => notify;
 
-A: Hello? Is a song released in May 24, 2018.
+A: Hello? Is released in May 24, 2018.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . song ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:song_0 , release_date = DATE_0 } ] ] #[ count = 11 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"hello","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:7qwt4xUIqQWCu1DJf96g2k","display":"Hello?"},"DATE_0":"2018-05-25T00:00:00.000Z"}
 A: >> expecting = null
 
@@ -526,7 +526,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (sort popularity desc of @com.spotify.song())[1:3] => notify;
 
-A: I see ROCKSTAR (feat. Roddy Ricch), Blinding Lights, and death bed (coffee for your head). ROCKSTAR (feat. Roddy Ricch) is a song by DaBaby, Blinding Lights The Weeknd wrote, and death bed (coffee for your head) is written by both beabadoobee and Powfu.
+A: I see ROCKSTAR (feat. Roddy Ricch), Blinding Lights, and death bed (coffee for your head). ROCKSTAR (feat. Roddy Ricch) is a song by DaBaby, Blinding Lights The Weeknd wrote, and death bed (coffee for your head) is written by both Powfu and beabadoobee.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_three ; sort ( popularity desc of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . song ( ) ) [ 1 : 3 ] #[ results = [ { id = GENERIC_ENTITY_com.spotify:song_0 , artists = [ GENERIC_ENTITY_com.spotify:artist_0 , GENERIC_ENTITY_com.spotify:artist_1 ] , album = GENERIC_ENTITY_com.spotify:album_0 , genres = [ QUOTED_STRING_0 , QUOTED_STRING_1 ] , release_date = DATE_0 , popularity = NUMBER_0 , energy = NUMBER_1 , danceability = NUMBER_2 } ] ] #[ count = 3 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:7ytR5pFWmSjzHJIeQkgog4","display":"ROCKSTAR (feat. Roddy Ricch)"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:4r63FhuTkUYltbVAg5TQnk","display":"DaBaby"},"GENERIC_ENTITY_com.spotify:artist_1":{"value":"spotify:artist:757aE44tKEUQEqRuT6GnEB","display":"Roddy Ricch"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:623PL2MBg50Br5dLXC9E9e","display":"BLAME IT ON BABY"},"QUOTED_STRING_0":"north carolina hip hop","QUOTED_STRING_1":"rap","DATE_0":"2020-04-17T00:00:00.000Z","NUMBER_0":100,"NUMBER_1":69,"NUMBER_2":74}
 A: >> expecting = null
 
@@ -537,7 +537,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [release_date] of (@com.spotify.album(), id =~ "the wall") => notify;
 
-A: The Wall is an album released in November 29, 1979.
+A: The Wall is released in November 29, 1979.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . album ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:album_0 , release_date = DATE_0 } ] ] #[ count = 4 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z"}
 A: >> expecting = null
 
@@ -547,7 +547,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [release_date] of (@com.spotify.album(), id =~ "the wall") => notify;
 
-A: The Wall is an album released in November 29, 1979.
+A: The Wall is released in November 29, 1979.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . album ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:album_0 , release_date = DATE_0 } ] ] #[ count = 4 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z"}
 A: >> expecting = null
 
@@ -651,9 +651,10 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.xkcd.comic();
 
-A: I found xkcd 20. It is an xkcd comic from January 20, 2018 titled Some Device com.xkcd.
+A: I see 20 and 451. 20 is an xkcd comic from January 20, 2018, while 451 is released on March 20, 2020.
 A: rdl: Some Device com.xkcd str:ENTITY_tt:url::1:
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; @com.xkcd . comic ( ) #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] #[ count = NUMBER_1 ] #[ more = true ] ; // {"NUMBER_0":20,"QUOTED_STRING_0":"Some Device com.xkcd","DATE_0":"2018-01-20T08:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::14:","URL_0":"str:ENTITY_tt:url::1:","NUMBER_1":50}
+A: rdl: str:QUOTED_STRING::49: str:ENTITY_tt:url::28:
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_two ; @com.xkcd . comic ( ) #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] #[ count = NUMBER_1 ] #[ more = true ] ; // {"NUMBER_0":20,"QUOTED_STRING_0":"Some Device com.xkcd","DATE_0":"2018-01-20T08:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::14:","URL_0":"str:ENTITY_tt:url::1:","NUMBER_1":50}
 A: >> expecting = null
 
 ====
@@ -917,7 +918,7 @@ A: >> expecting = null
 
 U: \t @com.yelp.restaurant()[1:3];
 
-A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is a restaurant rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
+A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
 A: rdl: Ramen Nagi https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Evvia Estiatorio https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Oren's Hummus https://www.yelp.com/biz/orens-hummus-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -926,7 +927,7 @@ A: >> expecting = null
 
 U: \t [reviewCount] of @com.yelp.restaurant()[1:3];
 
-A: Ramen Nagi is a restaurant with 1,625 reviews, Evvia Estiatorio has 2,393 reviews, and Oren's Hummus has 2,248 reviews.
+A: Ramen Nagi has 1,625 reviews, Evvia Estiatorio has 2,393 reviews, and Oren's Hummus has 2,248 reviews.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_three ; [ reviewCount ] of @com.yelp . restaurant ( ) [ 1 : 3 ] #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , reviewCount = NUMBER_0 } ] ] #[ count = 3 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"NUMBER_0":1625}
 A: >> expecting = null
 
@@ -1270,6 +1271,16 @@ A: >> expecting = null
 
 U: \t [openingHours] of @com.yelp.restaurant(), id =~ "Oren's Hummus";
 
-A: Oren's Hummus is a restaurant which opens from 11:00 AM to 2:30 PM every day.
+A: Oren's Hummus opens from 11:00 AM to 2:30 PM every day.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ openingHours ] of @com.yelp . restaurant ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , openingHours = new RecurrentTimeSpecification ( { beginTime = TIME_0 , endTime = TIME_1 , interval = DURATION_0 } ) } ] ] ; // {"QUOTED_STRING_0":"Oren's Hummus","GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"KyU7XWDPclmZ3BpdIsd_0Q","display":"Oren's Hummus"},"TIME_0":{"hour":11,"minute":0,"second":0},"TIME_1":{"hour":14,"minute":30,"second":0},"DURATION_0":{"unit":"ms","value":86400000}}
+A: >> expecting = null
+
+====
+# 86-reminder
+
+U: \t @org.thingpedia.builtin.thingengine.builtin.say(message="hello");
+
+A: sound: alarm-clock-elapsed
+A: Str:QUOTED_STRING::42:.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.builtin.thingengine.builtin . say ( message = QUOTED_STRING_0 ) #[ results = [ { message = QUOTED_STRING_0 , message_output = QUOTED_STRING_1 } ] ] ; // {"QUOTED_STRING_0":"hello","QUOTED_STRING_1":"str:QUOTED_STRING::42:"}
 A: >> expecting = null
