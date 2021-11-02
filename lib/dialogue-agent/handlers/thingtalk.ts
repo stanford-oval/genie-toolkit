@@ -285,7 +285,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         const nluResult = await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
             expect: this._loop.expecting ? ValueCategory[this._loop.expecting] : undefined,
             choices: this._loop.choices,
-            store: this._prefs.get('sabrina-store-log') as string || 'no'
+            store: this._prefs.get('sabrina-store-log') as string || 'no',
+            skip_typechecking: true
         });
 
         if (this._useConfidence &&
@@ -338,6 +339,10 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         if (type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND) {
             type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
             this._loop.debug('Failed to analyze message as ThingTalk');
+            if (nluResult.candidates.length === 0)
+                this._loop.debug('No candidates produced');
+            else
+                this._loop.debug(`Top candidate was ${nluResult.candidates[0].code.join(' ')}`);
             this._loop.conversation.stats.hit('sabrina-failure');
         } else if (this._useConfidence && choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
             type = CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;
