@@ -255,7 +255,7 @@ export class DialogueLoop {
                 return { handler: handler, analysis: analysis };
             }));
 
-            return pickHandler(this._currentHandler, handlerCandidates, command);
+            return pickHandler(this._currentHandler, handlerCandidates, command, this._debug);
         } catch(e : any) {
             if (e.code === 'EHOSTUNREACH' || e.code === 'ETIMEDOUT') {
                 await this.reply(this._("Sorry, I cannot contact the Genie service. Please check your Internet connection and try again later."), null);
@@ -697,7 +697,8 @@ export class DialogueLoop {
 
 export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResult, any> | null,
                             handlerCandidates : Array<{ handler : DialogueHandler<CommandAnalysisResult, any>; analysis : CommandAnalysisResult; }>,
-                            command : UserInput) : [DialogueHandler<any, any>|undefined, CommandAnalysisResult]  {
+                            command : UserInput,
+                            debug = false) : [DialogueHandler<any, any>|undefined, CommandAnalysisResult]  {
     let best : DialogueHandler<any, any>|undefined = undefined;
     let bestanalysis : CommandAnalysisResult|undefined = undefined;
     let bestconfidence = Confidence.NO;
@@ -706,7 +707,8 @@ export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResu
         const handler = handlerItem.handler;
         const analysis = handlerItem.analysis;
 
-        // console.log(`Handler ${handler.uniqueId} reports ${CommandAnalysisType[analysis.type]}`);
+        if (debug)
+            console.log(`Handler ${handler.uniqueId} reports ${CommandAnalysisType[analysis.type]}`);
 
         switch (analysis.type) {
         case CommandAnalysisType.STOP:
