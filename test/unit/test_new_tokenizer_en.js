@@ -239,7 +239,7 @@ const TEST_CASES = [
     // no markers
     ['wake me up at 7:15', 'wake me up at 7:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 7, minute: 15, second: 0 } }],
     ['wake me up at 7:15:00', 'wake me up at 7:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 7, minute: 15, second: 0 } }],
-    ['wake me up at 3:15', 'wake me up at 3:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 3, minute: 15, second: 0 } }],
+    ['wake me up at 3:15', 'wake me up at 15:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 15, minute: 15, second: 0 } }],
     ['wake me up at 15:15', 'wake me up at 15:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 15, minute: 15, second: 0 } }],
     ['wake me up at 19:15', 'wake me up at 19:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 19, minute: 15, second: 0 } }],
 
@@ -293,8 +293,8 @@ const TEST_CASES = [
     ['june 1st, 0315hrs', 'XXXX-06-01T03:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 3, minute: 15, second: 0, timezone: undefined } }],
     ['june 1st at 7:15', 'XXXX-06-01T07:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 7, minute: 15, second: 0, timezone: undefined } }],
     ['june 1st at 7 o\'clock', 'XXXX-06-01T07:00:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 7, minute: 0, second: 0, timezone: undefined } }],
-    ['june 1st at 3:15', 'XXXX-06-01T03:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 3, minute: 15, second: 0, timezone: undefined } }],
-    ['june 1st at 3 o\'clock', 'XXXX-06-01T03:00:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 3, minute: 0, second: 0, timezone: undefined } }],
+    ['june 1st at 3:15', 'XXXX-06-01T15:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 15, minute: 15, second: 0, timezone: undefined } }],
+    ['june 1st at 3 o\'clock', 'XXXX-06-01T15:00:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 15, minute: 0, second: 0, timezone: undefined } }],
 
     // again, with years
     ['june 1st, 2020 at 7:15am', '2020-06-01T07:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 7, minute: 15, second: 0, timezone: undefined } }],
@@ -320,8 +320,8 @@ const TEST_CASES = [
     ['june 1st, 2020, 0315hrs', '2020-06-01T03:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 3, minute: 15, second: 0, timezone: undefined } }],
     ['june 1st, 2020 at 7:15', '2020-06-01T07:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 7, minute: 15, second: 0, timezone: undefined } }],
     ['june 1st, 2020 at 7 o\'clock', '2020-06-01T07:00:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 7, minute: 0, second: 0, timezone: undefined } }],
-    ['june 1st, 2020 at 3:15', '2020-06-01T03:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 3, minute: 15, second: 0, timezone: undefined } }],
-    ['june 1st, 2020 at 3 o\'clock', '2020-06-01T03:00:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 3, minute: 0, second: 0, timezone: undefined } }],
+    ['june 1st, 2020 at 3:15', '2020-06-01T15:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 15, minute: 15, second: 0, timezone: undefined } }],
+    ['june 1st, 2020 at 3 o\'clock', '2020-06-01T15:00:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 15, minute: 0, second: 0, timezone: undefined } }],
 
     // numeric dates
     ['05/18/2020', '2020-05-18', 'DATE_0', { DATE_0: { year: 2020, month: 5, day: 18, hour: 0, minute: 0, second: 0, timezone: undefined } }],
@@ -366,8 +366,8 @@ const TEST_CASES = [
     ['6/1, 0315hrs', 'XXXX-06-01T03:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 3, minute: 15, second: 0, timezone: undefined } }],
     ['6/1 at 7:15', 'XXXX-06-01T07:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 7, minute: 15, second: 0, timezone: undefined } }],
     ['6/1 at 7 o\'clock', 'XXXX-06-01T07:00:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 7, minute: 0, second: 0, timezone: undefined } }],
-    ['6/1 at 3:15', 'XXXX-06-01T03:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 3, minute: 15, second: 0, timezone: undefined } }],
-    ['6/1 at 3 o\'clock', 'XXXX-06-01T03:00:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 3, minute: 0, second: 0, timezone: undefined } }],
+    ['6/1 at 3:15', 'XXXX-06-01T15:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 15, minute: 15, second: 0, timezone: undefined } }],
+    ['6/1 at 3 o\'clock', 'XXXX-06-01T15:00:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 1, hour: 15, minute: 0, second: 0, timezone: undefined } }],
 
     // again, with years
     ['6/1/2020 at 7:15am', '2020-06-01T07:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 7, minute: 15, second: 0, timezone: undefined } }],
@@ -393,8 +393,8 @@ const TEST_CASES = [
     ['6/1/2020, 0315hrs', '2020-06-01T03:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 3, minute: 15, second: 0, timezone: undefined } }],
     ['6/1/2020 at 7:15', '2020-06-01T07:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 7, minute: 15, second: 0, timezone: undefined } }],
     ['6/1/2020 at 7 o\'clock', '2020-06-01T07:00:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 7, minute: 0, second: 0, timezone: undefined } }],
-    ['6/1/2020 at 3:15', '2020-06-01T03:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 3, minute: 15, second: 0, timezone: undefined } }],
-    ['6/1/2020 at 3 o\'clock', '2020-06-01T03:00:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 3, minute: 0, second: 0, timezone: undefined } }],
+    ['6/1/2020 at 3:15', '2020-06-01T15:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 15, minute: 15, second: 0, timezone: undefined } }],
+    ['6/1/2020 at 3 o\'clock', '2020-06-01T15:00:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 1, hour: 15, minute: 0, second: 0, timezone: undefined } }],
 
     // now british style
     ['13/6 at 7:15am', 'XXXX-06-13T07:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 13, hour: 7, minute: 15, second: 0, timezone: undefined } }],
@@ -419,8 +419,8 @@ const TEST_CASES = [
     ['13/6, 0315hrs', 'XXXX-06-13T03:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 13, hour: 3, minute: 15, second: 0, timezone: undefined } }],
     ['13/6 at 7:15', 'XXXX-06-13T07:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 13, hour: 7, minute: 15, second: 0, timezone: undefined } }],
     ['13/6 at 7 o\'clock', 'XXXX-06-13T07:00:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 13, hour: 7, minute: 0, second: 0, timezone: undefined } }],
-    ['13/6 at 3:15', 'XXXX-06-13T03:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 13, hour: 3, minute: 15, second: 0, timezone: undefined } }],
-    ['13/6 at 3 o\'clock', 'XXXX-06-13T03:00:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 13, hour: 3, minute: 0, second: 0, timezone: undefined } }],
+    ['13/6 at 3:15', 'XXXX-06-13T15:15:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 13, hour: 15, minute: 15, second: 0, timezone: undefined } }],
+    ['13/6 at 3 o\'clock', 'XXXX-06-13T15:00:00', 'DATE_0', { DATE_0: { year: -1, month: 6, day: 13, hour: 15, minute: 0, second: 0, timezone: undefined } }],
 
     // again, with years
     ['13/6/2020 at 7:15am', '2020-06-13T07:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 13, hour: 7, minute: 15, second: 0, timezone: undefined } }],
@@ -446,8 +446,8 @@ const TEST_CASES = [
     ['13/6/2020, 0315hrs', '2020-06-13T03:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 13, hour: 3, minute: 15, second: 0, timezone: undefined } }],
     ['13/6/2020 at 7:15', '2020-06-13T07:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 13, hour: 7, minute: 15, second: 0, timezone: undefined } }],
     ['13/6/2020 at 7 o\'clock', '2020-06-13T07:00:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 13, hour: 7, minute: 0, second: 0, timezone: undefined } }],
-    ['13/6/2020 at 3:15', '2020-06-13T03:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 13, hour: 3, minute: 15, second: 0, timezone: undefined } }],
-    ['13/6/2020 at 3 o\'clock', '2020-06-13T03:00:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 13, hour: 3, minute: 0, second: 0, timezone: undefined } }],
+    ['13/6/2020 at 3:15', '2020-06-13T15:15:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 13, hour: 15, minute: 15, second: 0, timezone: undefined } }],
+    ['13/6/2020 at 3 o\'clock', '2020-06-13T15:00:00', 'DATE_0', { DATE_0: { year: 2020, month: 6, day: 13, hour: 15, minute: 0, second: 0, timezone: undefined } }],
 
     // misc tests from almond-tokenizer
     ['show me the 3rd result', 'show me the 3rd result', 'show me the 3rd result', {}],
