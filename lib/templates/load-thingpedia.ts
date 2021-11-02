@@ -621,9 +621,9 @@ export default class ThingpediaLoader {
                 if (ptype.isDate)
                     this._addRule(pos + '_filter', [constant_date_range], expansion, (values : [Ast.Value, Ast.Value]) => makeDateRangeFilter(this, pslot, values), keyfns.filterKeyFn, attributes);
 
-                const joinexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${pronoun_the_second}') + '}';
+                const joinexpansion = '{' + forms.join('|').replace(/\$\{value\b/g, '${pronoun_the_second') + '}';
                 this._addRule(pos + '_join_condition', [pronoun_the_second], joinexpansion, () => makeSelfJoinCondition(this, pslot), keyfns.filterKeyFn, attributes);
-                const symmetric_joinexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${each_other}') + '}';
+                const symmetric_joinexpansion = '{' + forms.join('|').replace(/\$\{value\b/g, '${each_other') + '}';
                 if (pslot.symmetric)
                     this._addRule(pos + '_symmetric_join_condition', [each_other], symmetric_joinexpansion, () => makeSelfJoinCondition(this, pslot), keyfns.filterKeyFn, attributes);
             }
