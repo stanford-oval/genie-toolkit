@@ -119,6 +119,7 @@ const MAX_ENTITY_QUESTIONS = 3;
 async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, entity_tracking_set : Set<string>) {
     const summary = ctx.results![0].value.summary;
     const mentions = ctx.results![0].value.mention?.toJS() as string[]|undefined;
+    const keyword = ctx.results![0].value.keyword;
 
     if (!mentions || !mentions.length) {
         dlg.say("${summary}", {
@@ -129,6 +130,9 @@ async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, 
     dlg.say("${summary}", { summary });
 
     console.log(`mentioned entities`, mentions);
+
+    if (keyword)
+        entity_tracking_set.add(String(keyword));
 
     for (let i = 0; i < Math.min(MAX_ENTITY_QUESTIONS, mentions.length); i++) {
         const entity_to_ask = mentions[i];
