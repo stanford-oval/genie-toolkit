@@ -235,6 +235,13 @@ export default class ThingpediaLoader {
         this.standardSchemas.get_gps = get_gps;
         this.standardSchemas.get_time = get_time;
 
+        this._recordFunction(TIMER_SCHEMA);
+        this._recordFunction(ATTIMER_SCHEMA);
+        this._recordFunction(ONTIMER_SCHEMA);
+        this._loadFunction(TIMER_SCHEMA);
+        this._loadFunction(ATTIMER_SCHEMA);
+        this._loadFunction(ONTIMER_SCHEMA);
+
         await this._loadMetadata();
     }
 
@@ -1212,7 +1219,7 @@ export default class ThingpediaLoader {
     private async _loadFunction(functionDef : Ast.FunctionDef) {
         if (functionDef.functionType === 'query')
             await this._makeExampleFromQuery(functionDef);
-        else
+        else if (functionDef.functionType === 'action')
             await this._makeExampleFromAction(functionDef);
 
         if (functionDef.metadata.result)

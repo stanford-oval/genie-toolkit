@@ -166,6 +166,7 @@ export class NextStatementInfo {
     chainParameter : string|null;
     chainParameterFilled : boolean;
     isComplete : boolean;
+    missingSlots : Ast.AbstractSlot[];
 
     constructor(currentItem : Ast.DialogueHistoryItem|null,
                 resultInfo : ResultInfo|null,
@@ -177,6 +178,14 @@ export class NextStatementInfo {
         this.chainParameter = null;
         this.chainParameterFilled = false;
         this.isComplete = nextItem.isExecutable();
+        this.missingSlots = [];
+
+        for (const slot of nextItem.iterateSlots2()) {
+            if (slot instanceof Ast.DeviceSelector)
+                continue;
+            if (slot.get() instanceof Ast.UndefinedValue)
+                this.missingSlots.push(slot);
+        }
 
         if (!this.isAction)
             return;
