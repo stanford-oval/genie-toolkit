@@ -182,7 +182,7 @@ export default class ConversationWebSocketConnection implements ConversationDele
         return this.send(msg);
     }
 
-    private _sendNewDevice(device : Tp.BaseDevice) {
+    private async _sendNewDevice(device : Tp.BaseDevice) {
         return this.send({ type: MessageType.NEW_DEVICE, uniqueId: device.uniqueId!, state: device.serialize() });
     }
 }
