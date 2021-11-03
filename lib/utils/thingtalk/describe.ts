@@ -244,6 +244,17 @@ export class Describer {
             return this._getEntity('NUMBER', arg.value);
 
         if (arg instanceof Ast.VarRefValue) {
+            if (arg.name ==='id') {
+                if (arg.name in scope) {
+                    let name = scope[arg.name];
+                    if (typeof name === 'string')
+                        name = new ReplacedConcatenation([name], {}, {});
+                    return name;
+                } else {
+                    return this._interp(this._("{them [plural=other]|it [plural=one]}"), {});
+                }
+            }
+
             let name;
             if (arg.name in scope)
                 name = scope[arg.name];
@@ -253,8 +264,6 @@ export class Describer {
                 name = new ReplacedConcatenation([name], {}, {});
             if (skipThePrefix)
                 return name;
-            if (arg.name ==='id' && !(arg.name in scope))
-                return this._interp(this._("{them [plural=other]|it [plural=one]}"), {});
             else
                 return this._interp(this._("the ${name} [plural=name[plural]]"), { name });
         }
