@@ -36,6 +36,7 @@ import {
     TemplatePlaceholderMap
 } from '../sentence-generator/types';
 import { NonTerminal } from '../sentence-generator/runtime';
+import { Ast } from 'thingtalk';
 
 function processPlaceholderMap(tmpl : string,
                                generator : SentenceGenerator|InferenceSentenceGenerator,
@@ -65,6 +66,13 @@ function processPlaceholderMap(tmpl : string,
         } else if (typeof symbol === 'string') {
             needsReplacePartial = true;
             replacePartialCtx.replacements.push({ value: symbol, text: generator.tpLoader.describer.getEntity('QUOTED_STRING', symbol) });
+        } else if (symbol instanceof Ast.Value) {
+            needsReplacePartial = true;
+            const text = generator.tpLoader.describer.describeArg(symbol);
+            if (text === null)
+                replacePartialCtx.replacements.push(null);
+            else
+                replacePartialCtx.replacements.push({ value: symbol, text });
         } else {
             needsReplacePartial = true;
             replacePartialCtx.replacements.push(symbol);

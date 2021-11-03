@@ -103,7 +103,7 @@ export type NonTerminalKeyConstraint = RelativeKeyConstraint | ConstantKeyConstr
  * `null` is allowed in the mapping for convenience. If any replacement is `null`,
  * the whole template is discarded.
  */
-export type TemplatePlaceholderMap = Record<string, NonTerminal|PlaceholderReplacement|ReplacedResult|string|null>
+export type TemplatePlaceholderMap = Record<string, NonTerminal|PlaceholderReplacement|ReplacedResult|Ast.Value|string|null>
 
 /**
  * A single template for synthesis.

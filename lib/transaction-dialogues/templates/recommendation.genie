@@ -166,7 +166,7 @@ system_recommendation : D.Recommendation = {
     },
 
     // short answers to single questions
-    proposal:direct_user_question_answer => D.checkRecommendation(proposal, null),
+    ["${proposal}."]: (proposal:direct_user_question_answer) => D.checkRecommendation(proposal, null),
 
     // recommendations after a search, followed by an offer to make an action
     ["${proposal}. it ${pair}", weight=2]: (proposal:actionable_system_recommendation_short, pair:proposal_info_action_pair) => {

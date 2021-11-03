@@ -114,96 +114,139 @@ async function ctxNotification(dlg : DialogueInterface, ctx : ContextInfo) {
     return dlg.flush();
 }
 
-async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextInfo) {
-    let proposal : Ast.Program;
-    let proposal_expression : Ast.ExpressionStatement;
-    let entity_tracking_set = new Set<string>();
-    let entity_asked_counter = 0;
-    while (ctx.results?.length) {
-        dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
-        let mentions = ctx.results?.map((item) => item.raw && item.raw.mention ? item.raw.mention : []).flat();
-        while (mentions.length) {
-            const entity_to_ask = String(mentions.shift());
-            if (entity_tracking_set.has(entity_to_ask)) {
-                continue;
-            }
-            entity_tracking_set.add(entity_to_ask);
-            
-            const entity = new Ast.StringValue(entity_to_ask as string);
-            const top_category = ctx.results?.map((item) => item.raw && item.raw.category ? item.raw.category : [])
-                                                .flat()
-                                                .map((item) => String(item))[0];
-            const article_category = new Ast.StringValue(top_category as string);
-            
-            proposal = await dlg._T`(@com.smartnews.article(keyword=${entity}) filter contains(category, ${article_category}^^com.smartnews:category(${article_category})));` as Ast.Program;
-            proposal_expression = proposal.statements[0] as Ast.ExpressionStatement;
-            dlg.say(`Do you want to know more about ${entity_to_ask}?`, 
-                    addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
-            let cmd = await dlg.get({
-                expecting: Type.Boolean,
-                acceptActs: ['*'],
-                acceptQueries: ['com.smartnews.article'],
-                acceptActions: ['*']
-            });
-            dlg.updateState();
+const MAX_ENTITY_QUESTIONS = 3;
 
-            if (cmd.type === POLICY_NAME + '.cancel') {
-                if ((entity_asked_counter >= 2) || (mentions.length === 0)) {
-                    dlg.say("All good. Let me know if you need me.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
-                    entity_asked_counter = 0;
-                    entity_tracking_set = new Set();
-                    return dlg.flush();
-                }
-                entity_asked_counter += 1;
-                continue;
-            }
+async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, entity_tracking_set : Set<string>) {
+    const summary = ctx.results![0].value.summary;
+    const mentions = ctx.results![0].value.mention?.toJS() as string[]|undefined;
 
-            entity_asked_counter = 0;
+    if (!mentions || !mentions.length) {
+        dlg.say("${summary}", {
+            summary
+        }, () => StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_recommend_one'));
+        return false;
+    }
+    dlg.say("${summary}", { summary });
 
+    console.log(`mentioned entities`, mentions);
+
+    for (let i = 0; i < Math.min(MAX_ENTITY_QUESTIONS, mentions.length); i++) {
+        const entity_to_ask = mentions[i];
+        if (entity_tracking_set.has(entity_to_ask))
+            continue;
+        entity_tracking_set.add(entity_to_ask);
+
+        const entity = new Ast.StringValue(entity_to_ask as string);
+        const top_category = ctx.results?.map((item) => item.raw && item.raw.category ? item.raw.category : [])
+            .flat()
+            .map((item) => String(item))[0];
+        const article_category = new Ast.StringValue(top_category as string);
+
+        const proposal = await dlg._T`(@com.smartnews.article(keyword=${entity}) filter contains(category, ${article_category}^^com.smartnews:category(${article_category})));`;
+        assert(proposal instanceof Ast.Program);
+        const proposal_expression = proposal.statements[0];
+        assert(proposal_expression instanceof Ast.ExpressionStatement);
+        dlg.say(dlg._("Do you want to know more about ${entity_to_ask}?"), {
+            entity_to_ask: entity,
+        }, () => addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
+
+        const cmd = await dlg.get({
+            expecting: Type.Boolean,
+            acceptActs: ['execute', 'cancel', 'next_entity'],
+            acceptQueries: ['com.smartnews.article'],
+        });
+        dlg.updateState();
+
+        console.log(`cmd type`, cmd.type);
+
+        if (cmd.type === POLICY_NAME + '.cancel') {
+            // break out immediately
+            console.log(`got a cancel in smartnews`);
+            dlg.say("All good. Let me know if you need me.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+            return false;
+        }
+
+        if (cmd.type !== POLICY_NAME + '.next_entity') {
             await dlg.execute(cmd.meaning);
             if (dlg.interactive && dlg.debug)
-                console.log(`After execution:`, dlg.state?.prettyprint());
-            ctx = ContextInfo.get(dlg.state);
-            dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
-            break;
+                console.log(`After execution inside SmartNews:`, dlg.state?.prettyprint());
+            // alright, we executed something new, break out of this loop
+            return true;
         }
-        if (mentions.length === 0)
-            break;
+
+        // user said "no", loop to the next mention
     }
-    dlg.say("sorry, there is no more news related to that topic.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
-    return dlg.flush();
+
+    dlg.say("All good. Let me know if you need me.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+    return false;
 }
 
-// async function ctxIncompleteSearchCommand(dlg : DialogueInterface, ctx : ContextInfo) {
-//     if (ctx.results!.length > 1) {
-//         return dlg.either([
-//             async () => {
-//                 dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
-//             },
-//             async () => {
-//                 dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
-//             },
-//             async () => {
-//                 dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
-//             },
-//             async () => {
-//                 dlg.say(Templates.system_generic_proposal, (prop) => prop);
-//             },
-//         ]);
-//     } else {
-//         return dlg.either([
-//             async () => {
-//                 dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
-//             },
-//             async () => {
-//                 dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
-//             },
-//             async () => {
-//                 dlg.say(Templates.system_generic_proposal, (prop) => prop);
-//             },
-//         ]);
-//     }
-// }
+async function ctxSmartNews(dlg : DialogueInterface) {
+    const entity_tracking_set = new Set<string>();
+
+    for (;;) {
+        // get the context based on what the user said
+        const ctx = ContextInfo.get(dlg.state);
+
+        if (ctx.results!.length === 0) {
+            dlg.say("sorry, there is no more news related to that topic.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+            return dlg.flush();
+        }
+
+        if (!await smartNewsArticleLoop(dlg, ctx, entity_tracking_set))
+            return dlg.flush();
+    }
+}
+
+async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextInfo) {
+    if (ctx.results!.length > 1) {
+        return dlg.either([
+            async () => {
+                dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+            },
+            async () => {
+                dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+            },
+        ]);
+    } else {
+        return dlg.either([
+            async () => {
+                dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+            },
+        ]);
+    }
+}
+
+async function ctxIncompleteSearchCommand(dlg : DialogueInterface, ctx : ContextInfo) {
+    if (ctx.results!.length > 1) {
+        return dlg.either([
+            async () => {
+                dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
+            },
+            async () => {
+                dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+            },
+            async () => {
+                dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
+            },
+            async () => {
+                dlg.say(Templates.system_generic_proposal, (prop) => prop);
+            },
+        ]);
+    } else {
+        return dlg.either([
+            async () => {
+                dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+            },
+            async () => {
+                dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
+            },
+            async () => {
+                dlg.say(Templates.system_generic_proposal, (prop) => prop);
+            },
+        ]);
+    }
+}
 
 async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<D.AgentReplyRecord|null> {
     // treat an empty execute like greet
@@ -247,6 +290,9 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<
             return D.ctxCompletedActionSuccess(dlg, ctx);
         }
     }
+
+    if (ctx.currentFunction!.qualifiedName === 'com.smartnews.article')
+        return ctxSmartNews(dlg);
 
     if (ctx.resultInfo.hasEmptyResult) {
         // note: aggregation cannot be empty (it would be zero)
@@ -292,8 +338,7 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<
             return ctxCompleteSearchCommand(dlg, ctx);
         } else if (ctx.resultInfo.hasLargeResult && ctx.state.dialogueAct !== 'ask_recommend') {
             // we can refine
-            return ctxCompleteSearchCommand(dlg, ctx);
-            // return ctxIncompleteSearchCommand(dlg, ctx);
+            return ctxIncompleteSearchCommand(dlg, ctx);
         } else {
             return ctxCompleteSearchCommand(dlg, ctx);
         }
@@ -358,7 +403,7 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
             if (dlg.interactive && dlg.debug)
                 console.log(`After execution:`, dlg.state?.prettyprint());
             const ctx = ContextInfo.get(dlg.state);
-            
+
             switch (cmd.type) {
                 case POLICY_NAME + '.end':{
                     dlg.say(dlg._("alright, {bye|good bye}!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
@@ -454,10 +499,17 @@ export function interpretAnswer(state : Ast.DialogueState|null,
     // if the agent proposed something and the user says "yes", we accept the proposal
     if (state.history.length > 0 && state.history[state.history.length-1].confirm === 'proposed'
         && answer instanceof Ast.BooleanValue) {
-        if (answer.value) // yes accepts
+        if (answer.value) {
+            // yes accepts
             return D.acceptAllProposedStatements(state);
-        else // no is cancel
+        } else {
+            // no is "next_entity" in smartnews
+            if (ctx.currentFunction?.qualifiedName === 'com.smartnews.article')
+                return StateM.makeSimpleState(state, POLICY_NAME, 'next_entity');
+
+            // no is cancel otherwise
             return StateM.makeSimpleState(state, POLICY_NAME, 'cancel');
+        }
     }
 
     switch (state.dialogueAct) {
