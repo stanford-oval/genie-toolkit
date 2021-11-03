@@ -281,7 +281,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
     protected displayPhoneNumber(phone : string) {
         // format US phone numbers in American style
         if (phone.startsWith('+1'))
-            return `(${phone.substring(2, 5)}) ${phone.substring(5)}`;
+            return `(${phone.substring(2, 5)}) ${phone.substring(5, 8)}-${phone.substring(8)}`;
         else
             return phone;
     }

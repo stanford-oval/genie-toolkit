@@ -407,7 +407,7 @@ const TEST_CASES = [
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
     @com.yelp.restaurant(), phone == "+1123456789"^^tt:phone_number;`,
-    'Get restaurants such that the phone number is equal to (123) 456789.',
+    'Get restaurants such that the phone number is equal to (123) 456-789.',
     `Yelp`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
