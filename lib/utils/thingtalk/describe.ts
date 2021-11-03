@@ -33,7 +33,9 @@ import {
     ReplacedList,
     ReplacedChoice,
     ReplacedConcatenation,
+    Concatenation,
 } from '../template-string';
+import { expressionUsesIDFilter } from './ast-utils';
 
 type ScopeMap = Record<string, string|ReplacedResult>;
 
@@ -896,6 +898,9 @@ export class Describer {
         });
 
         if (good) {
+            if (parsed instanceof Concatenation && !parsed.refFlags.coref_plural && names.length === 1)
+                parsed.refFlags.coref_plural = [names[0], 'plural'];
+
             parsed.preprocess(this._langPack, names);
             return [parsed, names];
         } else {
@@ -1097,24 +1102,24 @@ export class Describer {
 
             if (firstExtra) {
                 confirm = this._interp(this._("${input_param[pos]:select: \
-                    base {${invocation} with ${input_param} [plural=invocation[plural]]} \
-                    property {${invocation} with ${input_param} [plural=invocation[plural]]} \
-                    reverse_property {${invocation} that ${invocation[plural]:select:one{is}other{are}} ${input_param} [plural=invocation[plural]]}\
-                    verb {${invocation} that ${invocation[plural]:select:one{${input_param[plural=one]}}other{${input_param[plural=other]}}} [plural=invocation[plural]]} \
-                    adjective {${input_param} ${invocation} [plural=invocation[plural]]} \
-                    passive_verb {${invocation} ${input_param} [plural=invocation[plural]]} \
-                    preposition {${invocation} ${input_param} [plural=invocation[plural]]} \
+                    base {${invocation} with ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    property {${invocation} with ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    reverse_property {${invocation} that ${invocation[plural]:select:one{is}other{are}} ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]}\
+                    verb {${invocation} that ${invocation[plural]:select:one{${input_param[plural=one]}}other{${input_param[plural=other]}}} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    adjective {${input_param} ${invocation} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    passive_verb {${invocation} ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    preposition {${invocation} ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
                 }"), { invocation: confirm, input_param: forms });
                 firstExtra = false;
             } else {
                 confirm = this._interp(this._("${input_param[pos]:select: \
-                    base {${invocation} and ${input_param} [plural=invocation[plural]]} \
-                    property {${invocation} and ${input_param} [plural=invocation[plural]]} \
-                    reverse_property {${invocation} and ${invocation[plural]:select:one{is}other{are}} ${input_param} [plural=invocation[plural]]}\
-                    verb {${invocation} and ${input_param} [plural=invocation[plural]]} \
-                    adjective {${input_param} ${invocation} [plural=invocation[plural]]} \
-                    passive_verb {${invocation} ${input_param} [plural=invocation[plural]]} \
-                    preposition {${invocation} ${input_param} [plural=invocation[plural]]} \
+                    base {${invocation} and ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    property {${invocation} and ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    reverse_property {${invocation} and ${invocation[plural]:select:one{is}other{are}} ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]}\
+                    verb {${invocation} and ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    adjective {${input_param} ${invocation} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    passive_verb {${invocation} ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    preposition {${invocation} ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
                 }"), { invocation: confirm, input_param: forms });
             }
 
@@ -1159,6 +1164,8 @@ export class Describer {
 
     private _describeFilteredTable(table : Ast.FilterExpression) : ReplacedResult|null {
         const inner = this.describeQuery(table.expression);
+        if (!inner)
+            return null;
         if (!table.schema!.is_list) {
             return this._interp(this._("${query} such that ${filter} [plural=query[plural]]"), {
                 query: inner,
@@ -1167,6 +1174,7 @@ export class Describer {
         }
 
         const filter = table.filter.optimize();
+        let idClause : ReplacedResult|undefined = undefined;
         const slotClauses : ReplacedResult[] = [];
         const otherClauses : Ast.BooleanExpression[] = [];
 
@@ -1189,14 +1197,21 @@ export class Describer {
                 continue;
             }
 
-            const canonical = this._preprocessParameterCanonical(arg);
-            // TODO handle boolean/enum filters correctly
-
             let text : ReplacedResult|null = this.describeArg(clause.value, {});
             if (!text) {
                 otherClauses.push(clause);
                 continue;
             }
+
+            if (arg.name === 'id') {
+                idClause = text;
+                continue;
+            }
+
+            const canonical = this._preprocessParameterCanonical(arg);
+            // TODO handle boolean/enum filters correctly
+
+
             if (['in_array', '~in_array', 'in_array~'].includes(clause.operator))
                 text = text.constrain('list_type', 'disjunction');
             else
@@ -1253,7 +1268,27 @@ export class Describer {
         });
         */
 
-        let tabledesc = inner;
+        let tabledesc : ReplacedResult|null = inner;
+        if (idClause) {
+            const arg = table.schema!.getArgument('id')!;
+            if (table.expression instanceof Ast.InvocationExpression &&
+                table.expression.invocation.in_params.length === 0 &&
+                arg.type instanceof Type.Entity &&
+                arg.type.type === `${table.expression.invocation.selector.kind}:${table.expression.invocation.channel}` &&
+                table.schema!.extends.length === 0) {
+                tabledesc = this._interp(this._("${name} [plural=one]"), {
+                    name: idClause
+                });
+            } else {
+                tabledesc = this._interp(this._("the ${table[plural=one]} ${name} [plural=one]"), {
+                    table: tabledesc,
+                    name: idClause
+                });
+            }
+            if (!tabledesc)
+                return null;
+        }
+
         let first = true;
 
         for (const clause of slotClauses) {
@@ -1386,6 +1421,11 @@ export class Describer {
                     param: this.describeArg(table.value, {}, true)
                 });
             }
+        } else if (table instanceof Ast.IndexExpression && table.indices.length === 1 &&
+            table.indices[0] instanceof Ast.NumberValue && table.indices[0].value === 1 &&
+            table.expression instanceof Ast.FilterExpression && expressionUsesIDFilter(table.expression)) {
+            // recognize [1] added by the id filter and skip it
+            return this.describeQuery(table.expression);
         } else if (table instanceof Ast.IndexExpression && table.indices.length === 1) {
             return this._describeIndex(table.indices[0],
                 this.describeQuery(table.expression));
@@ -1574,9 +1614,9 @@ export class Describer {
         if (exp.schema!.functionType === 'query') {
             if (exp.schema!.is_list) {
                 // try both plural forms, but prefer the plural if available
-                return this._interp(this._("get {${query[plural=other]}|${query[plural=one]}}"), { query: this.describeQuery(exp) });
+                return this._interp(this._("get {${query[plural=other]} [plural=other]|${query[plural=one]} [plural=one]} [plural=1[plural]]"), { query: this.describeQuery(exp) });
             } else {
-                return this._interp(this._("get the ${query[plural=one]}"), { query: this.describeQuery(exp) });
+                return this._interp(this._("get the ${query[plural=one]} [plural=1[plural]]"), { query: this.describeQuery(exp) });
             }
         } else {
             return this.describeAction(exp);
@@ -1591,13 +1631,13 @@ export class Describer {
             if (expressions.length > 2) {
                 const descriptions = expressions.slice(1).map((exp) => this._describeExpression(exp));
 
-                return this._interp(this._("do the following : ${stream} , ${queries} , and then ${action}"), {
+                return this._interp(this._("do the following : ${stream} , ${queries} , and then ${queries[plural]:select: other{${action[coref_plural=other]}} one{${action[coref_plural=one]}}}"), {
                     stream: this.describeStream(stream),
                     queries: this._makeList(descriptions.slice(0, descriptions.length-1), 'conjunction'),
                     action: descriptions[descriptions.length-1],
                 });
             } else if (expressions.length === 2) {
-                return this._interp(this._("${action} ${stream}"), {
+                return this._interp(this._("${stream[plural]:select: other{${action[coref_plural=other]}} one{${action[coref_plural=one]}}} ${stream}"), {
                     stream: this.describeStream(stream),
                     action: this._describeExpression(expressions[1]),
                 });
@@ -1608,12 +1648,12 @@ export class Describer {
             }
         } else if (expressions.length > 2) {
             const descriptions = expressions.map((exp) => this._describeExpression(exp));
-            return this._interp(this._("${queries} , and then ${action}"), {
+            return this._interp(this._("${queries} , and then ${queries[plural]:select: other{${action[coref_plural=other]}} one{${action[coref_plural=one]}}}"), {
                 queries: this._makeList(descriptions.slice(0, descriptions.length-1), 'conjunction'),
                 action: descriptions[descriptions.length-1]
             });
         } else if (expressions.length === 2) {
-            return this._interp(this._("${query} and then ${action}"), {
+            return this._interp(this._("${query} and then ${query[plural]:select: other{${action[coref_plural=other]}} one{${action[coref_plural=one]}}}"), {
                 query: this._describeExpression(expressions[0]),
                 action: this._describeExpression(expressions[1])
             });

@@ -31,6 +31,7 @@ import { computePrediction } from './dialogue_state_utils';
 // reexport clean, tokenizeExample from misc-utils
 import { clean, tokenizeExample } from '../misc-utils';
 import { PolicyModule } from '../../sentence-generator/types';
+import { expressionUsesIDFilter } from './ast-utils';
 export { clean, tokenizeExample };
 
 export type Input = Ast.Input;
@@ -173,33 +174,6 @@ export async function inputToDialogueState(policy : DialoguePolicy,
     return input;
 }
 
-class UsesParamVisitor extends Ast.NodeVisitor {
-    used = false;
-    constructor(private pname : string) {
-        super();
-    }
-
-    visitExternalBooleanExpression() {
-        // do not recurse
-        return false;
-    }
-    visitValue() {
-        // do not recurse
-        return false;
-    }
-
-    visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
-        this.used = this.used ||
-            (this.pname === atom.name && atom.operator === '=~');
-        return true;
-    }
-}
-
-export function expressionUsesIDFilter(expr : Ast.Expression) {
-    const visitor = new UsesParamVisitor('id');
-    expr.visit(visitor);
-    return visitor.used;
-}
 
 export function addIndexToIDQuery(stmt : Ast.ExpressionStatement) {
     // we add the clause to all expressions except the last one
