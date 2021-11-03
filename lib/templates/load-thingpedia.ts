@@ -386,12 +386,14 @@ export default class ThingpediaLoader {
         return pos;
     }
 
-    private _getRuleAttributes(canonical : I18n.NormalizedParameterCanonical, cat : string) : RuleAttributes {
+    private _getRuleAttributes(canonical : I18n.NormalizedParameterCanonical, cat : string, type : Type) : RuleAttributes {
         const attributes = { priority: ANNOTATION_PRIORITY[cat] };
         assert(Number.isFinite(attributes.priority), cat);
         if (cat === canonical.default ||
             cat === ANNOTATION_RENAME[canonical.default])
             attributes.priority += 1;
+        if (type === Type.String || type === Type.Location)
+            attributes.priority -= 0.5;
 
         return attributes;
     }
@@ -445,7 +447,7 @@ export default class ThingpediaLoader {
         const filterforms = this._collectByPOS(canonical.filter);
         for (const pos in filterforms) {
             const forms = filterforms[pos];
-            const attributes = this._getRuleAttributes(canonical, pos);
+            const attributes = this._getRuleAttributes(canonical, pos, pslot.type);
 
             const expansion = '{' + forms.join('|') + '}';
             this._addRule(pos + '_input_param', [constant], expansion, (value : Ast.Value) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
@@ -457,7 +459,7 @@ export default class ThingpediaLoader {
                 const filterforms = this._collectByPOS(canonical.enum_filter[key]);
                 for (const pos in filterforms) {
                     const forms = filterforms[pos];
-                    const attributes = this._getRuleAttributes(canonical, pos);
+                    const attributes = this._getRuleAttributes(canonical, pos, pslot.type);
 
                     const expansion = '{' + forms.join('|') + '}';
                     this._addRule(pos + '_input_param', [], expansion, () => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
@@ -482,7 +484,7 @@ export default class ThingpediaLoader {
             const filterforms = this._collectByPOS(canonical.enum_filter[boolean]);
             for (const pos in filterforms) {
                 const forms = filterforms[pos];
-                const attributes = this._getRuleAttributes(canonical, pos);
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                 const expansion = '{' + forms.join('|') + '}';
                 this._addRule(pos + '_filter', [], expansion, () => makeFilter(this, pslot, '==', value, false), keyfns.filterKeyFn, attributes);
@@ -606,7 +608,7 @@ export default class ThingpediaLoader {
                 const filterforms = this._collectByPOS(canonical.enum_filter[enumerand]);
                 for (const pos in filterforms) {
                     const forms = filterforms[pos];
-                    const attributes = this._getRuleAttributes(canonical, pos);
+                    const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                     const expansion = '{' + forms.join('|') + '}';
                     this._addRule(pos + '_filter', [], expansion, () => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
@@ -616,7 +618,7 @@ export default class ThingpediaLoader {
             const filterforms = this._collectByPOS(canonical.filter);
             for (const pos in filterforms) {
                 const forms = filterforms[pos];
-                const attributes = this._getRuleAttributes(canonical, pos);
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                 const expansion = '{' + forms.join('|') + '}';
                 const pairexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${both_prefix} ${values}') + '}';
@@ -638,7 +640,7 @@ export default class ThingpediaLoader {
             const argminforms = this._collectByPOS(canonical.argmin);
             for (const pos in argminforms) {
                 const forms = argminforms[pos];
-                const attributes = this._getRuleAttributes(canonical, pos);
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                 const expansion = '{' + forms.join('|') + '}';
                 this._addRule(pos + '_argminmax', [], expansion, () : [ParamSlot, 'asc'|'desc'] => [pslot, 'asc'], keyfns.argMinMaxKeyFn, attributes);
@@ -646,7 +648,7 @@ export default class ThingpediaLoader {
             const argmaxforms = this._collectByPOS(canonical.argmax);
             for (const pos in argmaxforms) {
                 const forms = argmaxforms[pos];
-                const attributes = this._getRuleAttributes(canonical, pos);
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                 const expansion = '{' + forms.join('|') + '}';
                 this._addRule(pos + '_argminmax', [], expansion, () : [ParamSlot, 'asc'|'desc'] => [pslot, 'desc'], keyfns.argMinMaxKeyFn, attributes);

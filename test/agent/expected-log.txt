@@ -667,7 +667,7 @@ C: #[results=[
 C:   { repeat=enum track, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I set the repeat state to track.
+A: I set the repeat state for you to track.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -883,7 +883,7 @@ C: #[results=[
 C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Ramen Nagi is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
+A: Ramen Nagi is a moderate restaurant rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $yes;
@@ -916,7 +916,7 @@ C: #[results=[
 C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Ramen Nagi is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
+A: Ramen Nagi is a moderate restaurant rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $no;
@@ -1303,7 +1303,7 @@ C: #[results=[
 C:   { id="jwaXc3VVGDFQu1aCoiXwdw"^^com.yelp:restaurant("NOLA Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/tna5SSdgZq3fFxoi4-Xx7A/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["cajun"^^com.yelp:restaurant_cuisine("Cajun/Creole"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=3.5, reviewCount=2821, geo=new Location(37.4450225830078, -122.161323547363), phone="+16503282722"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The restaurant with the highest review count is NOLA Restaurant & Bar. It is a restaurant near [Latitude: 37.445 deg, Longitude: -122.161 deg] rated 3.5 star.
+A: The restaurant with the highest review count is NOLA Restaurant & Bar. It is an expensive restaurant rated 3.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1325,7 +1325,7 @@ C: #[results=[
 C:   { id="yzBYyndSQ3RI6Hci2F9pRQ"^^com.yelp:restaurant("The Ivy Cambridge Brasserie"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/9daDsE_Aq-AtJnDDPruBSQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-ivy-cambridge-brasserie-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["british"^^com.yelp:restaurant_cuisine("British")], rating=4.5, reviewCount=12, geo=new Location(52.2069714284192, 0.118247921026355), phone="+441223344044"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The restaurant with the lowest review count is The Ivy Cambridge Brasserie. It is a restaurant near [Latitude: 52.207 deg, Longitude: 0.118 deg] rated 4.5 star.
+A: The restaurant with the lowest review count is The Ivy Cambridge Brasserie. It is a restaurant rated 4.5 star with British food.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1875,7 +1875,7 @@ C: #[results=[
 C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Notification from Yelp: I see Ramen Nagi. It is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
+A: Notification from Yelp: I see Ramen Nagi. It is a moderate restaurant rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1903,7 +1903,7 @@ C: #[results=[
 C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Notification from Yelp: the restaurant with the highest rating is Ramen Nagi. It is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
+A: Notification from Yelp: the restaurant with the highest rating is Ramen Nagi. It is a moderate restaurant rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -2188,8 +2188,8 @@ C:   { id="4Bn7z4IPxBk9dF3EpTqMQg"^^com.yelp:restaurant("Happy Lamb Hot Pot"), i
 C: ]]
 C: #[count=38];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Crouching Tiger Restaurant & Bar, I Dumpling, and Redwood Bistro. Crouching Tiger Restaurant & Bar is near 2644 Broadway St, Redwood City, CA 94063, I Dumpling is near 2660 Broadway, Redwood City, CA 94063, and Redwood Bistro is near 711 El Camino Real, Redwood City, CA 94063.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
+A: I see Crouching Tiger Restaurant & Bar and I Dumpling. Both are restaurants rated 4 star with Chinese food.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
