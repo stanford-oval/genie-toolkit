@@ -408,6 +408,12 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 value.value = resolved.value;
                 value.display = resolved.name;
             }
+        } else if (value instanceof Ast.DateValue && value.value instanceof Ast.WeekDayDate &&
+            slot.primitive?.schema?.qualifiedName === '.ontimer' && /^in_param\.date\.[0-9]+$/.test(slot.tag) &&
+            value.value.time === null) {
+            const time = await this.resolveUserContext('$context.time.morning');
+            assert(time instanceof Ast.TimeValue && time.value instanceof Ast.AbsoluteTime);
+            value.value.time = time.value;
         }
 
         value = slot.get();
