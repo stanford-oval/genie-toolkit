@@ -310,7 +310,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             }
         }
 
-        const { data: tpCandidates, meta } = await this._tpClient.lookupEntity(entityType, entityDisplay);
+        const { data: tpCandidates, /*meta*/ } = await this._tpClient.lookupEntity(entityType, entityDisplay);
         if (tpCandidates.length > 0)
             return getBestEntityMatch(entityDisplay, entityType, tpCandidates);
 
@@ -344,10 +344,11 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         }
 
         if (candidates.length === 0) {
-            await this._dlg.replyInterp(this._("Sorry, I cannot find any ${entity_type} matching “${name}”."), {
+            console.error(`Cannot find any entity of type ${entityType} matching "${entityDisplay}"`);
+            /*await this._dlg.replyInterp(this._("Sorry, I cannot find any ${entity_type} matching “${name}”."), {
                 entity_type: meta.name,
                 name: entityDisplay
-            });
+            });*/
             throw new CancellationError();
         }
         return candidates[0];
