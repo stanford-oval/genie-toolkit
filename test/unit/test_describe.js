@@ -357,12 +357,12 @@ const TEST_CASES = [
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
     @com.spotify2.playable() filter contains(artists, null^^com.spotify2:artist("roddy ricch")) && id =~ "box" => @com.spotify2.play(playable=id);`,
-    `Get box by roddy ricch and then play it on Spotify.`,
+    `Play the box by roddy ricch on Spotify.`,
     ``],
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
     ontimer(date=[set_time($now, new Time(12, 35))]) => @com.spotify2.playable() filter contains(artists, null^^com.spotify2:artist("roddy ricch")) && id =~ "box" => @com.spotify2.play(playable=id);`,
-    `Do the following: at 12:35 PM today, get box by roddy ricch, and then play it on Spotify.`,
+    `Play the box by roddy ricch on Spotify at 12:35 PM today.`,
     ``],
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -397,12 +397,12 @@ const TEST_CASES = [
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
     now => (@com.spotify2.song(), id =~ ("despacito")) => @com.spotify2.play(playable=id);`,
-    'Get the song despacito and then play it on Spotify.',
+    'Play the song despacito on Spotify.',
     `Spotify2 ⇒ Spotify2`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
     now => (@com.spotify2.song(), id =~ ("despacito"))[1] => @com.spotify2.play(playable=id);`,
-    'Get the song despacito and then play it on Spotify.',
+    'Play the song despacito on Spotify.',
     `Spotify2 ⇒ Spotify2`],
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;

@@ -253,7 +253,7 @@ export class Describer {
                 name = new ReplacedConcatenation([name], {}, {});
             if (skipThePrefix)
                 return name;
-            if (arg.name ==='id')
+            if (arg.name ==='id' && !(arg.name in scope))
                 return this._interp(this._("{them [plural=other]|it [plural=one]}"), {});
             else
                 return this._interp(this._("the ${name} [plural=name[plural]]"), { name });
@@ -1601,16 +1601,16 @@ export class Describer {
         }
     }
 
-    describeAction(action : Ast.Expression) : ReplacedResult|null {
+    describeAction(action : Ast.Expression, scope : ScopeMap = {}) : ReplacedResult|null {
         if (action instanceof Ast.FunctionCallExpression)
             return this._const(clean(action.name));
         else if (action instanceof Ast.InvocationExpression)
-            return this.describePrimitive(action.invocation);
+            return this.describePrimitive(action.invocation, scope);
         else
             throw new TypeError(`Unexpected action ${action.prettyprint()}`);
     }
 
-    private _describeExpression(exp : Ast.Expression) {
+    private _describeExpression(exp : Ast.Expression, scope : ScopeMap = {}) {
         if (exp.schema!.functionType === 'query') {
             if (exp.schema!.is_list) {
                 // try both plural forms, but prefer the plural if available
@@ -1619,7 +1619,7 @@ export class Describer {
                 return this._interp(this._("get the ${query[plural=one]} [plural=1[plural]]"), { query: this.describeQuery(exp) });
             }
         } else {
-            return this.describeAction(exp);
+            return this.describeAction(exp, scope);
         }
     }
 
@@ -1628,7 +1628,19 @@ export class Describer {
 
         const stream = r.stream;
         if (stream) {
-            if (expressions.length > 2) {
+            if (expressions.length === 3 &&
+                expressions[1].schema!.functionType === 'query' &&
+                expressions[2] instanceof Ast.InvocationExpression &&
+                expressions[2].invocation.in_params.some((ip) => ip.value instanceof Ast.VarRefValue && ip.value.name === 'id')) {
+                const query = this.describeQuery(expressions[1]);
+                if (!query)
+                    return null;
+                const action = this._describeExpression(expressions[2], { id: query });
+                return this._interp(this._("${stream[plural]:select: other{${action[coref_plural=other]}} one{${action[coref_plural=one]}}} ${stream}"), {
+                    stream: this.describeStream(stream),
+                    action: action
+                });
+            } else if (expressions.length > 2) {
                 const descriptions = expressions.slice(1).map((exp) => this._describeExpression(exp));
 
                 return this._interp(this._("do the following : ${stream} , ${queries} , and then ${queries[plural]:select: other{${action[coref_plural=other]}} one{${action[coref_plural=one]}}}"), {
@@ -1652,6 +1664,13 @@ export class Describer {
                 queries: this._makeList(descriptions.slice(0, descriptions.length-1), 'conjunction'),
                 action: descriptions[descriptions.length-1]
             });
+        } else if (expressions.length === 2 && expressions[0].schema!.functionType === 'query' &&
+            expressions[1] instanceof Ast.InvocationExpression &&
+            expressions[1].invocation.in_params.some((ip) => ip.value instanceof Ast.VarRefValue && ip.value.name === 'id')) {
+            const query = this.describeQuery(expressions[0]);
+            if (!query)
+                return null;
+            return this._describeExpression(expressions[1], { id: query });
         } else if (expressions.length === 2) {
             return this._interp(this._("${query} and then ${query[plural]:select: other{${action[coref_plural=other]}} one{${action[coref_plural=one]}}}"), {
                 query: this._describeExpression(expressions[0]),
