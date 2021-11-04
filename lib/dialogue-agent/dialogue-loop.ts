@@ -327,6 +327,9 @@ export class DialogueLoop {
                 continue;
             }
 
+            // reset the state of the handler when we switch to a different one
+            if (this._currentHandler && handler !== this._currentHandler)
+                await this._currentHandler.reset();
             this._currentHandler = handler;
             const reply = await handler.getReply(analysis);
             this.icon = handler.icon;
