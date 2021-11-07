@@ -22,6 +22,7 @@
 import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
+import { Temporal } from '@js-temporal/polyfill';
 
 import * as SentenceGeneratorRuntime from '../sentence-generator/runtime';
 import * as SentenceGeneratorTypes from '../sentence-generator/types';
@@ -1124,6 +1125,12 @@ function tryReplacePlaceholderPhrase(phrase : ParsedPlaceholderPhrase,
     return phrase.replaceable.replace(replacementCtx);
 }
 
+function toJS(value : Ast.Value, loader : ThingpediaLoader) {
+    if (value instanceof Ast.DateValue || value instanceof Ast.RecurrentTimeSpecificationValue)
+        value = value.normalize(loader.timezone || Temporal.Now.timeZone().id);
+    return value.toJS();
+}
+
 function getDeviceName(describer : ThingTalkUtils.Describer,
                        resultItem : Ast.DialogueHistoryResultItem|undefined,
                        invocation : Ast.Invocation|Ast.FunctionCallExpression) {
@@ -1191,7 +1198,7 @@ function makeErrorContextPhrase(ctx : ContextInfo,
             if (text === null)
                 return null;
             bag.set(param, value);
-            return { value: value.isConstant() ? value.toJS() : value, text };
+            return { value: value.isConstant() ? toJS(value, ctx.loader) : value, text };
         });
 
         if (utterance) {
