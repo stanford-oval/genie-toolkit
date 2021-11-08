@@ -597,7 +597,7 @@ export default class LanguagePack {
         return replaced.chooseBest();
     }
 
-    private _measureToString(value : number, unit : string, precision = 1) : string {
+    private _measureToString(value : number, unit : string, precision = 0) : string {
         const transformed = Units.transformFromBaseUnit(value, unit);
         assert(Number.isFinite(transformed));
 
