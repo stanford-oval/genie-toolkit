@@ -186,7 +186,6 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
   action alert(out time : Time
                #_[canonical=["Zeit n"]])
   #_[result="Es ist ${time}"]
-  #_[formatted=["Alarm-Uhr-verstrichen"]]
   #_[canonical="Warnung:"]
   #[doc="makes Genie show/play a generic alert"]
   #[confirm=false]
@@ -195,7 +194,6 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
   action timer_expire(out duration : Measure(ms)
                       #_[canonical="Dauer der Maßnahme"])
   #_[result="Es ist ${duration}"]
-  #_[formatted=["Alarm-Uhr-verstrichen"]]
   #_[canonical="Zeiterlöschung"]
   #[doc="makes Genie play a generic alert and show/say the elapsed time"]
   #[confirm=false]
