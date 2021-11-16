@@ -239,7 +239,7 @@ const TEST_CASES = [
     // no markers
     ['wake me up at 7:15', 'wake me up at 7:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 7, minute: 15, second: 0 } }],
     ['wake me up at 7:15:00', 'wake me up at 7:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 7, minute: 15, second: 0 } }],
-    ['wake me up at 3:15', 'wake me up at 15:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 15, minute: 15, second: 0 } }],
+    ['wake me up at 3:15', 'wake me up at 3:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 3, minute: 15, second: 0 } }],
     ['wake me up at 15:15', 'wake me up at 15:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 15, minute: 15, second: 0 } }],
     ['wake me up at 19:15', 'wake me up at 19:15:00', 'wake me up at TIME_0', { TIME_0: { hour: 19, minute: 15, second: 0 } }],
 

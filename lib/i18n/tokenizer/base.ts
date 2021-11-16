@@ -426,7 +426,7 @@ export default class BaseTokenizer {
 
         // by default, only "ISO-style" times are recognized
         this._lexer.addRule(/{PLAIN_TIME}/, (lexer) => {
-            const parsed = this._parse12HrTime(lexer.text, '');
+            const parsed = this._parse12HrTime(lexer.text, '24h');
             return makeToken(lexer.index, lexer.text, this._normalizeTime(parsed.hour, parsed.minute, parsed.second, false), 'TIME', parsed);
         });
     }

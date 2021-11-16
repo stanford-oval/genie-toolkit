@@ -273,9 +273,9 @@ const TEST_CASES = [
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10defaultTemperature => notify;`,
     'Get the current weather in ____ such that the temperature is greater than or equal to 10 degrees Fahrenheit.', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.2defaultTemperature => notify;`,
-    'Get the current weather in ____ such that the temperature is greater than or equal to 10.2 degrees Fahrenheit.', 'Weather'],
+    'Get the current weather in ____ such that the temperature is greater than or equal to 10 degrees Fahrenheit.', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.33defaultTemperature => notify;`,
-    'Get the current weather in ____ such that the temperature is greater than or equal to 10.3 degrees Fahrenheit.', 'Weather'],
+    'Get the current weather in ____ such that the temperature is greater than or equal to 10 degrees Fahrenheit.', 'Weather'],
 
     [`now => (@com.yelp.restaurant()), true(cuisines) => notify;`,
     `Get restaurants such that any value of cuisines is acceptable.`,

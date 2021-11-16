@@ -37,7 +37,7 @@ const TEST_CASES = [
         DATE_0: nextweek,
         LOCATION_0: { display: 'Redwood City, California' }
     },
-    'It will be cloudy next Sunday in Redwood City, California.'],
+    'It will be cloudy on Sunday in Redwood City, California.'],
 
     ['it will be cloudy on DATE_0 in LOCATION_0 .', {
         DATE_0: preciseDate1,
