@@ -86,6 +86,8 @@ export default class InferenceStatementExecutor {
             const value = outputValue[key];
             if (value === null || value === undefined)
                 continue;
+            if (key === '__timestamp')
+                continue;
             const type = this._getType(schema, key);
             if (!type) {
                 console.error(`Thingpedia function returned undeclared field ${key}`);
