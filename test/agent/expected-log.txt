@@ -292,7 +292,7 @@ C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60 degrees Fahrenheit and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -309,7 +309,7 @@ C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, status=enum sunny }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The temperature is 60.1 degrees Fahrenheit.
+A: The temperature is 60 degrees Fahrenheit.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -341,7 +341,7 @@ C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60 degrees Fahrenheit and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -584,8 +584,6 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("invalid"));
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("invalid"));
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Sorry, I cannot find any Yelp Cuisine matching “invalid”.
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
@@ -850,7 +848,7 @@ C: ]]
 C: #[count=50]
 C: #[more=true];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The distance is 1.3 miles.
+A: The distance is 1 mile.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1200,7 +1198,7 @@ C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60 degrees Fahrenheit and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1527,7 +1525,7 @@ C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60 degrees Fahrenheit and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.greet;
@@ -1596,7 +1594,7 @@ C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, status=enum sunny }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 degrees Fahrenheit.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60 degrees Fahrenheit.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: down
 #! comment: test comment for dialogue turns
