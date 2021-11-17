@@ -2033,7 +2033,7 @@ function makeGenericJoin(tpLoader : ThingpediaLoader,
     if (rhsParam.name === 'id')
         return null;
     assert(lhs.schema && rhs.schema);
-    if (!lhs.schema.hasArgument(lhsParam.name) || !rhs.schema.hasArgument(rhsParam.name))
+    if (!lhs.schema.hasArgument(lhsParam.name) || !lhs.schema.hasArgument('id') || !rhs.schema.hasArgument(rhsParam.name))
         return null;
     const schema = resolveJoin(lhs.schema, rhs.schema);
     const joinParam = Object.assign({}, lhsParam);
