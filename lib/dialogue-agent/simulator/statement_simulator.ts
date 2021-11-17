@@ -88,7 +88,7 @@ export class ThingTalkSimulatorState {
             return compiled;
 
         try {
-            const compiler = new Compiler(this._schemas);
+            const compiler = new Compiler(this._schemas, this._timezone);
 
             compiled = await compiler.compileProgram(program);
             assert(compiled.rules.length === 0);

@@ -22,6 +22,7 @@
 import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
+import { Temporal } from '@js-temporal/polyfill';
 
 import * as SentenceGeneratorRuntime from '../sentence-generator/runtime';
 import * as SentenceGeneratorTypes from '../sentence-generator/types';
@@ -166,6 +167,7 @@ export class NextStatementInfo {
     chainParameter : string|null;
     chainParameterFilled : boolean;
     isComplete : boolean;
+    missingSlots : Ast.AbstractSlot[];
 
     constructor(currentItem : Ast.DialogueHistoryItem|null,
                 resultInfo : ResultInfo|null,
@@ -177,6 +179,14 @@ export class NextStatementInfo {
         this.chainParameter = null;
         this.chainParameterFilled = false;
         this.isComplete = nextItem.isExecutable();
+        this.missingSlots = [];
+
+        for (const slot of nextItem.iterateSlots2()) {
+            if (slot instanceof Ast.DeviceSelector)
+                continue;
+            if (slot.get() instanceof Ast.UndefinedValue)
+                this.missingSlots.push(slot);
+        }
 
         if (!this.isAction)
             return;
@@ -444,8 +454,10 @@ export function getContextInfo(loader : ThingpediaLoader,
 
 export function isUserAskingResultQuestion(ctx : ContextInfo) : boolean {
     // is the user asking a question about the result (or a specific element), or refining a search?
-    // we say it's a question if the user is asking a projection question, and it's not the first turn,
-    // and the projection was different at the previous turn
+    // we say it's a question if any of the following is true:
+    // - it's a computation question
+    // - there is an id filter
+    // - it's a projection question and the projection was different at the previous turn
     // we also treat it as a question for all compute questions because that simplifies
     // writing the templates
 
@@ -461,12 +473,12 @@ export function isUserAskingResultQuestion(ctx : ContextInfo) : boolean {
     if (currentTable instanceof Ast.ProjectionExpression && currentTable.computations.length > 0)
         return true;
 
-    if (ctx.currentIdx === 0) {
-        const filterTable = C.findFilterExpression(currentStmt.expression);
-        if (!filterTable)
-            return false;
-        return C.filterUsesParam(filterTable.filter, 'id');
-    }
+    const filterTable = C.findFilterExpression(currentStmt.expression);
+    if (filterTable && C.filterUsesParam(filterTable.filter, 'id'))
+        return true;
+
+    if (ctx.currentIdx === 0)
+        return false;
 
     const currentProjection = ctx.resultInfo!.projection;
     if (!currentProjection)
@@ -1113,6 +1125,12 @@ function tryReplacePlaceholderPhrase(phrase : ParsedPlaceholderPhrase,
     return phrase.replaceable.replace(replacementCtx);
 }
 
+function toJS(value : Ast.Value, loader : ThingpediaLoader) {
+    if (value instanceof Ast.DateValue || value instanceof Ast.RecurrentTimeSpecificationValue)
+        value = value.normalize(loader.timezone || Temporal.Now.timeZone().id);
+    return value.toJS();
+}
+
 function getDeviceName(describer : ThingTalkUtils.Describer,
                        resultItem : Ast.DialogueHistoryResultItem|undefined,
                        invocation : Ast.Invocation|Ast.FunctionCallExpression) {
@@ -1180,7 +1198,7 @@ function makeErrorContextPhrase(ctx : ContextInfo,
             if (text === null)
                 return null;
             bag.set(param, value);
-            return { value: value.isConstant() ? value.toJS() : value, text };
+            return { value: value.isConstant() ? toJS(value, ctx.loader) : value, text };
         });
 
         if (utterance) {
@@ -1690,6 +1708,20 @@ export function getAgentContextPhrases(ctx : ContextInfo) : SentenceGeneratorTyp
     return phrases;
 }
 
+function isMissingProjection(ctx : ContextInfo) {
+    if (!ctx.resultInfo!.projection)
+        return false;
+
+    const topResult = ctx.results![0];
+    if (!topResult)
+        return false;
+    for (const p of ctx.resultInfo!.projection) {
+        if (!topResult.value[p])
+            return true;
+    }
+    return false;
+}
+
 function getContextPhrasesCommon(ctx : ContextInfo, phrases : SentenceGeneratorTypes.ContextPhrase[]) {
     const contextTable = ctx.contextTable;
 
@@ -1716,6 +1748,9 @@ function getContextPhrasesCommon(ctx : ContextInfo, phrases : SentenceGeneratorT
     if (ctx.resultInfo.hasStream && ctx.state.dialogueAct !== 'notification')
         return;
 
+    if (isMissingProjection(ctx))
+        phrases.push(makeContextPhrase(contextTable.ctx_with_missing_projection, ctx));
+
     assert(ctx.results && ctx.results.length > 0);
     phrases.push(makeContextPhrase(contextTable.ctx_with_result, ctx));
     if (ctx.resultInfo.isTable && !ctx.resultInfo.isAggregation)
@@ -1730,8 +1765,7 @@ function getContextPhrasesCommon(ctx : ContextInfo, phrases : SentenceGeneratorT
     } else {
         if (ctx.resultInfo.argMinMaxField)
             phrases.push(makeContextPhrase(contextTable.ctx_with_result_argminmax, ctx));
-        else
-            phrases.push(makeContextPhrase(contextTable.ctx_with_result_noquestion, ctx));
+        phrases.push(makeContextPhrase(contextTable.ctx_with_result_noquestion, ctx));
         if (ctx.nextInfo)
             phrases.push(makeContextPhrase(contextTable.ctx_with_result_and_action, ctx));
 

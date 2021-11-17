@@ -382,9 +382,11 @@ export default class SpeechHandler extends events.EventEmitter {
             this._stream!.pipe(this._wakeWordDetector);
     }
 
-    async stop() {
+    destroy() {
         if (this._player) {
-            await this._player.stop();
+            this._player.stop().catch((e) => {
+                console.error(`Failed to stop playback: ${e.message}`);
+            });
             this._audioController.removePlayer(this._player);
         }
         this._conversation.removeOutput(this);

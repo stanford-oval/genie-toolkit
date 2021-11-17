@@ -173,15 +173,15 @@ let TEST_CASES = [
      'Anyone is allowed to read the current event on security camera if my location is not equal to home and my location is not equal to work.'],
 
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature >= 21C } => notify',
-     'Anyone is allowed to read the current event on security camera if the temperature of the current weather in here is greater than or equal to 69.8 degrees Fahrenheit.'],
+     'Anyone is allowed to read the current event on security camera if the temperature of the current weather in here is greater than or equal to 70 degrees Fahrenheit.'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature == 21C } => notify',
-     'Anyone is allowed to read the current event on security camera if the temperature of the current weather in here is equal to 69.8 degrees Fahrenheit.'],
+     'Anyone is allowed to read the current event on security camera if the temperature of the current weather in here is equal to 70 degrees Fahrenheit.'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { !(temperature == 21C) } => notify',
-     'Anyone is allowed to read the current event on security camera if the temperature of the current weather in here is not equal to 69.8 degrees Fahrenheit.'],
+     'Anyone is allowed to read the current event on security camera if the temperature of the current weather in here is not equal to 70 degrees Fahrenheit.'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature <= 21C && temperature >= 19C } => notify',
-     'Anyone is allowed to read the current event on security camera if for the current weather in here, the temperature is less than or equal to 69.8 degrees Fahrenheit and the temperature is greater than or equal to 66.2 degrees Fahrenheit.'],
+     'Anyone is allowed to read the current event on security camera if for the current weather in here, the temperature is less than or equal to 70 degrees Fahrenheit and the temperature is greater than or equal to 66 degrees Fahrenheit.'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature >= 21C || temperature <= 19C } => notify',
-     'Anyone is allowed to read the current event on security camera if for the current weather in here, the temperature is less than or equal to 66.2 degrees Fahrenheit or the temperature is greater than or equal to 69.8 degrees Fahrenheit.'],
+     'Anyone is allowed to read the current event on security camera if for the current weather in here, the temperature is less than or equal to 66 degrees Fahrenheit or the temperature is greater than or equal to 70 degrees Fahrenheit.'],
 
 
     ['true : @com.bing.web_search, query == "foo" => notify',
@@ -250,13 +250,13 @@ let TEST_CASES = [
     'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after the end of this year.'],
 
     ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate() + 1h => notify',
-    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after 60 minutes past now.'],
+    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after 60 minutes from now.'],
 
     ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate() + 30min => notify',
-    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after 30 minutes past now.'],
+    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after 30 minutes from now.'],
 
     ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate() - 30min => notify',
-    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after 30 minutes before now.'],
+    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after 30 minutes ago.'],
 ];
 
 async function test(i) {

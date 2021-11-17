@@ -153,6 +153,13 @@ export function computePrediction(oldState : Ast.DialogueState|null, newState : 
     return deltaState;
 }
 
+/**
+ * Maximum number of history items with results that we keep.
+ *
+ * This ensures that the context size does not grow indefinitely.
+ */
+const MAX_CONTEXT_ITEMS = 5;
+
 export function computeNewState(state : Ast.DialogueState|null, prediction : Ast.DialogueState, forTarget : 'user'|'agent') {
     const clone = new Ast.DialogueState(null, prediction.policy, prediction.dialogueAct, prediction.dialogueActParam, [], {
         nl: state?.nl_annotations,
@@ -168,6 +175,10 @@ export function computeNewState(state : Ast.DialogueState|null, prediction : Ast
         }
     }
 
+    // slice to the last MAX_CONTEXT_ITEMS items
+    if (clone.history.length > MAX_CONTEXT_ITEMS)
+        clone.history = clone.history.slice(clone.history.length - MAX_CONTEXT_ITEMS, clone.history.length);
+
     // append the prediction items
     clone.history.push(...prediction.history);
     return clone;
@@ -180,7 +191,7 @@ export function computeNewState(state : Ast.DialogueState|null, prediction : Ast
  * This controls how much information is carried from the context
  * and also the maximum length of the sequence.
  */
-const MAX_CONTEXT_ITEMS = 2;
+const MAX_NEURAL_CONTEXT_ITEMS = 2;
 
 export function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget : 'user'|'agent') : Ast.DialogueState|null {
     if (context === null)
@@ -203,8 +214,8 @@ export function prepareContextForPrediction(context : Ast.DialogueState|null, fo
     }
 
     // include at most the last {MAX_CONTEXT_ITEMS} items, or we'll run out of context length
-    if (lastItems.length > MAX_CONTEXT_ITEMS)
-        lastItems = lastItems.slice(lastItems.length-MAX_CONTEXT_ITEMS, lastItems.length);
+    if (lastItems.length > MAX_NEURAL_CONTEXT_ITEMS)
+        lastItems = lastItems.slice(lastItems.length - MAX_NEURAL_CONTEXT_ITEMS, lastItems.length);
 
     // add a copy of the last items with results
     // trim the result list to 1 or 3

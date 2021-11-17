@@ -52,7 +52,7 @@ system_list_proposal : D.ListProposal = {
     ["{i see|i have|i have found} ${name_list}. ${name_list.length:select:=2{both|they|all of them}_{they|all of them}} are ${info[plural=other]}.", priority=5]: (name_list : ctx_result_name_list, info : result_info_phrase)
         => D.checkListProposal(name_list, info.info, false);
 
-    proposal:ctx_thingpedia_list_result [priority=10]
+    proposal:ctx_thingpedia_list_result [priority=20]
         => D.checkThingpediaListProposal(proposal, null);
     ["${proposal}. {they|all of them} are ${info[plural=other]}.", priority=11]: (proposal : ctx_thingpedia_list_result, info : result_info_phrase)
         => D.checkThingpediaListProposal(proposal, info.info);

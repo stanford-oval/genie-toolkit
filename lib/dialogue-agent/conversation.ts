@@ -74,6 +74,7 @@ export interface ConversationDelegate {
         entities : EntityMap;
     }) : Promise<void>;
     addMessage(msg : Message) : Promise<void>;
+    destroy() : void;
 }
 
 export interface ConversationState {
@@ -274,7 +275,7 @@ export default class Conversation extends events.EventEmitter {
             await this._callDelegate(out, (out) => out.setExpected(what, this._context));
         }
     }
-    async removeOutput(out : ConversationDelegate) {
+    removeOutput(out : ConversationDelegate) {
         this._delegates.delete(out);
     }
 
@@ -284,7 +285,7 @@ export default class Conversation extends events.EventEmitter {
             return true;
         } catch(e) {
             // delegate disappeared (likely a disconnected websocket)
-            this._delegates.delete(out);
+            out.destroy();
             return false;
         }
     }
@@ -330,9 +331,12 @@ export default class Conversation extends events.EventEmitter {
 
     async saveState(lastMessageId : number) {
         const conversationState = this.getState();
+
+        const serializedDialogueState = JSON.stringify(conversationState.dialogueState);
+        console.log(`Saving conversation state for ${this._conversationId} (${serializedDialogueState.length} characters)`);
         const row = {
             history: JSON.stringify(/* FIXME conversationState.history */ []),
-            dialogueState: JSON.stringify(conversationState.dialogueState),
+            dialogueState: serializedDialogueState,
             lastMessageId: lastMessageId,
         };
         await this._conversationStateDB.insertOne(this._conversationId, row);

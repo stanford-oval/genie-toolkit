@@ -325,7 +325,7 @@ export default class ChineseTokenizer extends BaseTokenizer {
 
         // date and time
         this._lexer.addRule(/(?:{YEAR}?{MONTH}{DAY}|{YEAR}{MONTH})(?:[,，]?{DAY_NAME})?在?{PLAIN_TIME}/, (lexer) => {
-            const parsed = this._parseWordDate(lexer.text, (text) => this._parse12HrTime(text, ''));
+            const parsed = this._parseWordDate(lexer.text, (text) => this._parse12HrTime(text, '24h'));
             const normalized = this._normalizeDate(parsed);
             return makeToken(lexer.index, lexer.text, normalized, 'DATE', parsed);
         });

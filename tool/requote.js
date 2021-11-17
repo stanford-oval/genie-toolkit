@@ -441,7 +441,7 @@ export function initArgparse(subparsers) {
     });
     parser.add_argument('-o', '--output', {
         required: true,
-        type: fs.createWriteStream
+        type: String
     });
     parser.add_argument('--contextual', {
         action: 'store_true',
@@ -475,7 +475,7 @@ export function initArgparse(subparsers) {
         default: 'en-US'
     });
     parser.add_argument('--output-errors', {
-        type: fs.createWriteStream,
+        type: String,
         help: 'If provided, examples which fail to be requoted are written in this file as well as being printed to stdout '
     });
 }
@@ -485,10 +485,10 @@ export async function execute(args) {
 
     let outputErrors = null;
     const output = new DatasetStringifier();
-    promises.push(StreamUtils.waitFinish(output.pipe(args.output)));
-    if (args.output_errors) {
+    promises.push(StreamUtils.waitFinish(output.pipe(fs.createWriteStream(args.output))));
+    if (args.output_errors && args.output !== args.output_errors) {
         outputErrors = new DatasetStringifier();
-        promises.push(StreamUtils.waitFinish(outputErrors.pipe(args.output_errors)));
+        promises.push(StreamUtils.waitFinish(outputErrors.pipe(fs.createWriteStream(args.output_errors))));
     }
 
     readAllLines(args.input_file)
@@ -496,6 +496,7 @@ export async function execute(args) {
         .pipe(new Stream.Transform({
             objectMode: true,
             transform(ex, encoding, callback) {
+                ex.is_ok = true;
                 try {
                     let requoted_programs = [];
                     let requoted_sentences = [];
@@ -508,18 +509,19 @@ export async function execute(args) {
                     }
                     ex.preprocessed = requoted_sentences[0];
                     ex.target_code = requoted_programs;
-                    ex.is_ok = true;
 
                     this.push(ex);
                     callback();
                 } catch(e) {
                     console.error('**************');
                     console.error('Failed to requote');
-                    console.error(ex.id);
+                    console.error(String(e));
                     console.error(ex.preprocessed);
                     console.error(ex.target_code);
                     console.error('**************');
-                    ex.is_ok = false;
+                    if (outputErrors)
+                        // send to output_errors
+                        ex.is_ok = false;
                     if (args.skip_errors) {
                         this.push(ex);
                         callback();

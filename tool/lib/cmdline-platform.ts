@@ -98,7 +98,7 @@ export default class Platform extends Tp.BasePlatform {
         this._gettext = new Gettext();
         this._gettext.setLocale(this._locale);
 
-        this._timezone = Temporal.Now.timeZone().id;
+        this._timezone = process.env.GENIE_TZ || Temporal.Now.timeZone().id;
 
         if (homedir) {
             this._filesDir = path.resolve(homedir);

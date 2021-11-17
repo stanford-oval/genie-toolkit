@@ -29,6 +29,8 @@ const ValueProto = {
             return '[' + value.map(ValueProto.makeString).join(',') + ']';
         else if (value instanceof Date)
             return String(value.getTime());
+        else if (typeof value === 'object' && value!.toString === Object.prototype.toString)
+            return ParamsProto.makeString(value as Record<string, unknown>);
         else
             return String(value);
     },

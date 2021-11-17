@@ -18,7 +18,7 @@ ${genie} translate-schema-annotations --po-file $srcdir/po/de.po -o ${test_skill
 ${genie} translate-schema-annotations --po-file $srcdir/po/de.po -o ${test_skill_path}/dataset.de.tt ${test_skill_path}/dataset.tt
 
 # check diff with expected results
-diff -u ${test_skill_path}/manifest.de.tt $srcdir/test/data/builtins/org.thingpedia.builtin.thingengine.builtin/manifest-expected.de.tt
-diff -u ${test_skill_path}/dataset.de.tt $srcdir/test/data/builtins/org.thingpedia.builtin.thingengine.builtin/dataset-expected.de.tt
+diff -w -u ${test_skill_path}/manifest.de.tt $srcdir/test/data/builtins/org.thingpedia.builtin.thingengine.builtin/manifest-expected.de.tt
+diff -w -u ${test_skill_path}/dataset.de.tt $srcdir/test/data/builtins/org.thingpedia.builtin.thingengine.builtin/dataset-expected.de.tt
 
 rm -fr $workdir

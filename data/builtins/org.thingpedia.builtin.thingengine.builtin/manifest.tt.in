@@ -191,6 +191,9 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
              out message_output: String
              #_[canonical="message"])
   #_[result="${message_output}"]
+  #_[formatted=[
+    { type="sound", name="alarm-clock-elapsed", exclusive=false, before=true }
+  ]]
   #_[canonical="say"]
   #[doc="makes Genie say something"]
   #[confirm=false];

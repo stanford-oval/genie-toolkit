@@ -23,8 +23,8 @@ import * as Tp from 'thingpedia';
 import { Ast, SchemaRetriever } from 'thingtalk';
 
 import { coin } from '../../utils/random';
-import AbstractDialogueAgent, { DeviceInfo } from '../abstract_dialogue_agent';
-import { EntityRecord } from '../entity-linking/entity-finder';
+import AbstractDialogueAgent, { DeviceInfo, DisambiguationHints } from '../abstract_dialogue_agent';
+import { EntityRecord, getBestEntityMatch } from '../entity-linking/entity-finder';
 import ValueCategory from '../value-category';
 
 import StatementSimulator, {
@@ -153,17 +153,22 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
         });
     }
 
-    protected async lookupEntityCandidates(entityType : string, entityDisplay : string) : Promise<EntityRecord[]> {
-        if (this._database && this._database.has(entityType))
-            return this._getIDs(entityType);
+    protected async resolveEntity(entityType : string, entityDisplay : string, hints : DisambiguationHints) : Promise<EntityRecord> {
+        const hintsCandidates = hints.idEntities.get(entityType);
+        if (hintsCandidates)
+            return getBestEntityMatch(entityDisplay, entityType, hintsCandidates);
+
+        if (this._database && this._database.has(entityType)) {
+            const candidates = this._getIDs(entityType);
+            return getBestEntityMatch(entityDisplay, entityType, candidates);
+        }
 
         // in interactive mode, we query thingpedia for real
         if (this._interactive) {
             const { data: candidates, } = await this._tpClient.lookupEntity(entityType, entityDisplay);
-            return candidates;
+            return getBestEntityMatch(entityDisplay, entityType, candidates);
         } else {
-            // return nothing...
-            return [];
+            throw new Error(`Cannot resolve entity in non-interactive mode`);
         }
     }
 

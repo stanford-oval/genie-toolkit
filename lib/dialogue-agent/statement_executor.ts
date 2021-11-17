@@ -19,7 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import { Ast, Type, Builtin } from 'thingtalk';
+import { ImplementationError } from 'thingpedia';
+import { Ast, Type } from 'thingtalk';
 
 import type Engine from '../engine';
 import type AppExecutor from '../engine/apps/app_executor';
@@ -52,31 +53,30 @@ export default class InferenceStatementExecutor {
         this._conversationId = conversationId;
     }
 
-    private _inferType(key : string, jsValue : unknown) : Type {
-        if (key === 'distance') // HACK
-            return new Type.Measure('m');
+    private _getType(schema : Ast.FunctionDef, key : string) {
         if (key === '__device')
             return new Type.Entity('tt:device_id');
-        if (typeof jsValue === 'boolean')
-            return Type.Boolean;
-        if (typeof jsValue === 'string')
-            return Type.String;
-        if (typeof jsValue === 'number')
-            return Type.Number;
-        if (jsValue instanceof Builtin.Currency)
-            return Type.Currency;
-        if (jsValue instanceof Builtin.Entity)
-            return new Type.Entity('');
-        if (jsValue instanceof Builtin.Time)
-            return Type.Time;
-        if (jsValue instanceof Date)
-            return Type.Date;
-        if (Array.isArray(jsValue) && jsValue.length > 0)
-            return new Type.Array(this._inferType(key, jsValue[0]));
-        if (Array.isArray(jsValue))
-            return new Type.Array(Type.Any);
+        const type = schema.getArgType(key);
+        if (type)
+            return type;
+        if (key === 'distance') // HACK
+            return new Type.Measure('m');
+        return null;
+    }
 
-        return Type.Any;
+    private _mapValue(key : string, type : Type, value : unknown) {
+        try {
+            if (Number.isNaN(value) || (value instanceof Date && Number.isNaN(value.getTime())))
+                throw new ImplementationError(`Invalid NaN value`);
+
+            if (type instanceof Type.Enum && (typeof value !== 'string' || !type.entries!.includes(value)))
+                throw new ImplementationError(`Invalid enum value`);
+
+            return Ast.Value.fromJS(type, value);
+        } catch(e) {
+            console.error(`Failed to map result field ${key} to type ${type}`, e);
+            return null;
+        }
     }
 
     async mapResult(schema : Ast.FunctionDef, outputValue : Record<string, unknown>) {
@@ -84,15 +84,23 @@ export default class InferenceStatementExecutor {
 
         for (const key in outputValue) {
             const value = outputValue[key];
-            const type = schema.getArgType(key) || this._inferType(key, value);
-
             if (value === null || value === undefined)
                 continue;
+            if (key === '__timestamp')
+                continue;
+            const type = this._getType(schema, key);
+            if (!type) {
+                console.error(`Thingpedia function returned undeclared field ${key}`);
+                continue;
+            }
 
+            let mapped;
             if (type instanceof Type.Compound)
-                mappedResult[key] = this._mapCompound(key + '.', schema, value as Record<string, unknown>);
+                mapped = this._mapCompound(key + '.', schema, value as Record<string, unknown>);
             else
-                mappedResult[key] = Ast.Value.fromJS(type, value);
+                mapped = this._mapValue(key, type, value);
+            if (mapped)
+                mappedResult[key] = mapped;
         }
         return new Ast.DialogueHistoryResultItem(null, mappedResult, outputValue);
     }
@@ -101,15 +109,19 @@ export default class InferenceStatementExecutor {
         const result : Record<string, Ast.Value> = {};
         for (const key in object) {
             const value = object[key];
-            const type = schema.getArgType(prefix + key) || this._inferType(prefix + key, value);
-
             if (value === null || value === undefined)
                 continue;
+            const type = this._getType(schema, prefix + key);
+            if (!type)
+                continue;
 
+            let mapped;
             if (type instanceof Type.Compound)
-                result[key] = this._mapCompound(prefix + key + '.', schema, object as Record<string, unknown>);
+                mapped = this._mapCompound(prefix + key + '.', schema, object as Record<string, unknown>);
             else
-                result[key] = Ast.Value.fromJS(type, value);
+                mapped = this._mapValue(prefix + key, type, value);
+            if (mapped)
+                result[key] = mapped;
         }
         return new Ast.Value.Object(result);
     }
