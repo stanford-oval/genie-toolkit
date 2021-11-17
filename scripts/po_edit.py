@@ -49,7 +49,7 @@ placeholder_regex_fw = "|".join(
         r"<\$.+?>",  # <placeholder>
         r"\$.+",  # placeholder
         r"[({|})]",  # {x|y} ^(x|y)
-        r"\[plural=.+?(?:\[plural\])?\]" # [plural=xxx]
+        r"\[[^\]]+\]" # flags such as [plural=other]
     ]
 )
 
@@ -65,7 +65,14 @@ UNTRANSLATABLE_LINES = {
               '${op_key:select:',
               '${input_param[pos]:select:',
               '${index:ordinal:',
-              '${filter[pos]:select:'
+              '${filter[pos]:select:',
+
+              # do not translate the POS tags in the "default" key
+              'base',
+              'preposition',
+              'property',
+              'passive_verb',
+              'verb',
               }
 
 def prepare_for_translation():
@@ -84,10 +91,10 @@ def prepare_for_translation():
             line = line.strip('\n').strip('"')
             line = re.sub(r"\s{2,}", " ", line)
             parts = re.split(placeholder_regex_fw, line)
-            
+
             for i, p in enumerate(parts):
                 id_ = base_id + '/' + str(i)
-                
+
                 p = p.strip()
 
                 # skip placeholders
@@ -139,8 +146,8 @@ def create_final():
             id_, sent, _ = line.strip('\n').split('\t')
             task_name, id_ = id_.split('/', 1)
             translated_mapping[id_] = sent.strip()
-    
-    
+
+
     # modifies entries inplace
     for entry in pofile:
         # Add fuzzy to indicate translation need post-editing
@@ -152,7 +159,7 @@ def create_final():
         line = line.strip('\n').strip('"')
         line = re.sub(r"\s{2,}", " ", line)
         parts = re.split(placeholder_regex_fw, line)
-        
+
         for i, part in enumerate(parts):
             if base_id + '/' + str(i) in translated_mapping:
                 sent = translated_mapping[base_id + '/' + str(i)]
@@ -161,9 +168,9 @@ def create_final():
 
         output = ' '.join(parts)
         output = clean_translated_output(output)
-        
+
         entry.msgstr = output
-    
+
     pofile.save(args.output_file)
 
 
