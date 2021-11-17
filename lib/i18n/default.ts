@@ -353,6 +353,11 @@ export default class LanguagePack {
         if (canonical === undefined || canonical === null) {
             // make up a completely default canonical
             normalized.base = this._toTemplatePhrases(clean(fromArgument.name), forSide);
+            normalized.filter_phrase = this._toTemplatePhrases(clean(fromArgument.name), forSide, true);
+            for (const phrase of normalized.filter_phrase) {
+                if (!phrase.flags.pos)
+                    phrase.flags.pos = 'property';
+            }
 
             this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
             return normalized;
