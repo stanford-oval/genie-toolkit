@@ -933,7 +933,7 @@ export class Describer {
         if (cached !== undefined)
             return cached;
 
-        const computed = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(arg.name), this._direction);
+        const computed = this._langPack.preprocessParameterCanonical(arg, this._direction);
         this._preprocessedArgumentCanonicals.set(arg, computed);
         return computed;
     }
@@ -1095,7 +1095,7 @@ export class Describer {
                 constraints: {}
             };
             const phrases : ReplacedResult[] = [];
-            for (const phrase of canonical.filter) {
+            for (const phrase of canonical.filter_phrase) {
                 const replaced = phrase.replace(ctx);
                 if (replaced)
                     phrases.push(replaced);
@@ -1235,7 +1235,7 @@ export class Describer {
                 constraints: {}
             };
             const phrases : ReplacedResult[] = [];
-            for (const phrase of canonical.filter) {
+            for (const phrase of canonical.filter_phrase) {
                 const replaced = phrase.replace(ctx);
                 if (replaced)
                     phrases.push(replaced);

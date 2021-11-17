@@ -459,6 +459,10 @@ const TEST_CASES = [
         );`,
     'Get restaurants such that the opening hours is equal to from 8:00 AM to 6:00 PM on Monday and Tuesday, from 3:00 PM to 6:00 PM on Monday between December 24 and December 24, and from 3:00 PM to 6:00 PM on Tuesday between December 24 and December 24.',
     `Yelp`],
+
+    [` @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").eat_data(data="some data ");`,
+    `Eat data on test with data some data.`,
+    `Test`],
 ];
 
 async function test(i) {

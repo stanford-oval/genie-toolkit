@@ -19,7 +19,7 @@ jobs:
       - npm run lint
       - npm run doc
       - ./test/lint-builtins.sh
-      - npx ts-node ./po/lint-po-files
+      - npx node ./dist/tool/genie.js lint-po-files
     -
       name: "Unit Tests"
       install:

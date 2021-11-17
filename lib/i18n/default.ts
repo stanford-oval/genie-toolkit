@@ -24,10 +24,12 @@ import * as path from 'path';
 import Gettext from 'node-gettext';
 import * as gettextParser from 'gettext-parser';
 import * as Units from 'thingtalk-units';
+import { Ast, Type } from 'thingtalk';
 import { Temporal, toTemporalInstant } from '@js-temporal/polyfill';
 
 import BaseTokenizer from './tokenizer/base';
 
+import { clean } from '../utils/misc-utils';
 import {
     Phrase,
     Concatenation,
@@ -61,7 +63,8 @@ export interface NormalizedParameterCanonical {
     base_projection : Array<Phrase|Concatenation>;
     argmin : Array<Phrase|Concatenation>;
     argmax : Array<Phrase|Concatenation>;
-    filter : Array<Phrase|Concatenation>;
+    filter_phrase : Array<Phrase|Concatenation>;
+    enum_value : Record<string, Array<Phrase|Concatenation>>;
     enum_filter : Record<string, Array<Phrase|Concatenation>>;
     projection : Array<Phrase|Concatenation>;
 }
@@ -305,12 +308,22 @@ export default class LanguagePack {
             return this._toTemplatePhrases(canonical, forSide);
     }
 
+    private _ensureDefaultEnumValues(fromArgument : Ast.ArgumentDef, normalized : NormalizedParameterCanonical, forSide : 'user'|'agent') {
+        const type = fromArgument.type;
+        if (type instanceof Type.Enum) {
+            for (const entry of type.entries!) {
+                if (!normalized.enum_value[entry])
+                    normalized.enum_value[entry] = this._toTemplatePhrases(clean(entry), forSide);
+            }
+        }
+    }
+
     /**
      * Apply load-time transformations to the canonical annotation of a parameter. This normalizes
      * the form to the expected sets of POS, and adds any automatically generated
      * plural/gender/case forms as necessary.
      */
-    preprocessParameterCanonical(canonical : unknown, forSide : 'user'|'agent') : NormalizedParameterCanonical {
+    preprocessParameterCanonical(fromArgument : Ast.ArgumentDef, forSide : 'user'|'agent') : NormalizedParameterCanonical {
         // NOTE: we don't make singular/plural forms of parameters, even in English,
         // because things like "with Chinese and Italian foods" are awkward
         // and "with Chinese and Italian food" is better
@@ -331,28 +344,45 @@ export default class LanguagePack {
             base_projection: [],
             argmin: [],
             argmax: [],
-            filter: [],
+            filter_phrase: [],
+            enum_value: {},
             enum_filter: {},
             projection: [],
         };
-        if (canonical === undefined || canonical === null)
-            return normalized;
-        if (typeof canonical === 'string') {
-            normalized.base = this._toTemplatePhrases(canonical, forSide);
-            normalized.filter = this._toTemplatePhrases(canonical, forSide, true);
-            for (const phrase of normalized.filter) {
+        const canonical : unknown = fromArgument.nl_annotations.canonical;
+        if (canonical === undefined || canonical === null) {
+            // make up a completely default canonical
+            normalized.base = this._toTemplatePhrases(clean(fromArgument.name), forSide);
+            normalized.filter_phrase = this._toTemplatePhrases(clean(fromArgument.name), forSide, true);
+            for (const phrase of normalized.filter_phrase) {
                 if (!phrase.flags.pos)
                     phrase.flags.pos = 'property';
             }
+
+            this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
+            return normalized;
+        }
+
+        if (typeof canonical === 'string') {
+            normalized.base = this._toTemplatePhrases(canonical, forSide);
+            normalized.filter_phrase = this._toTemplatePhrases(canonical, forSide, true);
+            for (const phrase of normalized.filter_phrase) {
+                if (!phrase.flags.pos)
+                    phrase.flags.pos = 'property';
+            }
+
+            this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
             return normalized;
         }
         if (Array.isArray(canonical)) {
             normalized.base = canonical.flatMap((c) => this._toTemplatePhrases(c, forSide));
-            normalized.filter = canonical.flatMap((c) => this._toTemplatePhrases(c, forSide, true));
-            for (const phrase of normalized.filter) {
+            normalized.filter_phrase = canonical.flatMap((c) => this._toTemplatePhrases(c, forSide, true));
+            for (const phrase of normalized.filter_phrase) {
                 if (!phrase.flags.pos)
                     phrase.flags.pos = 'property';
             }
+
+            this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
             return normalized;
         }
 
@@ -408,6 +438,22 @@ export default class LanguagePack {
                     normalized.enum_filter[boolean].push(...phrases);
                 else
                     normalized.enum_filter[boolean] = phrases;
+            } else if (key === 'value_enum' || key === 'enum_value') {
+                for (const enumerand in value as Record<string, unknown>) {
+                    const enumCanonical = (value as Record<string, unknown>)[enumerand];
+                    if (enumCanonical === null || enumCanonical === undefined)
+                        continue;
+                    let enumNormalized;
+                    if (Array.isArray(enumCanonical))
+                        enumNormalized = enumCanonical.flatMap((c) => this._toTemplatePhrases(c, forSide));
+                    else
+                        enumNormalized = this._toTemplatePhrases(enumCanonical, forSide);
+
+                    if (normalized.enum_value[enumerand])
+                        normalized.enum_value[enumerand].push(...enumNormalized);
+                    else
+                        normalized.enum_value[enumerand] = enumNormalized;
+                }
             } else if (key === 'enum_filter' || key.endsWith('_enum')) {
                 // new-style canonical for enums
                 for (const enumerand in value as Record<string, unknown>) {
@@ -420,7 +466,7 @@ export default class LanguagePack {
                     else
                         enumNormalized = this._toTemplatePhrases(enumCanonical, forSide);
 
-                    if (key !== 'enumerands') {
+                    if (key !== 'enum_filter') {
                         let pos = key.substring(0, key.length - '_enum'.length);
                         pos = POS_RENAME[pos]||pos;
                         for (const phrase of enumNormalized)
@@ -438,7 +484,7 @@ export default class LanguagePack {
                         normalized.enum_filter[enumerand] = enumNormalized;
                 }
             } else {
-                let into : 'base' | 'base_projection' | 'filter' | 'projection' | 'argmin' | 'argmax';
+                let into : 'base' | 'base_projection' | 'filter_phrase' | 'projection' | 'argmin' | 'argmax';
                 let pos : string|undefined;
                 let isFilter = false;
                 if (key === 'base' || key === 'base_projection') {
@@ -453,13 +499,13 @@ export default class LanguagePack {
                 } else if (key.endsWith('_argmax')) {
                     into = 'argmax';
                     pos = key.substring(0, key.length - '_argmax'.length);
-                } else if (key === 'filter' || key === 'projection'
+                } else if (key === 'filter_phrase' || key === 'projection'
                             || key === 'argmin' || key === 'argmax') {
                     into = key;
                     pos = undefined;
-                    isFilter = key === 'filter';
+                    isFilter = key === 'filter_phrase';
                 } else {
-                    into = 'filter';
+                    into = 'filter_phrase';
                     pos = key;
                     isFilter = true;
                 }
@@ -479,6 +525,7 @@ export default class LanguagePack {
             }
         }
 
+        this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
         return normalized;
     }
 

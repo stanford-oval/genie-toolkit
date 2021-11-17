@@ -24,42 +24,23 @@ import assert from 'assert';
 import * as fs from 'fs';
 import { promises as pfs } from 'fs';
 import * as ThingTalk from 'thingtalk';
+
 import { stringEscape } from '../lib/utils/escaping';
+
+import { processLibrary } from './lib/extract-translatable';
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('extract-translatable-annotations', {
         add_help: true,
-        description: "Extract translatable annotations from a thingpedia file."
+        description: "Extract translatable annotations from a thingpedia file into a JS file to be processed by xgettext."
     });
     parser.add_argument('input_file', {
         help: 'Input Thingpedia file to read from'
     });
     parser.add_argument('-o', '--output', {
         required: true,
-        help: 'Output Thingpedia file to write to'
+        help: 'Output file to write to'
     });
-}
-
-let output : fs.WriteStream;
-
-function extract(key : string, str : unknown) {
-    if (typeof str === 'boolean' || typeof str === 'number')
-        return;
-    if (typeof str === 'string') {
-        output.write(`/* ${key} */\n`);
-        output.write(`let x = _(${stringEscape(str)});\n`);
-    } else if (Array.isArray(str)) {
-        for (let i = 0; i < str.length; i++)
-            extract(`${key}[${i}]`, str[i]);
-    } else if (typeof str === 'object' && str !== null) {
-        for (const subkey in str) {
-            if (subkey === 'type' || subkey === 'default')
-                continue;
-            extract(`${key};${subkey}`, str[subkey as keyof typeof str]);
-        }
-    } else {
-        throw new TypeError(`Invalid translatable entry #_[${key}=${str}]`);
-    }
 }
 
 export async function execute(args : any) {
@@ -70,41 +51,17 @@ export async function execute(args : any) {
     });
     assert(parsed instanceof ThingTalk.Ast.Library);
 
-    output = fs.createWriteStream(args.output);
+    const output = fs.createWriteStream(args.output);
 
-    // parse manifest
-    for (const _class of parsed.classes) {
-        for (const key in _class.metadata)
-            extract(`${key}`, _class.metadata[key]);
-        for (const what of ['queries', 'actions'] as const) {
-            for (const name in _class[what]) {
-                for (const key in _class[what][name].metadata)
-                    extract(`${what}.${name}.${key}`, _class[what][name].metadata[key]);
-
-                for (const argname of _class[what][name].args) {
-                    const arg = _class[what][name].getArgument(argname)!;
-
-                    for (const key in arg.metadata)
-                        extract(`${what}.${name}.args.${argname}.${key}`, arg.metadata[key]);
-
-                    // handle enums
-                    if (arg.type.isEnum)
-                        extract(`${what}.${name}.args.${argname}.enum`, arg.type);
-                }
-            }
-        }
+    for (const string of processLibrary(parsed)) {
+        output.write(`/* ${string.key} */\n`);
+        if (string.comment)
+            output.write(`/* ${string.comment} */\n`);
+        if (string.context)
+            output.write(`let x = pgettext(${stringEscape(string.context)}, ${stringEscape(string.object[string.field])});\n`);
+        else
+            output.write(`let x = _(${stringEscape(string.object[string.field])});\n`);
     }
 
-    // parse dataset
-    for (const _class of parsed.datasets) {
-        for (const [ex_id, ex] of _class.examples.entries()) {
-            for (const [uttr_id, uttr] of ex.utterances.entries()) {
-                const key = `${_class.name}.${ex_id}.${uttr_id}`;
-                output.write(`/* ${key} */\n`);
-                output.write(`let x = _(${stringEscape(uttr)});\n`);
-            }
-        }
-    }
-
-
+    output.end();
 }
