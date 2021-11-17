@@ -33,7 +33,9 @@ import {
     ReplacedList,
     ReplacedChoice,
     ReplacedConcatenation,
+    Concatenation,
 } from '../template-string';
+import { expressionUsesIDFilter } from './ast-utils';
 
 type ScopeMap = Record<string, string|ReplacedResult>;
 
@@ -242,6 +244,17 @@ export class Describer {
             return this._getEntity('NUMBER', arg.value);
 
         if (arg instanceof Ast.VarRefValue) {
+            if (arg.name ==='id') {
+                if (arg.name in scope) {
+                    let name = scope[arg.name];
+                    if (typeof name === 'string')
+                        name = new ReplacedConcatenation([name], {}, {});
+                    return name;
+                } else {
+                    return this._interp(this._("{them [plural=other]|it [plural=one]}"), {});
+                }
+            }
+
             let name;
             if (arg.name in scope)
                 name = scope[arg.name];
@@ -251,17 +264,22 @@ export class Describer {
                 name = new ReplacedConcatenation([name], {}, {});
             if (skipThePrefix)
                 return name;
-            if (arg.name ==='id')
-                return this._interp(this._("{them [plural=other]|it [plural=one]}"), {});
             else
                 return this._interp(this._("the ${name} [plural=name[plural]]"), { name });
         }
         if (arg instanceof Ast.ComputationValue) {
             if ((arg.op === '+' || arg.op === '-') &&
-                arg.operands[0].isDate) {
-                const base = this.describeArg(arg.operands[0], scope);
+                arg.operands[0] instanceof Ast.DateValue) {
                 const offset = this.describeArg(arg.operands[1], scope);
 
+                if (arg.operands[0].value === null) {
+                    if (arg.op === '+')
+                        return this._interp(this._("${offset} from now"), { offset });
+                    else
+                        return this._interp(this._("${offset} ago"), { offset });
+                }
+
+                const base = this.describeArg(arg.operands[0], scope);
                 if (arg.op === '+')
                     return this._interp(this._("${offset} past ${base}"), { offset, base });
                 else
@@ -405,7 +423,169 @@ export class Describer {
         if (arg instanceof Ast.TimeValue)
             return this._describeTime(arg.value);
 
+        if (arg instanceof Ast.RecurrentTimeSpecificationValue)
+            return this._describeRecurrentTimeSpec(arg);
+
         return new ReplacedConcatenation([String(arg)], {}, {});
+    }
+
+    private _describeRecurrentTimeRule(r : Ast.RecurrentTimeRule) {
+        const timeSpec = this._interp(this._("from ${begin_time} to ${end_time}"), {
+            begin_time: this._describeTime(r.beginTime),
+            end_time: this._describeTime(r.endTime),
+        });
+
+        let dateSpec : ReplacedResult|null = ReplacedResult.EMPTY;
+        if (r.beginDate instanceof Date && r.endDate instanceof Date &&
+            r.endDate.getTime() === r.beginDate.getTime() + 86400000) {
+            dateSpec = this._interp(this._("on ${begin_date}"), {
+                begin_date: this._describeDate(r.beginDate),
+            });
+        } else if (r.beginDate && r.endDate) {
+            dateSpec = this._interp(this._("between ${begin_date} and ${end_date}"), {
+                begin_date: this._describeDate(r.beginDate),
+                end_date: this._describeDate(r.endDate),
+            });
+        } else if (r.beginDate) {
+            dateSpec = this._interp(this._("after ${begin_date}"), {
+                begin_date: this._describeDate(r.beginDate),
+            });
+        } else if (r.endDate) {
+            dateSpec = this._interp(this._("before ${end_date}"), {
+                end_date: this._describeDate(r.endDate),
+            });
+        }
+
+        let intervalSpec : ReplacedResult|null = ReplacedResult.EMPTY;
+        if (r.interval.toJS() !== 86400000 || r.frequency !== 1) {
+            if (r.frequency !== 1) {
+                intervalSpec = this._interp(this._("${frequency:select:=1{once}=2{twice}_{${frequency} times}} every ${interval}"), {
+                    interval: this.describeArg(r.interval),
+                    frequency: r.frequency
+                });
+            } else {
+                intervalSpec = this._interp("every ${interval}", {
+                    interval: this.describeArg(r.interval)
+                });
+            }
+        }
+
+        let weekDaySpec : ReplacedResult|null = ReplacedResult.EMPTY;
+        if (r.dayOfWeek) {
+            const weekday = this._(r.dayOfWeek);
+            weekDaySpec = this._interp(this._("on ${weekday}"), { weekday });
+        }
+
+        return this._interp(this._("${time_spec} ${interval_spec} ${weekday_spec} ${date_spec}"), {
+            time_spec: timeSpec,
+            interval_spec: intervalSpec,
+            weekday_spec: weekDaySpec,
+            date_spec: dateSpec
+        });
+    }
+
+    private _describeRecurrentTimeSpec(value : Ast.RecurrentTimeSpecificationValue) {
+        // preprocess the time rules to collapse multiple days of the week
+        interface PreprocessedTimeRule {
+            beginTime : Ast.AbsoluteTime,
+            endTime : Ast.AbsoluteTime,
+            daysOfWeek : Set<string>|null
+        }
+        const preprocessed : PreprocessedTimeRule[] = [];
+        const other : Ast.RecurrentTimeRule[] = [];
+        const subtractdays : Date[] = [];
+        const subtractother : Ast.RecurrentTimeRule[] = [];
+
+        for (const rule of value.rules) {
+            if (rule.subtract) {
+                if (rule.beginTime.hour === 0 && rule.beginTime.minute === 0 && rule.beginTime.hour === 0 &&
+                    rule.endTime.hour === 0 && rule.endTime.minute === 0 && rule.endTime.hour === 0 &&
+                    rule.frequency === 1 && rule.interval.toJS() === 86400000 &&
+                    rule.beginDate instanceof Date && rule.endDate instanceof Date &&
+                    rule.endDate.getTime() === rule.beginDate.getTime() + 86400000)
+                    subtractdays.push(rule.beginDate);
+                else
+                    subtractother.push(rule);
+                continue;
+            }
+
+            if (rule.beginDate || rule.endDate || rule.frequency !== 1 || rule.interval.toJS() !== 86400000) {
+                other.push(rule);
+                continue;
+            }
+            let found = false;
+            for (const candidate of preprocessed) {
+                if (candidate.beginTime.equals(rule.beginTime) && candidate.endTime.equals(rule.endTime)) {
+                    found = true;
+
+                    if (candidate.daysOfWeek && !rule.dayOfWeek)
+                        candidate.daysOfWeek = null;
+                    else if (candidate.daysOfWeek && rule.dayOfWeek)
+                        candidate.daysOfWeek.add(rule.dayOfWeek);
+                    // else !candidate.daysOfWeek && rule.daysOfWeek, rule is redundant
+
+                    break;
+                }
+            }
+            if (!found) {
+                preprocessed.push({
+                    beginTime: rule.beginTime,
+                    endTime: rule.endTime,
+                    daysOfWeek: rule.dayOfWeek ? new Set([rule.dayOfWeek]) : null
+                });
+            }
+        }
+
+        const normalHours = preprocessed.map((r) => {
+            if (r.daysOfWeek === null) {
+                return this._interp(this._("from ${begin_time} to ${end_time} every day"), {
+                    begin_time: this._describeTime(r.beginTime),
+                    end_time: this._describeTime(r.endTime),
+                });
+            } else {
+                if (r.daysOfWeek.size > 3) {
+                    const [begin,end] = daysOfWeekConsecutive(r.daysOfWeek);
+                    if (begin && end) {
+                        return this._interp(this._("from ${begin_time} to ${end_time} ${begin_weekday} to ${end_weekday}"), {
+                            begin_time: this._describeTime(r.beginTime),
+                            end_time: this._describeTime(r.endTime),
+                            begin_weekday: this._(begin),
+                            end_weekday: this._(end),
+                        });
+                    }
+                }
+
+                return this._interp(this._("from ${begin_time} to ${end_time} on ${weekdays}"), {
+                    begin_time: this._describeTime(r.beginTime),
+                    end_time: this._describeTime(r.endTime),
+                    weekdays: this._makeList(Array.from(r.daysOfWeek).map((x) => this._const(this._(x))))
+                });
+            }
+        });
+        const specialHours = other.map(this._describeRecurrentTimeRule, this);
+        const subtractHours = subtractother.map(this._describeRecurrentTimeRule, this);
+
+        const positive = this._makeList(normalHours.concat(specialHours), 'conjunction');
+
+        if (subtractdays.length && subtractother.length) {
+            return this._interp("${positive_hours}, except on ${subtract_days} and ${subtract_other}", {
+                positive_hours: positive,
+                subtract_days: this._makeList(subtractdays.map((d) => this._describeDate(d)), ','),
+                subtract_other: this._makeList(subtractHours, 'disjunction')
+            });
+        } else if (subtractdays.length) {
+            return this._interp("${positive_hours}, except on ${subtract_days}", {
+                positive_hours: positive,
+                subtract_days: this._makeList(subtractdays.map((d) => this._describeDate(d)), ','),
+            });
+        } else if (subtractother.length) {
+            return this._interp("${positive_hours}, except ${subtract_other}", {
+                positive_hours: positive,
+                subtract_other: this._makeList(subtractHours, 'disjunction')
+            });
+        } else {
+            return positive;
+        }
     }
 
     private _describeOperator(argcanonical : ReplacedResult|null,
@@ -466,7 +646,7 @@ export class Describer {
             not_suffix_of {${argcanonical} is not a suffix of ${value}} \
             suffix_of {${argcanonical} is a suffix of ${value}} \
             not_eq {${argcanonical} is not equal to ${value}} \
-            eq {${argcanonical} is equal to ${value}} \
+            eq {${argcanonical} is equal to ${value[list_type=conjunction]}} \
             not_geq {${argcanonical} is less than ${value}} \
             geq {${argcanonical} is greater than or equal to ${value}} \
             not_leq {${argcanonical} is greater than ${value}} \
@@ -727,6 +907,9 @@ export class Describer {
         });
 
         if (good) {
+            if (parsed instanceof Concatenation && !parsed.refFlags.coref_plural && names.length === 1)
+                parsed.refFlags.coref_plural = [names[0], 'plural'];
+
             parsed.preprocess(this._langPack, names);
             return [parsed, names];
         } else {
@@ -928,24 +1111,24 @@ export class Describer {
 
             if (firstExtra) {
                 confirm = this._interp(this._("${input_param[pos]:select: \
-                    base {${invocation} with ${input_param} [plural=invocation[plural]]} \
-                    property {${invocation} with ${input_param} [plural=invocation[plural]]} \
-                    reverse_property {${invocation} that ${invocation[plural]:select:one{is}other{are}} ${input_param} [plural=invocation[plural]]}\
-                    verb {${invocation} that ${invocation[plural]:select:one{${input_param[plural=one]}}other{${input_param[plural=other]}}} [plural=invocation[plural]]} \
-                    adjective {${input_param} ${invocation} [plural=invocation[plural]]} \
-                    passive_verb {${invocation} ${input_param} [plural=invocation[plural]]} \
-                    preposition {${invocation} ${input_param} [plural=invocation[plural]]} \
+                    base {${invocation} with ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    property {${invocation} with ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    reverse_property {${invocation} that ${invocation[plural]:select:one{is}other{are}} ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]}\
+                    verb {${invocation} that ${invocation[plural]:select:one{${input_param[plural=one]}}other{${input_param[plural=other]}}} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    adjective {${input_param} ${invocation} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    passive_verb {${invocation} ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    preposition {${invocation} ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
                 }"), { invocation: confirm, input_param: forms });
                 firstExtra = false;
             } else {
                 confirm = this._interp(this._("${input_param[pos]:select: \
-                    base {${invocation} and ${input_param} [plural=invocation[plural]]} \
-                    property {${invocation} and ${input_param} [plural=invocation[plural]]} \
-                    reverse_property {${invocation} and ${invocation[plural]:select:one{is}other{are}} ${input_param} [plural=invocation[plural]]}\
-                    verb {${invocation} and ${input_param} [plural=invocation[plural]]} \
-                    adjective {${input_param} ${invocation} [plural=invocation[plural]]} \
-                    passive_verb {${invocation} ${input_param} [plural=invocation[plural]]} \
-                    preposition {${invocation} ${input_param} [plural=invocation[plural]]} \
+                    base {${invocation} and ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    property {${invocation} and ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    reverse_property {${invocation} and ${invocation[plural]:select:one{is}other{are}} ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]}\
+                    verb {${invocation} and ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    adjective {${input_param} ${invocation} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    passive_verb {${invocation} ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
+                    preposition {${invocation} ${input_param} [plural=invocation[plural], coref_plural=invocation[coref_plural]]} \
                 }"), { invocation: confirm, input_param: forms });
             }
 
@@ -990,6 +1173,8 @@ export class Describer {
 
     private _describeFilteredTable(table : Ast.FilterExpression) : ReplacedResult|null {
         const inner = this.describeQuery(table.expression);
+        if (!inner)
+            return null;
         if (!table.schema!.is_list) {
             return this._interp(this._("${query} such that ${filter} [plural=query[plural]]"), {
                 query: inner,
@@ -998,6 +1183,7 @@ export class Describer {
         }
 
         const filter = table.filter.optimize();
+        let idClause : ReplacedResult|undefined = undefined;
         const slotClauses : ReplacedResult[] = [];
         const otherClauses : Ast.BooleanExpression[] = [];
 
@@ -1020,14 +1206,21 @@ export class Describer {
                 continue;
             }
 
-            const canonical = this._preprocessParameterCanonical(arg);
-            // TODO handle boolean/enum filters correctly
-
             let text : ReplacedResult|null = this.describeArg(clause.value, {});
             if (!text) {
                 otherClauses.push(clause);
                 continue;
             }
+
+            if (arg.name === 'id') {
+                idClause = text;
+                continue;
+            }
+
+            const canonical = this._preprocessParameterCanonical(arg);
+            // TODO handle boolean/enum filters correctly
+
+
             if (['in_array', '~in_array', 'in_array~'].includes(clause.operator))
                 text = text.constrain('list_type', 'disjunction');
             else
@@ -1084,7 +1277,27 @@ export class Describer {
         });
         */
 
-        let tabledesc = inner;
+        let tabledesc : ReplacedResult|null = inner;
+        if (idClause) {
+            const arg = table.schema!.getArgument('id')!;
+            if (table.expression instanceof Ast.InvocationExpression &&
+                table.expression.invocation.in_params.length === 0 &&
+                arg.type instanceof Type.Entity &&
+                arg.type.type === `${table.expression.invocation.selector.kind}:${table.expression.invocation.channel}` &&
+                table.schema!.extends.length === 0) {
+                tabledesc = this._interp(this._("${name} [plural=one]"), {
+                    name: idClause
+                });
+            } else {
+                tabledesc = this._interp(this._("the ${table[plural=one]} ${name} [plural=one]"), {
+                    table: tabledesc,
+                    name: idClause
+                });
+            }
+            if (!tabledesc)
+                return null;
+        }
+
         let first = true;
 
         for (const clause of slotClauses) {
@@ -1217,6 +1430,11 @@ export class Describer {
                     param: this.describeArg(table.value, {}, true)
                 });
             }
+        } else if (table instanceof Ast.IndexExpression && table.indices.length === 1 &&
+            table.indices[0] instanceof Ast.NumberValue && table.indices[0].value === 1 &&
+            table.expression instanceof Ast.FilterExpression && expressionUsesIDFilter(table.expression)) {
+            // recognize [1] added by the id filter and skip it
+            return this.describeQuery(table.expression);
         } else if (table instanceof Ast.IndexExpression && table.indices.length === 1) {
             return this._describeIndex(table.indices[0],
                 this.describeQuery(table.expression));
@@ -1318,10 +1536,21 @@ export class Describer {
     }
 
     private _describeOnTimer(stream : Ast.FunctionCallExpression) {
-        const date = stream.in_params.find((ip) => ip.name === 'date');
+        const date = stream.in_params.find((ip) => ip.name === 'date')?.value;
+
+        if (date instanceof Ast.ArrayValue &&
+            date.value.length === 1 &&
+            date.value[0] instanceof Ast.ComputationValue &&
+            date.value[0].op === '+' &&
+            date.value[0].operands[0] instanceof Ast.DateValue &&
+            date.value[0].operands[0].value === null) {
+            return this._interp(this._("in ${interval}"), {
+                interval: this.describeArg(date.value[0].operands[1])
+            });
+        }
 
         return this._interp(this._("at ${date}"), {
-            date: this.describeArg(date ? date.value : new Ast.Value.Undefined())
+            date: this.describeArg(date ?? new Ast.Value.Undefined())
         });
     }
 
@@ -1381,25 +1610,25 @@ export class Describer {
         }
     }
 
-    describeAction(action : Ast.Expression) : ReplacedResult|null {
+    describeAction(action : Ast.Expression, scope : ScopeMap = {}) : ReplacedResult|null {
         if (action instanceof Ast.FunctionCallExpression)
             return this._const(clean(action.name));
         else if (action instanceof Ast.InvocationExpression)
-            return this.describePrimitive(action.invocation);
+            return this.describePrimitive(action.invocation, scope);
         else
             throw new TypeError(`Unexpected action ${action.prettyprint()}`);
     }
 
-    private _describeExpression(exp : Ast.Expression) {
+    private _describeExpression(exp : Ast.Expression, scope : ScopeMap = {}) {
         if (exp.schema!.functionType === 'query') {
             if (exp.schema!.is_list) {
                 // try both plural forms, but prefer the plural if available
-                return this._interp(this._("get {${query[plural=other]}|${query[plural=one]}}"), { query: this.describeQuery(exp) });
+                return this._interp(this._("get {${query[plural=other]} [plural=other]|${query[plural=one]} [plural=one]} [plural=1[plural]]"), { query: this.describeQuery(exp) });
             } else {
-                return this._interp(this._("get the ${query[plural=one]}"), { query: this.describeQuery(exp) });
+                return this._interp(this._("get the ${query[plural=one]} [plural=1[plural]]"), { query: this.describeQuery(exp) });
             }
         } else {
-            return this.describeAction(exp);
+            return this.describeAction(exp, scope);
         }
     }
 
@@ -1408,16 +1637,28 @@ export class Describer {
 
         const stream = r.stream;
         if (stream) {
-            if (expressions.length > 2) {
+            if (expressions.length === 3 &&
+                expressions[1].schema!.functionType === 'query' &&
+                expressions[2] instanceof Ast.InvocationExpression &&
+                expressions[2].invocation.in_params.some((ip) => ip.value instanceof Ast.VarRefValue && ip.value.name === 'id')) {
+                const query = this.describeQuery(expressions[1]);
+                if (!query)
+                    return null;
+                const action = this._describeExpression(expressions[2], { id: query });
+                return this._interp(this._("${stream[plural]:select: other{${action[coref_plural=other]}} one{${action[coref_plural=one]}}} ${stream}"), {
+                    stream: this.describeStream(stream),
+                    action: action
+                });
+            } else if (expressions.length > 2) {
                 const descriptions = expressions.slice(1).map((exp) => this._describeExpression(exp));
 
-                return this._interp(this._("do the following : ${stream} , ${queries} , and then ${action}"), {
+                return this._interp(this._("do the following : ${stream} , ${queries} , and then ${queries[plural]:select: other{${action[coref_plural=other]}} one{${action[coref_plural=one]}}}"), {
                     stream: this.describeStream(stream),
                     queries: this._makeList(descriptions.slice(0, descriptions.length-1), 'conjunction'),
                     action: descriptions[descriptions.length-1],
                 });
             } else if (expressions.length === 2) {
-                return this._interp(this._("${action} ${stream}"), {
+                return this._interp(this._("${stream[plural]:select: other{${action[coref_plural=other]}} one{${action[coref_plural=one]}}} ${stream}"), {
                     stream: this.describeStream(stream),
                     action: this._describeExpression(expressions[1]),
                 });
@@ -1428,12 +1669,19 @@ export class Describer {
             }
         } else if (expressions.length > 2) {
             const descriptions = expressions.map((exp) => this._describeExpression(exp));
-            return this._interp(this._("${queries} , and then ${action}"), {
+            return this._interp(this._("${queries} , and then ${queries[plural]:select: other{${action[coref_plural=other]}} one{${action[coref_plural=one]}}}"), {
                 queries: this._makeList(descriptions.slice(0, descriptions.length-1), 'conjunction'),
                 action: descriptions[descriptions.length-1]
             });
+        } else if (expressions.length === 2 && expressions[0].schema!.functionType === 'query' &&
+            expressions[1] instanceof Ast.InvocationExpression &&
+            expressions[1].invocation.in_params.some((ip) => ip.value instanceof Ast.VarRefValue && ip.value.name === 'id')) {
+            const query = this.describeQuery(expressions[0]);
+            if (!query)
+                return null;
+            return this._describeExpression(expressions[1], { id: query });
         } else if (expressions.length === 2) {
-            return this._interp(this._("${query} and then ${action}"), {
+            return this._interp(this._("${query} and then ${query[plural]:select: other{${action[coref_plural=other]}} one{${action[coref_plural=one]}}}"), {
                 query: this._describeExpression(expressions[0]),
                 action: this._describeExpression(expressions[1])
             });
@@ -1755,3 +2003,47 @@ export function getProgramName(program : Ast.Program) : string {
     }
     return descriptions.join(" ⇒ ");
 }
+
+const ALL_DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
+
+/**
+ * Check if daysOfWeek represents a consecutive set of days of the week, and
+ * and return the boundaries if so
+ *
+ * @param daysOfWeek C
+ */
+function daysOfWeekConsecutive(daysOfWeek : Set<string>) : [string|null, string|null] {
+    // find the beginning of the first interval
+    let begin = -1;
+    for (let i = 0; i < ALL_DAYS.length; i++) {
+        const day = ALL_DAYS[i];
+        if (!daysOfWeek.has(day))
+            continue;
+        begin = i;
+        break;
+    }
+    if (begin < 0) // empty set???
+        return [null, null];
+
+    // find the end (inclusive) of this interval
+    let end = begin;
+    for (let j = begin+1; j < ALL_DAYS.length; j++) {
+        const day = ALL_DAYS[j];
+        if (!daysOfWeek.has(day))
+            break;
+        end = j;
+    }
+    if (end === begin) // 1 day interval
+        return [null, null];
+
+    // check if there are other intervals
+    // if so, we return nothing
+    for (let k = end+1; k < ALL_DAYS.length; k++) {
+        const day = ALL_DAYS[k];
+        if (daysOfWeek.has(day))
+            return [null, null];
+    }
+
+    return [ALL_DAYS[begin], ALL_DAYS[end]];
+}
+

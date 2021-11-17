@@ -38,6 +38,8 @@ class CommandLineDelegate {
         this._rl = rl;
     }
 
+    destroy() {}
+
     async setHypothesis(hypothesis : string) {
         // go to beginning of line
         this._rl.write('', { ctrl: true, name: 'a' });

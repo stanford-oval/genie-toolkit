@@ -30,28 +30,22 @@ import {
     makeAgentReply,
     makeSimpleState,
     mergeParameters,
-    setOrAddInvocationParam,
     addNewItem,
 } from '../state_manip';
 
-
-function isGoodSlotFillQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
-    const action = C.getInvocation(ctx.next!);
-    assert(action instanceof Ast.Invocation);
-    for (const q of questions) {
-        if (!C.isSameFunction(q.schema, action.schema!))
-            return false;
-        if (q.name === ctx.nextInfo!.chainParameter)
-            return false;
-        const arg = action.schema!.getArgument(q.name);
-        if (!arg || !arg.is_input)
-            return false;
-        for (const in_param of action.in_params) {
-            if (in_param.name === q.name && !in_param.value.isUndefined)
-                return false;
-        }
+function isGoodSlotFillQuestion(ctx : ContextInfo, question : C.ParamSlot) {
+    for (const slot of ctx.nextInfo!.missingSlots) {
+        const schema = slot.primitive?.schema;
+        if (!schema)
+            continue;
+        if (C.isSameFunction(question.schema, schema))
+            return slot.tag === `in_param.${question.name}`;
     }
-    return true;
+    return false;
+}
+
+function areGoodSlotFillQuestions(ctx : ContextInfo, questions : C.ParamSlot[]) {
+    return questions.every((q) => isGoodSlotFillQuestion(ctx, q));
 }
 
 function useRawModeForSlotFill(arg : Ast.ArgumentDef) {
@@ -76,18 +70,15 @@ function useRawModeForSlotFill(arg : Ast.ArgumentDef) {
 
 
 function makeSlotFillQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
-    if (!isGoodSlotFillQuestion(ctx, questions))
+    if (!areGoodSlotFillQuestions(ctx, questions))
         return null;
 
     assert(questions.length > 0);
     if (questions.length === 1) {
-        const action = C.getInvocation(ctx.next!);
-        assert(action instanceof Ast.Invocation);
-        const arg = action.schema!.getArgument(questions[0].name)!;
-        const type = arg.type;
-
-        const raw = useRawModeForSlotFill(arg);
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', questions.map((q) => q.name)), null, type, { raw });
+        const slot = ctx.nextInfo!.missingSlots.find((slot) => slot.tag === `in_param.${questions[0].name}`);
+        assert(slot);
+        const raw = !!slot.arg && useRawModeForSlotFill(slot.arg);
+        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', [questions[0].name]), null, slot.type, { raw });
     }
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', questions.map((q) => q.name)));
 }
@@ -154,15 +145,32 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
     if (questions.length !== 1)
         return null;
 
+    assert(ctx.next && ctx.nextInfo);
+
     let ipslot : C.InputParamSlot;
     if (answer instanceof Ast.Value) {
         assert(questions.length === 1);
 
-        const ptype = ctx.nextFunction!.getArgType(questions[0])!;
+        const slot = ctx.nextInfo!.missingSlots.find((slot) => slot.tag === `in_param.${questions[0]}`);
+        assert(slot);
+        const ptype = slot.type;
+
+        if (ptype instanceof Type.Array && !(answer instanceof Ast.ArrayValue)) {
+            const elem = ptype.elem as Type;
+
+            if (elem === Type.Date && answer.getType() === Type.Time)
+                answer = C.makeDateWithDateTime(null, answer);
+
+            answer = new Ast.ArrayValue([answer]);
+        } else {
+            if (ptype === Type.Date && answer.getType() === Type.Time)
+                answer = C.makeDateWithDateTime(null, answer);
+        }
+
         if (!Type.isAssignable(answer.getType(), ptype, {}, ctx.loader.entitySubTypeMap))
             return null;
         ipslot = {
-            schema: ctx.nextFunction!,
+            schema: slot.primitive!.schema!,
             ptype: ptype,
             ast: new Ast.InputParam(null, questions[0], answer)
         };
@@ -174,18 +182,24 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
             return null;
     }
 
-    assert(ctx.next && ctx.nextInfo);
     if (ipslot.ast.name === ctx.nextInfo.chainParameter)
         return null;
 
-    const clone = fastSemiShallowClone(ctx.next);
-    const newAction = C.getInvocation(clone);
-    assert(newAction instanceof Ast.Invocation);
-    if (!C.checkInvocationInputParam(ctx.loader, newAction, ipslot))
-        return null;
-
     // modify in place
-    setOrAddInvocationParam(newAction, ipslot.ast.name, ipslot.ast.value);
+    const clone = ctx.next.clone();
+    for (const slot of clone.iterateSlots2()) {
+        if (slot instanceof Ast.DeviceSelector)
+            continue;
+        const schema = slot.primitive?.schema;
+        if (!schema || !C.isSameFunction(schema, ipslot.schema))
+            continue;
+        if (slot.tag !== `in_param.${ipslot.ast.name}`)
+            continue;
+        if (!(slot.get() instanceof Ast.UndefinedValue))
+            continue;
+
+        slot.set(ipslot.ast.value);
+    }
     return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }
 

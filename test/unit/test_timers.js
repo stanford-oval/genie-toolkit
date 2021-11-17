@@ -490,7 +490,7 @@ function testTimer_nextTimeout_error() {
         timer._interval = test._interval;
         timer._frequency = test._frequency;
         assert.throws(() => {
-            timer._nextTimeout(test._now); 
+            timer._nextTimeout(test._now);
         }, {
             name: "Error",
             message: `Timer with total interval ${test._interval} and frequency ${test._frequency} will have intervals of ${test._interval / test._frequency}. Minimum interval is 2 seconds.`,
@@ -500,7 +500,7 @@ function testTimer_nextTimeout_error() {
 }
 
 function testOnTimer_nextTimeout() {
-    let timer = new timers.OnTimer(null);
+    let timer = new timers.OnTimer([]);
     let tests = [
         //5 minute timer
         {

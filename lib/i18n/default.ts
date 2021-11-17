@@ -597,7 +597,7 @@ export default class LanguagePack {
         return replaced.chooseBest();
     }
 
-    private _measureToString(value : number, unit : string, precision = 1) : string {
+    private _measureToString(value : number, unit : string, precision = 0) : string {
         const transformed = Units.transformFromBaseUnit(value, unit);
         assert(Number.isFinite(transformed));
 
@@ -654,7 +654,7 @@ export default class LanguagePack {
             // less than a week apart
             if (Math.abs(date.epochMilliseconds - now.epochMilliseconds) <= 7 * 86400 * 1000) {
                 const weekday = date.toLocaleString(this.locale, { weekday: 'long' });
-                return (date.epochMilliseconds < now.epochMilliseconds ? this._("last ${weekday}") : this._("next ${weekday}")).replace('${weekday}',  weekday);
+                return weekday;
             }
         }
 
@@ -702,6 +702,10 @@ export default class LanguagePack {
         return 'C';
     }
 
+    protected displayPhoneNumber(phone : string) {
+        return phone;
+    }
+
     protected displayEntity(token : string,
                             entityValue : AnyEntity,
                             delegate : UnitPreferenceDelegate,
@@ -717,6 +721,8 @@ export default class LanguagePack {
             return '@' + entityValue;
         if (token.startsWith('HASHTAG_'))
             return '#' + entityValue;
+        if (token.startsWith('PHONE_NUMBER_'))
+            return this.displayPhoneNumber(entityValue as string);
 
         if (token.startsWith('MEASURE_')) {
             const [,baseUnit] = /^MEASURE_([A-Za-z0-9_]+)_[0-9]+$/.exec(token)!;

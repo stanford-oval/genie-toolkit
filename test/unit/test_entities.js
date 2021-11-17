@@ -96,7 +96,7 @@ async function main() {
         if (candidates.length === 0) {
             if (expectedValue === null && expectedDisplay === 0)
                 continue;
-            console.error(`Test Case ${i+1} failed`);
+            console.error(`Test Case ${i+1} (${entityType} ${searchTerm}) failed`);
             console.error(`Expected: ${expectedValue}("${expectedDisplay}")`);
             console.error(`Generated: null`);
             failed = true;
@@ -104,12 +104,12 @@ async function main() {
             const best = getBestEntityMatch(searchTerm, entityType, candidates);
 
             if (expectedValue === null && expectedDisplay === 0) {
-                console.error(`Test Case ${i+1} failed`);
+                console.error(`Test Case ${i+1} (${entityType} ${searchTerm}) failed`);
                 console.error(`Expected: null`);
                 console.error(`Generated: ${best.value}("${best.name}")`);
                 failed = true;
             } else if (best.value !== expectedValue || best.name !== expectedDisplay) {
-                console.error(`Test Case ${i+1} failed`);
+                console.error(`Test Case ${i+1} (${entityType} ${searchTerm}) failed`);
                 console.error(`Expected: ${expectedValue}("${expectedDisplay}")`);
                 console.error(`Generated: ${best.value}("${best.name}")`);
                 failed = true;

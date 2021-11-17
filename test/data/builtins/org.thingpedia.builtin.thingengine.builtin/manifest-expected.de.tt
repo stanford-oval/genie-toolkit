@@ -178,6 +178,7 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
              out message_output : String
              #_[canonical="Nachricht:"])
   #_[result="${message_output}"]
+  #_[formatted=["Alarm-Uhr-verstrichen"]]
   #_[canonical="sagen:"]
   #[doc="makes Genie say something"]
   #[confirm=false]

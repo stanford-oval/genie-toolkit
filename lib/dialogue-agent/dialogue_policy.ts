@@ -189,7 +189,7 @@ export default class DialoguePolicy {
 
             this._entityAllocator.reset();
             if (state !== null) {
-                const constants = ThingTalkUtils.extractConstants(state, this._entityAllocator);
+                const constants = ThingTalkUtils.extractConstants(state, this._sentenceGenerator!.tpLoader.describer);
                 this._sentenceGenerator!.addConstantsFromContext(constants);
             }
             const contextPhrases = this._policyModule.getContextPhrasesForState(state, this._sentenceGenerator!.tpLoader,

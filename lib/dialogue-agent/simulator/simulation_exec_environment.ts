@@ -73,6 +73,8 @@ class ResultGenerator {
         if (value.isBoolean || value.isEnum)
             return;
 
+        if (value instanceof Ast.DateValue || value instanceof Ast.RecurrentTimeSpecificationValue)
+            value = value.normalize(this._timezone);
         const jsValue = value.toJS();
 
         if (value.isString) {
@@ -298,6 +300,23 @@ function parseTime(v : unknown) {
     }
 }
 
+function loadRecurrentTimeSpec(value : unknown) {
+    assert(Array.isArray(value));
+
+    return value.map((v) => {
+        return new ThingTalk.Builtin.RecurrentTimeRule({
+            beginTime: parseTime(v.beginTime),
+            endTime: parseTime(v.endTime),
+            interval: v.interval ?? 86400000,
+            frequency: v.frequency ?? 1,
+            dayOfWeek: v.dayOfWeek ?? null,
+            beginDate: v.beginDate ? new Date(v.beginDate) : null,
+            endDate: v.endDate ? new Date(v.endDate) : null,
+            subtract: v.subtract ?? false
+        });
+    });
+}
+
 function loadSimulationValue(schema : Ast.FunctionDef,
                              type : Type,
                              value : unknown,
@@ -334,6 +353,9 @@ function loadSimulationValue(schema : Ast.FunctionDef,
         return parseTime(value);
     if (type.isDate)
         return new Date(value as string|number);
+
+    if (type === Type.RecurrentTimeSpecification)
+        return loadRecurrentTimeSpec(value);
 
     return value;
 }

@@ -147,6 +147,13 @@ export default class ItalianLanguagePack extends DefaultLanguagePack {
         return sentence.trim();
     }
 
+    protected displayPhoneNumber(phone : string) {
+        if (phone.startsWith('+39'))
+            return phone.substring(3);
+        else
+            return phone;
+    }
+
     pluralize(noun : string) {
         // TODO rules are complicated and full of exceptions...
         return undefined;

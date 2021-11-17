@@ -186,7 +186,7 @@ export default class AppExecutor extends events.EventEmitter {
         this.isRunning = false;
         this.isEnabled = false;
 
-        this.compiler = new AppCompiler(engine.schemas);
+        this.compiler = new AppCompiler(engine.schemas, engine.platform.timezone);
         this.command = null;
         this.rules = [];
 

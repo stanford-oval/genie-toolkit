@@ -404,12 +404,16 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 value.value = resolved.value;
                 value.display = resolved.name;
             } else {
-                const candidates = (hints.idEntities ? hints.idEntities.get(value.type) : undefined)
-                    || await this.lookupEntityCandidates(value.type, value.display!, hints);
-                const resolved = getBestEntityMatch(value.display!, value.type, candidates);
+                const resolved = await this.resolveEntity(value.type, value.display!, hints);
                 value.value = resolved.value;
                 value.display = resolved.name;
             }
+        } else if (value instanceof Ast.DateValue && value.value instanceof Ast.WeekDayDate &&
+            slot.primitive?.schema?.qualifiedName === '.ontimer' && /^in_param\.date\.[0-9]+$/.test(slot.tag) &&
+            value.value.time === null) {
+            const time = await this.resolveUserContext('$context.time.morning');
+            assert(time instanceof Ast.TimeValue && time.value instanceof Ast.AbsoluteTime);
+            value.value.time = time.value;
         }
 
         value = slot.get();
@@ -515,21 +519,17 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         throw new TypeError('Abstract method');
     }
 
-    /* instanbul ignore next */
     /**
-     * Lookup all possible candidates for a given entity in the Thingpedia database or
-     * by calling the underlying API.
+     * Resolve an entity using the Thingpedia database or by calling the underlying API.
      *
-     * @param {string} entityType - the type of entity to look up
-     * @param {string} entityDisplay - the display name of the entity look up
-     * @param {any} hints - hints to use to resolve any ambiguity
-     * @returns {ThingpediaEntity[]} - possible entities that match the given name, in Thingpedia API format
+     * @param entityType - the type of entity to look up
+     * @param entityDisplay - the display name of the entity look up
+     * @param hints - hints to use to resolve any ambiguity
+     * @returns - the entity that matched the given name, in Thingpedia API format
      */
-    protected async lookupEntityCandidates(entityType : string,
-                                           entityDisplay : string,
-                                           hints : DisambiguationHints) : Promise<EntityRecord[]> {
-        throw new TypeError('Abstract method');
-    }
+    protected abstract resolveEntity(entityType : string,
+                                    entityDisplay : string,
+                                    hints : DisambiguationHints) : Promise<EntityRecord>;
 
     /* instanbul ignore next */
     /**

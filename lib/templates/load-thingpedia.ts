@@ -235,6 +235,13 @@ export default class ThingpediaLoader {
         this.standardSchemas.get_gps = get_gps;
         this.standardSchemas.get_time = get_time;
 
+        this._recordFunction(TIMER_SCHEMA);
+        this._recordFunction(ATTIMER_SCHEMA);
+        this._recordFunction(ONTIMER_SCHEMA);
+        this._loadFunction(TIMER_SCHEMA);
+        this._loadFunction(ATTIMER_SCHEMA);
+        this._loadFunction(ONTIMER_SCHEMA);
+
         await this._loadMetadata();
     }
 
@@ -310,8 +317,6 @@ export default class ThingpediaLoader {
         }
         this.types.set(typestr, type);
 
-        if (type.isRecurrentTimeSpecification)
-            return typestr;
         if (type.isArray)
             return 'Any';
 
@@ -381,12 +386,14 @@ export default class ThingpediaLoader {
         return pos;
     }
 
-    private _getRuleAttributes(canonical : I18n.NormalizedParameterCanonical, cat : string) : RuleAttributes {
+    private _getRuleAttributes(canonical : I18n.NormalizedParameterCanonical, cat : string, type : Type) : RuleAttributes {
         const attributes = { priority: ANNOTATION_PRIORITY[cat] };
         assert(Number.isFinite(attributes.priority), cat);
         if (cat === canonical.default ||
             cat === ANNOTATION_RENAME[canonical.default])
             attributes.priority += 1;
+        if (type === Type.String || type === Type.Location)
+            attributes.priority -= 0.5;
 
         return attributes;
     }
@@ -440,7 +447,7 @@ export default class ThingpediaLoader {
         const filterforms = this._collectByPOS(canonical.filter);
         for (const pos in filterforms) {
             const forms = filterforms[pos];
-            const attributes = this._getRuleAttributes(canonical, pos);
+            const attributes = this._getRuleAttributes(canonical, pos, pslot.type);
 
             const expansion = '{' + forms.join('|') + '}';
             this._addRule(pos + '_input_param', [constant], expansion, (value : Ast.Value) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
@@ -452,7 +459,7 @@ export default class ThingpediaLoader {
                 const filterforms = this._collectByPOS(canonical.enum_filter[key]);
                 for (const pos in filterforms) {
                     const forms = filterforms[pos];
-                    const attributes = this._getRuleAttributes(canonical, pos);
+                    const attributes = this._getRuleAttributes(canonical, pos, pslot.type);
 
                     const expansion = '{' + forms.join('|') + '}';
                     this._addRule(pos + '_input_param', [], expansion, () => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
@@ -477,7 +484,7 @@ export default class ThingpediaLoader {
             const filterforms = this._collectByPOS(canonical.enum_filter[boolean]);
             for (const pos in filterforms) {
                 const forms = filterforms[pos];
-                const attributes = this._getRuleAttributes(canonical, pos);
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                 const expansion = '{' + forms.join('|') + '}';
                 this._addRule(pos + '_filter', [], expansion, () => makeFilter(this, pslot, '==', value, false), keyfns.filterKeyFn, attributes);
@@ -557,7 +564,7 @@ export default class ThingpediaLoader {
             if (ptype instanceof Type.Array) {
                 vtypes = [ptype.elem as Type];
                 op = 'contains';
-            } else if (ptype.isRecurrentTimeSpecification) {
+            } else if (ptype.isRecurrentTimeSpecification && this._options.forSide === 'user') {
                 vtypes = [Type.Date, Type.Time];
                 op = 'contains';
             } else if (pname === 'id' && !this._options.flags.no_soft_match_id) {
@@ -601,7 +608,7 @@ export default class ThingpediaLoader {
                 const filterforms = this._collectByPOS(canonical.enum_filter[enumerand]);
                 for (const pos in filterforms) {
                     const forms = filterforms[pos];
-                    const attributes = this._getRuleAttributes(canonical, pos);
+                    const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                     const expansion = '{' + forms.join('|') + '}';
                     this._addRule(pos + '_filter', [], expansion, () => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
@@ -611,7 +618,7 @@ export default class ThingpediaLoader {
             const filterforms = this._collectByPOS(canonical.filter);
             for (const pos in filterforms) {
                 const forms = filterforms[pos];
-                const attributes = this._getRuleAttributes(canonical, pos);
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                 const expansion = '{' + forms.join('|') + '}';
                 const pairexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${both_prefix} ${values}') + '}';
@@ -623,9 +630,9 @@ export default class ThingpediaLoader {
                 if (ptype.isDate)
                     this._addRule(pos + '_filter', [constant_date_range], expansion, (values : [Ast.Value, Ast.Value]) => makeDateRangeFilter(this, pslot, values), keyfns.filterKeyFn, attributes);
 
-                const joinexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${pronoun_the_second}') + '}';
+                const joinexpansion = '{' + forms.join('|').replace(/\$\{value\b/g, '${pronoun_the_second') + '}';
                 this._addRule(pos + '_join_condition', [pronoun_the_second], joinexpansion, () => makeSelfJoinCondition(this, pslot), keyfns.filterKeyFn, attributes);
-                const symmetric_joinexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${each_other}') + '}';
+                const symmetric_joinexpansion = '{' + forms.join('|').replace(/\$\{value\b/g, '${each_other') + '}';
                 if (pslot.symmetric)
                     this._addRule(pos + '_symmetric_join_condition', [each_other], symmetric_joinexpansion, () => makeSelfJoinCondition(this, pslot), keyfns.filterKeyFn, attributes);
             }
@@ -633,7 +640,7 @@ export default class ThingpediaLoader {
             const argminforms = this._collectByPOS(canonical.argmin);
             for (const pos in argminforms) {
                 const forms = argminforms[pos];
-                const attributes = this._getRuleAttributes(canonical, pos);
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                 const expansion = '{' + forms.join('|') + '}';
                 this._addRule(pos + '_argminmax', [], expansion, () : [ParamSlot, 'asc'|'desc'] => [pslot, 'asc'], keyfns.argMinMaxKeyFn, attributes);
@@ -641,7 +648,7 @@ export default class ThingpediaLoader {
             const argmaxforms = this._collectByPOS(canonical.argmax);
             for (const pos in argmaxforms) {
                 const forms = argmaxforms[pos];
-                const attributes = this._getRuleAttributes(canonical, pos);
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                 const expansion = '{' + forms.join('|') + '}';
                 this._addRule(pos + '_argminmax', [], expansion, () : [ParamSlot, 'asc'|'desc'] => [pslot, 'desc'], keyfns.argMinMaxKeyFn, attributes);
@@ -1214,7 +1221,7 @@ export default class ThingpediaLoader {
     private async _loadFunction(functionDef : Ast.FunctionDef) {
         if (functionDef.functionType === 'query')
             await this._makeExampleFromQuery(functionDef);
-        else
+        else if (functionDef.functionType === 'action')
             await this._makeExampleFromAction(functionDef);
 
         if (functionDef.metadata.result)

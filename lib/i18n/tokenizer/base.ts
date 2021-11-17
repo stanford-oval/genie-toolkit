@@ -370,10 +370,14 @@ export default class BaseTokenizer {
                 hour += 12;
         } else if (ampm === '24h') {
             // no 12 hour adjustment, ever
-        } else {
-            // no marker, 24-hr clock
             if (hour === 24)
                 hour = 0;
+        } else {
+            // no marker, ambiguous clock
+            if (hour === 24)
+                hour = 0;
+            else if (hour > 0 && hour <= 6) // anything before 6am is treated as 12pm-6pm instead
+                hour += 12;
         }
         const minute = parseInt(parts[1]);
         const second = parseFloat(parts[2]) || 0;
@@ -388,10 +392,16 @@ export default class BaseTokenizer {
         } else if (ampm === 'pm') {
             if (hour !== 12)
                 hour += 12;
-        } else {
-            // no marker, 24-hr clock
+        } else if (ampm === '24h') {
+            // no 12 hour adjustment, ever
             if (hour === 24)
                 hour = 0;
+        } else {
+            // no marker, ambiguous clock
+            if (hour === 24)
+                hour = 0;
+            else if (hour > 0 && hour <= 6) // anything before 6am is treated as 12pm-6pm instead
+                hour += 12;
         }
         return { hour, minute: 0, second: 0 };
     }
@@ -416,7 +426,7 @@ export default class BaseTokenizer {
 
         // by default, only "ISO-style" times are recognized
         this._lexer.addRule(/{PLAIN_TIME}/, (lexer) => {
-            const parsed = this._parse12HrTime(lexer.text, '');
+            const parsed = this._parse12HrTime(lexer.text, '24h');
             return makeToken(lexer.index, lexer.text, this._normalizeTime(parsed.hour, parsed.minute, parsed.second, false), 'TIME', parsed);
         });
     }

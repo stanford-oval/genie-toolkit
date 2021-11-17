@@ -91,6 +91,7 @@ context : S.ContextInfo = {
     ctx_without_projection,
     ctx_with_notification,
     ctx_for_related_question,
+    ctx_with_missing_projection,
 
     // phrases that describe the current context
     // (some are later because they use a different type)
@@ -246,6 +247,9 @@ $agent : S.AgentReplyRecord = {
 
     ctx:ctx_complete_search_command proposal:system_list_proposal [weight=10]
         => D.makeListProposalReply(ctx, proposal);
+
+    ctx:ctx_with_missing_projection "sorry, I don't have that information at the moment"
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_recommend_one', null));
 
     // learn more
     ctx:ctx_learn_more system_learn_more

@@ -699,6 +699,12 @@ class @com.yelp
                         #_[canonical={
                           default="npp",
                           base=["telephone", "phone number"]
+                        }],
+                        out openingHours: RecurrentTimeSpecification
+                        #_[canonical={
+                          default="verb",
+                          base=["opening hours"],
+                          verb=["opens #"]
                         }])
   #_[canonical="restaurant"]
   #_[confirmation="restaurants on Yelp"]
