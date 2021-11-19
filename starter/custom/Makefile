@@ -69,7 +69,7 @@ parallel ?= 7
 genie ?= node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
 
 thingpedia_url ?= https://thingpedia.stanford.edu/thingpedia
-developer_key ?= invalid
+developer_key ?= $(shell git config --get thingpedia.developer-key)
 
 .PRECIOUS: %/node_modules
 .PHONY: all clean lint train-user evaluate

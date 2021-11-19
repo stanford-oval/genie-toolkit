@@ -279,8 +279,8 @@ export class DialogueLoop {
                 return { handler: handler, analysis: analysis };
             }));
 
-            return pickHandler(this._currentHandler, handlerCandidates, command);
-        } catch(e) {
+            return pickHandler(this._currentHandler, handlerCandidates, command, this._debug);
+        } catch(e : any) {
             if (e.code === 'EHOSTUNREACH' || e.code === 'ETIMEDOUT') {
                 await this.reply(this._("Sorry, I cannot contact the Genie service. Please check your Internet connection and try again later."), null);
                 throw new CancellationError();
@@ -347,6 +347,9 @@ export class DialogueLoop {
                 continue;
             }
 
+            // reset the state of the handler when we switch to a different one
+            if (this._currentHandler && handler !== this._currentHandler)
+                await this._currentHandler.reset();
             this._currentHandler = handler;
             const reply = await handler.getReply(analysis);
             this.icon = handler.icon;
@@ -398,7 +401,7 @@ export class DialogueLoop {
                     await this._handleUserInput(item.command);
                 else
                     await this._handleAPICall(item);
-            } catch(e) {
+            } catch(e : any) {
                 if (e.code === 'ECANCELLED') {
                     for (const handler of this._iterateDialogueHandlers())
                         await handler.reset();
@@ -409,6 +412,8 @@ export class DialogueLoop {
                     // in a new turn with an empty utterance from the user
                     await this.conversation.dialogueFinished();
                 } else {
+                    console.error(`Error processing queue item`, item);
+                    console.error(e);
                     if (item instanceof QueueItem.UserInput) {
                         await this.replyInterp(this._("Sorry, I had an error processing your command: ${error}."), { //"
                             error: this._formatError(e)
@@ -418,7 +423,8 @@ export class DialogueLoop {
                             error: this._formatError(e)
                         });
                     }
-                    console.error(e);
+                    for (const handler of this._iterateDialogueHandlers())
+                        handler.reset();
                 }
             }
         }
@@ -498,18 +504,26 @@ export class DialogueLoop {
         this._pushQueueItem(item);
     }
 
+    async _tryLoop(showWelcome : boolean, initialState : Record<string, unknown>|null) {
+        while (!this._stopped) {
+            try {
+                await this._loop(showWelcome, initialState);
+            } catch(e) {
+                console.error('Uncaught error in dialog loop', e);
+                // loop
+            }
+            showWelcome = false;
+            initialState = null;
+        }
+    }
+
     async start(showWelcome : boolean, initialState : Record<string, unknown>|null) {
         await this._nlu.start();
         await this._nlg.start();
         this._dynamicHandlers.start();
 
         const promise = this._waitNextCommand();
-        this._loop(showWelcome, initialState).then(() => {
-            throw new Error('Unexpected end of dialog loop');
-        }, (err) => {
-            console.error('Uncaught error in dialog loop', err);
-            throw err;
-        });
+        this._tryLoop(showWelcome, initialState);
         return promise;
     }
 
@@ -580,7 +594,8 @@ export class DialogueLoop {
 
 export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResult, any> | null,
                             handlerCandidates : Array<{ handler : DialogueHandler<CommandAnalysisResult, any>; analysis : CommandAnalysisResult; }>,
-                            command : UserInput) : [DialogueHandler<any, any>|undefined, CommandAnalysisResult]  {
+                            command : UserInput,
+                            debug = false) : [DialogueHandler<any, any>|undefined, CommandAnalysisResult]  {
     let best : DialogueHandler<any, any>|undefined = undefined;
     let bestanalysis : CommandAnalysisResult|undefined = undefined;
     let bestconfidence = Confidence.NO;
@@ -589,7 +604,8 @@ export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResu
         const handler = handlerItem.handler;
         const analysis = handlerItem.analysis;
 
-        // console.log(`Handler ${handler.uniqueId} reports ${CommandAnalysisType[analysis.type]}`);
+        if (debug)
+            console.log(`Handler ${handler.uniqueId} reports ${CommandAnalysisType[analysis.type]}`);
 
         switch (analysis.type) {
         case CommandAnalysisType.STOP:

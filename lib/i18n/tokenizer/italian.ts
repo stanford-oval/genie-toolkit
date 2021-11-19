@@ -453,14 +453,14 @@ export default class ItalianTokenizer extends BaseTokenizer {
 
         // day and month followed by comma, followed by optional "alle" or "all'" (= "at"), followed by a time
         this._lexer.addRule(/{DAY_MONTH},?{WS}(?:alle{WS}|all')?{PLAIN_TIME}/, (lexer) => {
-            const parsed = this._parseWordDate(lexer.text, true, false, (text) => this._parse12HrTime(text, ''));
+            const parsed = this._parseWordDate(lexer.text, true, false, (text) => this._parse12HrTime(text, '24h'));
             const normalized = this._normalizeDate(parsed);
             return makeToken(lexer.index, lexer.text, normalized, 'DATE', parsed);
         });
 
         // day, month and year, followed by optional "alle" or "all'" (= "at"), followed by a time
         this._lexer.addRule(/{DAY_MONTH}{WS}[0-9]{4}(?![0-9]),?{WS}(?:alle{WS}|all')?{PLAIN_TIME}/, (lexer) => {
-            const parsed = this._parseWordDate(lexer.text, true, true, (text) => this._parse12HrTime(text, ''));
+            const parsed = this._parseWordDate(lexer.text, true, true, (text) => this._parse12HrTime(text, '24h'));
             const normalized = this._normalizeDate(parsed);
             return makeToken(lexer.index, lexer.text, normalized, 'DATE', parsed);
         });
@@ -481,7 +481,7 @@ export default class ItalianTokenizer extends BaseTokenizer {
 
         // with time
         this._lexer.addRule(/(?:{NUMERIC_DATE}|{NUMERIC_DATE_SHORT}),?{WS}(?:alle{WS}|all')?{PLAIN_TIME}/, (lexer) => {
-            const parsed = this._parseNumericDate(lexer.text, 'dmy', (text) => this._parse12HrTime(text, ''));
+            const parsed = this._parseNumericDate(lexer.text, 'dmy', (text) => this._parse12HrTime(text, '24h'));
             const normalized = this._normalizeDate(parsed);
             return makeToken(lexer.index, lexer.text, normalized, 'DATE', parsed);
         });

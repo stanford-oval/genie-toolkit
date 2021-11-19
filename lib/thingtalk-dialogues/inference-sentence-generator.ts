@@ -125,7 +125,7 @@ export default class InferenceTimeSentenceGenerator {
     private _extractConstants(state : Ast.DialogueState|Ast.Program|null) {
         this._entityAllocator.reset();
         if (state !== null) {
-            const constants = ThingTalkUtils.extractConstants(state, this._entityAllocator);
+            const constants = ThingTalkUtils.extractConstants(state, this._sentenceGenerator!.tpLoader.describer);
             this._sentenceGenerator!.addConstantsFromContext(constants);
         }
     }

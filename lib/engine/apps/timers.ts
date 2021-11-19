@@ -75,6 +75,9 @@ class Timer extends BaseTimer {
     constructor(base : number, interval : number, frequency : number) {
         super();
 
+        if (Number.isNaN(base) || Number.isNaN(interval) || Number.isNaN(frequency))
+            throw new Error(`Invalid timer`);
+
         this._base = base;
         this._interval = interval;
         this._frequency = frequency;
@@ -256,6 +259,8 @@ class AtTimer extends BaseTimer {
 
         this._times = times;
         this._expiration_date = expiration_date;
+        if (this._expiration_date && Number.isNaN(this._expiration_date.getTime()))
+            throw new Error(`Invalid timer`);
         this._timezone = timezone;
     }
 
@@ -294,6 +299,8 @@ class OnTimer extends BaseTimer {
         super();
 
         this._dates = dates;
+        if (dates.some((d) => Number.isNaN(d.getTime())))
+            throw new Error(`Invalid timer`);
     }
 
     toString() {
@@ -311,7 +318,9 @@ class OnTimer extends BaseTimer {
                 target = temp;
         }
         const interval = target.getTime() - now.getTime();
-        if (interval > 0)
+
+        // prevent overflow, ignore very large timers
+        if (interval < 2**31-1 && interval > 0)
             return interval;
 
         this.end();

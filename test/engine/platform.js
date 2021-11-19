@@ -29,6 +29,8 @@ import * as path from 'path';
 import * as child_process from 'child_process';
 import Gettext from 'node-gettext';
 
+import TestPlatformDevice from './test-classes/test_platform';
+import './test-classes/test_database';
 import './test-classes/collection';
 
 const _unzipApi = {
@@ -157,11 +159,11 @@ class Platform extends Tp.BasePlatform {
         this._btApi = null;
     }
 
-    async getPlatformDevice() {
+    getPlatformDevice() {
         return {
             kind: 'org.thingpedia.builtin.thingengine.test_platform',
             class: fs.readFileSync(path.resolve(__dirname, './test-classes/test_platform.tt')).toString(),
-            module: (await import('./test-classes/test_platform')).default
+            module: TestPlatformDevice
         };
     }
 

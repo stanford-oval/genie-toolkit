@@ -283,14 +283,22 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             if (initialState === 'null') {
                 this._dlg.state = null;
             } else {
-                const parsed = await ThingTalkUtils.parse(initialState, {
-                    schemaRetriever: this._schemas,
-                    thingpediaClient: this._thingpedia,
-                    locale: this._options.locale,
-                    timezone: this._options.timezone,
-                });
-                assert(parsed instanceof Ast.DialogueState);
-                this._dlg.state = parsed;
+                try {
+                    const parsed = await ThingTalkUtils.parse(initialState, {
+                        schemaRetriever: this._schemas,
+                        thingpediaClient: this._thingpedia,
+                        locale: this._options.locale,
+                        timezone: this._options.timezone,
+                    });
+                    assert(parsed instanceof Ast.DialogueState);
+                    this._dlg.state = parsed;
+                } catch(e) {
+                    if (e.code === 'ECANCELLED')
+                        return null;
+                    console.error(`Failed to restore conversation state: ${e.message}`);
+                    this._dlg.state = null;
+                    return null;
+                }
             }
             startMode = PolicyStartMode.RESUME;
         } else if (!showWelcome) {

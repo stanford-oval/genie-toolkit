@@ -344,10 +344,10 @@ $user : Ast.DialogueState = {
             => D.addStream(ctx, stream);
 
         ctx:ctx_sys_recommend_one with { is_monitorable = true } make_monitor_phrase
-            => D.makeMonitor(ctx);
+            => D.makeMonitor(ctx, { monitorItemID : false });
         ctx:ctx_sys_recommend_many with { is_monitorable = true } make_monitor_phrase
-            => D.makeMonitor(ctx);
+            => D.makeMonitor(ctx, { monitorItemID : false });
         ctx:ctx_sys_display_result with { is_monitorable = true } make_monitor_phrase
-            => D.makeMonitor(ctx);
+            => D.makeMonitor(ctx, { monitorItemID : false });
     }
 }

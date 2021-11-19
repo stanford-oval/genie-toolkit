@@ -218,17 +218,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._modules = [];
 
-        const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, Builtins.modules, {
-            builtinGettext: this._langPack._
-        });
-
-        // inject the abstract interfaces used by the builtin devices into the schema retriever
-        for (const kind in Builtins.interfaces) {
-            const iface = Builtins.interfaces[kind];
-            const classDef = ThingTalk.Syntax.parse(iface, ThingTalk.Syntax.SyntaxType.Normal, { locale: platform.locale, timezone: 'UTC' });
-            assert(classDef instanceof ThingTalk.Ast.Library);
-            this._schemas.injectClass(classDef.classes[0]);
-        }
+        const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, this._loadBuiltins());
 
         this._devices = new DeviceDatabase(platform, this._db, this._sync,
             deviceFactory, this._schemas);
@@ -324,6 +314,56 @@ export default class AssistantEngine extends Tp.BaseEngine {
     updateActivity() {
         if (this._activityMonitor)
             this._activityMonitor.updateActivity();
+    }
+
+    private _loadBuiltins() {
+        // inject the abstract interfaces used by the builtin devices into the schema retriever
+        for (const kind in Builtins.interfaces) {
+            const iface = Builtins.interfaces[kind];
+            const parsed = ThingTalk.Syntax.parse(iface, ThingTalk.Syntax.SyntaxType.Normal, {
+                locale: 'en-US',
+                timezone: 'UTC'
+            });
+            assert(parsed instanceof ThingTalk.Ast.Library);
+            // TODO apply translations here
+            this._schemas.injectClass(parsed.classes[0]);
+        }
+
+        // load the concrete modules
+        const loaded : Record<string, { class : ThingTalk.Ast.ClassDef, module : Tp.BaseDevice.DeviceClass<Tp.BaseDevice> }> = {};
+        for (const kind in Builtins.modules) {
+            const builtin = Builtins.modules[kind];
+            const parsed = ThingTalk.Syntax.parse(builtin.class, ThingTalk.Syntax.SyntaxType.Normal, {
+                locale: 'en-US',
+                timezone: 'UTC'
+            });
+            assert(parsed instanceof ThingTalk.Ast.Library);
+
+            // TODO apply translations here
+            this._schemas.injectClass(parsed.classes[0]);
+            loaded[kind] = {
+                class: parsed.classes[0],
+                module: builtin.module
+            };
+        }
+
+        // load the platform device, if any
+        const platdev = this._platform.getPlatformDevice();
+        if (platdev) {
+            const parsed = ThingTalk.Syntax.parse(platdev.class, ThingTalk.Syntax.SyntaxType.Normal, {
+                locale: 'en-US',
+                timezone: 'UTC'
+            });
+            assert(parsed instanceof ThingTalk.Ast.Library);
+
+            // TODO apply translations here
+            loaded[platdev.kind] = {
+                class: parsed.classes[0],
+                module: platdev.module
+            };
+        }
+
+        return loaded;
     }
 
     private async _openSequential(modules : EngineModule[]) {

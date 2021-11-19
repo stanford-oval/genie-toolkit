@@ -161,7 +161,7 @@ async function testSimpleGet2(engine, icon = null) {
     // of the Text objects
     assert.deepStrictEqual(JSON.parse(JSON.stringify(output)), {
         uniqueId: 'app-foo-get',
-        description: 'Get get data on test with count 2 and size 10 byte.',
+        description: 'Get get data on test with count 2 and size 10 bytes.',
         code: '@org.thingpedia.builtin.test.get_data(count=2, size=10byte);',
         icon: 'org.thingpedia.builtin.test',
         results:
@@ -234,10 +234,10 @@ function testWhen(engine, conversation) {
                 assert(Object.prototype.hasOwnProperty.call(data.raw, '__timestamp'));
                 delete data.raw.__timestamp;
                 if (count === 0) {
-                    assert.deepStrictEqual(data.raw, { count: 2, size: 10, data: '!!!!!!!!!!' });
+                    assert.deepStrictEqual(data.raw, { count: 2, size: 10, data: '""""""""""' });
                     count++;
                 } else if (count === 1) {
-                    assert.deepStrictEqual(data.raw, { count: 2, size: 10, data: '""""""""""' });
+                    assert.deepStrictEqual(data.raw, { count: 2, size: 10, data: '##########' });
                     engine.apps.removeApp(app);
                     count++;
                     engine.assistant.removeNotificationOutput(delegate);
@@ -331,6 +331,9 @@ function testWhenErrorAsync(engine) {
             const now = Date.now();
             for (let i = 0; i < 2; i++)
                 stream.push({ __timestamp: now, data: genFakeData(args.size, '!'.charCodeAt(0) + i) });
+            const now2 = now +1;
+            for (let i = 0; i < 2; i++)
+                stream.push({ __timestamp: now2, data: genFakeData(args.size, '!'.charCodeAt(0) + i + 2) });
 
             stream.emit('error', error);
         }, 100);
@@ -357,10 +360,10 @@ function testWhenErrorAsync(engine) {
                 assert(Object.prototype.hasOwnProperty.call(data.raw, '__timestamp'));
                 delete data.raw.__timestamp;
                 if (count === 0) {
-                    assert.deepStrictEqual(data.raw, { count: 2, size: 10, data: '!!!!!!!!!!' });
+                    assert.deepStrictEqual(data.raw, { count: 2, size: 10, data: '##########' });
                     count++;
                 } else if (count === 1) {
-                    assert.deepStrictEqual(data.raw, { count: 2, size: 10, data: '""""""""""' });
+                    assert.deepStrictEqual(data.raw, { count: 2, size: 10, data: '$$$$$$$$$$' });
                     count++;
                     if (seenerror) {
                         engine.apps.removeApp(app);
@@ -515,10 +518,10 @@ function testWhenGet(engine, conversation) {
                 //assert(data.hasOwnProperty('__timestamp'));
                 //delete data.__timestamp;
                 if (count === 0) {
-                    assert.deepStrictEqual(data.raw, { __response: undefined, count: 2, size: 10, data: '!!!!!!!!!!', data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!' });
+                    assert.deepStrictEqual(data.raw, { __response: undefined, count: 2, size: 10, data: '""""""""""', data_in: '""""""""""', data_out: '""""""""""""""""""""' });
                     count++;
                 } else if (count === 1) {
-                    assert.deepStrictEqual(data.raw, { __response: undefined, count: 2, size: 10, data: '""""""""""', data_in: '""""""""""', data_out: '""""""""""""""""""""' });
+                    assert.deepStrictEqual(data.raw, { __response: undefined, count: 2, size: 10, data: '##########', data_in: '##########', data_out: '####################' });
                     engine.apps.removeApp(app);
                     engine.assistant.removeNotificationOutput(delegate);
                     count++;

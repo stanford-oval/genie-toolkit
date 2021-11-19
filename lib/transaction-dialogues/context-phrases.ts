@@ -20,6 +20,7 @@
 
 import assert from 'assert';
 import { Ast } from 'thingtalk';
+import { Temporal } from '@js-temporal/polyfill';
 
 import { Describer } from '../utils/thingtalk';
 import {
@@ -170,6 +171,12 @@ export class ContextPhraseCreator {
         }
 
         return phrases;
+    }
+
+    private toJS(value : Ast.Value) {
+        if (value instanceof Ast.DateValue || value instanceof Ast.RecurrentTimeSpecificationValue)
+            value = value.normalize(this.loader.timezone || Temporal.Now.timeZone().id);
+        return value.toJS();
     }
 
     private getDeviceName(resultItem : Ast.DialogueHistoryResultItem|undefined,
@@ -575,7 +582,7 @@ export class ContextPhraseCreator {
                 if (text === null)
                     return null;
                 bag.set(param, value);
-                return { value: value.isConstant() ? value.toJS() : value, text };
+                return { value: value.isConstant() ? this.toJS(value) : value, text };
             });
 
             if (utterance) {

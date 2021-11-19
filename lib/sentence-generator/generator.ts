@@ -35,8 +35,9 @@ import PriorityQueue from '../utils/priority_queue';
 import { HashMultiMap } from '../utils/hashmap';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import {
-    Phrase,
     Replaceable,
+    ReplacedPhrase,
+    ReplacedResult,
 } from '../utils/template-string';
 
 import {
@@ -160,7 +161,7 @@ export interface SentenceGeneratorOptions extends GrammarOptions {
 }
 
 interface Constant {
-    token : string;
+    token : ReplacedResult;
     value : unknown;
 }
 
@@ -697,7 +698,7 @@ export default class SentenceGenerator extends events.EventEmitter {
 
         attributes.forConstant = true;
         for (const constant of ThingTalkUtils.createConstants(token, type, this._options.maxConstants || DEFAULT_MAX_CONSTANTS, this._entityAllocator))
-            this._addRuleInternal(symbolId, [], new Phrase(constant.token), () => constant.value, keyFunction, attributes);
+            this._addRuleInternal(symbolId, [], new ReplacedPhrase(constant.token), () => constant.value, keyFunction, attributes);
     }
 
     addRule<ArgTypes extends unknown[], ResultType>(symbol : string,
@@ -850,7 +851,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         for (const token in constants) {
             for (const [symbolId, keyFunction] of this._constantMap.get(token)) {
                 for (const constant of constants[token]) {
-                    this._addRuleInternal(symbolId, [], new Phrase(constant.token), () => constant.value, keyFunction, attributes);
+                    this._addRuleInternal(symbolId, [], new ReplacedPhrase(constant.token), () => constant.value, keyFunction, attributes);
                     if (this._options.debug >= LogLevel.DUMP_TEMPLATES)
                         this.log(`added temporary rule NT[${this._nonTermList[symbolId]}] -> ${constant.token}`);
                 }

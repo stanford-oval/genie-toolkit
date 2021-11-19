@@ -66,10 +66,15 @@ export function getBestEntityMatch(searchTerm : string, entityType : string, can
     let best : EntityRecord|undefined = undefined,
         bestScore : number|undefined = undefined;
 
-    const refinedSearchTerm = removeParenthesis(searchTerm);
+    const refinedSearchTerm = removeParenthesis(searchTerm).toLowerCase();
     const searchTermTokens = refinedSearchTerm.split(' ');
 
     for (const cand of candidates) {
+        // if the user gave the value exactly (e.g. ISO country code, 4 letter stock symbol, ...)
+        // we have the entity we want
+        if (refinedSearchTerm === cand.value)
+            return cand;
+
         const candDisplay = removeParenthesis(cand.canonical);
         let score = 0;
         score -= 0.1 * editDistance(refinedSearchTerm, candDisplay);
@@ -79,7 +84,10 @@ export function getBestEntityMatch(searchTerm : string, entityType : string, can
         for (const candToken of candTokens) {
             let found = false;
             for (const token of searchTermTokens) {
-                if (token === candToken || (editDistance(token, candToken) <= 1 && token.length > 1)) {
+                if (token === candToken) {
+                    score += 15;
+                    found = true;
+                } else if (editDistance(token, candToken) <= 1 && token.length > 1) {
                     score += 10;
                     found = true;
                 } else if (candToken.startsWith(token)) {
@@ -89,7 +97,7 @@ export function getBestEntityMatch(searchTerm : string, entityType : string, can
 
             // give a small boost to ignorable tokens that are missing
             // this offsets the char-level edit distance
-            if (!found && ['the', 'hotel', 'house', 'restaurant'].includes(candToken))
+            if (!found && ['the', 'hotel', 'house', 'restaurant', 'of'].includes(candToken))
                 score += 0.1 * (1 + candToken.length); // add 1 to account for the space
 
             if (entityType === 'imgflip:meme_id' && candToken === 'x')

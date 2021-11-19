@@ -202,10 +202,14 @@ export default class SlotExtractor {
 
         if (value instanceof Ast.DateValue) {
             const date = value.value;
-            if (date instanceof Ast.DateEdge)
+            if (date === null)
+                return 'now';
+            else if (date instanceof Ast.DateEdge)
                 return date.edge + ' ' + date.unit;
             else if (date instanceof Ast.WeekDayDate)
                 return date.weekday;
+            else if (date instanceof Ast.DatePiece)
+                return `${date.year}/${date.month}/${date.day}`;
         }
 
         if (value instanceof Ast.EventValue) {

@@ -22,7 +22,6 @@ import assert from 'assert';
 import * as Tp from 'thingpedia';
 
 import * as IpAddress from '../util/ip_address';
-import { modules as Builtins } from '../devices/builtins';
 import ThingEngineDevice from '../devices/builtins/thingengine';
 
 import type DeviceDatabase from '../devices/database';
@@ -246,11 +245,10 @@ export default class PairedEngineManager {
     }
 
     private async _addPlatformToDB() {
-        const platdev = await this._platform.getPlatformDevice();
+        const platdev = this._platform.getPlatformDevice();
         if (!platdev)
             return;
 
-        Builtins[platdev.kind] = platdev;
         if (this._devices.hasDevice(platdev.kind))
             return;
 

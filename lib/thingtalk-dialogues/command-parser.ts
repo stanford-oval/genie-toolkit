@@ -281,6 +281,7 @@ export class CommandParser {
             await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
                 expect: options.expecting ? ValueCategory[options.expecting] : undefined,
                 choices: options.choices,
+                skip_typechecking: true
             });
 
             const value = new Ast.Value.String(command.utterance);
@@ -350,10 +351,15 @@ export class CommandParser {
         }
 
         if (this._debug >= LogLevel.INFO) {
-            if (type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND)
+            if (type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND) {
                 console.log('Failed to analyze message as ThingTalk');
-            else
+                if (nluResult.candidates.length === 0)
+                    console.log('No candidates produced');
+                else
+                    console.log(`Top candidate was ${nluResult.candidates[0].code.join(' ')}`);
+            } else {
                 console.log('Analyzed message into ' + choice.parsed.prettyprint());
+            }
         }
 
         // everything else is an in-domain command

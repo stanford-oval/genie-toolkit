@@ -18,7 +18,7 @@
 // limitations under the License.
 
 process.on('unhandledRejection', (up) => {
-    throw up; 
+    throw up;
 });
 
 import * as argparse from 'argparse';
@@ -102,10 +102,14 @@ const subcommands : { [key : string] : SubCommand } = {
     'init-project': require('./init-project'),
     'init-device': require('./init-device'),
     'lint-device': require('./lint-device'),
+    'lint-po-files': require('./lint-po-files'),
 
     'upload-device': require('./upload-device'),
     'upload-string-values': require('./upload-string-values'),
     'upload-entity-values': require('./upload-entity-values'),
+
+    'extract-translatable-annotations': require('./extract-translatable-annotations'),
+    'translate-schema-annotations': require('./translate-schema-annotations')
 };
 
 async function main() {

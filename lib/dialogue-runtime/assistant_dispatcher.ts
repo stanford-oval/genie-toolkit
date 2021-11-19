@@ -56,6 +56,9 @@ class StatelessConversationDelegate implements ConversationDelegate {
         this._id = conversationId;
     }
 
+    destroy() {
+    }
+
     flush() {
         const buffer = this._buffer;
         const askSpecial = this._askSpecial;

@@ -59,10 +59,10 @@ const TEST_CASES = [
     `Send me a message it's the evening every day in the evening.`,//'
     'Say'],
     [`timer(base=new Date(), interval=2h) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
-    `Send me a message it's the evening every 2 h.`,//'
+    `Send me a message it's the evening every 2 hours.`,//'
     'Say'],
     [`timer(base=new Date(), interval=2h, frequency=2) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
-    `Send me a message it's the evening 2 times every 2 h.`,//'
+    `Send me a message it's the evening 2 times every 2 hours.`,//'
     'Say'],
 
     [`now => @com.xkcd.get_comic() => notify;`,
@@ -269,13 +269,13 @@ const TEST_CASES = [
     `Security Camera ⇒ Yandex Translate ⇒ Twitter`],
 
     [`(monitor (@org.thingpedia.weather.current(location=$?))) filter temperature >= 5defaultTemperature => notify;`,
-    'Notify me when the current weather in ____ changes and it becomes true that the temperature is greater than or equal to 5 F.', 'Weather'],
+    'Notify me when the current weather in ____ changes and it becomes true that the temperature is greater than or equal to 5 degrees Fahrenheit.', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10defaultTemperature => notify;`,
-    'Get the current weather in ____ such that the temperature is greater than or equal to 10 F.', 'Weather'],
+    'Get the current weather in ____ such that the temperature is greater than or equal to 10 degrees Fahrenheit.', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.2defaultTemperature => notify;`,
-    'Get the current weather in ____ such that the temperature is greater than or equal to 10.2 F.', 'Weather'],
+    'Get the current weather in ____ such that the temperature is greater than or equal to 10 degrees Fahrenheit.', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.33defaultTemperature => notify;`,
-    'Get the current weather in ____ such that the temperature is greater than or equal to 10.3 F.', 'Weather'],
+    'Get the current weather in ____ such that the temperature is greater than or equal to 10 degrees Fahrenheit.', 'Weather'],
 
     [`now => (@com.yelp.restaurant()), true(cuisines) => notify;`,
     `Get restaurants such that any value of cuisines is acceptable.`,
@@ -342,12 +342,27 @@ const TEST_CASES = [
     'Wsj'],
 
     [`timer(base=$now, interval=1h) => @org.thingpedia.iot.light-bulb(id="io.home-assistant/lights.living_room_1"^^tt:device_id("Living Room")).set_power(power=enum off);`,
-    'Shut down the Living Room lights every 60 min.',
+    'Shut down the Living Room lights every 60 minutes.',
     'Light Bulb'],
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
     @com.spotify2.playable() filter contains(artists, null^^com.spotify2:artist("roddy ricch")) && id =~ "box";`,
-    `Get music by roddy ricch and have name box.`,
+    `Get box by roddy ricch.`,
+    ``],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.spotify2.song() filter contains(artists, null^^com.spotify2:artist("roddy ricch")) && id =~ "box";`,
+    `Get the song box by roddy ricch.`,
+    ``],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.spotify2.playable() filter contains(artists, null^^com.spotify2:artist("roddy ricch")) && id =~ "box" => @com.spotify2.play(playable=id);`,
+    `Play box by roddy ricch on Spotify.`,
+    ``],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    ontimer(date=[set_time($now, new Time(12, 35))]) => @com.spotify2.playable() filter contains(artists, null^^com.spotify2:artist("roddy ricch")) && id =~ "box" => @com.spotify2.play(playable=id);`,
+    `Play box by roddy ricch on Spotify at 12:35 PM today.`,
     ``],
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -377,13 +392,77 @@ const TEST_CASES = [
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
     ontimer(date=[$now + 5min]) => @org.thingpedia.builtin.thingengine.builtin.alert();`,
-    `Alert at 5 min past now.`,
+    `Alert in 5 minutes.`,
     ``],
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
     now => (@com.spotify2.song(), id =~ ("despacito")) => @com.spotify2.play(playable=id);`,
-    'Get songs that have name despacito and then play them on Spotify.',
-    `Spotify2 ⇒ Spotify2`]
+    'Play the song despacito on Spotify.',
+    `Spotify2 ⇒ Spotify2`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    now => (@com.spotify2.song(), id =~ ("despacito"))[1] => @com.spotify2.play(playable=id);`,
+    'Play the song despacito on Spotify.',
+    `Spotify2 ⇒ Spotify2`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    now => (@com.spotify2.playable(), id =~ ("despacito"))[1] => @com.spotify2.play(playable=id);`,
+    'Play despacito on Spotify.',
+    `Spotify2 ⇒ Spotify2`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.yelp.restaurant(), phone == "+1123456789"^^tt:phone_number;`,
+    'Get restaurants such that the phone number is equal to (123) 456-789.',
+    `Yelp`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.yelp.restaurant(), phone == "+39123456789"^^tt:phone_number;`,
+    'Get restaurants such that the phone number is equal to +39123456789.',
+    `Yelp`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.yelp.restaurant(), openingHours == new RecurrentTimeSpecification({ beginTime=new Time(8,0), endTime=new Time(18,0) });`,
+    'Get restaurants such that the opening hours is equal to from 8:00 AM to 6:00 PM every day.',
+    `Yelp`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.yelp.restaurant(), openingHours == new RecurrentTimeSpecification({ beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum monday }, { beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum tuesday });`,
+    'Get restaurants such that the opening hours is equal to from 8:00 AM to 6:00 PM on Monday and Tuesday.',
+    `Yelp`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.yelp.restaurant(), openingHours == new RecurrentTimeSpecification(
+        { beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum monday },
+        { beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum tuesday },
+        { beginTime=new Time(15,0), endTime=new Time(18,0), dayOfWeek=enum saturday },
+        { beginTime=new Time(15,0), endTime=new Time(18,0), dayOfWeek=enum sunday }
+        );`,
+    'Get restaurants such that the opening hours is equal to from 8:00 AM to 6:00 PM on Monday and Tuesday and from 3:00 PM to 6:00 PM on Saturday and Sunday.',
+    `Yelp`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.yelp.restaurant(), openingHours == new RecurrentTimeSpecification(
+        { beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum monday },
+        { beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum tuesday },
+        { beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum wednesday },
+        { beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum thursday },
+        { beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum friday });`,
+    'Get restaurants such that the opening hours is equal to from 8:00 AM to 6:00 PM Monday to Friday.',
+    `Yelp`],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.yelp.restaurant(), openingHours == new RecurrentTimeSpecification(
+        { beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum monday },
+        { beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum tuesday },
+        { beginTime=new Time(15,0), endTime=new Time(18,0), dayOfWeek=enum monday, beginDate=new Date("2021-12-25"), endDate=new Date("2021-12-25") },
+        { beginTime=new Time(15,0), endTime=new Time(18,0), dayOfWeek=enum tuesday, beginDate=new Date("2021-12-25"), endDate=new Date("2021-12-25") }
+        );`,
+    'Get restaurants such that the opening hours is equal to from 8:00 AM to 6:00 PM on Monday and Tuesday, from 3:00 PM to 6:00 PM on Monday between December 24 and December 24, and from 3:00 PM to 6:00 PM on Tuesday between December 24 and December 24.',
+    `Yelp`],
+
+    [` @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").eat_data(data="some data ");`,
+    `Eat data on test with data some data.`,
+    `Test`],
 ];
 
 async function test(i) {

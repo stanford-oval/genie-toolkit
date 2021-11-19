@@ -1,3 +1,77 @@
+0.9.0-alpha.1
+=============
+
+## User visible changes
+* All references to the assistant now use the name "Genie" rather than "Almond".
+* New feature: one-off timers at a specific time [#623, #673, #681, #695, #696,
+  #699, #715, #750].
+
+## Dialogue agent improvements
+* Added support to dispatch to different dialogue backends not backed by ThingTalk.
+  This is useful to interface with FAQ models and question-answering systems
+  [#639, #652, #654, #752, #773].
+* Added support for deciding if a command is likely parsed correctly based on
+  confidence scores [#660, #663, #722].
+* Added the ability to start the dialogue with a specific command instead of a
+  generic welcome message.
+* Added support for custom empty search phrases.
+* Added support for custom follow-ups.
+* Transaction dialogues were tuned to be more command-oriented and more suitable
+  to a virtual assistant [#716, #718].
+* Added support for joins that return pairs of items [#755].
+* Improve templates for answers to projection questions [#748].
+* Completed support for RecurringTimeSpecification ThingTalk type [#832].
+
+## New features in engine and runtime
+* Added support for new speech-to-text API provided by almond-cloud, and removed
+  the old code to interface directly with Microsoft Speech API [#619].
+* Added support for different storage backends for the engine database.
+  This allows storing data for multiple engines (users) in a single relational
+  database, which is convenient in a cloud deployment [#617, #648, #658, #667].
+* Added support for logging conversations in the database instead of a local
+  file. This eliminates any use of the local file system for persistent storage
+  [#649, #662, #719].
+* Added support for detecting that the engine is idle and can be stopped [#724].
+* Added persistent storage of conversation state [#751, #757, #818].
+* Added new protocol over the conversation websocket to synchronize devices.
+  This is helpful to expose the Spotify access token to the client [#769].
+* Added new protocol over the conversation websocket to control audio players
+  (stop, pause, resume, set volume, etc.). This makes those commands available
+  to a smart-speaker running the Genie client, connected to a cloud instance of
+  Genie [#787, #792].
+
+## Changes to synthesis and training tools
+* The synthesis algorithm was refactored, and is now dynamic. It no longer
+  requires a fixed template grammar throughout synthesis. This is in preparation
+  for allowing arbitrary imperative code in the dialogue agent [#685].
+* Synthesis of dialogues now specifies a policy module, rather than a template
+  file as entry point. The policy module instantiates the relevant templates
+  and in the future will define the agent policy function [#685].
+* Auto-annotation was refactored, and obsolete algorithms were removed [#807].
+* Improved support for generating Wikidata question-answering models, with
+  new support for using Bootleg to identify the correct entity QID [#813].
+
+## Other changes
+* Genie is now fully timezone-aware, and can operate in a timezone different
+  from the operating system one. We use the Temporal polyfill library for
+  this [#783].
+* Templates are now part of the library proper, and no longer distributed as
+  a separate bundle [#636].
+* It is now possible to translate templates and builtin skills using standard
+  gettext tools. Additionally, an initial translated PO file can be obtained
+  using machine translation [#738, #810, #815, #817, #825].
+* Conversion to Typescript continued, with most of the library now using
+  TypeScript.
+* ESLint is now enforcing style and indentation on all library files [#811].
+* Predictions can now be cached in the local parser client, by providing an
+  interface to talk to a caching server [#812].
+* Misc bug fixes [#657, #661, #665, #670, #671, #674, #682, #683, #687, #688,
+  #690, #692, #694, #720, #726, #729, #758, #759, #760, #766, #777, #790,
+  #814, #816, #823, #824, #827, #832].
+* Updated dependencies [#640, #643, #646, #650, #659, #672, #675, #680, #735,
+  #739, #768, #779, #804, #808, #809, #826].
+* Build system and documentation fixes [#647, #754, #822].
+
 0.8.0
 =====
 

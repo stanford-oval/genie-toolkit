@@ -24,14 +24,17 @@ import * as path from 'path';
 import Gettext from 'node-gettext';
 import * as gettextParser from 'gettext-parser';
 import * as Units from 'thingtalk-units';
+import { Ast, Type } from 'thingtalk';
 import { Temporal, toTemporalInstant } from '@js-temporal/polyfill';
 
 import BaseTokenizer from './tokenizer/base';
 
+import { clean } from '../utils/misc-utils';
 import {
     Phrase,
     Concatenation,
-    Replaceable
+    Replaceable,
+    Choice
 } from '../utils/template-string';
 import {
     EntityMap,
@@ -56,13 +59,14 @@ export interface NormalizedParameterCanonical {
     default : string;
     projection_pronoun ?: string[];
 
-    base : Phrase[];
-    base_projection : Phrase[];
-    argmin : Phrase[];
-    argmax : Phrase[];
-    filter : Concatenation[];
-    enum_filter : Record<string, Phrase[]>;
-    projection : Phrase[];
+    base : Array<Phrase|Concatenation>;
+    base_projection : Array<Phrase|Concatenation>;
+    argmin : Array<Phrase|Concatenation>;
+    argmax : Array<Phrase|Concatenation>;
+    filter_phrase : Array<Phrase|Concatenation>;
+    enum_value : Record<string, Array<Phrase|Concatenation>>;
+    enum_filter : Record<string, Array<Phrase|Concatenation>>;
+    projection : Array<Phrase|Concatenation>;
 }
 
 const POS_RENAME : Record<string, string> = {
@@ -71,6 +75,114 @@ const POS_RENAME : Record<string, string> = {
     'avp': 'verb',
     'pvp': 'passive_verb',
     'apv': 'adjective',
+};
+
+// translation marker
+function _(x : string) {
+    return { text: x };
+}
+
+/**
+ * Map a unit either to a Unicode unit name (to pass to {@link Intl.NumberFormat})
+ * or to a replaced string.
+ */
+const UnitTranslation : Record<string, string|{ text : string }> = {
+    // time
+    'ms': 'millisecond',
+    's': 'second',
+    'min': 'minute',
+    'h': 'hour',
+    'day': 'day',
+    'week': 'week',
+    'mon': 'month',
+    'year': 'year',
+    'decade': _("${value:plural: one{${value} decade} other{${value} decades}}"),
+    'century': _("${value:plural: one{${value} century} other{${value} centuries}}"),
+    // length
+    'm': 'meter',
+    'km': 'kilometer',
+    'mm': 'millimeter',
+    'cm': 'centimeter',
+    'mi': 'mile',
+    'in': 'inch',
+    'ft': 'foot',
+    'ly': _("${value:plural: one{${value} light-year} other{${value} light-years}}"),
+    // area
+    'm2': _("${value:plural: one{${value} square meter} other{${value} square meters}}"),
+    'km2': _("${value:plural: one{${value} square kilometer} other{${value} square kilometers}}"),
+    'mm2': _("${value:plural: one{${value} square millimeter} other{${value} square millimeters}}"),
+    'cm2': _("${value:plural: one{${value} square centimeter} other{${value} square centimeters}}"),
+    'mi2': _("${value:plural: one{${value} square mile} other{${value} square miles}}"),
+    'in2': _("${value:plural: one{${value} square inch} other{${value} square inches}}"),
+    'ft2': _("${value:plural: one{${value} square foot} other{${value} square feet}}"),
+    // volume
+    'm3': _("${value:plural: one{${value} cubic meter} other{${value} cubic meters}}"),
+    'km3': _("${value:plural: one{${value} cubic kilometer} other{${value} cubic kilometers}}"),
+    'mm3': _("${value:plural: one{${value} cubic millimeter} other{${value} cubic millimeters}}"),
+    'cm3': _("${value:plural: one{${value} cubic centimeter} other{${value} cubic kilometers}}"),
+    'mi3': _("${value:plural: one{${value} cubic mile} other{${value} cubic miles}}"),
+    'in3': _("${value:plural: one{${value} cubic inch} other{${value} cubic inches}}"),
+    'ft3': _("${value:plural: one{${value} cubic foot} other{${value} cubic feed}}"),
+    'gal': 'gallon',
+    'galuk': _("${value:plural: one{${value} UK gallon} other{${value} UK gallons}}"),
+    'qt': _("${value:plural: one{${value} quart} other{${value} quarts}}"),
+    'qtuk': _("${value:plural: one{${value} UK quart} other{${value} UK quarts}}"),
+    'pint': _("${value:plural: one{${value} pint} other{${value} pints}}"),
+    'pintuk': _("${value:plural: one{${value} UK pint} other{${value} UK pints}}"),
+    'l': 'liter',
+    'hl': _("${value:plural: one{${value} hectoliter} other{${value} hectoliters}}"),
+    'cl': _("${value:plural: one{${value} centiliter} other{${value} centiliters}}"),
+    'ml': 'milliliter',
+    'tsp': _("${value:plural: one{${value} teaspoon} other{${value} teaspoons}}"),
+    'tbsp': _("${value:plural: one{${value} tablespoon} other{${value} tablespoons}}"),
+    'cup': _("${value:plural: one{${value} cup} other{${value} cups}}"),
+    'floz': 'fluid-ounce',
+    // speed
+    'mps': 'meter-per-second',
+    'kmph': 'kilometer-per-hour',
+    'mph': 'mile-per-hour',
+    // weight
+    'kg': 'kilogram',
+    'g': 'gram',
+    'mg': _("${value:plural: one{${value} milligram} other{${value} milligrams}}"),
+    'lb': 'pound',
+    'oz': 'ounce',
+    // pressure (for weather or blood)
+    'Pa': _("${value} Pascal"),
+    'bar': _("${value} bar"),
+    'psi': _("${value} psi"),
+    'mmHg': _("${value} mmHg"),
+    'inHg': _("${value} inHg"),
+    'atm': _("${value} atmosphere"),
+    // temperature
+    'C': 'celsius',
+    'F': 'fahrenheit',
+    'K': _("${value:plural: one{${value} degree Kelvin} other{${value} degrees Kelvin}}"),
+    // energy
+    // note: calories refers to kilocalories in common usage
+    'kcal': _("${value:plural: one{${value} calorie} other{${value} calories}}"),
+    'kJ': _("${value:plural: one{${value} kilojoule} other{${value} kilojoules}}"),
+    // file and memory sizes
+    'byte': 'byte',
+    'KB': 'kilobyte',
+    'KiB': 'kilobyte',
+    'MB': 'megabyte',
+    'MiB': 'megabyte',
+    'GB': 'gigabyte',
+    'GiB': 'gigabyte',
+    'TB': 'terabyte',
+    'TiB': 'terabyte',
+    // power
+    'W': _("${value} watt"),
+    'kW': _("${value} kilowatt"),
+    // luminous flux, luminous power
+    'lm': _("${value} lumen"),
+    // luminous emittance (luminous flux emitted from a surface)
+    'lx': _("${value} lux"),
+    // decibel
+    'dB': _("${value} decibel"),
+    // decibel-milliwatt
+    'dBm': _("${value} decibel-milliwatt")
 };
 
 /**
@@ -154,10 +266,7 @@ export default class LanguagePack {
         return this._tokenizer = new BaseTokenizer();
     }
 
-    private _toTemplatePhrase(canonical : unknown, forSide : 'user'|'agent', isFilter : true) : Concatenation;
-    private _toTemplatePhrase(canonical : unknown, forSide : 'user'|'agent', isFilter ?: false) : Phrase;
-    private _toTemplatePhrase(canonical : unknown, forSide : 'user'|'agent', isFilter : boolean) : Phrase|Concatenation;
-    private _toTemplatePhrase(canonical : unknown, forSide : 'user'|'agent', isFilter = false) : Replaceable {
+    private _toTemplatePhrases(canonical : unknown, forSide : 'user'|'agent', isFilter = false) : Array<Phrase|Concatenation> {
         let tmpl = String(canonical);
         if (forSide === 'agent')
             tmpl = this.toAgentSideUtterance(tmpl);
@@ -171,15 +280,18 @@ export default class LanguagePack {
             tmpl = tmpl.replace('|', '//');
         }
         const parsed = Replaceable.parse(tmpl).preprocess(this, isFilter ? ['value'] : []);
-        if (isFilter) {
-            if (parsed instanceof Concatenation)
-                return parsed;
-            // this can happen if the original template was empty
-            return new Concatenation([parsed], {}, {});
-        } else {
-            assert(parsed instanceof Phrase);
+        if (parsed instanceof Phrase || parsed instanceof Concatenation)
+            return [parsed];
+
+        if (parsed instanceof Choice) {
+            return parsed.variants.map((v) => {
+                if (v instanceof Phrase || v instanceof Concatenation)
+                    return v;
+
+                return new Concatenation([v], {}, {});
+            });
         }
-        return parsed;
+        return [new Concatenation([parsed], {}, {})];
     }
 
     /**
@@ -187,13 +299,23 @@ export default class LanguagePack {
      * the form to the expected sets of POS, and adds any automatically generated
      * plural/gender/case forms as necessary.
      */
-    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action'|'stream', forSide : 'user'|'agent', isList : boolean) : Phrase[] {
+    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action'|'stream', forSide : 'user'|'agent', isList : boolean) : Replaceable[] {
         if (canonical === undefined || canonical === null)
             return [];
         if (Array.isArray(canonical))
-            return canonical.map((c) => this._toTemplatePhrase(c, forSide));
+            return canonical.flatMap((c) => this._toTemplatePhrases(c, forSide));
         else
-            return [this._toTemplatePhrase(canonical, forSide)];
+            return this._toTemplatePhrases(canonical, forSide);
+    }
+
+    private _ensureDefaultEnumValues(fromArgument : Ast.ArgumentDef, normalized : NormalizedParameterCanonical, forSide : 'user'|'agent') {
+        const type = fromArgument.type;
+        if (type instanceof Type.Enum) {
+            for (const entry of type.entries!) {
+                if (!normalized.enum_value[entry])
+                    normalized.enum_value[entry] = this._toTemplatePhrases(clean(entry), forSide);
+            }
+        }
     }
 
     /**
@@ -201,7 +323,7 @@ export default class LanguagePack {
      * the form to the expected sets of POS, and adds any automatically generated
      * plural/gender/case forms as necessary.
      */
-    preprocessParameterCanonical(canonical : unknown, forSide : 'user'|'agent') : NormalizedParameterCanonical {
+    preprocessParameterCanonical(fromArgument : Ast.ArgumentDef, forSide : 'user'|'agent') : NormalizedParameterCanonical {
         // NOTE: we don't make singular/plural forms of parameters, even in English,
         // because things like "with Chinese and Italian foods" are awkward
         // and "with Chinese and Italian food" is better
@@ -222,28 +344,45 @@ export default class LanguagePack {
             base_projection: [],
             argmin: [],
             argmax: [],
-            filter: [],
+            filter_phrase: [],
+            enum_value: {},
             enum_filter: {},
             projection: [],
         };
-        if (canonical === undefined || canonical === null)
-            return normalized;
-        if (typeof canonical === 'string') {
-            normalized.base = [this._toTemplatePhrase(canonical, forSide)];
-            normalized.filter = [this._toTemplatePhrase(canonical, forSide, true)];
-            for (const phrase of normalized.filter) {
+        const canonical : unknown = fromArgument.nl_annotations.canonical;
+        if (canonical === undefined || canonical === null) {
+            // make up a completely default canonical
+            normalized.base = this._toTemplatePhrases(clean(fromArgument.name), forSide);
+            normalized.filter_phrase = this._toTemplatePhrases(clean(fromArgument.name), forSide, true);
+            for (const phrase of normalized.filter_phrase) {
                 if (!phrase.flags.pos)
                     phrase.flags.pos = 'property';
             }
+
+            this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
+            return normalized;
+        }
+
+        if (typeof canonical === 'string') {
+            normalized.base = this._toTemplatePhrases(canonical, forSide);
+            normalized.filter_phrase = this._toTemplatePhrases(canonical, forSide, true);
+            for (const phrase of normalized.filter_phrase) {
+                if (!phrase.flags.pos)
+                    phrase.flags.pos = 'property';
+            }
+
+            this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
             return normalized;
         }
         if (Array.isArray(canonical)) {
-            normalized.base = canonical.map((c) => this._toTemplatePhrase(c, forSide));
-            normalized.filter = canonical.map((c) => this._toTemplatePhrase(c, forSide, true));
-            for (const phrase of normalized.filter) {
+            normalized.base = canonical.flatMap((c) => this._toTemplatePhrases(c, forSide));
+            normalized.filter_phrase = canonical.flatMap((c) => this._toTemplatePhrases(c, forSide, true));
+            for (const phrase of normalized.filter_phrase) {
                 if (!phrase.flags.pos)
                     phrase.flags.pos = 'property';
             }
+
+            this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
             return normalized;
         }
 
@@ -287,9 +426,9 @@ export default class LanguagePack {
                 }
                 let phrases;
                 if (Array.isArray(value))
-                    phrases = value.map((c) => this._toTemplatePhrase(c, forSide));
+                    phrases = value.flatMap((c) => this._toTemplatePhrases(c, forSide));
                 else
-                    phrases = [this._toTemplatePhrase(value, forSide)];
+                    phrases = this._toTemplatePhrases(value, forSide);
 
                 pos = POS_RENAME[pos]||pos;
                 for (const phrase of phrases)
@@ -299,6 +438,22 @@ export default class LanguagePack {
                     normalized.enum_filter[boolean].push(...phrases);
                 else
                     normalized.enum_filter[boolean] = phrases;
+            } else if (key === 'value_enum' || key === 'enum_value') {
+                for (const enumerand in value as Record<string, unknown>) {
+                    const enumCanonical = (value as Record<string, unknown>)[enumerand];
+                    if (enumCanonical === null || enumCanonical === undefined)
+                        continue;
+                    let enumNormalized;
+                    if (Array.isArray(enumCanonical))
+                        enumNormalized = enumCanonical.flatMap((c) => this._toTemplatePhrases(c, forSide));
+                    else
+                        enumNormalized = this._toTemplatePhrases(enumCanonical, forSide);
+
+                    if (normalized.enum_value[enumerand])
+                        normalized.enum_value[enumerand].push(...enumNormalized);
+                    else
+                        normalized.enum_value[enumerand] = enumNormalized;
+                }
             } else if (key === 'enum_filter' || key.endsWith('_enum')) {
                 // new-style canonical for enums
                 for (const enumerand in value as Record<string, unknown>) {
@@ -307,11 +462,11 @@ export default class LanguagePack {
                         continue;
                     let enumNormalized;
                     if (Array.isArray(enumCanonical))
-                        enumNormalized = enumCanonical.map((c) => this._toTemplatePhrase(c, forSide));
+                        enumNormalized = enumCanonical.flatMap((c) => this._toTemplatePhrases(c, forSide));
                     else
-                        enumNormalized = [this._toTemplatePhrase(enumCanonical, forSide)];
+                        enumNormalized = this._toTemplatePhrases(enumCanonical, forSide);
 
-                    if (key !== 'enumerands') {
+                    if (key !== 'enum_filter') {
                         let pos = key.substring(0, key.length - '_enum'.length);
                         pos = POS_RENAME[pos]||pos;
                         for (const phrase of enumNormalized)
@@ -329,7 +484,7 @@ export default class LanguagePack {
                         normalized.enum_filter[enumerand] = enumNormalized;
                 }
             } else {
-                let into : 'base' | 'base_projection' | 'filter' | 'projection' | 'argmin' | 'argmax';
+                let into : 'base' | 'base_projection' | 'filter_phrase' | 'projection' | 'argmin' | 'argmax';
                 let pos : string|undefined;
                 let isFilter = false;
                 if (key === 'base' || key === 'base_projection') {
@@ -344,34 +499,33 @@ export default class LanguagePack {
                 } else if (key.endsWith('_argmax')) {
                     into = 'argmax';
                     pos = key.substring(0, key.length - '_argmax'.length);
-                } else if (key === 'filter' || key === 'projection'
+                } else if (key === 'filter_phrase' || key === 'projection'
                             || key === 'argmin' || key === 'argmax') {
                     into = key;
                     pos = undefined;
-                    isFilter = key === 'filter';
+                    isFilter = key === 'filter_phrase';
                 } else {
-                    into = 'filter';
+                    into = 'filter_phrase';
                     pos = key;
                     isFilter = true;
                 }
 
                 let phrases;
                 if (Array.isArray(value))
-                    phrases = value.map((c) => this._toTemplatePhrase(c, forSide, isFilter));
+                    phrases = value.flatMap((c) => this._toTemplatePhrases(c, forSide, isFilter));
                 else
-                    phrases = [this._toTemplatePhrase(value, forSide, isFilter)];
+                    phrases = this._toTemplatePhrases(value, forSide, isFilter);
 
                 if (pos !== undefined) {
                     pos = POS_RENAME[pos]||pos;
                     for (const phrase of phrases)
                         phrase.flags.pos = pos;
                 }
-                // HACK: this is not the right type signature, but it works in practice
-                // due to the logic around isFilter
-                normalized[into].push(...(phrases as Array<Concatenation & Phrase>));
+                normalized[into].push(...phrases);
             }
         }
 
+        this._ensureDefaultEnumValues(fromArgument, normalized, forSide);
         return normalized;
     }
 
@@ -478,12 +632,37 @@ export default class LanguagePack {
         return possibleUnits[0].unit;
     }
 
-    private _measureToString(value : number, unit : string, precision = 1) : string {
+    private _measureFormatFallback(value : number, format : string, precision : number) {
+        const tmpl = Replaceable.get(format, this, ['value']);
+        const replaced = tmpl.replace({
+            constraints: [],
+            replacements: [
+                { value: value, text: new Phrase(this._numberToString(value, precision), {}).toReplaced() }
+            ]
+        });
+        assert(replaced);
+        return replaced.chooseBest();
+    }
+
+    private _measureToString(value : number, unit : string, precision = 0) : string {
         const transformed = Units.transformFromBaseUnit(value, unit);
-        // TODO use value.toLocaleString() with unit formatting
-        //      it depends on https://github.com/tc39/proposal-unified-intl-numberformat
-        //      which is part of ES2020 (so node 14 or later?)
-        return this._numberToString(transformed, precision) + ' ' + unit;
+        assert(Number.isFinite(transformed));
+
+        const format = UnitTranslation[unit];
+        if (!format)
+            return this._numberToString(transformed, precision) + ' ' + unit;
+
+        if (typeof format === 'string') {
+            return transformed.toLocaleString(this.locale, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: precision,
+                style: 'unit',
+                unitDisplay: 'long',
+                unit: format
+            });
+        } else {
+            return this._measureFormatFallback(transformed, this._(format.text), precision);
+        }
     }
 
     private _numberToString(value : number, precision = 1) : string {
@@ -522,7 +701,7 @@ export default class LanguagePack {
             // less than a week apart
             if (Math.abs(date.epochMilliseconds - now.epochMilliseconds) <= 7 * 86400 * 1000) {
                 const weekday = date.toLocaleString(this.locale, { weekday: 'long' });
-                return (date.epochMilliseconds < now.epochMilliseconds ? this._("last ${weekday}") : this._("next ${weekday}")).replace('${weekday}',  weekday);
+                return weekday;
             }
         }
 
@@ -570,6 +749,10 @@ export default class LanguagePack {
         return 'C';
     }
 
+    protected displayPhoneNumber(phone : string) {
+        return phone;
+    }
+
     protected displayEntity(token : string,
                             entityValue : AnyEntity,
                             delegate : UnitPreferenceDelegate,
@@ -585,6 +768,8 @@ export default class LanguagePack {
             return '@' + entityValue;
         if (token.startsWith('HASHTAG_'))
             return '#' + entityValue;
+        if (token.startsWith('PHONE_NUMBER_'))
+            return this.displayPhoneNumber(entityValue as string);
 
         if (token.startsWith('MEASURE_')) {
             const [,baseUnit] = /^MEASURE_([A-Za-z0-9_]+)_[0-9]+$/.exec(token)!;

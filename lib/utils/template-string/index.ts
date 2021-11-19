@@ -127,7 +127,10 @@ export class ReplacedConcatenation extends ReplacedResult {
 
         if (flag in this.refFlags) {
             const [index, subflag] = this.refFlags[flag];
-            const constrained = (this.text[index] as ReplacedResult).constrain(subflag, value);
+            const toConstrain = this.text[index];
+            if (!(toConstrain instanceof ReplacedResult))
+                return this;
+            const constrained = toConstrain.constrain(subflag, value);
             if (constrained === null)
                 return null;
 

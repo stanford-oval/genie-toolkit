@@ -19,7 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import { Ast, Builtin, Type, } from 'thingtalk';
+import { ImplementationError } from 'thingpedia';
+import { Ast, Type, } from 'thingtalk';
 
 class UsesParamVisitor extends Ast.NodeVisitor {
     used = false;
@@ -89,31 +90,30 @@ export function addIndexToIDQuery(stmt : Ast.ExpressionStatement) {
     }
 }
 
-function inferType(key : string, jsValue : unknown) : Type {
-    if (key === 'distance') // HACK
-        return new Type.Measure('m');
+function getType(schema : Ast.FunctionDef, key : string) {
     if (key === '__device')
         return new Type.Entity('tt:device_id');
-    if (typeof jsValue === 'boolean')
-        return Type.Boolean;
-    if (typeof jsValue === 'string')
-        return Type.String;
-    if (typeof jsValue === 'number')
-        return Type.Number;
-    if (jsValue instanceof Builtin.Currency)
-        return Type.Currency;
-    if (jsValue instanceof Builtin.Entity)
-        return new Type.Entity('');
-    if (jsValue instanceof Builtin.Time)
-        return Type.Time;
-    if (jsValue instanceof Date)
-        return Type.Date;
-    if (Array.isArray(jsValue) && jsValue.length > 0)
-        return new Type.Array(inferType(key, jsValue[0]));
-    if (Array.isArray(jsValue))
-        return new Type.Array(Type.Any);
+    const type = schema.getArgType(key);
+    if (type)
+        return type;
+    if (key === 'distance') // HACK
+        return new Type.Measure('m');
+    return null;
+}
 
-    return Type.Any;
+function mapValue(key : string, type : Type, value : unknown) {
+    try {
+        if (Number.isNaN(value) || (value instanceof Date && Number.isNaN(value.getTime())))
+            throw new ImplementationError(`Invalid NaN value`);
+
+        if (type instanceof Type.Enum && (typeof value !== 'string' || !type.entries!.includes(value)))
+            throw new ImplementationError(`Invalid enum value`);
+
+        return Ast.Value.fromJS(type, value);
+    } catch(e) {
+        console.error(`Failed to map result field ${key} to type ${type}`, e);
+        return null;
+    }
 }
 
 export async function mapResult(schema : Ast.FunctionDef, outputValue : Record<string, unknown>) {
@@ -121,15 +121,23 @@ export async function mapResult(schema : Ast.FunctionDef, outputValue : Record<s
 
     for (const key in outputValue) {
         const value = outputValue[key];
-        const type = schema.getArgType(key) || inferType(key, value);
-
         if (value === null || value === undefined)
             continue;
+        if (key === '__timestamp')
+            continue;
+        const type = getType(schema, key);
+        if (!type) {
+            console.error(`Thingpedia function returned undeclared field ${key}`);
+            continue;
+        }
 
+        let mapped;
         if (type instanceof Type.Compound)
-            mappedResult[key] = mapCompound(key + '.', schema, value as Record<string, unknown>);
+            mapped = mapCompound(key + '.', schema, value as Record<string, unknown>);
         else
-            mappedResult[key] = Ast.Value.fromJS(type, value);
+            mapped = mapValue(key, type, value);
+        if (mapped)
+            mappedResult[key] = mapped;
     }
     return new Ast.DialogueHistoryResultItem(null, mappedResult, outputValue);
 }
@@ -138,15 +146,19 @@ function mapCompound(prefix : string, schema : Ast.FunctionDef, object : Record<
     const result : Record<string, Ast.Value> = {};
     for (const key in object) {
         const value = object[key];
-        const type = schema.getArgType(prefix + key) || inferType(prefix + key, value);
-
         if (value === null || value === undefined)
             continue;
+        const type = getType(schema, prefix + key);
+        if (!type)
+            continue;
 
+        let mapped;
         if (type instanceof Type.Compound)
-            result[key] = mapCompound(prefix + key + '.', schema, object as Record<string, unknown>);
+            mapped = mapCompound(prefix + key + '.', schema, object as Record<string, unknown>);
         else
-            result[key] = Ast.Value.fromJS(type, value);
+            mapped = mapValue(prefix + key, type, value);
+        if (mapped)
+            result[key] = mapped;
     }
     return new Ast.Value.Object(result);
 }

@@ -24,7 +24,7 @@
 // - for searches: the agent is trying to add a filter
 // - for actions/queries w/ parameters: the agent is trying to add a parameter
 
-import { Ast, } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import * as C from '../../templates/ast_manip';
 import ThingpediaLoader from '../../templates/load-thingpedia';
@@ -33,6 +33,12 @@ one_param_slot_fill_question : C.ParamSlot[] = {
     ( p:thingpedia_slot_fill_question '?' [priority=0.1]
     | 'what' p:input_param prefer_question_phrase '?'
     ) => [p];
+
+    'when would you like your reminder?' [priority=0.2]
+    => [{ schema: $loader.standardSchemas.ontimer, name: 'date', type: new Type.Array(Type.Date), filterable: false, symmetric: false, ast: new Ast.Value.VarRef('date') }];
+
+    'when would you like your reminder?' [priority=0.2]
+    => [{ schema: $loader.standardSchemas.attimer, name: 'time', type: new Type.Array(Type.Date), filterable: false, symmetric: false, ast: new Ast.Value.VarRef('date') }];
 }
 
 two_param_slot_fill_question : C.ParamSlot[] = {

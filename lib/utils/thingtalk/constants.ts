@@ -23,12 +23,14 @@ import { Temporal } from '@js-temporal/polyfill';
 import assert from 'assert';
 
 import { Ast, Type, Syntax } from 'thingtalk';
+import { ReplacedConcatenation, ReplacedResult } from '../template-string';
+import { Describer } from './describe';
 
 const MAX_CONSTANTS = 15;
 const MAX_SMALL_INTEGER = 12;
 
 interface Constant {
-    token : string;
+    token : ReplacedResult;
     value : Ast.Value;
 }
 type ConstantMap = { [key : string] : Constant[] };
@@ -41,17 +43,12 @@ function makeJSDate(timezone : string, year : number, month : number, day : numb
     return new Date(datetz.epochMilliseconds);
 }
 
-function extractConstants(ast : Ast.Node, entityAllocator : Syntax.SequentialEntityAllocator) : ConstantMap {
+function extractConstants(ast : Ast.Node, describer : Describer) : ConstantMap {
     const constants : ConstantMap = {};
     function addConstant(tokenPrefix : string, value : Ast.Value) : void {
-        const token = entityAllocator.findEntity(tokenPrefix, value.toEntity()).flatten().join(' ');
-
-        // FIXME this should be fixed in thingtalk
-        if (value instanceof Ast.EntityValue && value.display) {
-            const entity = entityAllocator.entities[token] as Syntax.GenericEntity;
-            if (!entity.display)
-                entity.display = value.display;
-        }
+        const token = describer.describeArg(value);
+        if (!token)
+            return;
 
         if (constants[tokenPrefix])
             constants[tokenPrefix].push({ token, value });
@@ -140,6 +137,11 @@ function extractConstants(ast : Ast.Node, entityAllocator : Syntax.SequentialEnt
             addConstant('DATE', value);
             return true;
         }
+
+        visitRecurrentTimeSpecificationValue(value : Ast.RecurrentTimeSpecificationValue) : boolean {
+            addConstant('RECURRENT_TIME_SPECIFICATION', value);
+            return true;
+        }
     });
 
     return constants;
@@ -155,7 +157,7 @@ function createConstants(tokenPrefix : string,
 
     function createConstant(type : string, index : number, value : Ast.Value) {
         const token = type + '_' + index;
-        constants.push({ token, value });
+        constants.push({ token: new ReplacedConcatenation([token], {}, {}), value });
         entityAllocator.entities[token] = value.toEntity();
         entityAllocator.offsets[type] = Math.max(entityAllocator.offsets[type] || 0, index+1);
     }
@@ -199,7 +201,8 @@ function createConstants(tokenPrefix : string,
             createConstant('TIME', i, new Ast.Value.Time(new Ast.Time.Absolute(Math.floor(i/4), [0, 15, 30, 45][i % 4], 0)));
             break;
         case 'RECURRENT_TIME_SPECIFICATION':
-            // FIXME do nothing
+            // do nothing at synthesis time, this is only used in inference mode, and we'll
+            // extract the constants from the context
             break;
         default: {
             // ignore MEASURE_* tokens, they are only used in inference mode, and for those

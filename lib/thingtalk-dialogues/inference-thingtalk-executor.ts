@@ -32,7 +32,7 @@ import * as ThingTalkUtils from '../utils/thingtalk';
 import ValueCategory from '../dialogue-runtime/value-category';
 import type { NewProgramRecord } from '../dialogue-runtime/conversation';
 import { CancellationError } from '../dialogue-runtime/errors';
-import { EntityRecord } from './entity-linking/entity-finder';
+import { EntityRecord, getBestEntityMatch } from './entity-linking/entity-finder';
 import { Contact } from './entity-linking/contact_search';
 
 import AbstractThingTalkExecutor, {
@@ -342,20 +342,26 @@ export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExe
         return new Ast.ExpressionStatement(null, filteredTable);
     }
 
-    protected async lookupEntityCandidates(dlg : DialogueInterface,
-                                           entityType : string,
-                                           entityDisplay : string,
-                                           hints : DisambiguationHints) : Promise<EntityRecord[]> {
+    protected async resolveEntity(dlg : DialogueInterface,
+                                  entityType : string,
+                                  entityDisplay : string,
+                                  hints : DisambiguationHints) : Promise<EntityRecord> {
+        const hintsCandidates = hints.idEntities.get(entityType);
+        if (hintsCandidates)
+            return getBestEntityMatch(entityDisplay, entityType, hintsCandidates);
+
         // HACK this should be made generic with some new Genie annotation
         if (entityType === 'org.freedesktop:app_id') {
             const appLauncher = this._platform.getCapability('app-launcher');
-            if (appLauncher)
-                return appLauncher.listApps();
+            if (appLauncher) {
+                const apps = await appLauncher.listApps();
+                return getBestEntityMatch(entityDisplay, entityType, apps);
+            }
         }
 
         const { data: tpCandidates, meta } = await this._tpClient.lookupEntity(entityType, entityDisplay);
         if (tpCandidates.length > 0)
-            return tpCandidates;
+            return getBestEntityMatch(entityDisplay, entityType, tpCandidates);
 
         let statement;
         try {
@@ -387,13 +393,13 @@ export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExe
         }
 
         if (candidates.length === 0) {
-            dlg.say(this._("Sorry, I cannot find any ${entity_type} matching “${name}”."), {
+            await dlg.say(dlg._("Sorry, I cannot find any ${entity_type} matching “${name}”."), {
                 entity_type: meta.name,
                 name: entityDisplay
             });
             throw new CancellationError();
         }
-        return candidates;
+        return candidates[0];
     }
 
     private async _tryGetCurrentLocation() : Promise<Ast.AbsoluteLocation|null> {

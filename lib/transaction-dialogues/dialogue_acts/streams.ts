@@ -26,11 +26,11 @@ import { StateM } from '../../utils/thingtalk';
 import { POLICY_NAME } from '../metadata';
 import { ContextInfo } from '../context-info';
 
-export function makeMonitor(ctx : ContextInfo) {
+export function makeMonitor(ctx : ContextInfo, options : { monitorItemID : boolean }) {
     const currentExpression = ctx.current!.stmt.expression;
     if (currentExpression.first.schema!.functionType === 'stream')
         return null;
-    const stream = C.tableToStream(currentExpression);
+    const stream = C.tableToStream(currentExpression, options);
     if (!stream)
         return null;
 

@@ -173,6 +173,20 @@ async function ctxIncompleteSearchCommand(dlg : DialogueInterface, ctx : Context
     }
 }
 
+function isMissingProjection(ctx : ContextInfo) {
+    if (!ctx.resultInfo!.projection)
+        return false;
+
+    const topResult = ctx.results![0];
+    if (!topResult)
+        return false;
+    for (const p of ctx.resultInfo!.projection) {
+        if (!topResult.value[p])
+            return true;
+    }
+    return false;
+}
+
 async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<D.AgentReplyRecord|null> {
     // treat an empty execute like greet
     if (ctx.state.history.length === 0)
@@ -220,6 +234,12 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<
     if (ctx.resultInfo.hasEmptyResult) {
         // note: aggregation cannot be empty (it would be zero)
         dlg.say(Templates.empty_search_error, (error) => D.makeEmptySearchError(ctx, error));
+        return dlg.flush();
+    }
+
+    if (isMissingProjection(ctx)) {
+        dlg.say(dlg._("sorry, I don't have that information at the moment"),
+            () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one')));
         return dlg.flush();
     }
 

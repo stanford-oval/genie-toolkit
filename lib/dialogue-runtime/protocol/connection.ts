@@ -70,7 +70,12 @@ export default class ConversationWebSocketConnection implements ConversationDele
         this._syncDevices = options.syncDevices ?? false;
         this._replayHistory = options.replayHistory ?? true;
         this._deviceAddedListener = (d : Tp.BaseDevice) => {
-            this._sendNewDevice(d);
+            this._sendNewDevice(d).catch((e) => {
+                console.error(`Failed to send notification of new device to client: ${e.message}`);
+
+                if (e.code === 'ERR_SOCKET_CLOSED')
+                    this.destroy();
+            });
         };
         this._pingListener = () => {
             this.send({ type: MessageType.PING });
@@ -100,8 +105,8 @@ export default class ConversationWebSocketConnection implements ConversationDele
         await this._conversation.addOutput(this, this._replayHistory);
     }
 
-    async stop() {
-        await this._conversation.removeOutput(this);
+    destroy() {
+        this._conversation.removeOutput(this);
         if (this._syncDevices) {
             this._engine.devices.removeListener('device-added', this._deviceAddedListener);
             this._engine.devices.removeListener('device-changed', this._deviceAddedListener);
@@ -177,7 +182,7 @@ export default class ConversationWebSocketConnection implements ConversationDele
         return this.send(msg);
     }
 
-    private _sendNewDevice(device : Tp.BaseDevice) {
+    private async _sendNewDevice(device : Tp.BaseDevice) {
         return this.send({ type: MessageType.NEW_DEVICE, uniqueId: device.uniqueId!, state: device.serialize() });
     }
 }

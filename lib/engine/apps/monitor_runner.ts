@@ -22,6 +22,7 @@ import * as Tp from 'thingpedia';
 import { Runtime } from 'thingtalk';
 import type * as stream from 'stream';
 import AsyncQueue from 'consumer-queue';
+import * as crypto from 'crypto';
 
 import RateLimiter from '../util/rate_limiter';
 
@@ -55,6 +56,7 @@ export default class MonitorRunner {
     private _fn : string;
     private _params : Record<string, unknown>;
     private _hints : Runtime.CompiledQueryHints;
+    private _stateId : string;
     private _rateLimiter : RateLimiter;
     private _streams : Map<Tp.BaseDevice, MonitorStream>;
     private _ended : Set<MonitorStream>;
@@ -74,6 +76,7 @@ export default class MonitorRunner {
         this._fn = 'subscribe_' + channel;
         this._params = params;
         this._hints = hints;
+        this._stateId = this._makeStateUniqueId();
 
         // rate limit to 1 per second, with a burst of 300
         this._rateLimiter = new RateLimiter(300, 300 * 1000);
@@ -138,15 +141,23 @@ export default class MonitorRunner {
         }
     }
 
+    private _makeStateUniqueId() {
+        const hash = crypto.createHash('sha256');
+        hash.update(this._env.app.uniqueId);
+        hash.update(':');
+        hash.update(this._channel);
+        hash.update(':');
+        hash.update(Protocol.params.makeString(this._params));
+        hash.update(':');
+        hash.update(Protocol.params.makeString(this._hints as Record<string, unknown>));
+        return hash.digest('base64');
+    }
+
     private _onDeviceAdded(device : Tp.BaseDevice) {
-        const uniqueId = device.uniqueId + ':' + this._channel + ':' + Protocol.params.makeString(this._params);
+        const uniqueId = `monitor:${device.uniqueId}:${this._stateId}`;
 
         Promise.resolve().then(() => {
             const state = new ChannelStateBinder(this._env.engine.db, uniqueId);
-            // TODO deduplicate subscriptions globally
-            // (this needs to be done at a different level because we need to
-            // do global common subexpression elimination to save history)
-
             return state.open().then(() => {
                 if (this._stopped)
                     return;

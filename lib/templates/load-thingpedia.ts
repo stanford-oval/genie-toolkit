@@ -88,19 +88,6 @@ const TIMER_SCHEMA = Operators.Functions['timer'];
 const ATTIMER_SCHEMA = Operators.Functions['attimer'];
 const ONTIMER_SCHEMA = Operators.Functions['ontimer'];
 
-interface CanonicalForm {
-    default : string;
-    projection_pronoun ?: string[];
-
-    base : SentenceGeneratorRuntime.Phrase[];
-    base_projection : SentenceGeneratorRuntime.Phrase[];
-    argmin : SentenceGeneratorRuntime.Phrase[];
-    argmax : SentenceGeneratorRuntime.Phrase[];
-    filter : SentenceGeneratorRuntime.Concatenation[];
-    enum_filter : Record<string, SentenceGeneratorRuntime.Phrase[]>;
-    projection : SentenceGeneratorRuntime.Phrase[];
-}
-
 type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
 
 export interface ParsedPlaceholderPhrase {
@@ -249,6 +236,13 @@ export default class ThingpediaLoader {
         this.standardSchemas.get_gps = get_gps;
         this.standardSchemas.get_time = get_time;
 
+        this._recordFunction(TIMER_SCHEMA);
+        this._recordFunction(ATTIMER_SCHEMA);
+        this._recordFunction(ONTIMER_SCHEMA);
+        this._loadFunction(TIMER_SCHEMA);
+        this._loadFunction(ATTIMER_SCHEMA);
+        this._loadFunction(ONTIMER_SCHEMA);
+
         await this._loadMetadata();
     }
 
@@ -308,14 +302,14 @@ export default class ThingpediaLoader {
         }
     }
 
-    private _recordType(type : Type) {
+    private _recordType(type : Type, fromArgument ?: Ast.ArgumentDef) {
         if (type instanceof Type.Compound) {
             for (const field in type.fields)
-                this._recordType(type.fields[field].type);
+                this._recordType(type.fields[field].type, fromArgument);
             return null;
         }
         if (type instanceof Type.Array)
-            this._recordType(type.elem as Type);
+            this._recordType(type.elem as Type, fromArgument);
         const typestr = typeToStringSafe(type);
         if (this.types.has(typestr)) {
             if (type.isArray)
@@ -324,8 +318,6 @@ export default class ThingpediaLoader {
         }
         this.types.set(typestr, type);
 
-        if (type.isRecurrentTimeSpecification)
-            return typestr;
         if (type.isArray)
             return 'Any';
 
@@ -340,12 +332,18 @@ export default class ThingpediaLoader {
                 identity, keyfns.valueKeyFn);
 
             if (type instanceof Type.Enum) {
+                const argcanonical = fromArgument ?
+                    this._langPack.preprocessParameterCanonical(fromArgument, this._options.forSide)
+                    : undefined;
+
                 for (const entry of type.entries!) {
                     const value = new Ast.Value.Enum(entry);
                     value.getType = function() {
                         return type;
                     };
-                    this._addRule('constant_' + typestr, [], ThingTalkUtils.clean(entry),
+
+                    const canonical = argcanonical?.enum_value?.[entry] || [ThingTalkUtils.clean(entry)];
+                    this._addRule('constant_' + typestr, [], '{' + canonical.join('|') + '}',
                         () => value, keyfns.valueKeyFn);
                 }
             }
@@ -395,12 +393,14 @@ export default class ThingpediaLoader {
         return pos;
     }
 
-    private _getRuleAttributes(canonical : CanonicalForm, cat : string) : RuleAttributes {
+    private _getRuleAttributes(canonical : I18n.NormalizedParameterCanonical, cat : string, type : Type) : RuleAttributes {
         const attributes = { priority: ANNOTATION_PRIORITY[cat] };
         assert(Number.isFinite(attributes.priority), cat);
         if (cat === canonical.default ||
             cat === ANNOTATION_RENAME[canonical.default])
             attributes.priority += 1;
+        if (type === Type.String || type === Type.Location)
+            attributes.priority -= 0.5;
 
         return attributes;
     }
@@ -408,7 +408,7 @@ export default class ThingpediaLoader {
     private _recordInputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
-        const ptypestr = this._recordType(ptype);
+        const ptypestr = this._recordType(ptype, arg);
         if (!ptypestr)
             return;
         const pslot : ParamSlot = { schema, name: pname, type: ptype,
@@ -443,7 +443,7 @@ export default class ThingpediaLoader {
             }
         }*/
 
-        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || ThingTalkUtils.clean(arg.name), this._options.forSide);
+        const canonical = this._langPack.preprocessParameterCanonical(arg, this._options.forSide);
 
         const corefconst = new SentenceGeneratorRuntime.NonTerminal('coref_constant', 'value');
         const constant = this._getConstantNT(ptype, 'value');
@@ -451,10 +451,10 @@ export default class ThingpediaLoader {
         for (const form of canonical.base)
             this._addRule('input_param', [], String(form), () => pslot, keyfns.paramKeyFn, {});
 
-        const filterforms = this._collectByPOS(canonical.filter);
+        const filterforms = this._collectByPOS(canonical.filter_phrase);
         for (const pos in filterforms) {
             const forms = filterforms[pos];
-            const attributes = this._getRuleAttributes(canonical, pos);
+            const attributes = this._getRuleAttributes(canonical, pos, pslot.type);
 
             const expansion = '{' + forms.join('|') + '}';
             this._addRule(pos + '_input_param', [constant], expansion, (value : Ast.Value) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
@@ -466,7 +466,7 @@ export default class ThingpediaLoader {
                 const filterforms = this._collectByPOS(canonical.enum_filter[key]);
                 for (const pos in filterforms) {
                     const forms = filterforms[pos];
-                    const attributes = this._getRuleAttributes(canonical, pos);
+                    const attributes = this._getRuleAttributes(canonical, pos, pslot.type);
 
                     const expansion = '{' + forms.join('|') + '}';
                     this._addRule(pos + '_input_param', [], expansion, () => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
@@ -476,12 +476,11 @@ export default class ThingpediaLoader {
     }
 
     private _recordBooleanOutputParam(pslot : ParamSlot, arg : Ast.ArgumentDef) {
-        const pname = arg.name;
         const ptype = arg.type;
         if (!this._recordType(ptype))
             return;
 
-        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || ThingTalkUtils.clean(pname), this._options.forSide);
+        const canonical = this._langPack.preprocessParameterCanonical(arg, this._options.forSide);
 
         for (const form of canonical.base)
             this._addOutParam(pslot, String(form));
@@ -491,7 +490,7 @@ export default class ThingpediaLoader {
             const filterforms = this._collectByPOS(canonical.enum_filter[boolean]);
             for (const pos in filterforms) {
                 const forms = filterforms[pos];
-                const attributes = this._getRuleAttributes(canonical, pos);
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                 const expansion = '{' + forms.join('|') + '}';
                 this._addRule(pos + '_filter', [], expansion, () => makeFilter(this, pslot, '==', value, false), keyfns.filterKeyFn, attributes);
@@ -503,7 +502,7 @@ export default class ThingpediaLoader {
     private _recordOutputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
-        if (!this._recordType(ptype))
+        if (!this._recordType(ptype, arg))
             return;
 
         const filterable = arg.getImplementationAnnotation<boolean>('filterable') ?? true;
@@ -552,7 +551,7 @@ export default class ThingpediaLoader {
                 this._addRule('out_param_ArrayCount', [], form, () => pslot, keyfns.paramKeyFn);
         }
 
-        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || ThingTalkUtils.clean(pname), this._options.forSide);
+        const canonical = this._langPack.preprocessParameterCanonical(arg, this._options.forSide);
 
         const vtype = ptype;
         let op = '==';
@@ -571,7 +570,7 @@ export default class ThingpediaLoader {
             if (ptype instanceof Type.Array) {
                 vtypes = [ptype.elem as Type];
                 op = 'contains';
-            } else if (ptype.isRecurrentTimeSpecification) {
+            } else if (ptype.isRecurrentTimeSpecification && this._options.forSide === 'user') {
                 vtypes = [Type.Date, Type.Time];
                 op = 'contains';
             } else if (pname === 'id' && !this._options.flags.no_soft_match_id) {
@@ -589,7 +588,7 @@ export default class ThingpediaLoader {
     private _recordOutputParamByType(pslot : ParamSlot,
                                      op : string,
                                      vtype : Type,
-                                     canonical : CanonicalForm,
+                                     canonical : I18n.NormalizedParameterCanonical,
                                      canUseBothForm : boolean) {
         const ptype = pslot.type;
         if (!this._recordType(ptype))
@@ -615,17 +614,17 @@ export default class ThingpediaLoader {
                 const filterforms = this._collectByPOS(canonical.enum_filter[enumerand]);
                 for (const pos in filterforms) {
                     const forms = filterforms[pos];
-                    const attributes = this._getRuleAttributes(canonical, pos);
+                    const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                     const expansion = '{' + forms.join('|') + '}';
                     this._addRule(pos + '_filter', [], expansion, () => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
                 }
             }
 
-            const filterforms = this._collectByPOS(canonical.filter);
+            const filterforms = this._collectByPOS(canonical.filter_phrase);
             for (const pos in filterforms) {
                 const forms = filterforms[pos];
-                const attributes = this._getRuleAttributes(canonical, pos);
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                 const expansion = '{' + forms.join('|') + '}';
                 const pairexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${both_prefix} ${values}') + '}';
@@ -637,9 +636,9 @@ export default class ThingpediaLoader {
                 if (ptype.isDate)
                     this._addRule(pos + '_filter', [constant_date_range], expansion, (values : [Ast.Value, Ast.Value]) => makeDateRangeFilter(this, pslot, values), keyfns.filterKeyFn, attributes);
 
-                const joinexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${pronoun_the_second}') + '}';
+                const joinexpansion = '{' + forms.join('|').replace(/\$\{value\b/g, '${pronoun_the_second') + '}';
                 this._addRule(pos + '_join_condition', [pronoun_the_second], joinexpansion, () => makeSelfJoinCondition(this, pslot), keyfns.filterKeyFn, attributes);
-                const symmetric_joinexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${each_other}') + '}';
+                const symmetric_joinexpansion = '{' + forms.join('|').replace(/\$\{value\b/g, '${each_other') + '}';
                 if (pslot.symmetric)
                     this._addRule(pos + '_symmetric_join_condition', [each_other], symmetric_joinexpansion, () => makeSelfJoinCondition(this, pslot), keyfns.filterKeyFn, attributes);
             }
@@ -647,7 +646,7 @@ export default class ThingpediaLoader {
             const argminforms = this._collectByPOS(canonical.argmin);
             for (const pos in argminforms) {
                 const forms = argminforms[pos];
-                const attributes = this._getRuleAttributes(canonical, pos);
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                 const expansion = '{' + forms.join('|') + '}';
                 this._addRule(pos + '_argminmax', [], expansion, () : [ParamSlot, 'asc'|'desc'] => [pslot, 'asc'], keyfns.argMinMaxKeyFn, attributes);
@@ -655,7 +654,7 @@ export default class ThingpediaLoader {
             const argmaxforms = this._collectByPOS(canonical.argmax);
             for (const pos in argmaxforms) {
                 const forms = argmaxforms[pos];
-                const attributes = this._getRuleAttributes(canonical, pos);
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
 
                 const expansion = '{' + forms.join('|') + '}';
                 this._addRule(pos + '_argminmax', [], expansion, () : [ParamSlot, 'asc'|'desc'] => [pslot, 'desc'], keyfns.argMinMaxKeyFn, attributes);
@@ -1148,7 +1147,7 @@ export default class ThingpediaLoader {
         for (const argname of q.args) {
             const arg = q.getArgument(argname)!;
 
-            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical, this._options.forSide);
+            const canonical = this._langPack.preprocessParameterCanonical(arg, this._options.forSide);
 
             let op = '==';
             let vtype : Type[] = [arg.type];
@@ -1183,7 +1182,7 @@ export default class ThingpediaLoader {
                     ast = table.clone();
                     ast.invocation.in_params = inparams;
                 }
-                for (const form of canonical.filter) {
+                for (const form of canonical.filter_phrase) {
                     if (form.flags.pos !== 'reverse_property')
                         continue;
 
@@ -1228,7 +1227,7 @@ export default class ThingpediaLoader {
     private async _loadFunction(functionDef : Ast.FunctionDef) {
         if (functionDef.functionType === 'query')
             await this._makeExampleFromQuery(functionDef);
-        else
+        else if (functionDef.functionType === 'action')
             await this._makeExampleFromAction(functionDef);
 
         if (functionDef.metadata.result)
@@ -1305,7 +1304,7 @@ export default class ThingpediaLoader {
 
                         // TODO store opt somewhere
 
-                        assert(this._recordType(arg.type));
+                        assert(this._recordType(arg.type, arg));
                     }
                     return true;
                 });
