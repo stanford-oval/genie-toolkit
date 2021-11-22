@@ -112,7 +112,6 @@ export default class AudioController extends events.EventEmitter {
     }
     async stop() {
         this._devices.removeListener('device-removed', this._deviceRemovedListener);
-        await this.stopAudio();
     }
 
     private _getPlayer(conversationId : string|undefined) : ConversationAudioState|undefined {
