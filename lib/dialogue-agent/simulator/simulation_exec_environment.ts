@@ -526,8 +526,9 @@ class SimulationExecEnvironment extends ExecEnvironment {
             return;
         }
 
+        let index = 0;
         for (const d of await this._getDevices(kind, attrs)) {
-            const generated = this.generator!.generate(schema, params, 0);
+            const generated = this.generator!.generate(schema, params, index++);
             if (d.kind !== d.uniqueId)
                 generated.__device = new ThingTalk.Builtin.Entity(d.uniqueId, d.name);
             yield [outputType, generated];
@@ -689,9 +690,10 @@ class SimulationExecEnvironment extends ExecEnvironment {
         const results : Array<[string, Record<string, unknown>]> = [];
         const devices = await this._getDevices(kind, attrs);
 
+        let index = 0;
         for (const d of devices) {
             for (let i = 0; i < numResults; i++) {
-                const generated = this.generator!.generate(schema, params, 0);
+                const generated = this.generator!.generate(schema, params, index++);
                 if (d.uniqueId !== d.kind)
                     generated.__device = new ThingTalk.Builtin.Entity(d.uniqueId, d.name);
                 results.push([outputType, generated]);
