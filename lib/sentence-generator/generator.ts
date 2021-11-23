@@ -1029,7 +1029,7 @@ export default class SentenceGenerator extends events.EventEmitter {
                 if (this._contextual && depth === 0 && this.hasContext(this._nonTermList[index]))
                     this._charts.init(index, depth, INFINITY);
                 else if (index === this._dynamicNonTerm || index === this._rootNonTerm)
-                    this._charts.init(index, depth, ROOT_MULTIPLIER * targetPruningSize) // multiply root by a factor to avoid unnecessary pruning
+                    this._charts.init(index, depth, ROOT_MULTIPLIER * targetPruningSize); // multiply root by a factor to avoid unnecessary pruning
                 else if (this._contextual && !this._nonTermHasContext[index]) // multiply non-contextual non-terminals by a factor
                     this._charts.init(index, depth, NON_CONTEXTUAL_PRUNING_SIZE_MULTIPLIER * targetPruningSize);
                 else
