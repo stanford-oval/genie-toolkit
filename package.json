@@ -49,7 +49,7 @@
     "thingtalk": "^2.1.0-alpha.11",
     "thingtalk-units": "^0.2.0",
     "twilio": "^3.71.1",
-    "typescript": "~4.3.5",
+    "typescript": "~4.5.0",
     "uuid": "^8.2.0",
     "ws": "^7.5.5"
   },
