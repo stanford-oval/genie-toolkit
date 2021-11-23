@@ -691,7 +691,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
 
         for (const d of devices) {
             for (let i = 0; i < numResults; i++) {
-                const generated = this.generator!.generate(schema, params, 0);
+                const generated = this.generator!.generate(schema, params, i);
                 if (d.uniqueId !== d.kind)
                     generated.__device = new ThingTalk.Builtin.Entity(d.uniqueId, d.name);
                 results.push([outputType, generated]);
