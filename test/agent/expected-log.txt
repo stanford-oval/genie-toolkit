@@ -1516,7 +1516,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.iot.light-bulb.set_power(power=enum off);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: You don't have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_device_missing;
 AT: @org.thingpedia.iot.light-bulb.set_power(power=enum off);
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1538,7 +1538,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.iot.door.state();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: You need to enable Home Assistant before you can use that command.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_device_missing;
 AT: @org.thingpedia.iot.door.state();
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -2056,7 +2056,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.twitter.post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: To use this command you must first create a personal Genie account.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_registration_required;
 AT: @com.twitter.post();
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -2583,7 +2583,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_parse;
 C: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: You don't have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_device_missing;
 AT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
 #! vote: down
 #! comment: test comment for dialogue turns

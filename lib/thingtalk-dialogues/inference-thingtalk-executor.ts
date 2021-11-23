@@ -41,6 +41,8 @@ import AbstractThingTalkExecutor, {
 import { DialogueInterface } from './interface';
 import { TemplatePlaceholderMap } from '../sentence-generator/types';
 
+const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
+
 interface AbstractConversation {
     id : string;
     sendNewProgram(newProgram : NewProgramRecord) : Promise<void>
@@ -147,7 +149,7 @@ export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExe
     }
 
     private _requireRegistration(dlg : DialogueInterface, msg : string, args : TemplatePlaceholderMap = {}) : never {
-        dlg.say(msg, args);
+        dlg.say(msg, args, () => ThingTalkUtils.StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_registration_required'));
         dlg.sendLink(this._("Sign up for Genie"), "/user/register");
         throw new CancellationError();
     }
@@ -208,7 +210,7 @@ export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExe
         if (!factory) {
             dlg.say(this._("You need to enable ${device} before you can use that command."), {
                 device: cleanKind(kind)
-            });
+            }, () => ThingTalkUtils.StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_device_missing'));
             dlg.sendLink(this._("Configure ${device}"), "/devices/create", {
                 device: cleanKind(kind)
             });
@@ -228,23 +230,23 @@ export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExe
             if (factory.type === 'multiple' && factory.choices.length === 0) {
                 dlg.say(this._("You need to enable ${device} before you can use that command."), {
                     device: factory.text
-                });
+                }, () => ThingTalkUtils.StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_device_missing'));
             } else if (factory.type === 'multiple') {
                 dlg.say(this._("You do not have a ${device} configured. You will need to enable ${choices} before you can use that command."), {
                     device: factory.text,
                     choices: new ReplacedList(factory.choices.map((f) => new ReplacedConcatenation([f.text], {}, {})), this._engine.platform.locale, 'disjunction')
-                });
+                }, () => ThingTalkUtils.StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_device_missing'));
             } else if ((await this.getAllDevicesOfKind(factory.kind)).length > 0) {
                 dlg.say(this._("You do not have a ${device} configured. You will need to configure it inside your ${factory} before you can use that command."), {
                     device: cleanKind(kind),
                     factory: factory.text,
-                });
+                }, () => ThingTalkUtils.StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_device_missing'));
                 // exit early without any button
                 return null;
             } else {
                 dlg.say(this._("You need to enable ${device} before you can use that command."), {
                     device: factory.text
-                });
+                }, () => ThingTalkUtils.StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_device_missing'));
             }
 
             // HACK: home assistant cannot be configured here, override the factory type
@@ -396,7 +398,7 @@ export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExe
             await dlg.say(dlg._("Sorry, I cannot find any ${entity_type} matching “${name}”."), {
                 entity_type: meta.name,
                 name: entityDisplay
-            });
+            }, () => ThingTalkUtils.StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_entity_missing'));
             throw new CancellationError();
         }
         return candidates[0];
@@ -435,7 +437,7 @@ export default class InferenceTimeThingTalkExecutor extends AbstractThingTalkExe
         if (mapped.length === 0) {
             dlg.say(this._("Sorry, I cannot find any location matching “${location}”."), {
                 location: searchKey,
-            });
+            }, () => ThingTalkUtils.StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_location_missing'));
             throw new CancellationError();
         }
 
