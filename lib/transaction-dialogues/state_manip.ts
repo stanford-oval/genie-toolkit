@@ -213,7 +213,7 @@ function addAction(ctx : ContextInfo,
             // - we trying to accept or confirm the action that was previously proposed
             // in that case, we want to change the action to accepted or confirmed
             if (confirm === 'proposed' || confirm === next.confirm)
-                return new Ast.DialogueState(null, POLICY_NAME, dialogueAct, null, ctx.state.history);
+                return StateM.makeSimpleState(ctx.state, POLICY_NAME, dialogueAct, []);
 
             newHistoryItem = new Ast.DialogueHistoryItem(null, next.stmt, null, confirm);
         }
