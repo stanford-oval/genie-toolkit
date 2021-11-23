@@ -303,9 +303,11 @@ export abstract class Replaceable {
         return parsed;
     }
 
+    abstract clone() : Replaceable;
+
     abstract visit(cb : (repl : Replaceable) => boolean) : void;
 
-    abstract preprocess(langPack : LanguagePack, placeholders : string[]) : this;
+    abstract preprocess(langPack : LanguagePack, placeholders : string[], offset ?: number) : this;
 
     abstract optimize(constraints : PlaceholderConstraints) : Replaceable|null;
 
@@ -335,12 +337,16 @@ export class Placeholder extends Replaceable {
             + (this.option ? `:${this.option}` : '') + '}';
     }
 
+    clone() {
+        return new Placeholder(this.param, this.key, this.option);
+    }
+
     visit(cb : (repl : Replaceable) => boolean) {
         cb(this);
     }
 
-    preprocess(langPack : LanguagePack, placeholders : string[]) {
-        this._index = getPlaceholderIndex(placeholders, this.param);
+    preprocess(langPack : LanguagePack, placeholders : string[], offset = 0) {
+        this._index = offset + getPlaceholderIndex(placeholders, this.param);
         return this;
     }
 
@@ -423,7 +429,7 @@ export class ReplacedPhrase extends Replaceable {
         cb(this);
     }
 
-    preprocess(langPack : LanguagePack, placeholders : string[]) {
+    preprocess(langPack : LanguagePack, placeholders : string[], offset ?: number) {
         return this;
     }
 
@@ -490,7 +496,7 @@ export class Phrase extends Replaceable {
         cb(this);
     }
 
-    preprocess(langPack : LanguagePack, placeholders : string[]) {
+    preprocess(langPack : LanguagePack, placeholders : string[], offset ?: number) {
         if (this._preprocessed)
             return this;
         const tokenizer = langPack.getTokenizer();
@@ -553,6 +559,10 @@ export class Concatenation extends Replaceable {
             return buf;
     }
 
+    clone() {
+        return new Concatenation(this.children.map((c) => c.clone()), this.flags, this.refFlags);
+    }
+
     visit(cb : (repl : Replaceable) => boolean) {
         if (!cb(this))
             return;
@@ -577,9 +587,9 @@ export class Concatenation extends Replaceable {
         return optconcat;
     }
 
-    preprocess(langPack : LanguagePack, placeholders : string[]) {
+    preprocess(langPack : LanguagePack, placeholders : string[], offset ?: number) {
         for (const c of this.children)
-            c.preprocess(langPack, placeholders);
+            c.preprocess(langPack, placeholders, offset);
 
         for (const ourFlag in this.refFlags) {
             const [placeholder, theirFlag] = this.refFlags[ourFlag];
@@ -651,9 +661,13 @@ export class Choice implements Replaceable {
         return `{${this.variants.join('|')}}`;
     }
 
-    preprocess(langPack : LanguagePack, placeholders : string[]) {
+    clone() {
+        return new Choice(this.variants.map((v) => v.clone()));
+    }
+
+    preprocess(langPack : LanguagePack, placeholders : string[], offset ?: number) {
         for (const v of this.variants)
-            v.preprocess(langPack, placeholders);
+            v.preprocess(langPack, placeholders, offset);
         return this;
     }
 
@@ -734,6 +748,13 @@ function getPlaceholderIndex(placeholders : string[], toFind : string) {
     return index;
 }
 
+function cloneVariants<T extends string|number>(variants : Record<T, Replaceable>) {
+    const out : Record<T, Replaceable> = {} as Record<T, Replaceable>;
+    for (const key in variants)
+        out[key] = variants[key].clone();
+    return out;
+}
+
 /**
  * A phrase that depends on a numeric value.
  *
@@ -770,6 +791,10 @@ export class Plural implements Replaceable {
         return buf;
     }
 
+    clone() {
+        return new Plural(this.param, this.key, this.type, cloneVariants(this.variants));
+    }
+
     visit(cb : (repl : Replaceable) => boolean) {
         if (!cb(this))
             return;
@@ -801,11 +826,11 @@ export class Plural implements Replaceable {
         return optthis;
     }
 
-    preprocess(langPack : LanguagePack, placeholders : string[]) {
+    preprocess(langPack : LanguagePack, placeholders : string[], offset = 0) {
         for (const v in this.variants)
-            this.variants[v].preprocess(langPack, placeholders);
+            this.variants[v].preprocess(langPack, placeholders, offset);
 
-        this._index = getPlaceholderIndex(placeholders, this.param);
+        this._index = offset + getPlaceholderIndex(placeholders, this.param);
 
         this._rules = new Intl.PluralRules(langPack.locale, { type: this.type });
         return this;
@@ -902,6 +927,10 @@ export class ValueSelect implements Replaceable {
         return buf;
     }
 
+    clone() {
+        return new ValueSelect(this.param, this.key, cloneVariants(this.variants));
+    }
+
     visit(cb : (repl : Replaceable) => boolean) {
         if (!cb(this))
             return;
@@ -932,11 +961,11 @@ export class ValueSelect implements Replaceable {
         return optthis;
     }
 
-    preprocess(langPack : LanguagePack, placeholders : string[]) {
+    preprocess(langPack : LanguagePack, placeholders : string[], offset = 0) {
         for (const v in this.variants)
-            this.variants[v].preprocess(langPack, placeholders);
+            this.variants[v].preprocess(langPack, placeholders, offset);
 
-        this._index = getPlaceholderIndex(placeholders, this.param);
+        this._index = offset + getPlaceholderIndex(placeholders, this.param);
         return this;
     }
 
@@ -1020,6 +1049,10 @@ export class FlagSelect implements Replaceable {
         return buf;
     }
 
+    clone() {
+        return new FlagSelect(this.param, this.flag, cloneVariants(this.variants));
+    }
+
     visit(cb : (repl : Replaceable) => boolean) {
         if (!cb(this))
             return;
@@ -1062,10 +1095,10 @@ export class FlagSelect implements Replaceable {
         return optthis;
     }
 
-    preprocess(langPack : LanguagePack, placeholders : string[]) {
+    preprocess(langPack : LanguagePack, placeholders : string[], offset = 0) {
         for (const v in this.variants)
-            this.variants[v].preprocess(langPack, placeholders);
-        this._index = getPlaceholderIndex(placeholders, this.param);
+            this.variants[v].preprocess(langPack, placeholders, offset);
+        this._index = offset + getPlaceholderIndex(placeholders, this.param);
         return this;
     }
 

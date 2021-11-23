@@ -31,8 +31,6 @@ import {
     Template,
     AgentReply,
     AgentReplyRecord,
-    SemanticAction,
-    TemplatePlaceholderMap
 } from '../sentence-generator/types';
 import SentenceGenerator from '../sentence-generator/generator';
 import { LogLevel, NonTerminal } from '../sentence-generator/runtime';
@@ -50,7 +48,7 @@ import {
     UnexpectedCommandError
 } from './cmd-dispatch';
 import { PolicyFunction, PolicyModule, PolicyStartMode } from './policy';
-import { addTemplate } from './template-utils';
+import { addConcatenationTemplate, addTemplate, splitAgentReply } from './template-utils';
 
 export interface AgentTurn {
     dialogue : SynthesisDialogue;
@@ -98,6 +96,15 @@ function combineDialogueAgentTags(dialogueTag : number, agentTag : number) {
     if (agentTag > 65535)
         throw new Error('OVERFLOW: too many agent either choices');
     return dialogueTag << 16 | agentTag;
+}
+
+interface EmptyAgentReplyRecord {
+    meaning : undefined;
+    numResults : 0;
+}
+
+function emptyMeaning() : EmptyAgentReplyRecord {
+    return { meaning: undefined, numResults: 0 };
 }
 
 /**
@@ -264,30 +271,36 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
             throw new Error(`Invalid state for emit`);
         this._state = PartialDialogueState.AGENT_SPEAKING;
 
-        if (reply.length > 1)
-            throw new Error('not implemented yet');
-
-        assert(reply[0].type === 'text');
-        const { text: tmpl, args: placeholders, meaning: semantics } = reply[0];
+        const [,mainReply,] = splitAgentReply(reply);
+        const templates = mainReply.map((reply) => [reply.text, reply.args, reply.meaning ?? emptyMeaning] as const);
 
         // add a contextual non-terminal to the beginning of the template
         // this ensures that only context phrases coming from this context
         // get used, and we don't mess up with entirely unrelated sentences
         const ctxNonTerm = new NonTerminal('ctx_dynamic_any', undefined, ['dialogue', this]);
-        addTemplate(this._agentGenerator, [ctxNonTerm], tmpl, placeholders, (ctx : Ast.DialogueState /* unused */, ...args : any[]) : ExtendedAgentReplyRecord|null => {
-            const result = semantics!(...args);
-            if (result === null)
-                return null;
-            if (result === undefined)
-                throw new TypeError(`Missing semantics from agent reply`);
+        addConcatenationTemplate<AgentReplyRecord|EmptyAgentReplyRecord, ExtendedAgentReplyRecord>(this._agentGenerator,
+            [ctxNonTerm], templates, (current, next) : ExtendedAgentReplyRecord => {
+                if (current === undefined) {
+                    return {
+                        dialogue: this,
+                        tag: tag,
+                        terminated: this._state === PartialDialogueState.DONE,
+                        ...next,
+                        meaning: next.meaning!,
+                    };
+                }
 
-            return {
-                dialogue: this,
-                tag: tag,
-                terminated: this._state === PartialDialogueState.DONE,
-                ...result
-            };
-        });
+                if (next.meaning !== undefined) {
+                    return {
+                        dialogue: this,
+                        tag: tag,
+                        terminated: this._state === PartialDialogueState.DONE,
+                        ...next
+                    };
+                }
+
+                return current;
+            });
 
         // unconditionally return null here
         // the return value is only meaningful in inference (deterministic) mode
@@ -295,9 +308,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
     }
 
     private _addDynamicUserTemplate(tag : number,
-                                    tmpl : string,
-                                    placeholders : TemplatePlaceholderMap,
-                                    semantics : SemanticAction<[Ast.DialogueState, ...any[]], Ast.DialogueState>) {
+                                    [tmpl, placeholders, semantics] : Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>) {
         let ctxNonTerm;
         if (tag <= 0)
             ctxNonTerm = new NonTerminal('ctx_sys_dynamic_any', undefined, ['dialogue', this]);
@@ -305,12 +316,12 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
             ctxNonTerm = new NonTerminal('ctx_sys_dynamic_any', undefined, ['tag', combineDialogueAgentTags(this._id, tag)]);
 
         addTemplate(this._userGenerator, [ctxNonTerm], tmpl, placeholders, (ctx : AgentTurn, ...args : any[]) : UserReplyRecord|null => {
-            const result = semantics(ctx.state, ...args);
-            if (result === null)
+            const meaning = semantics(ctx.state, ...args);
+            if (meaning === null)
                 return null;
             return {
                 agentTurn: ctx,
-                meaning: result,
+                meaning,
             };
         });
     }
@@ -321,8 +332,8 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
      * @param templates templates that are available for synthesis at this state
      */
     synthesize(templates : Iterable<[number, Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>]>) {
-        for (const [tag, [tmpl, placeholders, semantics]] of templates)
-            this._addDynamicUserTemplate(tag, tmpl, placeholders, semantics);
+        for (const [tag, template] of templates)
+            this._addDynamicUserTemplate(tag, template);
     }
 
     /**

@@ -113,7 +113,7 @@ export type TemplatePlaceholderMap = Record<string, NonTerminal|PlaceholderRepla
  * placeholders, and the purpose of the template.
  */
 export type Template<ArgTypes extends unknown[], ReturnType> =
-    [string, TemplatePlaceholderMap, SemanticAction<ArgTypes, ReturnType>];
+    readonly [string, TemplatePlaceholderMap, SemanticAction<ArgTypes, ReturnType>];
 
 /**
  * A template representing one command from the user.

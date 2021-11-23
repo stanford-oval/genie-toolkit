@@ -26,15 +26,18 @@ import AsyncQueue from 'consumer-queue';
 import * as I18n from '../i18n';
 import * as ParserClient from '../prediction/parserclient';
 import * as ThingTalkUtils from '../utils/thingtalk';
-import { ReplacedConcatenation, ReplacedResult } from '../utils/template-string';
+import { ReplacedResult } from '../utils/template-string';
 import { clean } from '../utils/misc-utils';
 import { getProgramIcon } from '../utils/icons';
 
 import {
+    AgentExtensionMessage,
     AgentReply,
     AgentReplyRecord,
     ContextPhrase,
-    Template
+    SemanticAction,
+    Template,
+    TemplatePlaceholderMap
 } from '../sentence-generator/types';
 import { LogLevel } from '../sentence-generator/runtime';
 
@@ -63,7 +66,7 @@ import AbstractThingTalkExecutor from './abstract-thingtalk-executor';
 import { CommandParser, ThingTalkCommandAnalysisType } from './command-parser';
 import { load as loadPolicy } from './policy';
 import InferenceTimeSentenceGenerator from './inference-sentence-generator';
-import { addTemplate } from './template-utils';
+import { addConcatenationTemplate, addTemplate, splitAgentReply } from './template-utils';
 
 type ReplacedAgentMessage = Tp.FormatObjects.FormattedObject | {
     type : 'link';
@@ -476,10 +479,25 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         return this._commandQueue.pop();
     }
 
-    private _expandTemplate(reply : Template<any[], AgentReplyRecord|EmptyAgentReplyRecord>, contextPhrases : ContextPhrase[]) {
+    private _expandTemplate(tmpl : string,
+                            placeholders : TemplatePlaceholderMap,
+                            semantics : SemanticAction<any[], any>,
+                            contextPhrases : ContextPhrase[]) {
         this._agentGenerator.reset();
-        const [tmpl, placeholders, semantics] = reply;
         addTemplate(this._agentGenerator, [], tmpl, placeholders, semantics);
+        return this._agentGenerator.generateOne<unknown>(contextPhrases, '$dynamic');
+    }
+
+    private _expandConcatenationTemplate(replies : Array<Template<any[], AgentReplyRecord|EmptyAgentReplyRecord>>, contextPhrases : ContextPhrase[]) {
+        this._agentGenerator.reset();
+        addConcatenationTemplate(this._agentGenerator, [], replies, (current, next) => {
+            if (current === undefined)
+                return next;
+            if (next.meaning !== undefined)
+                return next;
+            else
+                return current;
+        });
 
         return this._agentGenerator.generateOne<AgentReplyRecord|EmptyAgentReplyRecord>(contextPhrases, '$dynamic');
     }
@@ -513,65 +531,55 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         return false;
     }
 
+    private _replaceExtensionMessage(reply : AgentExtensionMessage, contextPhrases : ContextPhrase[]) {
+        const msg : any = { type: reply.type };
+        for (const key in reply) {
+            if (key === 'type' || key === 'args')
+                continue;
+            if (key === 'title' || key === 'alt' || key === 'displayTitle' || key === 'displayText') {
+                const derivation = this._expandTemplate((reply as any)[key], reply.args, emptyMeaning, contextPhrases);
+                if (!derivation)
+                    return null;
+
+                let utterance = derivation.sentence.chooseBest();
+                utterance = utterance.replace(/ +/g, ' ');
+                // note: we don't call postprocessSynthetic for secondary messages here
+                utterance = this._langPack.postprocessNLG(utterance, this._agentGenerator.entities, this._executor);
+                msg[key] = utterance;
+            } else {
+                msg[key] = (reply as any)[key];
+            }
+        }
+
+        return msg as ReplacedAgentMessage;
+    }
+
     async emit(replies : AgentReply) : Promise<AgentReplyRecord|null> {
         this.icon = this._dlg.state ? getProgramIcon(this._dlg.state) : null;
 
         await this._agentGenerator.initialize(this._dlg.state);
         const contextPhrases = Array.from(this._getContextPhrases());
 
-        const utterances : ReplacedResult[] = [];
         const messages : ReplacedAgentMessage[] = [];
-        let meaning : AgentReplyRecord|undefined = undefined;
 
-        messageloop: for (const reply of replies) {
-            if (reply.type === 'text') {
-                const derivation = this._expandTemplate([reply.text, reply.args, reply.meaning ?? emptyMeaning], contextPhrases);
-                if (!derivation)
-                    continue;
-                if (derivation.value.meaning)
-                    meaning = derivation.value;
-                if (messages.length > 0) {
-                    let utterance = derivation.sentence.chooseBest();
-                    utterance = utterance.replace(/ +/g, ' ');
-                    // note: we don't call postprocessSynthetic for secondary messages here
-                    utterance = this._langPack.postprocessNLG(utterance, this._agentGenerator.entities, this._executor);
-                    if (utterance) {
-                        messages.push({
-                            type: 'text',
-                            text: utterance
-                        });
-                    }
-                } else {
-                    utterances.push(derivation.sentence);
-                }
-            } else {
-                const msg : any = { type: reply.type };
-                for (const key in reply) {
-                    if (key === 'type' || key === 'args')
-                        continue;
-                    if (key === 'title' || key === 'alt' || key === 'displayTitle' || key === 'displayText') {
-                        const derivation = this._expandTemplate([(reply as any)[key], reply.args, emptyMeaning], contextPhrases);
-                        if (!derivation)
-                            continue messageloop;
+        const [before, main, after] = splitAgentReply(replies);
 
-                        let utterance = derivation.sentence.chooseBest();
-                        utterance = utterance.replace(/ +/g, ' ');
-                        // note: we don't call postprocessSynthetic for secondary messages here
-                        utterance = this._langPack.postprocessNLG(utterance, this._agentGenerator.entities, this._executor);
-                        msg[key] = utterance;
-                    } else {
-                        msg[key] = (reply as any)[key];
-                    }
-                }
+        for (const reply of before) {
+            const msg = this._replaceExtensionMessage(reply, contextPhrases);
+            if (msg !== null)
                 messages.push(msg);
-            }
         }
-        if (!meaning || utterances.length === 0)
+
+        const mainDerivation = this._expandConcatenationTemplate(main.map((reply) => [reply.text, reply.args, reply.meaning ?? emptyMeaning]), contextPhrases);
+        if (!mainDerivation || !mainDerivation.value.meaning)
             return null;
+        const meaning : AgentReplyRecord = mainDerivation.value;
         const context = this._dlg.state ? this._dlg.state.prettyprint() : '';
         this._dlg.state = ThingTalkUtils.computeNewState(this._dlg.state, meaning.meaning, 'agent').optimize();
 
-        let utterance = new ReplacedConcatenation(utterances, {}, {}).chooseBest();
+        let utterance = mainDerivation.sentence.chooseBest();
+        utterance = this._langPack.postprocessSynthetic(utterance, meaning.meaning, this._dlg.rng, 'agent');
+
         if (this._nlg && this._useNeuralNLG()) {
             const prepared = ThingTalkUtils.prepareContextForPrediction(this._dlg.state, 'agent');
             const [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(prepared);
@@ -580,13 +588,33 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             const result = await this._nlg.generateUtterance(contextCode, contextEntities, targetAct);
             utterance = result[0].answer;
         }
-
-        utterance = this._langPack.postprocessSynthetic(utterance, meaning.meaning, this._dlg.rng, 'agent');
         utterance = this._langPack.postprocessNLG(utterance, this._agentGenerator.entities, this._executor);
-        messages.unshift({
+        messages.push({
             type: 'text',
             text: utterance
         });
+
+        for (const reply of after) {
+            if (reply.type === 'text') {
+                const derivation = this._expandTemplate(reply.text, reply.args, reply.meaning ?? emptyMeaning, contextPhrases);
+                if (!derivation)
+                    continue;
+                let utterance = derivation.sentence.chooseBest();
+                utterance = utterance.replace(/ +/g, ' ');
+                // note: we don't call postprocessSynthetic or the neural NLG for secondary messages here
+                utterance = this._langPack.postprocessNLG(utterance, this._agentGenerator.entities, this._executor);
+                if (utterance) {
+                    messages.push({
+                        type: 'text',
+                        text: utterance
+                    });
+                }
+            } else {
+                const msg = this._replaceExtensionMessage(reply, contextPhrases);
+                if (msg !== null)
+                    messages.push(msg);
+            }
+        }
 
         this._nextReply = {
             messages,
