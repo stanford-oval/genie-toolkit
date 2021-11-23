@@ -18,8 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import { BasicSentenceGenerator, DialogueGenerator } from './sentence-generator/batch';
-
 import DatasetAugmenter from './dataset-tools/augmentation';
 import {
     DatasetParser,
@@ -46,18 +44,20 @@ import * as BTrie from './utils/btrie';
 import SpeechHandler from './speech/speech_handler';
 import AssistantEngine from './engine';
 import * as EngineModules from './engine';
-import * as DialogueAgent from './dialogue-agent';
+import * as DialogueAgent from './dialogue-runtime';
 
+import BatchSentenceGenerator from './sentence-generator/batch-sentence';
+import DialogueGenerator from './sentence-generator/dialogue-generator';
 import SentenceGenerator from './sentence-generator/generator';
 import * as SentenceGeneratorRuntime from './sentence-generator/runtime';
 import * as SentenceGeneratorTypes from './sentence-generator/types';
 import * as CommonTemplates from './templates/common.genie.out';
-import * as TransactionPolicy from './templates/transactions';
+import * as TransactionPolicy from './transaction-dialogues';
 import ThingpediaLoader from './templates/load-thingpedia';
 
 export {
     // sentence generation
-    BasicSentenceGenerator,
+    BatchSentenceGenerator,
     DialogueGenerator,
     SentenceGenerator,
     SentenceGeneratorRuntime,

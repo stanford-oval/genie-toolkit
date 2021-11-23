@@ -120,6 +120,7 @@ interface FollowUpRecord {
  *
  * This class should not be constructed directly. Instead, an appropriately
  * initialized loader can be retrieved from {@link SentenceGenerator.tpLoader}.
+ * The loader is also passed to the templates in the `$loader` global variable.
  */
 export default class ThingpediaLoader {
     private _grammar : SentenceGenerator;

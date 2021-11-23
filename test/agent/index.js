@@ -33,8 +33,8 @@ import * as seedrandom from 'seedrandom';
 
 import { DialogueParser } from '../../lib';
 import * as StreamUtils from '../../lib/utils/stream-utils';
-import Conversation from '../../lib/dialogue-agent/conversation';
-import { WebSocketConnection as ConversationWebSocketConnection } from '../../lib/dialogue-agent/protocol';
+import Conversation from '../../lib/dialogue-runtime/conversation';
+import { WebSocketConnection as ConversationWebSocketConnection } from '../../lib/dialogue-runtime/protocol';
 
 import MockThingpediaClient from './mock_thingpedia_client';
 import * as MockEngine from './mock_engine';
@@ -258,6 +258,7 @@ async function test(testRunner, dlg, i) {
 
     testRunner.conversation._options.anonymous = dlg.id.indexOf('-anon-') >= 0;
     testRunner.conversation.dialogueFlags.faqs = dlg.id.indexOf('-faqs-') >= 0;
+    testRunner.conversation._loop._thingtalkHandler._dlg.anonymous = dlg.id.indexOf('-anon-') >= 0;
     testRunner.reset();
 
     // reset the conversation

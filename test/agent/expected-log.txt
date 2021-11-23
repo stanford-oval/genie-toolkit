@@ -97,9 +97,18 @@ U: @com.twitter.post();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.twitter.post();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.twitter.post();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: You have multiple twitter devices. Which one do you want to use?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_resolve_device("Twitter Account foo", "Twitter Account bar");
+AT: @com.twitter.post();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $choice(0);
+UT: $dialogue @org.thingpedia.dialogue.transaction.answer(0);
+UT: @com.twitter.post();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: You have multiple Twitter devices. Which one do you want to use?
 A: What do you want to tweet?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(status);
 AT: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post();
@@ -229,7 +238,7 @@ C:   { id="iX8o07wSfvhe1laJhUzsFA"^^com.yelp:restaurant("The Cambridge Chop Hous
 C:   { id="btRAfitquaXgeB-2vuWxNQ"^^com.yelp:restaurant("The Free Press"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/Oq3r_QuneatEOt-poxpGuQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-free-press-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["british"^^com.yelp:restaurant_cuisine("British")], price=enum expensive, rating=4.5, reviewCount=35, geo=new Location(52.204808195527, 0.13039591109936), phone="+441223368337"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Evvia Estiatorio, NOLA Restaurant & Bar, and Tamarine Restaurant. Evvia Estiatorio is near [Latitude: 37.445 deg, Longitude: -122.164 deg], NOLA Restaurant & Bar is near [Latitude: 37.445 deg, Longitude: -122.161 deg], and Tamarine Restaurant is near [Latitude: 37.449 deg, Longitude: -122.158 deg].
+A: I see Evvia Estiatorio, NOLA Restaurant & Bar, and Tamarine Restaurant. Evvia Estiatorio is rated 4.5 star, NOLA Restaurant & Bar is rated 3.5 star, and Tamarine Restaurant is rated 4 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
@@ -529,9 +538,18 @@ U: @com.twitter.post();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.twitter.post();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.twitter.post();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: You have multiple twitter devices. Which one do you want to use?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_resolve_device("Twitter Account foo", "Twitter Account bar");
+AT: @com.twitter.post();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $choice(1);
+UT: $dialogue @org.thingpedia.dialogue.transaction.answer(1);
+UT: @com.twitter.post();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.twitter(id="twitter-bar"^^tt:device_id("Twitter Account bar")).post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: You have multiple Twitter devices. Which one do you want to use?
 A: What do you want to tweet?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(status);
 AT: @com.twitter(id="twitter-bar"^^tt:device_id("Twitter Account bar")).post();
@@ -584,6 +602,12 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("invalid"));
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("invalid"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("invalid"));
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Sorry, I cannot find any Yelp Cuisine matching “invalid”.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+AT: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("invalid"));
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
@@ -665,7 +689,7 @@ C: #[results=[
 C:   { repeat=enum track, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I set the repeat state for you to track.
+A: I set the repeat state to track.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1023,9 +1047,7 @@ UT: @com.spotify.play(playable="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spoti
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play(playable="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:playable("Hello"))
 C: #[results=[]]
-C: #[error=enum no_active_device]
-C: #[error_detail="No Spotify device is active"]
-C: #[error_stack="Error: No Spotify device is active"];
+C: #[error=enum no_active_device];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry, you must open the Spotify app first.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
@@ -1046,9 +1068,7 @@ UT: @com.spotify.play(playable="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spoti
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play(playable="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:playable("Hello"))
 C: #[results=[]]
-C: #[error=enum E_some_other_error]
-C: #[error_detail="Some other error occurred"]
-C: #[error_stack="Error: Some other error occurred"];
+C: #[error=enum E_some_other_error];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
@@ -1153,7 +1173,7 @@ C:   { id="spotify:album:2ZytN2cY4Zjrr9ukb2rqTP"^^com.spotify:album("Off the Wal
 C:   { id="spotify:album:1GlOZiKHTgtJqEF2FRii9y"^^com.spotify:album("Over The Garden Wall"), release_date=new Date("2017-09-19T00:00:00.000Z") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The Wall is released in November 29, 1979.
+A: The Wall is an album with the date equal to November 29, 1979.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1178,7 +1198,7 @@ C:   { id="spotify:album:2ZytN2cY4Zjrr9ukb2rqTP"^^com.spotify:album("Off the Wal
 C:   { id="spotify:album:1GlOZiKHTgtJqEF2FRii9y"^^com.spotify:album("Over The Garden Wall"), release_date=new Date("2017-09-19T00:00:00.000Z") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The Wall is released in November 29, 1979.
+A: The Wall is an album with the date equal to November 29, 1979.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -1257,7 +1277,7 @@ C: #[results=[
 C:   { id="spotify:track:7ytR5pFWmSjzHJIeQkgog4"^^com.spotify:song("ROCKSTAR (feat. Roddy Ricch)"), artists=["spotify:artist:4r63FhuTkUYltbVAg5TQnk"^^com.spotify:artist("DaBaby"), "spotify:artist:757aE44tKEUQEqRuT6GnEB"^^com.spotify:artist("Roddy Ricch")], album="spotify:album:623PL2MBg50Br5dLXC9E9e"^^com.spotify:album("BLAME IT ON BABY"), genres=["north carolina hip hop", "rap"], release_date=new Date("2020-04-17T00:00:00.000Z"), popularity=100, energy=69, danceability=74 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see ROCKSTAR (feat. Roddy Ricch). It is a song in the album BLAME IT ON BABY by DaBaby.
+A: The most popular song is ROCKSTAR (feat. Roddy Ricch). It is a song in the album BLAME IT ON BABY by DaBaby.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1279,7 +1299,7 @@ C: #[results=[
 C:   { id="spotify:track:0VXeNEtuiD77F2StUeUadK"^^com.spotify:song("Love Yourself"), artists=["spotify:artist:1uNFoZAHBGtllmzznpCI3s"^^com.spotify:artist("Justin Bieber")], album="spotify:album:74jDw6TsdKnT92V790QfvF"^^com.spotify:album("Romantic Pop Songs"), genres=["canadian pop", "pop", "post-teen pop"], release_date=new Date("2020-08-10T00:00:00.000Z"), popularity=0, energy=43, danceability=78 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Love Yourself. It is a song in the album Romantic Pop Songs by Justin Bieber.
+A: The least popular song is Love Yourself. It is a song in the album Romantic Pop Songs by Justin Bieber.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1417,9 +1437,18 @@ U: @com.xkcd.comic() => @com.twitter.post(status=title);
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.xkcd.comic() => @com.twitter.post(status=title);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.xkcd.comic() => @com.twitter.post(status=title);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: You have multiple twitter devices. Which one do you want to use?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_resolve_device("Twitter Account foo", "Twitter Account bar");
+AT: @com.xkcd.comic() => @com.twitter.post(status=title);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $choice(0);
+UT: $dialogue @org.thingpedia.dialogue.transaction.answer(0);
+UT: @com.xkcd.comic() => @com.twitter.post(status=title);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: You have multiple Twitter devices. Which one do you want to use?
 A: Ok, do you want me to get xkcd comic and then tweet the title?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
 AT: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
@@ -1483,8 +1512,12 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @org.thingpedia.iot.light-bulb.set_power(power=enum off);
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.light-bulb.set_power(power=enum off);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.light-bulb.set_power(power=enum off);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: You do not have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
+A: You don't have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_device_missing;
+AT: @org.thingpedia.iot.light-bulb.set_power(power=enum off);
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
@@ -1501,8 +1534,12 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @org.thingpedia.iot.door.state();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.door.state();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.door.state();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: You need to enable Home Assistant before you can use that command.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_device_missing;
+AT: @org.thingpedia.iot.door.state();
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
@@ -1568,9 +1605,7 @@ UT: @org.thingpedia.weather.current(location=new Location(90, 0, "North Pole"));
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.weather.current(location=new Location(90, 0, "North Pole"))
 C: #[results=[]]
-C: #[error="unexpected weather error"]
-C: #[error_detail="unexpected weather error"]
-C: #[error_stack="Error: unexpected weather error"];
+C: #[error="unexpected weather error"];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
@@ -1813,10 +1848,19 @@ U: timer(base=$now, interval=1h) => @com.thecatapi.get();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: timer(base=$now, interval=1h) => @com.thecatapi.get();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: timer(base=$now, interval=1h) => @com.thecatapi.get();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: What is your phone number?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_ask_phone_number;
+AT: timer(base=$now, interval=1h) => @com.thecatapi.get();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $answer("555-12345678"^^tt:phone_number);
+UT: $dialogue @org.thingpedia.dialogue.transaction.answer("555-12345678"^^tt:phone_number);
+UT: timer(base=$now, interval=1h) => @com.thecatapi.get();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: timer(base=$now, interval=1h) => @com.thecatapi.get()
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: What is your phone number?
 A: Alright, I will get the cat picture every 60 minutes.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
 #! vote: down
@@ -1988,12 +2032,19 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: timer(base=$now, interval=1h) => @com.thecatapi.get();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: timer(base=$now, interval=1h) => @com.thecatapi.get();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: timer(base=$now, interval=1h) => @com.thecatapi.get();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: What is your phone number?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_ask_phone_number;
+AT: timer(base=$now, interval=1h) => @com.thecatapi.get();
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
 ====
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
@@ -2001,8 +2052,12 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.twitter.post();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.twitter.post();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.twitter.post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: To use this command you must first create a personal Genie account.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_registration_required;
+AT: @com.twitter.post();
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
@@ -2047,12 +2102,21 @@ U: \t @org.thingpedia.iot.switch.state();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch.state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch.state();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: You have multiple switch devices. Which one do you want to use?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_resolve_device("Bed Switch 1", "Bed Switch 2", "Kitchen Switches", "Ceiling Switches", "Büro Decke");
+AT: @org.thingpedia.iot.switch.state();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $choice(0);
+UT: $dialogue @org.thingpedia.dialogue.transaction.answer(0);
+UT: @org.thingpedia.iot.switch.state();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.iot.switch(id="switch-bed1"^^tt:device_id("Bed Switch 1")).state()
 C: #[results=[
 C:   { state=enum off, __device="switch-bed1"^^tt:device_id("Bed Switch 1") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: You have multiple switch devices. Which one do you want to use?
 A: The Bed Switch 1 switch is off.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
@@ -2186,8 +2250,8 @@ C:   { id="4Bn7z4IPxBk9dF3EpTqMQg"^^com.yelp:restaurant("Happy Lamb Hot Pot"), i
 C: ]]
 C: #[count=38];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Crouching Tiger Restaurant & Bar and I Dumpling. Both are restaurants rated 4 star with Chinese food.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
+A: I see Crouching Tiger Restaurant & Bar, I Dumpling, and Redwood Bistro. Crouching Tiger Restaurant & Bar is rated 4 star, I Dumpling is rated 4 star, and Redwood Bistro is rated 4.5 star.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
@@ -2236,12 +2300,19 @@ UT: $stop;
 U: \t @org.thingpedia.iot.switch(name="invalid").state();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(name="invalid").state();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch(name="invalid").state();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I cannot find any invalid switch device. Which device do you want to use?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_resolve_device("Bed Switch 1", "Bed Switch 2", "Kitchen Switches", "Ceiling Switches", "Büro Decke");
+AT: @org.thingpedia.iot.switch(name="invalid").state();
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
 ====
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
@@ -2312,8 +2383,8 @@ C:   { id="spotify:track:62bOmKYxYg7dhrC6gH9vFn"^^com.spotify:playable("Bye Bye 
 C: ]]
 C: #[count=50];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Yellow and The Real Slim Shady. Yellow is by Coldplay, while The Real Slim Shady is by Eminem.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
+A: I see Yellow, The Real Slim Shady, and Ms. Jackson. Yellow is by Coldplay, The Real Slim Shady is by Eminem, and Ms. Jackson is by Outkast.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
@@ -2365,12 +2436,21 @@ U: \t @org.thingpedia.iot.switch(name="invalid").set_power(power=enum off);
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(name="invalid").set_power(power=enum off);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch(name="invalid").set_power(power=enum off);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I cannot find any invalid switch device. Which device do you want to use?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_resolve_device("Bed Switch 1", "Bed Switch 2", "Kitchen Switches", "Ceiling Switches", "Büro Decke");
+AT: @org.thingpedia.iot.switch(name="invalid").set_power(power=enum off);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: kitchen
+UT: $dialogue @org.thingpedia.dialogue.transaction.answer(2);
+UT: @org.thingpedia.iot.switch(name="invalid").set_power(power=enum off);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).set_power(power=enum off)
 C: #[results=[
 C:   { power=enum off, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I cannot find any invalid switch device. Which device do you want to use?
 A: I turned off your Kitchen Switches switch.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: up
@@ -2446,8 +2526,8 @@ C:   { league_id="39"^^com.goal_smart:soccer_league("premier league"), id="518"^
 C:   { league_id="39"^^com.goal_smart:soccer_league("premier league"), id="18813"^^com.goal_smart:soccer_player("A. Cresswell"), dribble_attempts=9 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Both Adrien Silva and M. Shabani are player stats with the dribble equal to 0.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
+A: The dribble is 0.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
@@ -2489,9 +2569,22 @@ UT: $stop;
 U: maybe turn on the lights?
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Did you mean set on the lights?
-A: You do not have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_parse;
+AT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: yes
+UT: $dialogue @org.thingpedia.dialogue.transaction.answer(true);
+UT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
+C: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_parse;
+C: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: You don't have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_device_missing;
+AT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
@@ -2507,15 +2600,28 @@ UT: $stop;
 U: maybe turn on the lights?
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
-C: null
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Did you mean set on the lights?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_parse;
+AT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: no
+UT: $dialogue @org.thingpedia.dialogue.transaction.answer(false);
+UT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
+C: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_parse;
+C: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry I couldn't help on that.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_clarify;
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+AT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+====
+# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;

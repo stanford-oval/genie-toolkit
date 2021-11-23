@@ -24,6 +24,7 @@ import { Temporal } from '@js-temporal/polyfill';
 import { Ast, Type } from 'thingtalk';
 import * as Units from 'thingtalk-units';
 
+import { adjustDefaultParameters } from '../utils/thingtalk';
 import {
     Placeholder,
     ErrorMessage,
@@ -1844,25 +1845,6 @@ function getInvocation(historyItem : Ast.Node) : Ast.Invocation|Ast.FunctionCall
     historyItem.visit(visitor);
     assert(visitor.invocation);
     return visitor.invocation;
-}
-
-class AdjustDefaultParametersVisitor extends Ast.NodeVisitor {
-    visitInvocation(invocation : Ast.Invocation) : boolean {
-        invocation.in_params = invocation.in_params.filter((ip) => {
-            const arg = invocation.schema!.getArgument(ip.name);
-            assert(arg && arg.is_input);
-            const _default = arg.impl_annotations.default;
-            if (_default && ip.value.equals(_default))
-                return false;
-            return true;
-        });
-        return false;
-    }
-}
-
-function adjustDefaultParameters<T extends Ast.Node>(stmt : T) : T {
-    stmt.visit(new AdjustDefaultParametersVisitor());
-    return stmt;
 }
 
 export function expressionUsesIDFilter(expr : Ast.Expression) {

@@ -61,7 +61,7 @@ async function main() {
         }
     });
     await engine.open();
-    await engine.assistant.openConversation('mock');
+    await engine.assistant.getOrOpenConversation('mock');
 
     runTests(engine, process.argv[2]);
     await engine.run();

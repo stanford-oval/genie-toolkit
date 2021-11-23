@@ -89,7 +89,7 @@ export class Grammar {
                     buffer += stmt.doc;
                     buffer += '\n';
                 }
-                buffer += `export const ${stmt.name} : $SentenceGeneratorTypes.NonTerminal<${stmt.type}> = ${stringEscape(stmt.name)};\n`;
+                buffer += `export const ${stmt.name} : $runtime.NonTerminal<${stmt.type}> = new $runtime.NonTerminal<${stmt.type}>(${stringEscape(stmt.name)});\n`;
                 declaredNames.add(stmt.name);
             }
         }

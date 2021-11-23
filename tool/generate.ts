@@ -22,8 +22,9 @@ import * as argparse from 'argparse';
 import seedrandom from 'seedrandom';
 import * as fs from 'fs';
 import * as Tp from 'thingpedia';
+import { SchemaRetriever } from 'thingtalk';
 
-import { BasicSentenceGenerator } from '../lib/sentence-generator/batch';
+import BasicSentenceGenerator from '../lib/sentence-generator/batch-sentence';
 import { DatasetStringifier } from '../lib/dataset-tools/parsers';
 import ProgressBar from './lib/progress_bar';
 import { ActionSetFlag } from './lib/argutils';
@@ -130,6 +131,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 
 export async function execute(args : any) {
     const tpClient = new Tp.FileClient(args);
+    const schemas = new SchemaRetriever(tpClient, null, !args.debug);
     const options = {
         rng: seedrandom.alea(args.random_seed),
         locale: args.locale,
@@ -138,6 +140,7 @@ export async function execute(args : any) {
         templateFiles: args.template,
         targetLanguage: args.target_language,
         thingpediaClient: tpClient,
+        schemaRetriever: schemas,
         targetPruningSize: args.target_pruning_size,
         maxDepth: args.maxdepth,
         debug: args.debug,

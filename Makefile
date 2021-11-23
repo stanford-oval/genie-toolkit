@@ -6,7 +6,7 @@ prepare: dist
 
 template_sources = \
 	lib/templates/*.genie \
-	lib/templates/*/*.genie
+	lib/transaction-dialogues/templates/*.genie
 
 sources = \
 	lib/*.ts \
@@ -28,7 +28,7 @@ languages = en
 bundled_templates := \
 	lib/templates/basic.genie \
 	lib/templates/single-command.genie \
-	lib/templates/dialogue.genie
+	lib/transaction-dialogues/templates/index.genie
 
 built_bundled_templates := $(addsuffix .out.ts,$(bundled_templates))
 

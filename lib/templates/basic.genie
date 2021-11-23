@@ -22,8 +22,9 @@ import { Ast, } from 'thingtalk';
 
 // import the combinator library
 import * as C from './ast_manip';
-import * as D from './dialogue_acts';
 import ThingpediaLoader from './load-thingpedia';
+
+import * as D from '../transaction-dialogues/dialogue_acts';
 
 {
 function special(specialType : string) {

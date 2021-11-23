@@ -25,8 +25,8 @@ import * as Tp from 'thingpedia';
 import Engine from '../lib/engine';
 import Platform from './lib/cmdline-platform';
 
-import Conversation from '../lib/dialogue-agent/conversation';
-import { Message } from '../lib/dialogue-agent/protocol';
+import Conversation from '../lib/dialogue-runtime/conversation';
+import { Message } from '../lib/dialogue-runtime/protocol';
 
 const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 const NL_SERVER_URL = 'https://nlp.almond.stanford.edu';

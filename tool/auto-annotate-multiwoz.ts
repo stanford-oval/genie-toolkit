@@ -32,8 +32,13 @@ import { DialogueSerializer } from '../lib/dataset-tools/parsers';
 import * as StreamUtils from '../lib/utils/stream-utils';
 import MultiJSONDatabase from './lib/multi_json_database';
 import ProgressBar from './lib/progress_bar';
-import { getBestEntityMatch } from '../lib/dialogue-agent/entity-linking/entity-finder';
+import { getBestEntityMatch } from '../lib/thingtalk-dialogues/entity-linking/entity-finder';
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
+import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation-thingtalk-executor';
+import { DialogueInterface } from '../lib/thingtalk-dialogues';
+import { DummyCommandIO, SimpleCommandDispatcher } from '../lib/thingtalk-dialogues/cmd-dispatch';
+import  * as TransactionPolicy from '../lib/transaction-dialogues';
+import { LogLevel } from '../lib/sentence-generator/runtime';
 
 function undoTradePreprocessing(sentence : string) : string {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');
@@ -268,7 +273,8 @@ class Converter extends stream.Readable {
     private _agentParser : ParserClient.ParserClient;
     private _simulatorOverrides : Map<string, string>;
     private _database : MultiJSONDatabase;
-    private _simulator : ThingTalkUtils.Simulator;
+    private _simulator : SimulationDialogueAgent;
+    private _dlg : DialogueInterface;
     private _timezone : string;
 
     private _onlyMultidomain : boolean;
@@ -290,7 +296,7 @@ class Converter extends stream.Readable {
         this._timezone = args.timezone;
 
         this._simulatorOverrides = new Map;
-        const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
+        const simulatorOptions : SimulationDialogueAgentOptions = {
             rng: seedrandom.alea('almond is awesome'),
             locale: 'en-US',
             timezone: args.timezone,
@@ -301,7 +307,24 @@ class Converter extends stream.Readable {
         };
         this._database = new MultiJSONDatabase(args.database_file);
         simulatorOptions.database = this._database;
-        this._simulator = ThingTalkUtils.createSimulator(simulatorOptions);
+        this._simulator = new SimulationDialogueAgent(simulatorOptions);
+        const io = new DummyCommandIO();
+        this._dlg = new DialogueInterface(null, {
+            io,
+            policy: TransactionPolicy,
+            executor: this._simulator,
+            dispatcher: new SimpleCommandDispatcher(io),
+            locale: 'en-US',
+            timezone: this._timezone,
+            schemaRetriever: this._schemas,
+            simulated: false,
+            interactive: false,
+            deterministic: false,
+            anonymous: false,
+            flags: { dialogues: true, multiwoz: true },
+            debug: LogLevel.NONE,
+            rng: simulatorOptions.rng
+        });
 
         this._n = 0;
         this._N = 0;
@@ -726,8 +749,8 @@ class Converter extends stream.Readable {
 
         const actionDomains = this._getActionDomains(dlg);
 
-        let context : Ast.DialogueState|null = null, contextInfo : ContextInfo = { current: null, next: null },
-            simulatorState : any = undefined;
+        let context : Ast.DialogueState|null = null;
+        let contextInfo : ContextInfo = { current: null, next: null };
         const slotBag = new Map<string, string>();
         const turns = [];
         for (let idx = 0; idx < dlg.dialogue.length; idx++) {
@@ -747,9 +770,9 @@ class Converter extends stream.Readable {
                     this._extractSimulatorOverrides(agentUtterance);
 
                     // "execute" the context
-                    const { newDialogueState, newExecutorState } = await this._simulator.execute(context, simulatorState);
-                    context = newDialogueState;
-                    simulatorState = newExecutorState;
+                    this._dlg.state = context;
+                    await this._dlg.execute(context);
+                    context = this._dlg.state;
 
                     for (const item of context.history) {
                         if (item.results === null)

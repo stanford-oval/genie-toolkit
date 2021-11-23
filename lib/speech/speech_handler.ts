@@ -23,10 +23,10 @@ import * as events from 'events';
 
 import SpeechRecognizer from './speech_recognizer';
 import SpeechSynthesizer from './speech_synthesizer';
-import { MessageType } from '../dialogue-agent/protocol';
-import type Conversation from '../dialogue-agent/conversation';
-import type AudioController from '../dialogue-agent/audio/controller';
-import { AudioPlayer, CustomPlayerSpec } from '../dialogue-agent/audio/interface';
+import { MessageType } from '../dialogue-runtime/protocol';
+import type Conversation from '../dialogue-runtime/conversation';
+import type AudioController from '../dialogue-runtime/audio/controller';
+import { AudioPlayer, CustomPlayerSpec } from '../dialogue-runtime/audio/interface';
 import CustomError from '../utils/custom_error';
 
 interface SpeechHandlerOptions {

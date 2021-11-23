@@ -132,6 +132,9 @@ class GenieTypeError extends Error {
 // size multiplied by this factor
 const NON_CONTEXTUAL_PRUNING_SIZE_MULTIPLIER = 3;
 
+// root is multiplied by this factor, because there is little use in pruning root
+const ROOT_MULTIPLIER = 10;
+
 // powers grow by 2 until depth 5, then go down by 0.8
 const POWERS = [1];
 for (let i = 1; i < 6; i++)
@@ -145,7 +148,7 @@ const MAX_SAMPLE_SIZE = 1000000;
 // the automatically added derivation key considering the context
 const CONTEXT_KEY_NAME = '$context';
 
-interface GenericSentenceGeneratorOptions extends GrammarOptions {
+export interface SentenceGeneratorOptions extends GrammarOptions {
     locale : string;
     templateFiles ?: string[];
     rootSymbol ?: string;
@@ -154,20 +157,8 @@ interface GenericSentenceGeneratorOptions extends GrammarOptions {
     maxConstants : number;
     rng : () => number;
     logPrefix ?: string;
+    contextual : boolean;
 }
-
-interface BasicSentenceGeneratorOptions {
-    contextual : false;
-}
-
-interface ContextualSentenceGeneratorOptions {
-    contextual : true;
-    rootSymbol ?: string;
-}
-
-export type SentenceGeneratorOptions =
-    GenericSentenceGeneratorOptions &
-    (BasicSentenceGeneratorOptions | ContextualSentenceGeneratorOptions);
 
 interface Constant {
     token : ReplacedResult;
@@ -546,6 +537,8 @@ export default class SentenceGenerator extends events.EventEmitter {
     private _nonTermList : string[];
     private _rules : Array<Array<Rule<any[], any>>>;
     private _contextTable : Record<string, number>;
+    private _dynamicNonTerm : number;
+    private _rootNonTerm : number;
 
     private _constantMap : MultiMap<string, [number, KeyFunction<any>]>;
 
@@ -587,6 +580,12 @@ export default class SentenceGenerator extends events.EventEmitter {
         this._charts = undefined;
 
         this._progress = 0;
+
+        this._dynamicNonTerm = this._internalDeclareSymbol('$dynamic');
+        if (options.rootSymbol)
+            this._rootNonTerm = this._internalDeclareSymbol(options.rootSymbol);
+        else
+            this._rootNonTerm = this._dynamicNonTerm;
     }
 
     get tpLoader() {
@@ -684,8 +683,10 @@ export default class SentenceGenerator extends events.EventEmitter {
         const rulenumber = this._rules[symbolId].length;
         const optsentence = sentence.optimize({});
         if (optsentence === null)
-            return;
-        this._rules[symbolId].push(new Rule(rulenumber, expansion, optsentence, semanticAction, keyFunction, attributes));
+            return null;
+        const rule = new Rule(rulenumber, expansion, optsentence, semanticAction, keyFunction, attributes);
+        this._rules[symbolId].push(rule);
+        return rule;
     }
 
     addConstants(symbol : string, token : string, type : any, keyFunction : KeyFunction<any>, attributes : RuleAttributes = {}) : void {
@@ -727,15 +728,18 @@ export default class SentenceGenerator extends events.EventEmitter {
             const nonTerm = this._nonTermList[nonTermIndex];
             const rules = this._rules[nonTermIndex];
 
-            for (const rule of rules) {
-                for (const expansion of rule.expansion) {
-                    if (expansion instanceof NonTerminal) {
-                        const index = this._nonTermTable.get(expansion.symbol);
-                        if (index === undefined)
-                            throw new Error(`Non-terminal ${expansion.symbol} undefined, in ${nonTerm} = ${rule}`);
-                        expansion.index = index;
-                    }
-                }
+            for (const rule of rules)
+                this._typecheckRule(rule, nonTerm);
+        }
+    }
+
+    private _typecheckRule(rule : Rule<any[], any>, nonTerm : string) {
+        for (const expansion of rule.expansion) {
+            if (expansion instanceof NonTerminal) {
+                const index = this._nonTermTable.get(expansion.symbol);
+                if (index === undefined)
+                    throw new Error(`Non-terminal ${expansion.symbol} undefined, in ${nonTerm} = ${rule}`);
+                expansion.index = index;
             }
         }
     }
@@ -747,6 +751,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         for (let nonTermIndex = 0; nonTermIndex < this._nonTermList.length; nonTermIndex++)
             this._nonTermHasContext.push(false);
 
+        this._nonTermHasContext[this._dynamicNonTerm] = true;
         for (const index of Object.values(this._contextTable))
             this._nonTermHasContext[index] = true;
 
@@ -847,7 +852,7 @@ export default class SentenceGenerator extends events.EventEmitter {
             for (const [symbolId, keyFunction] of this._constantMap.get(token)) {
                 for (const constant of constants[token]) {
                     this._addRuleInternal(symbolId, [], new ReplacedPhrase(constant.token), () => constant.value, keyFunction, attributes);
-                    if (this._options.debug >= LogLevel.EVERYTHING)
+                    if (this._options.debug >= LogLevel.DUMP_TEMPLATES)
                         this.log(`added temporary rule NT[${this._nonTermList[symbolId]}] -> ${constant.token}`);
                 }
             }
@@ -893,7 +898,7 @@ export default class SentenceGenerator extends events.EventEmitter {
      * @param nonTerm - the symbol to generate
      * @return {Derivation} - the sampled derivation
      */
-    generateOne(contexts : Iterable<ContextPhrase>, nonTerm : string) : Derivation<any>|undefined {
+    generateOne<T = any>(contexts : Iterable<ContextPhrase>, nonTerm : string) : Derivation<T>|undefined {
         this.finalize();
         assert(this._contextual);
 
@@ -915,8 +920,6 @@ export default class SentenceGenerator extends events.EventEmitter {
             if (best === undefined || derivation.priority > best.priority)
                 best = derivation;
         }
-
-        this._removeTemporaryRules();
 
         return best;
     }
@@ -966,6 +969,9 @@ export default class SentenceGenerator extends events.EventEmitter {
 
         const contexts = new Map<unknown, Context>();
         for (const phrase of contextPhrases) {
+            if (this._options.debug >= LogLevel.DUMP_TEMPLATES)
+                console.log(`context ${this._nonTermList[phrase.symbol]} = ${phrase.utterance}`);
+
             const existing = contexts.get(phrase.context);
             if (existing === undefined)
                 contexts.set(phrase.context, new Context(phrase.context));
@@ -990,10 +996,13 @@ export default class SentenceGenerator extends events.EventEmitter {
      * @param hard - whether to reset all derivations or only those that depend on the context
      */
     reset(hard ?: boolean) {
+        this._rules[this._dynamicNonTerm] = [];
+
         if (!this._charts)
             return;
         if (hard) {
             this._charts = undefined;
+            this._removeTemporaryRules();
             return;
         }
 
@@ -1019,6 +1028,8 @@ export default class SentenceGenerator extends events.EventEmitter {
                 // to a large number (integer, to avoid floating point computations)
                 if (this._contextual && depth === 0 && this.hasContext(this._nonTermList[index]))
                     this._charts.init(index, depth, INFINITY);
+                else if (index === this._dynamicNonTerm || index === this._rootNonTerm)
+                    this._charts.init(index, depth, ROOT_MULTIPLIER * targetPruningSize); // multiply root by a factor to avoid unnecessary pruning
                 else if (this._contextual && !this._nonTermHasContext[index]) // multiply non-contextual non-terminals by a factor
                     this._charts.init(index, depth, NON_CONTEXTUAL_PRUNING_SIZE_MULTIPLIER * targetPruningSize);
                 else
@@ -1173,11 +1184,23 @@ export default class SentenceGenerator extends events.EventEmitter {
     }
 
     /**
+     * Add a dynamically generate template.
+     */
+    addDynamicRule<ArgTypes extends unknown[], ResultType>(expansion : NonTerminal[],
+                                                           sentence : Replaceable,
+                                                           semanticAction : SemanticAction<ArgTypes, ResultType>,
+                                                           attributes : RuleAttributes = {}) : void {
+        const rule = this._addRuleInternal(this._dynamicNonTerm, expansion, sentence, semanticAction, undefined, attributes);
+        if (rule)
+            this._typecheckRule(rule, '$dynamic');
+    }
+
+    /**
      * Generate a batch of derivations for the given symbol, given the batch of contexts.
      *
      */
-    generate(contextPhrases : Iterable<ContextPhrase>,
-             symbol : string) : Iterable<Derivation<any>> {
+    generate<T=any>(contextPhrases : Iterable<ContextPhrase>,
+                    symbol : string) : Iterable<Derivation<T>> {
         this.finalize();
 
         // enable all rules (in case we called generateOne before)

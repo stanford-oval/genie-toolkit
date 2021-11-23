@@ -35,10 +35,10 @@ import AppDatabase from './apps/database';
 import AppRunner from './apps/runner';
 import type AppExecutor from './apps/app_executor';
 
-import AudioController from '../dialogue-agent/audio/controller';
-import AssistantDispatcher from '../dialogue-agent/assistant_dispatcher';
-import { NotificationConfig } from '../dialogue-agent/notifications';
-import NotificationFormatter from '../dialogue-agent/notifications/formatter';
+import AudioController from '../dialogue-runtime/audio/controller';
+import AssistantDispatcher from '../dialogue-runtime/assistant_dispatcher';
+import { NotificationConfig } from '../dialogue-runtime/notifications';
+import NotificationFormatter from '../dialogue-runtime/notifications/formatter';
 
 import * as Config from '../config';
 import  { ActivityMonitor, ActivityMonitorStatus } from './activity_monitor';

@@ -25,7 +25,7 @@ import { SchemaRetriever } from 'thingtalk';
 import * as seedrandom from 'seedrandom';
 
 import { BTrieBuilder } from '../utils/btrie';
-import { BasicSentenceGenerator } from '../sentence-generator/batch';
+import BasicSentenceGenerator from '../sentence-generator/batch-sentence';
 import { SentenceExample } from '../dataset-tools/parsers';
 
 import ExactMatcher from './exact';

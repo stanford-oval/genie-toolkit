@@ -36,15 +36,17 @@ import {
     DialogueSerializer,
     DialogueTurn,
 } from '../lib/dataset-tools/parsers';
-import AbstractDialogueAgent from '../lib/dialogue-agent/abstract_dialogue_agent';
-import ExecutionDialogueAgent from '../lib/dialogue-agent/execution_dialogue_agent';
-import DialoguePolicy from '../lib/dialogue-agent/dialogue_policy';
-import ValueCategory from '../lib/dialogue-agent/value-category';
+import AbstractThingTalkExecutor from '../lib/thingtalk-dialogues/abstract-thingtalk-executor';
+import InferenceTimeThingTalkExecutor from '../lib/thingtalk-dialogues/inference-thingtalk-executor';
+import { InferenceTimeDialogue } from '../lib/thingtalk-dialogues/inference-time-dialogue';
+import ValueCategory from '../lib/dialogue-runtime/value-category';
 import Engine from '../lib/engine';
-import * as I18n from '../lib/i18n';
 
 import MultiJSONDatabase from './lib/multi_json_database';
 import Platform from './lib/cmdline-platform';
+import SimulationThingTalkExecutor, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation-thingtalk-executor';
+import { CommandAnalysisType } from '../lib/dialogue-runtime/dialogue-loop';
+import { inputToDialogueState } from '../lib/thingtalk-dialogues/command-parser';
 
 interface AnnotatorOptions {
     locale : string;
@@ -53,6 +55,7 @@ interface AnnotatorOptions {
     thingpedia_dir : string[]|undefined;
     nlu_server : string;
     database_file : string|undefined;
+    policy : string|undefined;
     execution_mode : 'simulation'|'real';
     random_seed : string;
 }
@@ -61,14 +64,13 @@ class Annotator extends events.EventEmitter {
     private _rl : readline.Interface;
     private _locale : string;
     private _timezone : string;
-    private _langPack : I18n.LanguagePack;
     private _rng : () => number;
     private _platform : Tp.BasePlatform;
     private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _parser : ParserClient.ParserClient;
-    private _executor : AbstractDialogueAgent<unknown>;
-    private _dialoguePolicy : DialoguePolicy;
+    private _executor : AbstractThingTalkExecutor;
+    private _agent : InferenceTimeDialogue;
     private _engine : Engine|undefined;
     private _simulatorDatabase : MultiJSONDatabase|undefined;
 
@@ -77,8 +79,6 @@ class Annotator extends events.EventEmitter {
     private _outputDialogue : DialogueTurn[];
     private _currentTurnIdx : number;
     private _outputTurn : DialogueTurn;
-    private _context : ThingTalk.Ast.DialogueState|null;
-    private _executorState : any|undefined;
     private _preprocessed : string|undefined;
     private _entities : EntityMap|undefined;
     private _candidates : ThingTalk.Ast.DialogueState[]|undefined;
@@ -90,7 +90,6 @@ class Annotator extends events.EventEmitter {
 
         this._locale = options.locale;
         this._timezone = options.timezone;
-        this._langPack = I18n.get(options.locale);
         this._rng = seedrandom.alea(options.random_seed);
         this._parser = ParserClient.get(options.nlu_server, options.locale);
 
@@ -103,7 +102,7 @@ class Annotator extends events.EventEmitter {
         if (options.execution_mode === 'simulation') {
             this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
 
-            const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
+            const simulatorOptions : SimulationDialogueAgentOptions = {
                 rng: seedrandom.alea('almond is awesome'),
                 locale: options.locale,
                 timezone: options.timezone,
@@ -116,20 +115,26 @@ class Annotator extends events.EventEmitter {
                 simulatorOptions.database = this._simulatorDatabase;
             }
 
-            this._executor = ThingTalkUtils.createSimulator(simulatorOptions);
+            this._executor = new SimulationThingTalkExecutor(simulatorOptions);
         } else {
             this._engine = new Engine(this._platform);
-            this._executor = new ExecutionDialogueAgent(this._engine, this, false);
+            this._executor = new InferenceTimeThingTalkExecutor(this._engine, this, false);
             this._schemas = this._engine.schemas;
         }
-        this._dialoguePolicy = new DialoguePolicy({
-            thingpedia: this._tpClient,
-            schemas: this._schemas,
+        this._agent = new InferenceTimeDialogue({
+            conversationId: this.id,
+            policy: options.policy,
+            thingpediaClient: this._tpClient,
+            schemaRetriever: this._schemas,
+            nlu: this._parser,
+            nlg: this._parser,
+            executor: this._executor,
             locale: this._locale,
             timezone: options.timezone,
             rng: this._rng,
             debug: 0,
             anonymous: false,
+            useConfidence: false,
             extraFlags: {},
         });
 
@@ -147,8 +152,6 @@ class Annotator extends events.EventEmitter {
             user: '',
             user_target: '',
         };
-        this._context = null;
-        this._executorState = undefined;
         this._preprocessed = undefined;
         this._entities = {};
         this._candidates = undefined;
@@ -208,37 +211,13 @@ class Annotator extends events.EventEmitter {
         });
     }
 
-    // implementation of the abstract dialogue loop interface, which the
-    // execution dialogue agent calls sometimes
-
-    get _() {
-        return (x : string) => x;
+    // implementation of the abstract conversation interface, which the
+    // inference time executor calls sometimes
+    get id() {
+        return 'interactive-annotate';
     }
-    get icon() {
-        return null;
-    }
-    set icon(v : string|null) {
+    async sendNewProgram() {
         // do nothing
-    }
-    get isAnonymous() {
-        return false;
-    }
-    get platformData() {
-        return {};
-    }
-    get conversation() {
-        return {
-            id: 'main',
-
-            getState() {
-                return {
-                    history: [],
-                    dialogueState: {},
-                    lastMessageId: 0,
-                    expected: null
-                };
-            }
-        };
     }
 
     interpolate(msg : string, args : Record<string, unknown>) : string {
@@ -304,7 +283,7 @@ class Annotator extends events.EventEmitter {
         if (this._engine)
             await this._engine.open();
         await this._parser.start();
-        await this._dialoguePolicy.initialize();
+        await this._agent.initialize(undefined, false);
     }
     async stop() {
         await this._parser.stop();
@@ -336,17 +315,14 @@ class Annotator extends events.EventEmitter {
             return;
         }
 
-        const oldContext = this._context;
-        this._context = ThingTalkUtils.computeNewState(this._context, newState, 'user');
-        const prediction = ThingTalkUtils.computePrediction(oldContext, this._context, 'user');
-        this._outputTurn.user_target = prediction.prettyprint();
-        this._nextTurn();
+        this._outputTurn.user_target = newState.prettyprint();
+        this._nextTurn(newState);
     }
 
     private _edit(i : number|undefined) {
         let program;
         if (i === undefined) {
-            program = this._context!;
+            program = this._agent.state!;
         } else {
             if (Number.isNaN(i) || i < 1 || i > this._candidates!.length) {
                 console.log('Invalid number');
@@ -373,11 +349,8 @@ class Annotator extends events.EventEmitter {
         i -= 1;
 
         const program = this._candidates![i];
-        const oldContext = this._context;
-        this._context = ThingTalkUtils.computeNewState(this._context, program, 'user');
-        const prediction = ThingTalkUtils.computePrediction(oldContext, this._context, 'user');
-        this._outputTurn.user_target = prediction.prettyprint();
-        this._nextTurn();
+        this._outputTurn.user_target = program.prettyprint();
+        this._nextTurn(program);
     }
 
     private _more() {
@@ -409,14 +382,13 @@ class Annotator extends events.EventEmitter {
         console.log(`Dialog #${this._serial}`);
 
         this._outputDialogue = [];
-        this._context = null;
-        this._executorState = undefined;
         this._currentTurnIdx = -1;
+        this._agent.reset();
 
-        this._nextTurn();
+        this._nextTurn(null);
     }
 
-    private async _nextTurn() {
+    private async _nextTurn(parsed : ThingTalk.Ast.Input|null) {
         if (this._outputTurn.user_target)
             this._outputDialogue.push(this._outputTurn);
         this._currentTurnIdx ++;
@@ -431,42 +403,20 @@ class Annotator extends events.EventEmitter {
         };
 
         if (this._currentTurnIdx > 0) {
-            try {
-                const { newDialogueState, newExecutorState } = await this._executor.execute(this._context!, this._executorState);
-                this._context = newDialogueState;
-                this._executorState = newExecutorState;
-            } catch(e) {
-                if (e.code === 'ECANCELLED') {
-                    this.next();
-                    return;
-                } else {
-                    throw e;
-                }
-            }
+            const reply = await this._agent.getReply({
+                type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
+                utterance: this._outputTurn!.user,
+                user_target: this._outputTurn!.user_target,
+                platformData: {},
+                parsed: parsed!
+            });
 
-            console.log();
-            const contextCode = this._context.prettyprint();
-            for (const line of contextCode.trim().split('\n'))
-                console.log('C: ' + line);
-            this._outputTurn.context = contextCode;
+            this._outputTurn.context = reply.context;
+            for (const msg of reply.messages)
+                console.log('A: ' + msg);
 
-            // run the agent
-
-            const policyResult = await this._dialoguePolicy.chooseAction(this._context);
-            if (!policyResult) {
-                console.log('Dialogue policy error: no reply at this state');
-                this.next();
-                return;
-            }
-
-            const postprocessed = this._langPack.postprocessNLG(policyResult.utterance, policyResult.entities, this._executor);
-            console.log('A: ' + postprocessed);
-
-            const prediction = ThingTalkUtils.computePrediction(this._context, policyResult.state, 'agent');
-
-            this._outputTurn.agent = postprocessed;
-            this._outputTurn.agent_target = prediction.prettyprint();
-            this._context = policyResult.state;
+            this._outputTurn.agent = reply.messages[0] as string;
+            this._outputTurn.agent_target = reply.agent_target;
         }
 
         this._state = 'input';
@@ -475,23 +425,15 @@ class Annotator extends events.EventEmitter {
         this._rl.prompt();
     }
 
-    private async _inputToDialogueState(input : ThingTalk.Ast.Input) : Promise<ThingTalk.Ast.DialogueState|null> {
-        return ThingTalkUtils.inputToDialogueState(this._dialoguePolicy, this._context, input);
+    private _inputToDialogueState(input : ThingTalk.Ast.Input) : Promise<ThingTalk.Ast.DialogueState|null> {
+        return inputToDialogueState(this._agent.policy, this._agent.state, input, this._agent.generator);
     }
 
     private async _handleUtterance(utterance : string) {
         this._outputTurn.user = utterance;
         this._state = 'loading';
 
-        let contextCode, contextEntities;
-        if (this._context !== null) {
-            const context = ThingTalkUtils.prepareContextForPrediction(this._context, 'user');
-            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(context);
-        } else {
-            contextCode = ['null'];
-            contextEntities = {};
-        }
-
+        const [contextCode, contextEntities] = this._agent.prepareContextForPrediction();
         const parsed = await this._parser.sendUtterance(utterance, contextCode, contextEntities, {
             tokenized: false,
             skip_typechecking: true
@@ -559,6 +501,10 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: false,
         default: NL_SERVER_URL,
         help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
+    });
+    parser.add_argument('--policy', {
+        required: false,
+        help: 'Path to JS/TS module defining the dialogue policy.'
     });
     parser.add_argument('--execution-mode', {
         required: false,

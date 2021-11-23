@@ -1,6 +1,6 @@
 
 
-import { getBestEntityMatch } from '../../lib/dialogue-agent/entity-linking/entity-finder';
+import { getBestEntityMatch } from '../../lib/thingtalk-dialogues/entity-linking/entity-finder';
 
 const TEST_CASES = [
     [

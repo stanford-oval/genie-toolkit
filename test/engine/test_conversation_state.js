@@ -15,7 +15,7 @@
 // limitations under the License.
 
 import assert from 'assert';
-import { MessageType } from '../../lib/dialogue-agent/protocol';
+import { MessageType } from '../../lib/dialogue-runtime/protocol';
 
 export default async function testConversationState(engine) {
     const conversationId = 'mock';
@@ -28,6 +28,7 @@ export default async function testConversationState(engine) {
     });
 
     const state_0 = conversation.getState();
+    //console.log('state_0', state_0);
     const id = state_0.history.length === 0 ? 1 : state_0.lastMessageId+2;
     /* const count = state_0.history.length + 2; */
 
@@ -35,22 +36,29 @@ export default async function testConversationState(engine) {
     await conversation.addMessage({ type: MessageType.COMMAND, command });
 
     // conversation state should have two more messages
-    const state_1 = await engine.assistant.getConversationState(conversationId);
+    const state_1 = await engine.assistant._loadConversationState(conversationId);
+    //console.log('state_1', state_1);
     /* assert.strictEqual(state_1.history.length, count); */
     assert.strictEqual(state_1.lastMessageId, id);
 
     await engine.close();
 
     await engine.open();
-    const restored = await engine.assistant.getOrOpenConversation(conversationId);
+    const restored = await engine.assistant.getOrOpenConversation(conversationId, {
+        showWelcome: false,
+        anonymous: false,
+        debug: true
+    });
 
     // conversation should resume from last message id
     const state_2 = restored.getState();
+    //console.log('state_2', state_2);
     /* assert.strictEqual(state_2.history.length, count); */
     assert.strictEqual(state_2.lastMessageId, id);
 
-    await conversation.addMessage({ type: MessageType.COMMAND, command });
+    await restored.addMessage({ type: MessageType.COMMAND, command });
     const state_3 = restored.getState();
+    //console.log('state_3', state_3);
     /* assert.strictEqual(state_3.history.length, count+1); */
     assert.strictEqual(state_3.lastMessageId, id+1);
 }

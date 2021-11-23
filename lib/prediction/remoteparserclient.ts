@@ -58,6 +58,7 @@ export default class RemoteParserClient {
     private _locale : string;
     private _baseUrl : string;
     private _platform : Tp.BasePlatform|undefined;
+    private _prefs : Tp.Preferences|undefined;
     private _tpClient : Tp.BaseClient|undefined;
     private _exactmatcher : ExactMatcher|undefined;
 
@@ -67,6 +68,7 @@ export default class RemoteParserClient {
         this._locale = locale;
         this._baseUrl = baseUrl + '/' + this._locale;
         this._platform = platform;
+        this._prefs = platform?.getSharedPreferences();
         this._tpClient = tpClient;
     }
 
@@ -114,9 +116,16 @@ export default class RemoteParserClient {
                         contextCode : string[]|undefined,
                         contextEntities : EntityMap|undefined,
                         options : ParseOptions = {}) : Promise<PredictionResult> {
+        if (options.store === undefined) {
+            if (this._prefs)
+                options.store = this._prefs.get('sabrina-store-log') as string || 'no';
+            else
+                options.store = 'no';
+        }
+
         const data : QueryArguments = {
             q: utterance,
-            store: options.store || 'no',
+            store: options.store,
             thingtalk_version: ThingTalk.version,
             tokenized: options.tokenized,
             skip_typechecking: options.skip_typechecking
