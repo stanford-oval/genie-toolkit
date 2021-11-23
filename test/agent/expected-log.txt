@@ -1851,7 +1851,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: timer(base=$now, interval=1h) => @com.thecatapi.get();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: What is your phone number?
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_ask_phone_number();
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_ask_phone_number;
 AT: timer(base=$now, interval=1h) => @com.thecatapi.get();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $answer("555-12345678"^^tt:phone_number);
@@ -2036,7 +2036,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: timer(base=$now, interval=1h) => @com.thecatapi.get();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: What is your phone number?
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_ask_phone_number();
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_ask_phone_number;
 AT: timer(base=$now, interval=1h) => @com.thecatapi.get();
 #! vote: down
 #! comment: test comment for dialogue turns

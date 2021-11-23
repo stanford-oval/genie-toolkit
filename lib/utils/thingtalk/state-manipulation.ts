@@ -28,7 +28,7 @@ import { adjustDefaultParameters } from './ast-utils';
  * from the current state.
  */
 export function makeSimpleState(state : Ast.DialogueState|null, policyName : string, dialogueAct : string, dialogueActParam : Array<string|Ast.Value>|null = null) {
-    const newState = new Ast.DialogueState(null, policyName, dialogueAct, dialogueActParam, []);
+    const newState = new Ast.DialogueState(null, policyName, dialogueAct, dialogueActParam && dialogueActParam.length ? dialogueActParam : null /* FIXME */, []);
     if (state === null)
         return newState;
 
