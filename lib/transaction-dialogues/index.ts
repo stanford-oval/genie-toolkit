@@ -50,6 +50,8 @@ import { makeContextPhrase } from './context-phrases';
 import { CancellationError } from '../dialogue-runtime';
 import { addNewStatement } from '../utils/thingtalk/state-manipulation';
 
+import followUpConfig = require('./config.json');
+
 /**
  * This module defines the basic logic of transaction dialogues: how
  * the dialogue is started, how the agent handles each state, and how
@@ -114,44 +116,214 @@ async function ctxNotification(dlg : DialogueInterface, ctx : ContextInfo) {
     return dlg.flush();
 }
 
-const MAX_ENTITY_QUESTIONS = 3;
 
-async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, entity_tracking_set : Set<string>) {
-    const summary = ctx.results![0].value.summary;
-    const mentions = ctx.results![0].value.mention?.toJS() as string[]|undefined;
-    const keyword = ctx.results![0].value.keyword;
+// const MAX_ENTITY_QUESTIONS = 3;
+const MAX_ENTITY_QUESTIONS = followUpConfig.MAX_ENTITY_QUESTIONS;
 
-    if (!mentions || !mentions.length) {
-        dlg.say("${summary}", {
-            summary
-        }, () => StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_recommend_one'));
+const FOLLOWUP_PHRASE_LIST = [
+    ". Will you be interested in knowing more about %s?",
+    ". Do you want to know more about %s?",
+    ". I think there are some other interesting stuff about %s. Would you like to know more about it?",
+    ". Wanna know other news about %s?",
+    ". I wonder if you would like to learn more about %s?",
+    ". More news about %s?",
+    ". Some more news on %s?",
+    ". Feel like some more articles on %s?",
+    ". Let's hear more about %s?",
+    ". May I share some new articles about %s?",
+    ". Perhaps more news on %s?",
+    ". Want more news about %s?",
+    ". How about some news on %s?",
+    ". How about some news on %s next?",
+    ". How about we pick some news on %s?",
+    ". Shall we dig more on %s?",
+    ". Shall we find more on %s?",
+    ". Shall we continue with the news related to %s?",
+    ". Do we continue with the stuff about %s?",
+    ". Hear more about %s?",
+    ". Continue the topic on %s?",
+    ". Would you like to find out more about %s?",
+    ". Looking for more news on %s?",
+];
+
+const POLITICAL_FOLLOWUP_PHRASE_LIST = [
+    ". Will you be interested in knowing more from a different perspective?",
+    ". May I share something from the %s with you?",
+    ". How about we hear something from the %s side on this matter?",
+    ". Will you be interested in listening to some of the articles from the %s on this topic?"
+];
+
+const NEXT_NEWS_PHRASE_LIST = [
+    ". Continue with the next news?",
+    ". Wanting to hear more news?",
+    ". Shall we continue reading?",
+    ". Looking for more news?",
+    ". How about we keep reading?",
+    ". How about we continue reading?"
+];
+
+const GOODBYE_PHRASE_LIST = [
+    "All good, let me know if you need me.",
+    "Alright, let me know if I can help you with anything else!",
+    "Got it. Let me know if you need my help with anything.",
+    "Very well, I will be at your service at any time.",
+    "OK, give me a shout whenever you need me."
+];
+
+const POLITICS_RELATED_CATEGORIES = [
+    "politic",
+    "politics",
+    "political",
+    "policy",
+    "politics policy",
+    "foreign policy",
+];
+
+const CONSERVATIVE_LEANING_MEDIA_SET = new Set([
+    "3abn",
+    "cbn",
+    "daily wire",
+    "daily mail",
+    "drudge report", 
+    "fox news",
+    "fox business",
+    "fox nation",
+    "national catholic register",
+    "union leader",
+    "new york post",
+    "newsmax",
+    "oan",
+    "pittsburgh tribune-review",
+    "pj media",
+    "rsbn",
+    "remnant",
+    "the dispatch",
+    "the first",
+    "washington times",
+    "wall street journal"
+]);
+
+const LIBERAL_LEANING_MEDIA_SET = new Set([
+    "alternet",
+    "buzzfeed",
+    "cnn",
+    "huffpost",
+    "huffington post",
+    "mother jones",
+    "msnbc",
+    "new york times",
+    "npr",
+    "the daily beast",
+    "the economist",
+    "the intercept",
+    "the washington post",
+    "vox",   
+    "pbs",  
+    "politico"
+]);
+
+// const NEUTRAL_MEDIA_SET = new Set([
+//     "abc",
+//     "bbc",
+//     "bloomberg",
+//     "cbs", 
+//     "google",
+//     "nbc news",
+//     "reuters",
+//     "the guardian",
+//     "the hill",
+//     "yahoo news",  
+//     "usa today"
+// ]);
+
+
+function phraseGenerator(phrase_list : Array<string>, entity : Ast.StringValue|null){
+    const pick = Math.floor(Math.random() * phrase_list.length);
+    if (entity)
+        return phrase_list[pick].replace("%s", entity.value);
+    else
+        return phrase_list[pick];
+}
+
+async function askNextNews(dlg : DialogueInterface, ctx : ContextInfo, keyword : Ast.Node|null, stay_in_category : boolean) {  
+    let proposal_expression : any;
+    if (stay_in_category) {
+        const category = ctx.results?.map((item) => item.raw && item.raw.category ? item.raw.category : [])
+                                 .flat()
+                                 .map((item) => String(item));
+        const pick = Math.floor(Math.random() * category!.length)
+        const top_category = category![pick];
+        const article_category = new Ast.StringValue(top_category as string);
+        console.log(`picked category for the next news:`, top_category);
+        if (keyword) {
+            const proposal = await dlg._T`(@com.smartnews.article(keyword=${keyword}) filter contains(category, ${article_category}^^com.smartnews:category(${article_category})));`;
+            assert(proposal instanceof Ast.Program);
+            proposal_expression = proposal.statements[0];
+            assert(proposal_expression instanceof Ast.ExpressionStatement);
+        } else {
+            const proposal = await dlg._T`(@com.smartnews.article() filter contains(category, ${article_category}^^com.smartnews:category(${article_category})));`;
+            assert(proposal instanceof Ast.Program);
+            proposal_expression = proposal.statements[0];
+            assert(proposal_expression instanceof Ast.ExpressionStatement);
+        }
+    } else {
+        const proposal = await dlg._T`@com.smartnews.article();`;
+        assert(proposal instanceof Ast.Program);
+        proposal_expression = proposal.statements[0];
+        assert(proposal_expression instanceof Ast.ExpressionStatement);
+    }
+
+    dlg.say(dlg._("${phrase}"), {
+        phrase: phraseGenerator(NEXT_NEWS_PHRASE_LIST, null)
+    }, () => addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
+
+    const cmd = await dlg.get({
+        expecting: Type.Boolean,
+        acceptActs: ['execute', 'cancel', 'next_entity'],
+        acceptQueries: ['com.smartnews.article'],
+    });
+    dlg.updateState();
+
+    console.log(`cmd type`, cmd.type);
+
+    if (cmd.type === POLICY_NAME + '.cancel') {
+        // break out immediately
+        console.log(`got a cancel in smartnews`);
+        dlg.say(phraseGenerator(GOODBYE_PHRASE_LIST, null), StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
         return false;
     }
-    dlg.say("${summary}", { summary });
+    
+    if (cmd.type !== POLICY_NAME + '.next_entity') {
+        await dlg.execute(cmd.meaning);
+        if (dlg.interactive && dlg.debug)
+            console.log(`After execution inside SmartNews:`, dlg.state?.prettyprint());
+        // alright, we executed something new, break out of this loop
+        return true;
+    }
+    dlg.say(phraseGenerator(GOODBYE_PHRASE_LIST, null), StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+    return false;
+}
 
-    console.log(`mentioned entities`, mentions);
-
-    if (keyword)
-        entity_tracking_set.add(String(keyword));
-
-    for (let i = 0; i < Math.min(MAX_ENTITY_QUESTIONS, mentions.length); i++) {
-        const entity_to_ask = mentions[i];
+async function followUpLoop (dlg : DialogueInterface, ctx : ContextInfo, mentions: any, entity_tracking_set : Set<string>) {
+    const top_category = ctx.results?.map((item) => item.raw && item.raw.category ? item.raw.category : [])
+                                     .flat()
+                                     .map((item) => String(item))[0];
+    const article_category = new Ast.StringValue(top_category as string);
+    
+    for (let i = 0; i < Math.min(MAX_ENTITY_QUESTIONS, mentions!.length); i++) {
+        const entity_to_ask = mentions![i];
         if (entity_tracking_set.has(entity_to_ask))
             continue;
         entity_tracking_set.add(entity_to_ask);
 
         const entity = new Ast.StringValue(entity_to_ask as string);
-        const top_category = ctx.results?.map((item) => item.raw && item.raw.category ? item.raw.category : [])
-            .flat()
-            .map((item) => String(item))[0];
-        const article_category = new Ast.StringValue(top_category as string);
-
         const proposal = await dlg._T`(@com.smartnews.article(keyword=${entity}) filter contains(category, ${article_category}^^com.smartnews:category(${article_category})));`;
         assert(proposal instanceof Ast.Program);
         const proposal_expression = proposal.statements[0];
         assert(proposal_expression instanceof Ast.ExpressionStatement);
-        dlg.say(dlg._("Do you want to know more about ${entity_to_ask}?"), {
-            entity_to_ask: entity,
+
+        dlg.say(dlg._("${phrase}"), {
+            phrase: phraseGenerator(FOLLOWUP_PHRASE_LIST, entity)
         }, () => addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
 
         const cmd = await dlg.get({
@@ -166,8 +338,8 @@ async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, 
         if (cmd.type === POLICY_NAME + '.cancel') {
             // break out immediately
             console.log(`got a cancel in smartnews`);
-            dlg.say("All good. Let me know if you need me.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
-            return false;
+            dlg.say(phraseGenerator(GOODBYE_PHRASE_LIST, null), StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+            return 0;
         }
 
         if (cmd.type !== POLICY_NAME + '.next_entity') {
@@ -175,18 +347,134 @@ async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, 
             if (dlg.interactive && dlg.debug)
                 console.log(`After execution inside SmartNews:`, dlg.state?.prettyprint());
             // alright, we executed something new, break out of this loop
-            return true;
+            return 1;
         }
-
         // user said "no", loop to the next mention
     }
+    // TODO: make random to a confidence-based deterministic value
+    // const pick = Math.floor(Math.random() * 5) > 0? true : false;
+    const pick = 1;
+    const source = ctx.results![0].value.source.toJS() as string;
+    console.log("source:", source);
+    console.log("ask political followup?", pick);
+    if (pick && 
+        ((CONSERVATIVE_LEANING_MEDIA_SET.has(source) || (LIBERAL_LEANING_MEDIA_SET.has(source))) ||
+        (POLITICS_RELATED_CATEGORIES.includes(article_category.value.toLowerCase())))) {
+                    
+        let opposition : Ast.StringValue;
+        let proposal_expression : any;
+        const entity_to_ask = mentions![0];
+        const entity = new Ast.StringValue(entity_to_ask as string);
+        
+        if (LIBERAL_LEANING_MEDIA_SET.has(source)) {
+            opposition = new Ast.StringValue("conservative media");
+            console.log(`source is liberal. choose source as ${opposition.value}`)
+            const proposal = await dlg._T`(@com.smartnews.article(keyword=${entity}) filter contains(category, ${article_category}^^com.smartnews:category(${article_category})) && source ~= ${opposition});`;
+            assert(proposal instanceof Ast.Program);
+            proposal_expression = proposal.statements[0];
+            assert(proposal_expression instanceof Ast.ExpressionStatement);
+        } else if (CONSERVATIVE_LEANING_MEDIA_SET.has(source)) {
+            opposition = new Ast.StringValue("libral media");
+            console.log(`source is conservative. choose source as ${opposition.value}`)
+            const proposal = await dlg._T`(@com.smartnews.article(keyword=${entity}) filter contains(category, ${article_category}^^com.smartnews:category(${article_category})) && source ~= ${opposition});`;
+            assert(proposal instanceof Ast.Program);
+            proposal_expression = proposal.statements[0];
+            assert(proposal_expression instanceof Ast.ExpressionStatement);
+        } else {
+            console.log("non-partisian source");
+            return -1;
+        }
 
-    dlg.say("All good. Let me know if you need me.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+        dlg.say(dlg._("${phrase}"), {
+            phrase: phraseGenerator(POLITICAL_FOLLOWUP_PHRASE_LIST, opposition)
+        }, () => addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
+    
+        const cmd = await dlg.get({
+            expecting: Type.Boolean,
+            acceptActs: ['execute', 'cancel', 'next_entity'],
+            acceptQueries: ['com.smartnews.article'],
+        });
+        dlg.updateState();
+    
+        console.log(`cmd type`, cmd.type);
+    
+        if (cmd.type === POLICY_NAME + '.cancel') {
+            // break out immediately
+            console.log(`got a cancel in smartnews`);
+            dlg.say(phraseGenerator(GOODBYE_PHRASE_LIST, null), StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+            return 0;
+        } else if (cmd.type !== POLICY_NAME + '.next_entity') {
+            await dlg.execute(cmd.meaning);
+            if (dlg.interactive && dlg.debug)
+                console.log(`After execution inside SmartNews:`, dlg.state?.prettyprint());
+            // alright, we executed something new, break out of this loop
+            return 1;
+        }
+    }
+    return -1;
+}
+
+async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, entity_tracking_set : Set<string>, article_tracking_set : Set<string>) {
+    let stay_in_category = true;
+    do {
+        console.log(`article_tracking_set:`, article_tracking_set);
+        const id = String(ctx.results![0].value.id.toJS());
+        if (article_tracking_set.has(id)) {
+            console.log(`article [${id}] is already in the tracking set`)
+            if (ctx.results!.length === 1) {
+                console.log("no ctx results left")
+                dlg.say("Sorry, there is no more news on this topic.", 
+                        {}, 
+                        () => StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_recommend_one'));
+                stay_in_category = false;
+                return await askNextNews(dlg, ctx, null, stay_in_category);
+            } else {
+                ctx.results!.shift();
+            }
+        } else {
+            article_tracking_set.add(id);
+            console.log(`add to article_tracking_set:`, article_tracking_set);
+            break;
+        }
+    } while (ctx.results!.length);
+
+    const summary = ctx.results![0].value.summary;
+    const mentions = ctx.results![0].value.mention?.toJS() as string[]|undefined;
+    const keyword = ctx.results![0].value.keyword;
+    
+    if (!mentions || !mentions.length || ctx.results!.length === 1) {
+        dlg.say("${summary}", {
+            summary
+        }, () => StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_recommend_one'));
+        stay_in_category = true;
+        return await askNextNews(dlg, ctx, null, stay_in_category);
+    }
+
+    dlg.say("${summary}", { summary });
+
+    console.log(`mentioned entities`, mentions);
+    if (keyword)
+        entity_tracking_set.add(String(keyword));
+
+    const loopRet = await followUpLoop(dlg, ctx, mentions, entity_tracking_set);
+    if(loopRet === 0)
+        return false;
+    else if (loopRet === 1)
+        return true
+
+    stay_in_category = true;
+    if (await askNextNews(dlg, ctx, keyword, stay_in_category))
+        return true;
+
+    // dlg.say("Is there anything else you want to hear?", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+    // dlg.say(phraseGenerator(GOODBYE_PHRASE_LIST, null), StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
     return false;
 }
 
+
 async function ctxSmartNews(dlg : DialogueInterface) {
     const entity_tracking_set = new Set<string>();
+    const article_tracking_set = new Set<string>();
 
     for (;;) {
         // get the context based on what the user said
@@ -196,9 +484,13 @@ async function ctxSmartNews(dlg : DialogueInterface) {
             dlg.say("sorry, there is no more news related to that topic.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
             return dlg.flush();
         }
-
-        if (!await smartNewsArticleLoop(dlg, ctx, entity_tracking_set))
+        if (followUpConfig.ASK_FOLLOWUPS) {
+            if (!await smartNewsArticleLoop(dlg, ctx, entity_tracking_set, article_tracking_set))
+                return dlg.flush();
+        } else {
+            dlg.say(Templates.system_list_proposal, (list) => D.makeListProposalReply(ctx, list));
             return dlg.flush();
+        }
     }
 }
 
