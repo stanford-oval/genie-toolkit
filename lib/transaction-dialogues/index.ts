@@ -158,7 +158,7 @@ const NEXT_NEWS_PHRASE_LIST = [
     ". Wanting to hear more news?",
     ". Shall we continue reading?",
     ". Looking for more news?",
-    ". How about we keep reading?",
+    ". Do we continue reading?",
     ". How about we continue reading?"
 ];
 
@@ -247,13 +247,14 @@ function phraseGenerator(phrase_list : Array<string>, entity : Ast.StringValue|n
 
 async function askNextNews(dlg : DialogueInterface, ctx : ContextInfo, keyword : Ast.Node|null, stay_in_category : boolean) {  
     let proposal_expression : any;
+    let article_category : Ast.StringValue;
     if (stay_in_category) {
         const category = ctx.results?.map((item) => item.raw && item.raw.category ? item.raw.category : [])
                                  .flat()
                                  .map((item) => String(item));
         const pick = Math.floor(Math.random() * category!.length)
         const top_category = category![pick];
-        const article_category = new Ast.StringValue(top_category as string);
+        article_category = new Ast.StringValue(top_category as string);
         console.log(`picked category for the next news:`, top_category);
         if (keyword) {
             const proposal = await dlg._T`(@com.smartnews.article(keyword=${keyword}) filter contains(category, ${article_category}^^com.smartnews:category(${article_category})));`;
@@ -273,8 +274,11 @@ async function askNextNews(dlg : DialogueInterface, ctx : ContextInfo, keyword :
         assert(proposal_expression instanceof Ast.ExpressionStatement);
     }
 
+    var next_phrase = phraseGenerator(NEXT_NEWS_PHRASE_LIST, null);
+    if (stay_in_category)
+        next_phrase = next_phrase.replace("?", ` in the ${article_category!.value} related category?`)
     dlg.say(dlg._("${phrase}"), {
-        phrase: phraseGenerator(NEXT_NEWS_PHRASE_LIST, null)
+        phrase: next_phrase
     }, () => addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
 
     const cmd = await dlg.get({
@@ -300,7 +304,9 @@ async function askNextNews(dlg : DialogueInterface, ctx : ContextInfo, keyword :
         // alright, we executed something new, break out of this loop
         return true;
     }
-    dlg.say(phraseGenerator(GOODBYE_PHRASE_LIST, null), StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+
+    if (!stay_in_category)
+        dlg.say(phraseGenerator(GOODBYE_PHRASE_LIST, null), StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
     return false;
 }
 
@@ -352,8 +358,9 @@ async function followUpLoop (dlg : DialogueInterface, ctx : ContextInfo, mention
         // user said "no", loop to the next mention
     }
     // TODO: make random to a confidence-based deterministic value
-    // const pick = Math.floor(Math.random() * 5) > 0? true : false;
-    const pick = 1;
+    let pick = true;
+    if (followUpConfig.RANDOM)
+        pick = Math.floor(Math.random() * 4) > 0;
     const source = ctx.results![0].value.source.toJS() as string;
     console.log("source:", source);
     console.log("ask political followup?", pick);
@@ -369,14 +376,16 @@ async function followUpLoop (dlg : DialogueInterface, ctx : ContextInfo, mention
         if (LIBERAL_LEANING_MEDIA_SET.has(source)) {
             opposition = new Ast.StringValue("conservative media");
             console.log(`source is liberal. choose source as ${opposition.value}`)
-            const proposal = await dlg._T`(@com.smartnews.article(keyword=${entity}) filter contains(category, ${article_category}^^com.smartnews:category(${article_category})) && source ~= ${opposition});`;
+            const keyword = new Ast.StringValue(`${entity.value}::${opposition.value}` as string)
+            const proposal = await dlg._T`(@com.smartnews.article(keyword=${keyword}) filter contains(category, ${article_category}^^com.smartnews:category(${article_category})));`;
             assert(proposal instanceof Ast.Program);
             proposal_expression = proposal.statements[0];
             assert(proposal_expression instanceof Ast.ExpressionStatement);
         } else if (CONSERVATIVE_LEANING_MEDIA_SET.has(source)) {
-            opposition = new Ast.StringValue("libral media");
+            opposition = new Ast.StringValue("liberal media");
             console.log(`source is conservative. choose source as ${opposition.value}`)
-            const proposal = await dlg._T`(@com.smartnews.article(keyword=${entity}) filter contains(category, ${article_category}^^com.smartnews:category(${article_category})) && source ~= ${opposition});`;
+            const keyword = new Ast.StringValue(`${entity.value}::${opposition.value}` as string)
+            const proposal = await dlg._T`(@com.smartnews.article(keyword=${keyword}) filter contains(category, ${article_category}^^com.smartnews:category(${article_category})));`;
             assert(proposal instanceof Ast.Program);
             proposal_expression = proposal.statements[0];
             assert(proposal_expression instanceof Ast.ExpressionStatement);
@@ -447,6 +456,9 @@ async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, 
             summary
         }, () => StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_recommend_one'));
         stay_in_category = true;
+        if(await askNextNews(dlg, ctx, null, stay_in_category))
+            return true;
+        stay_in_category = false;
         return await askNextNews(dlg, ctx, null, stay_in_category);
     }
 
@@ -466,6 +478,9 @@ async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, 
     if (await askNextNews(dlg, ctx, keyword, stay_in_category))
         return true;
 
+    stay_in_category = false;
+    if (await askNextNews(dlg, ctx, keyword, stay_in_category))
+        return true;
     // dlg.say("Is there anything else you want to hear?", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
     // dlg.say(phraseGenerator(GOODBYE_PHRASE_LIST, null), StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
     return false;
@@ -791,7 +806,6 @@ export function interpretAnswer(state : Ast.DialogueState|null,
         return null;
 
     const ctx = ContextInfo.get(state);
-
     // if the agent proposed something and the user says "yes", we accept the proposal
     if (state.history.length > 0 && state.history[state.history.length-1].confirm === 'proposed'
         && answer instanceof Ast.BooleanValue) {

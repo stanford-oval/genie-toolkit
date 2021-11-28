@@ -1,4 +1,5 @@
 {
     "MAX_ENTITY_QUESTIONS": 1,
-    "ASK_FOLLOWUPS": true
+    "ASK_FOLLOWUPS": true,
+    "RANDOM": true
 }
