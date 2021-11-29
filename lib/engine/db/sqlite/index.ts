@@ -126,9 +126,13 @@ const FIELD_NAMES = {
         'comment'
     ] as const,
     conversation_state: [
-        'history',
         'dialogueState',
         'lastMessageId'
+    ] as const,
+    conversation_history: [
+        'conversationId',
+        'messageId',
+        'message'
     ] as const
 };
 

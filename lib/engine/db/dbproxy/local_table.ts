@@ -18,6 +18,8 @@
 
 import * as Tp from 'thingpedia';
 
+import type { SearchParams } from '..';
+
 export default class LocalTable<RowType> {
     name : string;
     private _baseUrl : string;
@@ -47,6 +49,11 @@ export default class LocalTable<RowType> {
 
     async getBy(field : keyof RowType, value : string) : Promise<RowType[]> {
         const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/localtable/user_${this.name}/by-${field}/${encodeURIComponent(value)}`, { auth: this._auth });
+        return JSON.parse(resp)['data'];
+    }
+
+    async search(search : SearchParams<RowType>) {
+        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/localtable/user_${this.name}/search/${encodeURIComponent(JSON.stringify(search))}`, { auth: this._auth });
         return JSON.parse(resp)['data'];
     }
 

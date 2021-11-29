@@ -327,7 +327,6 @@ export default class AssistantDispatcher extends events.EventEmitter {
         const state = await this._conversationStateDB.getOne(conversationId).then((row) => {
             if (row) {
                 return {
-                    history : row.history ? JSON.parse(row.history) : [],
                     dialogueState : row.dialogueState ? JSON.parse(row.dialogueState) : null,
                     lastMessageId : row.lastMessageId ? row.lastMessageId : 0
                 };
@@ -350,7 +349,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
         });
     }
 
-    openConversation(id : string, options : ConversationOptions) {
+    protected openConversation(id : string, options : ConversationOptions) {
         options = options || {};
         if (!options.nluServerUrl)
             options.nluServerUrl = this._nluModelUrl;

@@ -114,6 +114,22 @@ function migrateTo11(db : sqlite3.Database) {
             'dialogueState text default null, ' +
             'lastMessageId int(11) default null)');
     });
+},
+function migrateTo12(db : sqlite3.Database) {
+    db.serialize(() => {
+        db.run('drop table if exists conversation_history');
+        db.run(`create table conversation_history (
+            uniqueId varchar(255) primary key,
+            conversationId varchar(255) not null,
+            messageId int(11) not null,
+            message text not null
+        )`);
+        db.run(`create unique index conversation_history_messageId on
+                conversation_history(conversationId, messageId)`);
+
+        // sqlite doesn't support dropping columns
+        //db.run(`alter table conversation_state drop column history`);
+    });
 }];
 const currentVersion = MIGRATIONS.length;
 

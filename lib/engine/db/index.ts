@@ -64,9 +64,15 @@ export interface ConversationRow {
 
 export interface ConversationStateRow {
     uniqueId : string;
-    history : string|null;
     dialogueState : string|null;
     lastMessageId : number;
+}
+
+export interface ConversationHistoryRow {
+    uniqueId : string;
+    conversationId : string;
+    messageId : number;
+    message : string
 }
 
 export interface LocalTables {
@@ -74,10 +80,17 @@ export interface LocalTables {
     channel : ChannelRow;
     conversation : ConversationRow;
     conversation_state : ConversationStateRow;
+    conversation_history : ConversationHistoryRow;
 }
 
 export interface SyncTables {
     device : DeviceRow;
+}
+
+export interface SearchParams<RowType> {
+    filter : Array<[keyof RowType, '=' | '>=' | '<=' | '<' | '>', string|number|boolean]>;
+    sort : [keyof RowType, 'asc' | 'desc'];
+    limit : number;
 }
 
 export interface LocalTable<RowType extends AbstractRow> {
@@ -86,6 +99,7 @@ export interface LocalTable<RowType extends AbstractRow> {
     getAll() : Promise<RowType[]>;
     getOne(uniqueId : string) : Promise<RowType|undefined>;
     getBy(field : keyof RowType, value : string) : Promise<RowType[]>;
+    search(search : SearchParams<RowType>) : Promise<RowType[]>;
     insertOne(uniqueId : string, row : Omit<RowType, "uniqueId">) : Promise<void>;
     deleteOne(uniqueId : string) : Promise<void>;
 }

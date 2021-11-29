@@ -55,7 +55,15 @@ drop table if exists conversation_state;
 
 create table conversation_state (
        uniqueId varchar(255) primary key,
-       history text default null,
        dialogueState text default null,
        lastMessageId int(11) default null
 );
+
+create table conversation_history (
+       uniqueId varchar(255) primary key,
+       conversationId varchar(255) not null,
+       messageId int(11) not null,
+       message text not null
+);
+create unique index conversation_history_messageId on
+       conversation_history(conversationId, messageId);
