@@ -336,19 +336,10 @@ export default class AssistantDispatcher extends events.EventEmitter {
         if (!options.nluServerUrl)
             options.nluServerUrl = this._nluModelUrl;
 
-        let deleteWhenInactive = options.deleteWhenInactive;
-        if (deleteWhenInactive === undefined)
-            deleteWhenInactive = true;
         const conv = new Conversation(this._engine, id, options);
         conv.on('active', () => {
             this._lastConversation = conv;
         });
-        if (deleteWhenInactive) {
-            conv.on('inactive', () => {
-                if (this._conversations.get(conv.id) === conv)
-                    this._conversations.delete(conv.id);
-            });
-        }
         this._lastConversation = conv;
         this._conversations.set(id, conv);
         return conv;

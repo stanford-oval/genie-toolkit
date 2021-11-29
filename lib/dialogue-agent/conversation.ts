@@ -48,10 +48,8 @@ export interface ConversationOptions {
     anonymous ?: boolean;
     debug ?: boolean;
     rng ?: () => number;
-    inactivityTimeout ?: number;
     contextResetTimeout ?: number;
     showWelcome ?: boolean;
-    deleteWhenInactive ?: boolean;
     log ?: boolean;
     dialogueFlags ?: Record<string, boolean>;
     useConfidence ?: boolean;
@@ -114,8 +112,6 @@ export default class Conversation extends events.EventEmitter {
     private _delegates : Set<ConversationDelegate>;
     private _history : Message[];
     private _nextMsgId : number;
-    private _inactivityTimeout : NodeJS.Timeout|null;
-    private _inactivityTimeoutSec : number;
     private _contextResetTimeout : NodeJS.Timeout|null;
     private _contextResetTimeoutSec : number;
 
@@ -160,10 +156,8 @@ export default class Conversation extends events.EventEmitter {
         this._nextMsgId = 0;
         this._started = false;
 
-        this._inactivityTimeout = null;
-        this._inactivityTimeoutSec = options.inactivityTimeout || DEFAULT_CONVERSATION_TTL;
         this._contextResetTimeout = null;
-        this._contextResetTimeoutSec = options.contextResetTimeout || this._inactivityTimeoutSec;
+        this._contextResetTimeoutSec = options.contextResetTimeout || DEFAULT_CONVERSATION_TTL;
 
         this._log = new ConversationLogger(engine.db.getLocalTable('conversation'), this._conversationId);
     }
@@ -240,16 +234,6 @@ export default class Conversation extends events.EventEmitter {
     }
 
     private _resetInactivityTimeout() {
-        // after "options.inactivityTimeout" milliseconds we inform the app that the conversation
-        // is inactive (turn off LEDs, close the microphone, etc.)
-        if (this._inactivityTimeout)
-            clearTimeout(this._inactivityTimeout);
-        if (this._inactivityTimeoutSec > 0) {
-            this._inactivityTimeout = setTimeout(() => {
-                this.emit('inactive');
-            }, this._inactivityTimeoutSec);
-        }
-
         // after "options.contextResetTimeout", we reset the context, forgetting the state of the
         // conversation
         if (this._contextResetTimeout)
