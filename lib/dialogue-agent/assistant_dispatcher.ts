@@ -40,6 +40,14 @@ import type Engine from '../engine';
 import DeviceView from '../engine/devices/device_view';
 import DeviceInterfaceMapper from '../engine/devices/device_interface_mapper';
 import { ConversationStateRow, LocalTable } from "../engine/db";
+import TimedReference from '../utils/timed_ref';
+
+/**
+ * Maximum time that a conversation is kept in memory.
+ *
+ * After this time, the conversation is released and must be restored from disk.
+ */
+const CONVERSATION_TTL = 120000;
 
 /**
  * A conversation delegate that buffers all commands until the dialogue turn
@@ -120,8 +128,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
     private _notificationOutputs : Set<NotificationDelegate>;
     private _staticNotificationBackends : Record<string, Tp.Capabilities.NotificationBackend>;
     private _dynamicNotificationBackends : DeviceInterfaceMapper<Tp.Capabilities.NotificationBackend>;
-    private _conversations : Map<string, Conversation>;
-    private _lastConversation : Conversation|null;
+    private _conversations : Map<string, TimedReference<Conversation>>;
     private _conversationStateDB : LocalTable<ConversationStateRow>;
 
     constructor(engine : Engine, nluModelUrl : string|undefined, notificationConfig : NotificationConfig) {
@@ -132,7 +139,6 @@ export default class AssistantDispatcher extends events.EventEmitter {
         this._nluModelUrl = nluModelUrl;
         this._notificationOutputs = new Set;
         this._conversations = new Map;
-        this._lastConversation = null;
         this._conversationStateDB = this._engine.db.getLocalTable('conversation_state');
 
         this._dynamicNotificationBackends = new DeviceInterfaceMapper(
@@ -259,8 +265,12 @@ export default class AssistantDispatcher extends events.EventEmitter {
         }
 
         if (notificationBackend === 'conversation') {
-            for (const conv of this._conversations.values())
-                promises.push(conv.notify(app, outputType, outputValue));
+            for (const conv of this._conversations.values()) {
+                promises.push(conv.acquire(false).then(async (conv) => {
+                    if (conv)
+                        await conv.notify(app, outputType, outputValue);
+                }));
+            }
         }
         await Promise.all(promises);
     }
@@ -280,8 +290,12 @@ export default class AssistantDispatcher extends events.EventEmitter {
             promises.push(out.notifyError(notification));
 
         if (notificationBackend === 'conversation') {
-            for (const conv of this._conversations.values())
-                promises.push(conv.notifyError(app, error));
+            for (const conv of this._conversations.values()) {
+                promises.push(conv.acquire(false).then(async (conv) => {
+                    if (conv)
+                        await conv.notifyError(app, error);
+                }));
+            }
         } else if (notificationBackend.startsWith('thingpedia/')) {
             const deviceId = notificationBackend.substring('thingpedia/'.length);
             const backend = this._dynamicNotificationBackends.getById(deviceId);
@@ -296,15 +310,20 @@ export default class AssistantDispatcher extends events.EventEmitter {
         await Promise.all(promises);
     }
 
-    getConversation(id : string) : Conversation|undefined {
-        return this._conversations.get(id);
+    private _getConversationRef(id : string) {
+        const existing = this._conversations.get(id);
+        if (existing)
+            return existing;
+        const ref = new TimedReference<Conversation>(CONVERSATION_TTL, async (conv) => {
+            if (this._conversations.get(id) === ref)
+                this._conversations.delete(id);
+            await conv.stop();
+        });
+        this._conversations.set(id, ref);
+        return ref;
     }
 
-    get lastConversation() {
-        return this._lastConversation;
-    }
-
-    async getConversationState(conversationId : string) {
+    private async getConversationState(conversationId : string) {
         const state = await this._conversationStateDB.getOne(conversationId).then((row) => {
             if (row) {
                 return {
@@ -319,33 +338,31 @@ export default class AssistantDispatcher extends events.EventEmitter {
     }
 
     async getOrOpenConversation(id : string, options : ConversationOptions, state ?: ConversationState) {
-        if (this._conversations.has(id))
-            return this._conversations.get(id)!;
         options = options || {};
         if (!options.nluServerUrl)
             options.nluServerUrl = this._nluModelUrl;
-        const conv = this.openConversation(id, options);
-        const convState = state ? state : await this.getConversationState(id);
-        await conv.start(convState);
-        return conv;
+        const ref = this._getConversationRef(id);
+        return ref.acquire(true, async () => {
+            const conv = new Conversation(this._engine, id, options);
+            const convState = state ? state : await this.getConversationState(id);
+            await conv.start(convState);
+            return conv;
+        });
     }
 
     openConversation(id : string, options : ConversationOptions) {
-        this._conversations.delete(id);
         options = options || {};
         if (!options.nluServerUrl)
             options.nluServerUrl = this._nluModelUrl;
 
-        const conv = new Conversation(this._engine, id, options);
-        conv.on('active', () => {
-            this._lastConversation = conv;
+        const ref = this._getConversationRef(id);
+        ref.releaseNow();
+        return ref.acquire(true, async () => {
+            return new Conversation(this._engine, id, options);
         });
-        this._lastConversation = conv;
-        this._conversations.set(id, conv);
-        return conv;
     }
 
     closeConversation(id : string) {
-        this._conversations.delete(id);
+        this._getConversationRef(id).release();
     }
 }

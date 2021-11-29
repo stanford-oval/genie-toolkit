@@ -106,6 +106,7 @@ export default class ConversationWebSocketConnection implements ConversationDele
     }
 
     destroy() {
+        this._engine.assistant.closeConversation(this._conversation.id);
         this._conversation.removeOutput(this);
         if (this._syncDevices) {
             this._engine.devices.removeListener('device-added', this._deviceAddedListener);
