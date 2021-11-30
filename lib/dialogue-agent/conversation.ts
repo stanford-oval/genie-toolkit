@@ -34,6 +34,7 @@ import { DialogueSerializer, DialogueTurn } from "../dataset-tools/parsers";
 import AppExecutor from '../engine/apps/app_executor';
 import ConversationLogger from './logging';
 import { ConversationStateRow, LocalTable } from "../engine/db";
+import ConversationHistory from './conversation_history';
 
 const DummyStatistics = {
     hit() {
@@ -48,10 +49,8 @@ export interface ConversationOptions {
     anonymous ?: boolean;
     debug ?: boolean;
     rng ?: () => number;
-    inactivityTimeout ?: number;
     contextResetTimeout ?: number;
     showWelcome ?: boolean;
-    deleteWhenInactive ?: boolean;
     log ?: boolean;
     dialogueFlags ?: Record<string, boolean>;
     useConfidence ?: boolean;
@@ -78,7 +77,6 @@ export interface ConversationDelegate {
 }
 
 export interface ConversationState {
-    history : Message[];
     dialogueState : Record<string, unknown>;
     lastMessageId : number;
 }
@@ -112,10 +110,8 @@ export default class Conversation extends events.EventEmitter {
 
     private _started : boolean;
     private _delegates : Set<ConversationDelegate>;
-    private _history : Message[];
-    private _nextMsgId : number;
-    private _inactivityTimeout : NodeJS.Timeout|null;
-    private _inactivityTimeoutSec : number;
+    private _history : ConversationHistory;
+    private _lastMessageId : number;
     private _contextResetTimeout : NodeJS.Timeout|null;
     private _contextResetTimeoutSec : number;
 
@@ -156,14 +152,12 @@ export default class Conversation extends events.EventEmitter {
         this._expecting = null;
         this._context = { code: ['null'], entities: {} };
         this._delegates = new Set;
-        this._history = [];
-        this._nextMsgId = 0;
+        this._history = new ConversationHistory(engine, conversationId);
+        this._lastMessageId = -1;
         this._started = false;
 
-        this._inactivityTimeout = null;
-        this._inactivityTimeoutSec = options.inactivityTimeout || DEFAULT_CONVERSATION_TTL;
         this._contextResetTimeout = null;
-        this._contextResetTimeoutSec = options.contextResetTimeout || this._inactivityTimeoutSec;
+        this._contextResetTimeoutSec = options.contextResetTimeout || DEFAULT_CONVERSATION_TTL;
 
         this._log = new ConversationLogger(engine.db.getLocalTable('conversation'), this._conversationId);
     }
@@ -182,10 +176,6 @@ export default class Conversation extends events.EventEmitter {
 
     get stats() : Statistics {
         return this._stats;
-    }
-
-    get history() : Message[] {
-        return this._history;
     }
 
     get inRecordingMode() : boolean {
@@ -222,13 +212,11 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async start(state ?: ConversationState) : Promise<void> {
+        await this._history.init();
         this._resetInactivityTimeout();
 
-        if (state) {
-            for (const msg of state.history)
-                await this.addMessage(msg);
-            this._nextMsgId = state.lastMessageId+1;
-        }
+        if (state)
+            this._lastMessageId = state.lastMessageId;
         this._started = true;
 
         return this._loop.start(!!this._options.showWelcome,
@@ -240,16 +228,6 @@ export default class Conversation extends events.EventEmitter {
     }
 
     private _resetInactivityTimeout() {
-        // after "options.inactivityTimeout" milliseconds we inform the app that the conversation
-        // is inactive (turn off LEDs, close the microphone, etc.)
-        if (this._inactivityTimeout)
-            clearTimeout(this._inactivityTimeout);
-        if (this._inactivityTimeoutSec > 0) {
-            this._inactivityTimeout = setTimeout(() => {
-                this.emit('inactive');
-            }, this._inactivityTimeoutSec);
-        }
-
         // after "options.contextResetTimeout", we reset the context, forgetting the state of the
         // conversation
         if (this._contextResetTimeout)
@@ -264,7 +242,7 @@ export default class Conversation extends events.EventEmitter {
     async addOutput(out : ConversationDelegate, replayHistory = true) {
         this._delegates.add(out);
         if (replayHistory) {
-            for (const msg of this._history) {
+            for (const msg of this._history.getCached()) {
                 if (!await this._callDelegate(out, (out) => out.addMessage(msg)))
                     return;
             }
@@ -318,24 +296,19 @@ export default class Conversation extends events.EventEmitter {
      */
     async addMessage(msg : Message) {
         if (msg.id !== undefined)
-            this._nextMsgId = Math.max(this._nextMsgId, msg.id+1);
+            this._lastMessageId = Math.max(this._lastMessageId, msg.id);
         else
-            msg.id = this._nextMsgId ++;
-        this._history.push(msg);
-        if (this._history.length > 30)
-            this._history.shift();
+            msg.id = (this._lastMessageId ++) + 1;
+        await this._history.addMessage(msg);
         await this._callDelegates((out) => out.addMessage(msg));
 
         await this.saveState(msg.id);
     }
 
-    async saveState(lastMessageId : number) {
-        const conversationState = this.getState();
-
-        const serializedDialogueState = JSON.stringify(conversationState.dialogueState);
+    private async saveState(lastMessageId : number) {
+        const serializedDialogueState = JSON.stringify(this._loop.getState());
         console.log(`Saving conversation state for ${this._conversationId} (${serializedDialogueState.length} characters)`);
         const row = {
-            history: JSON.stringify(/* FIXME conversationState.history */ []),
             dialogueState: serializedDialogueState,
             lastMessageId: lastMessageId,
         };
@@ -349,12 +322,9 @@ export default class Conversation extends events.EventEmitter {
      * and transfer the conversation state between engines.
      */
     getState() : ConversationState {
-        const history = this._history.slice();
-        const lastMessageId = history.length > 0 ? history[history.length-1].id : null;
         return {
-            history: history,
             dialogueState: this._loop.getState(),
-            lastMessageId: lastMessageId ? lastMessageId : 0
+            lastMessageId: this._lastMessageId
         };
     }
 

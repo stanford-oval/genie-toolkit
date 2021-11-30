@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as sql from '.';
+import type { SearchParams } from '..';
 
 type Fields<RowType> = ReadonlyArray<Exclude<keyof RowType & string, "uniqueId">>;
 
@@ -48,6 +49,14 @@ export default class LocalTable<RowType> {
     getBy(field : keyof RowType, value : string) : Promise<RowType[]> {
         return this._db.withClient((client) => {
             return sql.selectAll(client, `select * from ${this.name} where ${field} = ?`, [value]);
+        });
+    }
+
+    search(search : SearchParams<RowType>) {
+        return this._db.withClient((client) => {
+            const values = search.filter.map(([,,v]) => v);
+            const filter = search.filter.map(([field,op]) => `${field} ${op} ?`).join(' and ');
+            return sql.selectAll(client, `select * from ${this.name} where ${filter || 'true'} order by ${search.sort[0]} ${search.sort[1]} limit ${search.limit}`, values);
         });
     }
 

@@ -21,7 +21,7 @@
 
 import assert from 'assert';
 
-import TimedReference from '../../lib/engine/util/timed_ref';
+import TimedReference from '../../lib/utils/timed_ref';
 
 function delay(ms) {
     return new Promise((resolve) => {
@@ -33,20 +33,22 @@ async function testBasic() {
     let acquired = 0;
     let released = false;
 
-    // expires in 1 second after release, does not autoexpire
-    const ref = new TimedReference(1000, false, () => {
+    // expires in 1 second after release
+    const ref = new TimedReference(1000, () => {
         assert.strictEqual(released, false);
         released = true;
     });
 
-    const value = await ref.acquire(() => {
+    // acquire a strong reference
+    const value = await ref.acquire(true, () => {
         assert.strictEqual(acquired, 0);
         acquired ++;
         return 42;
     });
+    assert.strictEqual(ref._refCount, 1);
     assert.strictEqual(value, 42);
 
-    const value2 = await ref.acquire(() => {
+    const value2 = await ref.acquire(false, () => {
         // value2 should be cached
         assert.fail(`value should not be acquired again`);
     });
@@ -55,13 +57,14 @@ async function testBasic() {
     // should not expire on its own
     await delay(2000);
 
-    const value3 = await ref.acquire(() => {
+    const value3 = await ref.acquire(false, () => {
         // value2 should be cached
         assert.fail(`value should not be acquired again`);
     });
     assert.strictEqual(value3, 42);
 
     await ref.release();
+    assert.strictEqual(ref._refCount, 0);
 
     // immediately after release it's still valid
     assert.strictEqual(released, false);
@@ -71,11 +74,12 @@ async function testBasic() {
     assert.strictEqual(released, true);
 
     // we can acquire it again
-    const value5 = await ref.acquire(() => {
+    const value5 = await ref.acquire(true, () => {
         assert.strictEqual(acquired, 1);
         acquired ++;
         return 43;
     });
+    assert.strictEqual(ref._refCount, 1);
     assert.strictEqual(value5, 43);
 }
 
@@ -83,23 +87,26 @@ async function testAutorelease() {
     let acquired = 0;
     let released = false;
 
-    // expires in 1 second after release, and autoexpires
-    const ref = new TimedReference(1000, true, () => {
+    // expires in 1 second after release
+    const ref = new TimedReference(1000, () => {
         assert.strictEqual(released, false);
         released = true;
     });
 
-    const value = await ref.acquire(() => {
+    // acquire a weak (autoexpiring) reference
+    const value = await ref.acquire(false, () => {
         assert.strictEqual(acquired, 0);
         acquired ++;
         return 42;
     });
+    assert.strictEqual(ref._refCount, 0);
     assert.strictEqual(value, 42);
 
-    const value2 = await ref.acquire(() => {
+    const value2 = await ref.acquire(false, () => {
         // value2 should be cached
         assert.fail(`value should not be acquired again`);
     });
+    assert.strictEqual(ref._refCount, 0);
     assert.strictEqual(value2, 42);
 
     // should expire on its own
@@ -112,25 +119,29 @@ async function testReleaseNow() {
     let acquired = 0;
     let released = false;
 
-    // expires in 1 second after release, does not autoexpire
-    const ref = new TimedReference(1000, false, () => {
+    // expires in 1 second after release
+    const ref = new TimedReference(1000, () => {
         assert.strictEqual(released, false);
         released = true;
     });
 
-    const value = await ref.acquire(() => {
+    // acquire a strong reference
+    const value = await ref.acquire(true, () => {
         assert.strictEqual(acquired, 0);
         acquired ++;
         return 42;
     });
+    assert.strictEqual(ref._refCount, 1);
     assert.strictEqual(value, 42);
 
     await ref.release();
+    assert.strictEqual(ref._refCount, 0);
 
     // immediately after release it's still valid
     assert.strictEqual(released, false);
 
     await ref.releaseNow();
+    assert.strictEqual(ref._refCount, 0);
     assert.strictEqual(released, true);
 }
 
@@ -138,24 +149,26 @@ async function testParallel() {
     let acquired = 0;
     let released = false;
 
-    // expires in 1 second after release, does not autoexpire
-    const ref = new TimedReference(1000, false, () => {
+    // expires in 1 second after release
+    const ref = new TimedReference(1000, () => {
         assert.strictEqual(released, false);
         released = true;
     });
 
-    const value1 = ref.acquire(async () => {
+    const value1 = ref.acquire(true, async () => {
         assert.strictEqual(acquired, 0);
         acquired ++;
         await delay(2000);
         assert.strictEqual(acquired, 1);
         return 42;
     });
+    assert.strictEqual(ref._refCount, 1);
     // in parallel, try to acquire again
-    const value2 = ref.acquire(() => {
+    const value2 = ref.acquire(true, () => {
         // value2 should use the first acquire call
         assert.fail(`value should not be acquired again`);
     });
+    assert.strictEqual(ref._refCount, 2);
 
     assert.strictEqual(await value1, 42);
     assert.strictEqual(await value2, 42);

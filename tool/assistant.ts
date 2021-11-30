@@ -275,7 +275,7 @@ export async function execute(args : any) {
     rl.setPrompt('$ ');
 
     await engine.open();
-    const conversation = await engine.assistant.openConversation('main', {
+    const conversation = await engine.assistant.getOrOpenConversation('main', {
         nluServerUrl: args.nlu_server,
         nlgServerUrl: args.nlg_server,
         debug: args.debug,
@@ -284,7 +284,6 @@ export async function execute(args : any) {
     await conversation.addOutput(new CommandLineDelegate(rl));
 
     new CommandLineHandler(engine, conversation, rl);
-    await conversation.start();
     rl.prompt();
 
     await engine.run();
