@@ -127,7 +127,8 @@ const FIELD_NAMES = {
     ] as const,
     conversation_state: [
         'dialogueState',
-        'lastMessageId'
+        'lastMessageId',
+        'recording',
     ] as const,
     conversation_history: [
         'conversationId',
