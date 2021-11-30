@@ -89,7 +89,11 @@ export interface SyncTables {
 }
 
 export interface SearchParams<RowType> {
-    filter : Array<[keyof RowType, '=' | '>=' | '<=' | '<' | '>', string|number|boolean]>;
+    filter : Array<{
+        k : keyof RowType,
+        o : '=' | '>=' | '<=' | '<' | '>',
+        v : string|number|boolean
+    }>;
     sort : [keyof RowType, 'asc' | 'desc'];
     limit : number;
 }

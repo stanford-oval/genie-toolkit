@@ -54,8 +54,8 @@ export default class LocalTable<RowType> {
 
     search(search : SearchParams<RowType>) {
         return this._db.withClient((client) => {
-            const values = search.filter.map(([,,v]) => v);
-            const filter = search.filter.map(([field,op]) => `${field} ${op} ?`).join(' and ');
+            const values = search.filter.map((f) => f.v);
+            const filter = search.filter.map((f) => `${f.k} ${f.o} ?`).join(' and ');
             return sql.selectAll(client, `select * from ${this.name} where ${filter || 'true'} order by ${search.sort[0]} ${search.sort[1]} limit ${search.limit}`, values);
         });
     }

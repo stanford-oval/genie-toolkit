@@ -51,7 +51,7 @@ export default class ConversationHistory {
     async init() {
         const rows = await this._db.search({
             filter: [
-                ['conversationId', '=', this._conversationId]
+                { k: 'conversationId', o: '=', v: this._conversationId }
             ],
             sort: ['messageId', 'desc'],
             limit: IN_MEMORY_MESSAGES
@@ -76,8 +76,8 @@ export default class ConversationHistory {
     async scrollBack(fromMessageId : number, scrollBackSize = 10) : Promise<Message[]> {
         const rows = await this._db.search({
             filter: [
-                ['conversationId', '=', this._conversationId],
-                ['messageId', '<', fromMessageId]
+                { k: 'conversationId', o: '=', v: this._conversationId },
+                { k: 'messageId', o: '<', v: fromMessageId }
             ],
             sort: ['messageId', 'desc'],
             limit: scrollBackSize
