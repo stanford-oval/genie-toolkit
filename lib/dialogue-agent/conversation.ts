@@ -59,7 +59,6 @@ export interface ConversationOptions {
         highConfidence ?: number;
         lowConfidence ?: number;
     }>;
-    syncDevices ?: boolean;
 }
 
 interface Statistics {
@@ -79,6 +78,7 @@ export interface ConversationDelegate {
 export interface ConversationState {
     dialogueState : Record<string, unknown>;
     lastMessageId : number;
+    recording : boolean;
 }
 
 /**
@@ -96,7 +96,7 @@ export default class Conversation extends events.EventEmitter {
     _ : (x : string) => string;
 
     private _stats : Statistics;
-    private _options : ConversationOptions;
+    private _options : Readonly<ConversationOptions>;
     private _debug : boolean;
     private _dialogueFlags : Record<string, boolean>;
     rng : () => number;
@@ -114,6 +114,7 @@ export default class Conversation extends events.EventEmitter {
     private _lastMessageId : number;
     private _contextResetTimeout : NodeJS.Timeout|null;
     private _contextResetTimeoutSec : number;
+    private _recording : boolean;
 
     private _log : ConversationLogger;
     private readonly _conversationStateDB : LocalTable<ConversationStateRow>;
@@ -138,6 +139,7 @@ export default class Conversation extends events.EventEmitter {
         this._options = options;
         this._debug = !!this._options.debug;
         this._dialogueFlags = options.dialogueFlags || {};
+        this._recording = options.log ?? false;
 
         this.rng = options.rng || Math.random;
 
@@ -179,20 +181,22 @@ export default class Conversation extends events.EventEmitter {
     }
 
     get inRecordingMode() : boolean {
-        return !!this._options.log;
+        return this._recording;
     }
 
     get dialogueFlags() : Record<string, boolean> {
         return this._dialogueFlags;
     }
 
-    startRecording() {
-        this._options.log = true;
+    async startRecording() {
+        this._recording = true;
+        await this._saveState();
     }
 
     async endRecording() {
         await this._log.dialogueFinished();
-        this._options.log = false;
+        this._recording = false;
+        await this._saveState();
     }
 
     notify(app : AppExecutor, outputType : string, outputValue : Record<string, unknown>) {
@@ -215,8 +219,10 @@ export default class Conversation extends events.EventEmitter {
         await this._history.init();
         this._resetInactivityTimeout();
 
-        if (state)
+        if (state) {
             this._lastMessageId = state.lastMessageId;
+            this._recording = state.recording;
+        }
         this._started = true;
 
         return this._loop.start(!!this._options.showWelcome,
@@ -302,17 +308,17 @@ export default class Conversation extends events.EventEmitter {
         await this._history.addMessage(msg);
         await this._callDelegates((out) => out.addMessage(msg));
 
-        await this.saveState(msg.id);
+        await this._saveState();
     }
 
-    private async saveState(lastMessageId : number) {
+    private async _saveState() {
         const serializedDialogueState = JSON.stringify(this._loop.getState());
         console.log(`Saving conversation state for ${this._conversationId} (${serializedDialogueState.length} characters)`);
-        const row = {
+        await this._conversationStateDB.insertOne(this._conversationId, {
             dialogueState: serializedDialogueState,
-            lastMessageId: lastMessageId,
-        };
-        await this._conversationStateDB.insertOne(this._conversationId, row);
+            lastMessageId: this._lastMessageId,
+            recording: this._recording,
+        });
     }
 
     /**
@@ -324,7 +330,8 @@ export default class Conversation extends events.EventEmitter {
     getState() : ConversationState {
         return {
             dialogueState: this._loop.getState(),
-            lastMessageId: this._lastMessageId
+            lastMessageId: this._lastMessageId,
+            recording: this._recording,
         };
     }
 

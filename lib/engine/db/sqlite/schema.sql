@@ -56,7 +56,8 @@ drop table if exists conversation_state;
 create table conversation_state (
        uniqueId varchar(255) primary key,
        dialogueState text default null,
-       lastMessageId int(11) default null
+       lastMessageId int(11) default null,
+       recording boolean default false
 );
 
 create table conversation_history (

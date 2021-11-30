@@ -323,12 +323,13 @@ export default class AssistantDispatcher extends events.EventEmitter {
         return ref;
     }
 
-    private async getConversationState(conversationId : string) {
+    private async getConversationState(conversationId : string) : Promise<ConversationState|undefined> {
         const state = await this._conversationStateDB.getOne(conversationId).then((row) => {
             if (row) {
                 return {
-                    dialogueState : row.dialogueState ? JSON.parse(row.dialogueState) : null,
-                    lastMessageId : row.lastMessageId ? row.lastMessageId : 0
+                    dialogueState: row.dialogueState ? JSON.parse(row.dialogueState) : null,
+                    lastMessageId: row.lastMessageId || 0,
+                    recording: row.recording || false,
                 };
             }
             return undefined;
