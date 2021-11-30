@@ -370,13 +370,13 @@ class MockDeviceDatabase extends events.EventEmitter {
         if (kind)
             return this.getAllDevicesOfKind(kind);
         return Object.keys(this._devices).map((k) => {
-            return this._devices[k]; 
+            return this._devices[k];
         });
     }
 
     getAllDevicesOfKind(kind) {
         return this.getAllDevices().filter((d) => {
-            return d.kind === kind; 
+            return d.kind === kind;
         });
     }
 }
@@ -513,6 +513,10 @@ class MockLocalTable {
 
     getBy(field, value) {
         return this.getAll().then((rows) => rows.filter((row) => row[field] === value));
+    }
+
+    search() {
+        return this.getAll();
     }
 
     getOne(uniqueId) {
