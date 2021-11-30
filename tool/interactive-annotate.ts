@@ -40,6 +40,7 @@ import AbstractDialogueAgent from '../lib/dialogue-agent/abstract_dialogue_agent
 import ExecutionDialogueAgent from '../lib/dialogue-agent/execution_dialogue_agent';
 import DialoguePolicy from '../lib/dialogue-agent/dialogue_policy';
 import ValueCategory from '../lib/dialogue-agent/value-category';
+import { ConversationState } from '../lib/dialogue-agent/conversation';
 import Engine from '../lib/engine';
 import * as I18n from '../lib/i18n';
 
@@ -230,12 +231,11 @@ class Annotator extends events.EventEmitter {
         return {
             id: 'main',
 
-            getState() {
+            getState() : ConversationState {
                 return {
-                    history: [],
                     dialogueState: {},
                     lastMessageId: 0,
-                    expected: null
+                    recording: false,
                 };
             }
         };

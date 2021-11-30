@@ -130,6 +130,11 @@ function migrateTo12(db : sqlite3.Database) {
         // sqlite doesn't support dropping columns
         //db.run(`alter table conversation_state drop column history`);
     });
+},
+function migrateTo13(db : sqlite3.Database) {
+    db.serialize(() => {
+        db.run('alter table conversation_state add column recording boolean default false');
+    });
 }];
 const currentVersion = MIGRATIONS.length;
 

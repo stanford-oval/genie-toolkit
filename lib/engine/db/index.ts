@@ -66,6 +66,7 @@ export interface ConversationStateRow {
     uniqueId : string;
     dialogueState : string|null;
     lastMessageId : number;
+    recording : boolean;
 }
 
 export interface ConversationHistoryRow {
