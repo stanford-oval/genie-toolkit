@@ -222,6 +222,7 @@ export class ContextInfo {
     nextIdx : number|null;
     nextInfo : NextStatementInfo|null;
     aux : any;
+    clarifying_questions: Array<Array<any>>;
 
     key : {
         currentFunction : string|null;
@@ -276,6 +277,7 @@ export class ContextInfo {
         this.nextIdx = nextIdx;
         this.nextInfo = nextInfo;
         this.aux = aux;
+        this.clarifying_questions = [];
 
         this.key = {
             currentFunction: this.currentFunction ? this.currentFunction.qualifiedName : null,
@@ -297,8 +299,12 @@ export class ContextInfo {
 
             const results = this.results!;
             this.key.resultLength = results.length;
-            if (results.length > 0)
+            if (results.length > 0) {
                 this.key.id0 = toID(results[0].value.id);
+                if (results[0].raw && results[0].raw.clarifying_questions) {
+                    this.clarifying_questions = <Array<Array<any>>> results[0].raw.clarifying_questions;
+                }
+            }
             if (results.length > 1)
                 this.key.id1 = toID(results[1].value.id);
             if (results.length > 2)

@@ -48,6 +48,10 @@ export * from './metadata';
 import { POLICY_NAME } from './metadata';
 import { makeContextPhrase } from './context-phrases';
 import { CancellationError } from '../dialogue-runtime';
+/* tslint:disable:no-unused-variable */
+// import {
+//     makeAgentReply,
+// } from './dialogue_acts/common';
 
 /**
  * This module defines the basic logic of transaction dialogues: how
@@ -131,6 +135,8 @@ async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextIn
 }
 
 async function ctxIncompleteSearchCommand(dlg : DialogueInterface, ctx : ContextInfo) {
+    console.log(dlg);
+    console.log("ctx", ctx);
     if (ctx.results!.length > 1) {
         return dlg.either([
             async () => {
@@ -188,24 +194,62 @@ function isMissingProjection(ctx : ContextInfo) {
 }
 
 async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<D.AgentReplyRecord|null> {
+    console.log("Begin execute!");
+    console.log(ctx.resultInfo);
+    console.log(ctx.nextInfo);
+    console.log(ctx);
+    console.log(ctx.clarifying_questions);
+   
     // treat an empty execute like greet
     if (ctx.state.history.length === 0)
         return greet(dlg, ContextInfo.initial());
 
+    
+    // TODO: we want to create a new clarifying question based on ctx.clarifying_questions
+    // Then execute dlg.say(Templates.slot_fill_question_for_action, ...template)
     if (ctx.nextInfo !== null) {
+        console.log("movement");
         // we have an action we want to execute, or a query that needs confirmation
         if (ctx.nextInfo.chainParameter === null || ctx.nextInfo.chainParameterFilled) {
             // we don't need to fill any parameter from the current query
-
+            if (ctx.clarifying_questions) {
+                    for (let q of ctx.clarifying_questions) {
+                        console.log(q[0], q[1]);
+                        // dlg.say(dlg._(q[0]), (q) => D.makeSlotFillQuestion(ctx, questions));
+                        console.log("", StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one'));
+                        // dlg.say(dlg._(q[0]), () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one'), "temperature"));
+                     dlg.say(Templates.slot_fill_question_for_action, (questions) => {
+                         console.log(questions);
+                          return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_slot_fill', questions.map((q) => q.name)));
+                        // dlg.say(Templates.slot_fill_question_for_action, () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one'), "temperature"));
+                        
+                        //dlg.say(Templates.slot_fill_question_for_action, (q) => D.makeClarifyingQuestion(ctx, q));
+                    }
+                    
+                    
+                    // dlg.say(Templates.anything_else_phrase);
+                    // dlg.say(Templates.slot_fill_question_for_action, (questions) => {
+                    //      return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_slot_fill', questions.map((q) => q.name)));
+                    // });
+                    // dlg.say(Templates.slot_fill_question_for_action, (questions) => {let x = D.makeSlotFillQuestion(ctx, questions); console.log("made question", x); return x});
+                    console.log("SAY executed!");
+                    return dlg.flush();
+                }
+            dlg.say(Templates.slot_fill_question_for_action, (questions) => D.makeSlotFillQuestion(ctx, questions));
             if (ctx.nextInfo.isComplete) {
                 // we have all the parameters but we didn't execute: we need to confirm
+                console.log("Need to confirm");
                 dlg.say(Templates.action_confirm_phrase, (phrase) => phrase);
+                console.log("SAY executed");
             } else {
+                 
                 // we are missing some parameter
                 dlg.say(Templates.slot_fill_question_for_action, (questions) => D.makeSlotFillQuestion(ctx, questions));
             }
             return dlg.flush();
         }
+        console.log("if failed");
+        
     }
 
     // we must have a result
@@ -214,15 +258,18 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<
         dlg.say(Templates.action_error_phrase, (phrase) => phrase);
         return dlg.flush();
     }
+    console.log(222);
     if (ctx.resultInfo.hasStream) {
+        console.log("stream");
         dlg.say(dlg._("${preamble} I {will|am going to} ${stmt}"), {
             preamble: Templates.generic_excitement_phrase,
             stmt: new NonTerminal('ctx_current_statement')
         }, () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_rule_enable_success')));
         return dlg.flush();
     }
-
+    console.log(231);
     if (!ctx.resultInfo.isTable) {
+        console.log("table");
         if (ctx.resultInfo.hasEmptyResult && actionShouldHaveResult(ctx)) {
             dlg.say(Templates.empty_search_error, (error) => D.makeEmptySearchError(ctx, error));
             return dlg.flush();
@@ -230,61 +277,74 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<
             return D.ctxCompletedActionSuccess(dlg, ctx);
         }
     }
-
+    console.log(241);
     if (ctx.resultInfo.hasEmptyResult) {
+        console.log("empty");
         // note: aggregation cannot be empty (it would be zero)
         dlg.say(Templates.empty_search_error, (error) => D.makeEmptySearchError(ctx, error));
         return dlg.flush();
     }
-
+    console.log(248);
     if (isMissingProjection(ctx)) {
         dlg.say(dlg._("sorry, I don't have that information at the moment"),
             () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one')));
         return dlg.flush();
     }
-
+    console.log(254);
     if (!ctx.resultInfo.isList) {
+        console.log(0);
         if (ctx.results!.length === 1)
             dlg.say(Templates.system_nonlist_result, (result) => D.makeDisplayResultReply(ctx, result));
         else
             dlg.say(Templates.system_list_proposal, (result) => D.makeDisplayResultReplyFromList(ctx, result));
         return dlg.flush();
     } else if (ctx.resultInfo.isQuestion) {
+        console.log(263);
         if (ctx.resultInfo.isAggregation) {
+            console.log(1);
             // "how many restaurants nearby have more than 500 reviews?"
             return D.ctxAggregationQuestion(dlg, ctx);
         } else if (ctx.resultInfo.argMinMaxField !== null) {
+            console.log(2);
             // these are treated as single result questions, but
             // the context is tagged as ctx_with_result_argminmax instead of
             // ctx_with_result_noquestion
             // so the answer is worded differently
             return ctxCompleteSearchCommand(dlg, ctx);
         } else if (ctx.resultInfo.hasSingleResult) {
+            console.log(3);
             // "what is the rating of Terun?"
             // FIXME if we want to answer differently, we need to change this one
             return ctxCompleteSearchCommand(dlg, ctx);
         } else if (ctx.resultInfo.hasLargeResult) {
+            console.log(4);
             // "what's the food and price range of restaurants nearby?"
             // we treat these the same as "find restaurants nearby", but we make sure
             // that the necessary fields are computed
             return ctxIncompleteSearchCommand(dlg, ctx);
         } else {
+            console.log(5);
             // "what's the food and price range of restaurants nearby?"
             // we treat these the same as "find restaurants nearby", but we make sure
             // that the necessary fields are computed
             return ctxCompleteSearchCommand(dlg, ctx);
         }
     } else {
+        console.log(294);
         if (ctx.resultInfo.hasSingleResult) {
+            console.log(6);
             // we can recommend
             return ctxCompleteSearchCommand(dlg, ctx);
         } else if (ctx.resultInfo.hasLargeResult && ctx.state.dialogueAct !== 'ask_recommend') {
             // we can refine
+            console.log(7);
             return ctxIncompleteSearchCommand(dlg, ctx);
         } else {
+            console.log(8);
             return ctxCompleteSearchCommand(dlg, ctx);
         }
     }
+    console.log("Finished without result!");
 }
 
 /**

@@ -76,13 +76,20 @@ function makeSlotFillQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
     assert(questions.length > 0);
     if (questions.length === 1) {
         const slot = ctx.nextInfo!.missingSlots.find((slot) => slot.tag === `in_param.${questions[0].name}`);
+        console.log("slot", slot);
         assert(slot);
+        console.log(slot.type);
 
         const raw = slot.arg ? useRawModeForSlotFill(slot.arg) : false;
+        console.log("raw", raw);
         return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_slot_fill', questions.map((q) => q.name)), null, slot.type, { raw });
     }
     return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_slot_fill', questions.map((q) => q.name)));
 }
+
+// function makeSlotFillQuestionFromJSON(ctx : ContextInfo, questions : C.ParamSlot[]) {
+//     return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_slot_fill', ['test']), null, slot.type, { raw : "test" });
+// }
 
 /**
  * Check if the action has parameters for the `questions`

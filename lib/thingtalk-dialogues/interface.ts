@@ -423,16 +423,19 @@ export class DialogueInterface {
     say(tmpl : string, semantics : Ast.DialogueState|SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) : void;
     say(tmpl : string, args : TemplatePlaceholderMap, semantics : SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) : void;
     say(arg1 : string|NonTerminal<any>, arg2 ?: TemplatePlaceholderMap|Ast.DialogueState|SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>, arg3 ?: SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) {
+        console.log("calling say...");
         let tmpl : string;
         let args : TemplatePlaceholderMap;
         let semantics : SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>|undefined;
         if (arg1 instanceof NonTerminal) {
+            console.log("if");
             const name = arg1.name ?? arg1.symbol;
             tmpl = '${' + name + '}';
             args = { [name]: arg1 };
             if (typeof arg2 === 'function')
                 semantics = arg2;
         } else {
+            console.log("else");
             tmpl = arg1;
             let state : Ast.DialogueState|undefined;
             if (typeof arg2 === 'function') {
@@ -450,6 +453,9 @@ export class DialogueInterface {
                 state = undefined;
                 args = {};
             }
+            
+            console.log("state", state);
+            console.log("args", args);
 
             if (state) {
                 // assign to a local variable to remove "|undefined" from the type
@@ -466,6 +472,7 @@ export class DialogueInterface {
             args,
             meaning: semantics !== undefined ? wrapAgentReplySemantics(semantics) : undefined
         });
+        console.log("buffer is::::", this._sayBuffer);
     }
 
     /**
@@ -659,7 +666,9 @@ export class DialogueInterface {
      * @returns whether a message was actually sent to the user or not
      */
     async flush() : Promise<AgentReplyRecord|null> {
+        console.log("Flushing...");
         if (this._sayBuffer.length > 0) {
+            console.log("buffer is", this._sayBuffer);
             const ok = await this._io.emit(this._sayBuffer, this._eitherTag);
             this._sayBuffer = [];
             return ok;
