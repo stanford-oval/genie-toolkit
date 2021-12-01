@@ -155,9 +155,12 @@ initial_request_preamble : D.ContextInfo = {
     },
 }
 
-slot_fill_question_for_action : C.ParamSlot[] = {
+  slot_fill_question_for_action : C.ParamSlot[] = {
     slot_fill_question;
-    initial_request_preamble questions:slot_fill_question => questions;
+    initial_request_preamble questions:slot_fill_question => {
+      console.log("qqq", questions);
+      return questions;
+    };
 }
 
 /**

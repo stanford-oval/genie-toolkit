@@ -48,10 +48,7 @@ export * from './metadata';
 import { POLICY_NAME } from './metadata';
 import { makeContextPhrase } from './context-phrases';
 import { CancellationError } from '../dialogue-runtime';
-/* tslint:disable:no-unused-variable */
-// import {
-//     makeAgentReply,
-// } from './dialogue_acts/common';
+
 
 /**
  * This module defines the basic logic of transaction dialogues: how
@@ -199,57 +196,63 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<
     console.log(ctx.nextInfo);
     console.log(ctx);
     console.log(ctx.clarifying_questions);
-   
+
+
     // treat an empty execute like greet
     if (ctx.state.history.length === 0)
         return greet(dlg, ContextInfo.initial());
 
-    
+
     // TODO: we want to create a new clarifying question based on ctx.clarifying_questions
     // Then execute dlg.say(Templates.slot_fill_question_for_action, ...template)
     if (ctx.nextInfo !== null) {
         console.log("movement");
         // we have an action we want to execute, or a query that needs confirmation
         if (ctx.nextInfo.chainParameter === null || ctx.nextInfo.chainParameterFilled) {
+            D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one'), "temperature");
             // we don't need to fill any parameter from the current query
-            if (ctx.clarifying_questions) {
-                    for (let q of ctx.clarifying_questions) {
-                        console.log(q[0], q[1]);
-                        // dlg.say(dlg._(q[0]), (q) => D.makeSlotFillQuestion(ctx, questions));
-                        console.log("", StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one'));
-                        // dlg.say(dlg._(q[0]), () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one'), "temperature"));
-                     dlg.say(Templates.slot_fill_question_for_action, (questions) => {
-                         console.log(questions);
-                          return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_slot_fill', questions.map((q) => q.name)));
-                        // dlg.say(Templates.slot_fill_question_for_action, () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one'), "temperature"));
-                        
-                        //dlg.say(Templates.slot_fill_question_for_action, (q) => D.makeClarifyingQuestion(ctx, q));
-                    }
-                    
-                    
-                    // dlg.say(Templates.anything_else_phrase);
-                    // dlg.say(Templates.slot_fill_question_for_action, (questions) => {
-                    //      return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_slot_fill', questions.map((q) => q.name)));
+            // if (ctx.clarifying_questions) {
+            //         for (let q of ctx.clarifying_questions) {
+            //             console.log(q[0], q[1]);
+            //             // dlg.say(dlg._(q[0]), (q) => D.makeSlotFillQuestion(ctx, questions));
+            //             console.log("", StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one'));
+                     //      dlg.say(dlg._(q[0]), () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one'), "temperature"));
+                     // dlg.say(Templates.slot_fill_question_for_action, (questions) => {
+                    //      console.log(questions);
+                    //       return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_slot_fill', questions.map((q) => q.name)));
+                    //       //dlg.say(Templates.slot_fill_question_for_action, () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one'), "temperature"));
+                    //
+                    //     //dlg.say(Templates.slot_fill_question_for_action, (q) => D.makeClarifyingQuestion(ctx, q));
                     // });
-                    // dlg.say(Templates.slot_fill_question_for_action, (questions) => {let x = D.makeSlotFillQuestion(ctx, questions); console.log("made question", x); return x});
-                    console.log("SAY executed!");
-                    return dlg.flush();
-                }
-            dlg.say(Templates.slot_fill_question_for_action, (questions) => D.makeSlotFillQuestion(ctx, questions));
+            //
+            //
+            //         // dlg.say(Templates.anything_else_phrase);
+            //         // dlg.say(Templates.slot_fill_question_for_action, (questions) => {
+            //         //      return makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_slot_fill', questions.map((q) => q.name)));
+            //         // });
+            //         // dlg.say(Templates.slot_fill_question_for_action, (questions) => {let x = D.makeSlotFillQuestion(ctx, questions); console.log("made question", x); return x});
+            //         console.log("SAY executed!");
+            //         return dlg.flush();
+            //     }
+            // }
+            // dlg.say(Templates.slot_fill_question_for_action, (questions) => D.makeSlotFillQuestion(ctx, questions));
             if (ctx.nextInfo.isComplete) {
                 // we have all the parameters but we didn't execute: we need to confirm
-                console.log("Need to confirm");
                 dlg.say(Templates.action_confirm_phrase, (phrase) => phrase);
-                console.log("SAY executed");
             } else {
-                 
-                // we are missing some parameter
-                dlg.say(Templates.slot_fill_question_for_action, (questions) => D.makeSlotFillQuestion(ctx, questions));
+                if (ctx.clarifying_questions.length) {
+                  console.log(ctx.clarifying_questions);
+                  dlg.say(dlg._("${nt} ${clq}?"), {nt: new NonTerminal('thingpedia_slot_fill_question'), clq: ctx.clarifying_questions[0][0]}, (questions) => {
+                  return D.makeSlotFillQuestion(ctx, [questions])});
+                } else {
+                  dlg.say(Templates.slot_fill_question_for_action, (questions) => {
+                    return D.makeSlotFillQuestion(ctx, questions)});
+                }
             }
             return dlg.flush();
         }
         console.log("if failed");
-        
+
     }
 
     // we must have a result
@@ -496,7 +499,7 @@ export function interpretAnswer(state : Ast.DialogueState|null,
                                 tpLoader : ThingpediaLoader) : Ast.DialogueState|null {
     if (!state)
         return null;
-
+    console.log("begin interpret");
     const ctx = ContextInfo.get(state);
 
     // if the agent proposed something and the user says "yes", we accept the proposal

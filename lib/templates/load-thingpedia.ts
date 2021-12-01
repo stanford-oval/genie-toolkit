@@ -168,6 +168,7 @@ export default class ThingpediaLoader {
     constructor(grammar : SentenceGenerator,
                 langPack : I18n.LanguagePack,
                 options : GrammarOptions) {
+        console.log("begin thingpedia!");
         this._grammar = grammar;
         this._langPack = langPack;
         this._describer = new ThingTalkUtils.Describer(langPack.locale,
@@ -415,6 +416,9 @@ export default class ThingpediaLoader {
             filterable: false, symmetric: false, ast: new Ast.Value.VarRef(pname) };
         this.params.push(pslot);
 
+        console.log("record input param", schema, arg);
+        console.log("arg.metadata.prompt", arg.metadata.prompt);
+
         // compound types are handled by recursing into their fields through iterateArguments()
         // except FIXME that probably won't work? we need to create a record object...
         if (ptype.isCompound)
@@ -426,9 +430,14 @@ export default class ThingpediaLoader {
                 prompt = [prompt];
 
             for (let form of prompt) {
+                console.log("form is", form);
                 if (form.endsWith('?'))
                     form = form.substring(0, form.length-1).trim();
-
+                if (form.startsWith('would you like to add any special instructions'))
+                    form = "";
+                console.log("pslot is", pslot);
+                console.log("paramKeyFn", keyfns.paramKeyFn.toString());
+                // this._addRule('thingpedia_slot_fill_question', [], "form", () => pslot, keyfns.paramKeyFn);
                 this._addRule('thingpedia_slot_fill_question', [], form, () => pslot, keyfns.paramKeyFn);
             }
         }

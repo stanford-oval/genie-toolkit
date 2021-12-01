@@ -74,6 +74,7 @@ export interface Synthesizer {
 
 function wrapAgentReplySemantics<T extends unknown[]>(semantics : SemanticAction<T, AgentReplyRecord|Ast.DialogueState>) : SemanticAction<T, AgentReplyRecord> {
     return function(...args) {
+        console.log(semantics.toString(), args);
         const result = semantics(...args);
         if (result === null)
             return null;
@@ -453,7 +454,7 @@ export class DialogueInterface {
                 state = undefined;
                 args = {};
             }
-            
+
             console.log("state", state);
             console.log("args", args);
 

@@ -137,6 +137,7 @@ function typeToStringSafe(type : Type) : string {
 export function makeInputParamSlot(slot : ParamSlot,
                                    value : Ast.Value,
                                    tpLoader : ThingpediaLoader) : InputParamSlot|null {
+    console.log("makeInputParamSlot", slot, value, tpLoader);
     const vtype = value.getType();
     const ptype = slot.type;
 
@@ -266,7 +267,7 @@ function makeDateRangeFilter(tpLoader : ThingpediaLoader,
 
 function resolveJoin(lhs : Ast.FunctionDef, rhs : Ast.FunctionDef) : Ast.FunctionDef {
     const name = `join(${lhs.name},${rhs.name})`;
-    const classDef = null; 
+    const classDef = null;
     const qualifiers = {
         is_list : lhs.is_list || rhs.is_list,
         is_monitorable: lhs.is_monitorable || rhs.is_monitorable
@@ -287,7 +288,7 @@ function resolveJoin(lhs : Ast.FunctionDef, rhs : Ast.FunctionDef) : Ast.Functio
     return new Ast.FunctionDef(null, 'query', classDef, name, [], qualifiers, args);
 }
 
-function makeSelfJoinCondition(tpLoader : ThingpediaLoader, 
+function makeSelfJoinCondition(tpLoader : ThingpediaLoader,
                                slot : ParamSlot) : FilterSlot|null {
     // the join condition has to be between a non-id parameter and id
     if (slot.name === 'id')

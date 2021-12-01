@@ -72,13 +72,22 @@ function useRawModeForSlotFill(arg : Ast.ArgumentDef) {
 function makeSlotFillQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
     if (!areGoodSlotFillQuestions(ctx, questions))
         return null;
-
+    console.log("ctx", ctx);
     assert(questions.length > 0);
     if (questions.length === 1) {
         const slot = ctx.nextInfo!.missingSlots.find((slot) => slot.tag === `in_param.${questions[0].name}`);
         console.log("slot", slot);
         assert(slot);
         console.log(slot.type);
+        if (slot.arg) {
+          console.log("slot arg", slot.arg);
+          console.log("annotations", slot.arg.nl_annotations);
+          if (slot.arg.name === "special_instructions") {
+              console.log("modification");
+              slot.arg.nl_annotations["prompt"] = "how spicy would you like it";
+          }
+        }
+        // slot.arg.nl_annotations = "this is a test";
 
         const raw = slot.arg ? useRawModeForSlotFill(slot.arg) : false;
         console.log("raw", raw);
@@ -120,6 +129,7 @@ function fastSemiShallowClone(item : Ast.DialogueHistoryItem) {
 }
 
 function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
+    console.log("[precise!!!]");
     const questions = ctx.state.dialogueActParam as string[];
     assert(Array.isArray(questions) && questions.length > 0 && questions.every((q) => typeof q === 'string'));
     if (!isSlotFillAnswerValidForQuestion(answer, questions))
@@ -148,7 +158,9 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
 }
 
 function impreciseSlotFillAnswer(ctx : ContextInfo, loader : ThingpediaLoader, answer : Ast.Value|C.InputParamSlot) {
+    // assert(false);
     const questions = ctx.state.dialogueActParam as string[];
+    console.log("impreciseSlotFillAnswer:161", questions);
     assert(Array.isArray(questions) && questions.length > 0 && questions.every((q) => typeof q === 'string'));
     if (questions.length !== 1)
         return null;
@@ -162,6 +174,7 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, loader : ThingpediaLoader, a
         const slot = ctx.nextInfo!.missingSlots.find((slot) => slot.tag === `in_param.${questions[0]}`);
         assert(slot);
         const ptype = slot.type;
+        assert(ptype);
 
         if (ptype instanceof Type.Array && !(answer instanceof Ast.ArrayValue)) {
             const elem = ptype.elem as Type;
