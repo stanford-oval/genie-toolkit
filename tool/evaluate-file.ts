@@ -20,6 +20,7 @@
 
 import * as argparse from 'argparse';
 import * as fs from 'fs';
+import * as Tp from 'thingpedia';
 import csvparse from 'csv-parse';
 import Stream from 'stream';
 
@@ -27,7 +28,6 @@ import { DatasetParser } from '../lib/dataset-tools/parsers';
 import { SentenceEvaluatorStream, CollectSentenceStatistics } from '../lib/dataset-tools/evaluation/sentence_evaluator';
 import * as StreamUtils from '../lib/utils/stream-utils';
 
-import FileThingpediaClient from './lib/file_thingpedia_client';
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
 import { outputResult } from './lib/evaluate-common';
 
@@ -146,9 +146,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 export async function execute(args : any) {
-    let tpClient : FileThingpediaClient|null = null;
-    if (args.thingpedia)
-        tpClient = new FileThingpediaClient(args);
+    const tpClient = new Tp.FileClient(args);
 
     const columns = args.contextual ?
         ['id', 'context', 'sentence', 'target_code', 'prediction'] :

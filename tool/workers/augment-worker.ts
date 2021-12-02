@@ -24,13 +24,12 @@ import seedrandom from 'seedrandom';
 import * as Tp from 'thingpedia';
 
 import DatasetAugmenter from '../../lib/dataset-tools/augmentation';
-import FileParameterProvider from '../lib/file_parameter_provider';
 
 export default async function worker(args : any, shard : string) {
     const tpClient = new Tp.FileClient(args);
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
-    const constProvider = new FileParameterProvider(args.parameter_datasets, args.param_locale);
-    await constProvider.open();
+    const constProvider = new Tp.FileParameterProvider(args.parameter_datasets, args.param_locale);
+    await constProvider.load();
 
     return new DatasetAugmenter(schemaRetriever, constProvider, tpClient, {
         rng: seedrandom.alea(args.random_seed + ':' + shard),

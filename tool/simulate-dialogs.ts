@@ -42,7 +42,6 @@ import * as I18n from '../lib/i18n';
 import { ActionSetFlag, readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
 import { PredictionResult } from '../lib/prediction/parserclient';
-import FileThingpediaClient from './lib/file_thingpedia_client';
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('simulate-dialogs', {
@@ -306,7 +305,7 @@ class DialogueToPartialDialoguesStream extends Stream.Transform {
 }
 
 export async function execute(args : any) {
-    const tpClient = new FileThingpediaClient(args);
+    const tpClient = new Tp.FileClient(args);
     const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
     const simulatorOptions : ThingTalkUtils.SimulatorOptions = {

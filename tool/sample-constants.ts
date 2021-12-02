@@ -26,8 +26,6 @@ import * as ThingTalk from 'thingtalk';
 
 import * as StreamUtils from '../lib/utils/stream-utils';
 import ConstantSampler from '../lib/dataset-tools/mturk/constants-sampler';
-import FileParameterProvider from './lib/file_parameter_provider';
-
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('sample-constants', {
@@ -74,8 +72,8 @@ export async function execute(args : any) {
     };
     const tpClient = new Tp.FileClient(args);
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
-    const constProvider = new FileParameterProvider(args.parameter_datasets, args.locale);
-    await constProvider.open();
+    const constProvider = new Tp.FileParameterProvider(args.parameter_datasets, args.locale);
+    await constProvider.load();
     if (!options.devices)
         options.devices = (await tpClient.getAllDeviceNames()).map((dev) => dev.kind).join(',');
 
@@ -85,5 +83,4 @@ export async function execute(args : any) {
     args.output.end(constants.map((c) => c.join('\t')).join('\n') + '\n');
 
     StreamUtils.waitFinish(args.output);
-    await constProvider.close();
 }
