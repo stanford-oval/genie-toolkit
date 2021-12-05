@@ -23,7 +23,6 @@ jobs:
     -
       name: "Unit Tests"
       install:
-      - pyenv global 3.7.1
       - travis_retry npm ci
       script:
       - TZ="America/Los_Angeles" npx nyc ts-node ./test/unit
@@ -51,7 +50,7 @@ jobs:
     -
       name: "Translation Tests"
       install:
-      - pyenv global 3.7.1
+      - pyenv global 3.7.2
       - ./travis/install-starter-deps.sh
       - pip3 install polib
       - travis_retry npm ci
@@ -60,7 +59,7 @@ jobs:
     -
       name: "Starter Code Tests (Basic)"
       install:
-      - pyenv global 3.7.1
+      - pyenv global 3.7.2
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/basic-starter.sh
@@ -68,14 +67,14 @@ jobs:
     -
       name: "Starter Code Tests (Schema.org)"
       install:
-      - pyenv global 3.7.1
+      - pyenv global 3.7.2
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/schemaorg-starter.sh
       after_success: npm run coverage
     - name: "Starter Code Tests (Wikidata)"
       install:
-      - pyenv global 3.7.1
+      - pyenv global 3.7.2
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/wikidata-starter.sh
@@ -83,7 +82,7 @@ jobs:
     -
       name: "Starter Code Tests (MultiWOZ)"
       install:
-      - pyenv global 3.7.1
+      - pyenv global 3.7.2
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/multiwoz-starter.sh
@@ -91,7 +90,7 @@ jobs:
     -
       name: "Starter Code Tests (Custom Skills)"
       install:
-      - pyenv global 3.7.1
+      - pyenv global 3.7.2
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/custom-starter.sh
