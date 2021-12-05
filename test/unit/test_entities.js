@@ -23,16 +23,11 @@
 import * as Tp from 'thingpedia';
 
 import { getBestEntityMatch } from '../../lib/dialogue-agent/entity-linking/entity-finder';
+import { MockPlatform } from './mock_utils';
 
 const THINGPEDIA_URL = 'https://dev.almond.stanford.edu/thingpedia';
 
-const _mockPlatform = {
-    locale: 'en-US',
-    getDeveloperKey() {
-        return null;
-    }
-};
-const _thingpediaClient = new Tp.HttpClient(_mockPlatform, THINGPEDIA_URL);
+const _thingpediaClient = new Tp.HttpClient(new MockPlatform(), THINGPEDIA_URL);
 
 
 const TEST_CASES = [

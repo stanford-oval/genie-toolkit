@@ -39,7 +39,7 @@ test -s ./samples-erred.tsv || exit 1
 
 ## test augment.js and requote.js
 # first augment input dataset
-node $srcdir/dist/tool/genie.js augment $srcdir/test/data/fa/para-restaurants-fixed.tsv --output ./para-restaurants-aug.tsv --random-seed 123 -l en-US --param-local fa --thingpedia $srcdir/data/fa/restaurants/schema.tt --parameter-datasets $srcdir/data/fa/restaurants/parameter-datasets.tsv --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 1 --no-quote-paraphrasing-expand-factor 1 --quoted-fraction 0.0 --debug
+node $srcdir/dist/tool/genie.js augment $srcdir/test/data/fa/para-restaurants-fixed.tsv --output ./para-restaurants-aug.tsv --random-seed 123 -l en-US --param-local fa --thingpedia $srcdir/test/data/fa/restaurants/schema.tt --parameter-datasets $srcdir/test/data/fa/restaurants/parameter-datasets.tsv --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 1 --no-quote-paraphrasing-expand-factor 1 --quoted-fraction 0.0 --debug
 # then requote the augmented dataset and assert the result matches the input dataset
 node $srcdir/dist/tool/genie.js requote ./para-restaurants-aug.tsv --output ./para-restaurants-aug-req.tsv --mode replace
 diff -u --left-column <(cut -f2- ./para-restaurants-aug-req.tsv) <(cut -f2- $srcdir/test/data/fa/para-restaurants-fixed.tsv)

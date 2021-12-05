@@ -16,6 +16,7 @@ __pycache__
 *.genie.js
 *.genie.out.ts
 *.genie.out.js
+*.sqlite
 test/engine/workdir
 test/engine/cache
 
