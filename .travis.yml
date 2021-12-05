@@ -8,6 +8,10 @@ dist: xenial
 env:
   global:
   - COVERALLS_PARALLEL=true
+cache:
+  npm: true
+  directories:
+  - $HOME/.cache/pip
 
 jobs:
   include:
