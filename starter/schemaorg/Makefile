@@ -125,14 +125,15 @@ multidomain/manifest.tt: $(addsuffix /manifest.tt,$(all_experiments))
 	  --random-seed $@ --id-prefix $*:
 	mv $@.tmp $@
 
+parameter_dataset_url = https://almond-static.stanford.edu/test-data/parameter-datasets-en-US-20211206.tar.xz
 shared-parameter-datasets.tsv:
-	$(genie) download-entity-values --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) \
-	   --manifest $@ --append-manifest -d shared-parameter-datasets
-	$(genie) download-string-values --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) \
-	   --manifest $@ --append-manifest -d shared-parameter-datasets
+	wget --no-verbose $(parameter_dataset_url) -O parameter-datasets.tar.xz
+	tar xf parameter-datasets.tar.xz
+	mv parameter-datasets.tsv shared-parameter-datasets.tsv
+	mv parameter-datasets.1.sqlite shared-parameter-datasets.1.sqlite
 
 %/parameter-datasets.tsv : %/schema.trimmed.tt %/data.json shared-parameter-datasets.tsv
-	sed -e "s|$(echo -e '\t')shared-parameter-datasets|$(echo -e '\t')../shared-parameter-datasets|g" shared-parameter-datasets.tsv > $@
+	sed -e "s|$(echo -e '\t')parameter-datasets|$(echo -e '\t')../parameter-datasets|g" shared-parameter-datasets.tsv > $@
 	$(genie) make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/schema.trimmed.tt --data $*/data.json --class-name $($(*)_class_name) --dataset schemaorg
 	cat $@.local >> $@
 	rm $@.local
