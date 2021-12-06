@@ -27,6 +27,8 @@ import * as util from 'util';
 
 import * as StreamUtils from '../../lib/utils/stream-utils';
 
+import { THINGPEDIA_URL } from '../../lib/config';
+
 export function maybeCreateReadStream(filename : string) : stream.Readable {
     if (filename === '-')
         return process.stdin;
@@ -66,4 +68,4 @@ export async function getConfig<T>(key : string, _default ?: T) : Promise<string
     }
 }
 
-export const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
+export { THINGPEDIA_URL as DEFAULT_THINGPEDIA_URL };

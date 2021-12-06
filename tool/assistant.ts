@@ -27,8 +27,8 @@ import Platform from './lib/cmdline-platform';
 
 import Conversation from '../lib/dialogue-agent/conversation';
 import { Message } from '../lib/dialogue-agent/protocol';
+import { DEFAULT_THINGPEDIA_URL, getConfig } from './lib/argutils';
 
-const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 const NL_SERVER_URL = 'https://nlp.almond.stanford.edu';
 
 class CommandLineDelegate {
@@ -238,7 +238,6 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('--thingpedia-url', {
         required: false,
-        default: THINGPEDIA_URL,
         help: 'URL of Thingpedia to use.'
     });
     parser.add_argument('--thingpedia-dir', {
@@ -264,6 +263,9 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 export async function execute(args : any) {
+    if (!args.thingpedia_url)
+        args.thingpedia_url = await getConfig('thingpedia.url', process.env.THINGPEDIA_URL || DEFAULT_THINGPEDIA_URL);
+
     const platform = new Platform(args.workdir, args.locale, args.thingpedia_url);
     const prefs = platform.getSharedPreferences();
     if (args.thingpedia_dir && args.thingpedia_dir.length)
