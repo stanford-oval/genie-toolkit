@@ -133,7 +133,8 @@ shared-parameter-datasets.tsv:
 	mv parameter-datasets.1.sqlite shared-parameter-datasets.1.sqlite
 
 %/parameter-datasets.tsv : %/schema.trimmed.tt %/data.json shared-parameter-datasets.tsv
-	sed -e "s|$(echo -e '\t')parameter-datasets|$(echo -e '\t')../parameter-datasets|g" shared-parameter-datasets.tsv > $@
+	sed -e "s|	parameter-datasets|	../parameter-datasets|g" shared-parameter-datasets.tsv > $@
+	cp shared-parameter-datasets.1.sqlite $(patsubst %.tsv,%.1.sqlite,$@)
 	$(genie) make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/schema.trimmed.tt --data $*/data.json --class-name $($(*)_class_name) --dataset schemaorg
 	cat $@.local >> $@
 	rm $@.local
