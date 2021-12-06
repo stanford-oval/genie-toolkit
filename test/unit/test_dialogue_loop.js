@@ -22,6 +22,7 @@ import assert from 'assert';
 
 import * as constants from '../../lib/dialogue-agent/dialogue-loop';
 import { pickHandler } from '../../lib/dialogue-agent/dialogue-loop';
+import ValueCategory from '../../lib/dialogue-agent/value-category';
 
 const thingtalk = { uniqueId: 'thingtalk', priority: 2 };
 const bing = { uniqueId: 'bing', priority: 1 };
@@ -29,7 +30,7 @@ const bing = { uniqueId: 'bing', priority: 1 };
 const TEST_CASES = [
     // #1
     [
-        null,
+        null, null,
         [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } }
@@ -39,7 +40,7 @@ const TEST_CASES = [
 
     // #2
     [
-         null,
+         null, null,
          [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } }
@@ -49,7 +50,7 @@ const TEST_CASES = [
 
     // #3
     [
-         null,
+         null, null,
          [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } }
@@ -59,7 +60,7 @@ const TEST_CASES = [
 
     // #4
     [
-         null,
+         null, null,
          [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } }
@@ -69,7 +70,7 @@ const TEST_CASES = [
 
     // #5
     [
-        null,
+        null, null,
         [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } }
@@ -79,7 +80,7 @@ const TEST_CASES = [
 
     // #6
     [
-        null,
+        null, null,
         [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND } }
@@ -89,7 +90,7 @@ const TEST_CASES = [
 
     // #7
     [
-        null,
+        null, null,
         [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND } }
@@ -99,7 +100,7 @@ const TEST_CASES = [
 
     // #8
     [
-        null,
+        null, null,
         [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND } }
@@ -109,7 +110,7 @@ const TEST_CASES = [
 
     // #9
     [
-        null,
+        null, null,
         [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } }
@@ -119,7 +120,7 @@ const TEST_CASES = [
 
     // #10
     [
-        thingtalk,
+        thingtalk, null,
         [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP } }
@@ -129,7 +130,7 @@ const TEST_CASES = [
 
     // #11
     [
-        thingtalk,
+        thingtalk, null,
         [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP } }
@@ -139,7 +140,7 @@ const TEST_CASES = [
 
     // #12
     [
-        thingtalk,
+        thingtalk, null,
         [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP } }
@@ -149,7 +150,7 @@ const TEST_CASES = [
 
     // #13
     [
-        thingtalk,
+        thingtalk, null,
         [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP } }
@@ -159,7 +160,7 @@ const TEST_CASES = [
 
     // #14
     [
-        null,
+        null, null,
         [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.STRONGLY_CONFIDENT_IN_DOMAIN_COMMAND } }
@@ -169,12 +170,52 @@ const TEST_CASES = [
 
     // #15
     [
-        thingtalk,
+        thingtalk, null,
         [
             { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP } },
             { handler: bing, analysis: { type: constants.CommandAnalysisType.STRONGLY_CONFIDENT_IN_DOMAIN_FOLLOWUP } }
         ],
         'thingtalk'
+    ],
+
+    // #16
+    [
+        thingtalk, null,
+        [
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.STRONGLY_CONFIDENT_IN_DOMAIN_COMMAND } }
+        ],
+        'bing'
+    ],
+
+    // #17
+    [
+        thingtalk, ValueCategory.Generic,
+        [
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.STRONGLY_CONFIDENT_IN_DOMAIN_COMMAND } }
+        ],
+        'thingtalk'
+    ],
+
+    // #18
+    [
+        thingtalk, ValueCategory.Generic,
+        [
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND } }
+        ],
+        'bing'
+    ],
+
+    // #19
+    [
+        thingtalk, ValueCategory.Generic,
+        [
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.OUT_OF_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } }
+        ],
+        'bing'
     ],
 ];
 
@@ -183,17 +224,18 @@ async function test(i, reverse=false) {
         console.log('Test Case # %d [reverse]', (i+1));
     else
         console.log('Test Case #' + (i+1));
-    let [currentHandler, testCase, expected] = TEST_CASES[i];
+    let [currentHandler, expecting, testCase, expected] = TEST_CASES[i];
     const best = undefined;
     const bestanalysis = undefined;
     if (reverse)
         testCase.reverse();
     const [handler, analysis] = pickHandler(currentHandler,
+        expecting,
         testCase,
         best,
         bestanalysis,
         constants.Confidence.NO);
-    console.log("handler: %O | analysis: %O", handler, analysis);
+    console.log("handler: %O | analysis: %s", handler, constants.CommandAnalysisType[analysis.type]);
     assert.strictEqual(handler.uniqueId, expected);
 }
 
