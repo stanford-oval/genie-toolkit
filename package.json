@@ -45,7 +45,7 @@
     "sqlite3": "5.0.2",
     "stemmer": "^1.0.5",
     "string-interp": "^0.3.1",
-    "thingpedia": "github:stanford-oval/thingpedia-api",
+    "thingpedia": "^2.10.0-alpha.6",
     "thingtalk": "^2.1.0-alpha.11",
     "thingtalk-units": "^0.2.0",
     "twilio": "^3.71.3",

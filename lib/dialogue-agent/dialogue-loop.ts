@@ -56,9 +56,11 @@ export enum CommandAnalysisType {
 
     // some sort of command
     EXACT_IN_DOMAIN_COMMAND,
+    STRONGLY_CONFIDENT_IN_DOMAIN_COMMAND,
     CONFIDENT_IN_DOMAIN_COMMAND,
     NONCONFIDENT_IN_DOMAIN_COMMAND,
     EXACT_IN_DOMAIN_FOLLOWUP,
+    STRONGLY_CONFIDENT_IN_DOMAIN_FOLLOWUP,
     CONFIDENT_IN_DOMAIN_FOLLOWUP,
     NONCONFIDENT_IN_DOMAIN_FOLLOWUP,
     OUT_OF_DOMAIN_COMMAND,
@@ -67,6 +69,7 @@ export enum CommandAnalysisType {
 export const enum Confidence {
     NO,
     LOW,
+    NORMAL,
     HIGH,
     ABSOLUTE
 }
@@ -734,7 +737,7 @@ export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResu
             }
             break;
 
-        case CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND:
+        case CommandAnalysisType.STRONGLY_CONFIDENT_IN_DOMAIN_COMMAND:
                 // choose if either
                 // - we're higher priority
                 // - we're more confident
@@ -748,6 +751,23 @@ export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResu
                 best = handler;
                 bestanalysis = analysis;
                 bestconfidence = Confidence.HIGH;
+            }
+            break;
+
+        case CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND:
+                // choose if either
+                // - we're higher priority
+                // - we're more confident
+                // - we're the current dialogue and we have the same priority
+            if (best === undefined ||
+                    (
+                        bestconfidence < Confidence.NORMAL ||
+                        (bestconfidence <= Confidence.NORMAL && handler.priority > best.priority) ||
+                        (bestconfidence <= Confidence.NORMAL && handler.priority >= best.priority && currentHandler === handler)
+                    )) {
+                best = handler;
+                bestanalysis = analysis;
+                bestconfidence = Confidence.NORMAL;
             }
             break;
 
@@ -779,7 +799,7 @@ export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResu
             }
             break;
 
-        case CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP:
+        case CommandAnalysisType.STRONGLY_CONFIDENT_IN_DOMAIN_FOLLOWUP:
                 // choose if handler is the current handler and either
                 // - we're same priority
                 // - we're more confident
@@ -793,6 +813,20 @@ export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResu
             }
             break;
 
+        case CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP:
+                // choose if handler is the current handler and either
+                // - we're same priority
+                // - we're more confident
+            if (currentHandler === handler &&
+                    (best === undefined ||
+                    handler.priority >= best.priority ||
+                    bestconfidence < Confidence.NORMAL)) {
+                best = handler;
+                bestanalysis = analysis;
+                bestconfidence = Confidence.NORMAL;
+            }
+            break;
+
         case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_FOLLOWUP:
                 // choose if handler is the current handler and either
                 // - we're same priority
@@ -802,7 +836,7 @@ export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResu
                     (handler.priority >= best.priority && bestconfidence <= Confidence.LOW))) {
                 best = handler;
                 bestanalysis = analysis;
-                bestconfidence = Confidence.HIGH;
+                bestconfidence = Confidence.LOW;
             }
             break;
 

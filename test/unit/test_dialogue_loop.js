@@ -157,6 +157,25 @@ const TEST_CASES = [
         'thingtalk'
     ],
 
+    // #14
+    [
+        null,
+        [
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.STRONGLY_CONFIDENT_IN_DOMAIN_COMMAND } }
+        ],
+        'bing'
+    ],
+
+    // #15
+    [
+        thingtalk,
+        [
+            { handler: thingtalk, analysis: { type: constants.CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP } },
+            { handler: bing, analysis: { type: constants.CommandAnalysisType.STRONGLY_CONFIDENT_IN_DOMAIN_FOLLOWUP } }
+        ],
+        'thingtalk'
+    ],
 ];
 
 async function test(i, reverse=false) {

@@ -70,11 +70,17 @@ implements DialogueHandler<AnalysisTypeAdapter<AnalysisType>, StateType> {
         case Tp.DialogueHandler.Confidence.EXACT_IN_DOMAIN_COMMAND:
             return CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND;
 
+        case Tp.DialogueHandler.Confidence.STRONLY_CONFIDENT_IN_DOMAIN_COMMAND: // FIXME
+            return CommandAnalysisType.STRONGLY_CONFIDENT_IN_DOMAIN_COMMAND;
+
         case Tp.DialogueHandler.Confidence.CONFIDENT_IN_DOMAIN_COMMAND:
             return CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND;
-        
+
         case Tp.DialogueHandler.Confidence.EXACT_IN_DOMAIN_FOLLOWUP:
             return CommandAnalysisType.EXACT_IN_DOMAIN_FOLLOWUP;
+
+        case Tp.DialogueHandler.Confidence.STRONGLY_CONFIDENT_IN_DOMAIN_FOLLOWUP:
+            return CommandAnalysisType.STRONGLY_CONFIDENT_IN_DOMAIN_FOLLOWUP;
 
         case Tp.DialogueHandler.Confidence.CONFIDENT_IN_DOMAIN_FOLLOWUP:
             return CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP;
