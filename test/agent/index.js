@@ -318,7 +318,7 @@ async function main(onlyIds) {
 >> expecting = null
 Hello! How can I help you?
 >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_greet ; // {}
->> expecting = generic
+>> expecting = null
 `);
 
     const TEST_CASES = await loadTestCases();
