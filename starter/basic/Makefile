@@ -75,15 +75,14 @@ $(experiment)/synthetic.tsv : $(experiment)/thingpedia.tt $(experiment)/dataset.
 	  -o $@.tmp --no-debug $(generate_flags) --random-seed $@
 	mv $@.tmp $@
 
-shared-parameter-datasets.tsv:
-	$(genie) download-entity-values --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) \
-	   --manifest $@ --append-manifest -d shared-parameter-datasets
-	$(genie) download-string-values --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) \
-	   --manifest $@ --append-manifest -d shared-parameter-datasets
+parameter_dataset_url = https://almond-static.stanford.edu/test-data/parameter-datasets-en-US-20211206.tar.xz
+parameter-datasets.tsv:
+	wget --no-verbose $(parameter_dataset_url) -O parameter-datasets.tar.xz
+	tar xf parameter-datasets.tar.xz
 
-$(experiment)/augmented.tsv : $($(experiment)_paraphrase) $(experiment)/synthetic.tsv $(experiment)/thingpedia.tt $(experiment)/entities.json shared-parameter-datasets.tsv
+$(experiment)/augmented.tsv : $($(experiment)_paraphrase) $(experiment)/synthetic.tsv $(experiment)/thingpedia.tt $(experiment)/entities.json parameter-datasets.tsv
 	$(genie) augment -o $@.tmp -l en-US --thingpedia $(experiment)/thingpedia.tt --entities $(experiment)/entities.json\
-	  --parameter-datasets shared-parameter-datasets.tsv \
+	  --parameter-datasets parameter-datasets.tsv \
 	  --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 60 --no-quote-paraphrasing-expand-factor 20 --quoted-fraction 0.1 \
 	  --debug $($(experiment)_paraphrase) $(experiment)/synthetic.tsv
 	mv $@.tmp $@

@@ -22,7 +22,7 @@ import Stream from 'stream';
 import { SchemaRetriever } from 'thingtalk';
 import * as Tp from 'thingpedia';
 
-import ParameterReplacer from './replace_parameters';
+import ParameterReplacer, { ParameterProvider } from './replace_parameters';
 import SingleDeviceAugmenter from './single_device_augmenter';
 
 import { SentenceExample } from '../parsers';
@@ -50,14 +50,6 @@ interface DatasetAugmenterOptions {
     samplingType : 'random' | 'uniform' | 'default';
     subsetParamSet : [number, number];
     numAttempts : number;
-}
-
-interface ParameterRecord {
-    preprocessed : string;
-    weight : number;
-}
-interface ParameterProvider {
-    get(type : 'entity'|'string', key : string) : Promise<ParameterRecord[]>;
 }
 
 export default class DatasetAugmenter extends Stream.Transform {

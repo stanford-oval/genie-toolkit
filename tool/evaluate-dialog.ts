@@ -20,13 +20,13 @@
 
 import * as argparse from 'argparse';
 import * as fs from 'fs';
+import * as Tp from 'thingpedia';
 
 import { KEYS, DialogueEvaluatorStream, CollectDialogueStatistics } from '../lib/dataset-tools/evaluation/dialogue_evaluator';
 import { DialogueParser } from '../lib/dataset-tools/parsers';
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
 import * as ParserClient from '../lib/prediction/parserclient';
 import MultiJSONDatabase from './lib/multi_json_database';
-import FileThingpediaClient from './lib/file_thingpedia_client';
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('evaluate-dialog', {
@@ -116,7 +116,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 export async function execute(args : any) {
-    const tpClient = new FileThingpediaClient(args);
+    const tpClient = new Tp.FileClient(args);
     const parser = ParserClient.get(args.url, args.locale);
     await parser.start();
 

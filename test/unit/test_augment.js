@@ -20,17 +20,17 @@
 
 
 process.on('unhandledRejection', (up) => {
-    throw up; 
+    throw up;
 });
 
 import * as path from 'path';
 import * as stream from 'stream';
 import * as seedrandom from 'seedrandom';
+import * as Tp from 'thingpedia';
 
 import { BasicSentenceGenerator } from '../../lib/sentence-generator/batch';
 import DatasetAugmenter from '../../lib/dataset-tools/augmentation';
 import * as Utils from '../../lib/utils/misc-utils';
-import FileParameterProvider from '../../tool/lib/file_parameter_provider';
 
 import { Syntax, SchemaRetriever } from 'thingtalk';
 
@@ -96,8 +96,8 @@ async function main() {
     };
 
     const generator = new BasicSentenceGenerator(generatorOptions);
-    const constProvider = new FileParameterProvider(path.resolve(path.dirname(module.filename), '../data/en-US/parameter-datasets.tsv'), 'en');
-    await constProvider.open();
+    const constProvider = new Tp.FileParameterProvider(path.resolve(path.dirname(module.filename), '../data/en-US/parameter-datasets.tsv'), 'en');
+    await constProvider.load();
     const augmenter = new DatasetAugmenter(_schemaRetriever, constProvider, _tpClient, augmentOptions);
     const writer = new stream.Writable({
         objectMode: true,

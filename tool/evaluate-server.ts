@@ -152,9 +152,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 export async function execute(args : any) {
-    let tpClient = null;
-    if (args.thingpedia)
-        tpClient = new Tp.FileClient(args);
+    const tpClient = new Tp.FileClient(args);
     const parser = ParserClient.get(args.url, args.locale);
     await parser.start();
 

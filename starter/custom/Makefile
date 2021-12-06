@@ -108,12 +108,10 @@ everything/database-map.tsv: $(wildcard $(addsuffix /database-map.tsv,$(devices)
 entities.json:
 	$(genie) download-entities --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) -o $@
 
+parameter_dataset_url = https://almond-static.stanford.edu/test-data/parameter-datasets-en-US-20211206.tar.xz
 parameter-datasets.tsv:
-	$(genie) download-entity-values --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) \
-	   --manifest $@.tmp --append-manifest -d parameter-datasets
-	$(genie) download-string-values --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) \
-	   --manifest $@.tmp --append-manifest -d parameter-datasets
-	mv $@.tmp $@
+	wget --no-verbose $(parameter_dataset_url) -O parameter-datasets.tar.xz
+	tar xf parameter-datasets.tar.xz
 
 .embeddings/paraphraser-bart:
 	mkdir -p .embeddings

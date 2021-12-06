@@ -1,0 +1,8 @@
+entity	org.schema.Restaurant:Person	shared-parameter-datasets/org.schema.Restaurant:Person.json
+entity	org.schema:us_state	shared-parameter-datasets/org.schema:us_state.json
+entity	tt:country	shared-parameter-datasets/tt:country.json
+string	tt:location	shared-parameter-datasets/tt:location.tsv
+string	tt:long_free_text	shared-parameter-datasets/tt:long_free_text.tsv
+string	tt:short_free_text	shared-parameter-datasets/tt:short_free_text.tsv
+string	gov.data:restaurant_names	shared-parameter-datasets/gov.data:restaurant_names.tsv
+entity	tt:us_state	shared-parameter-datasets/org.schema:us_state.json
