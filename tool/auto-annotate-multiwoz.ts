@@ -865,14 +865,12 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: false,
         help: `Path to a file pointing to JSON databases used to simulate queries.`,
     });
-    parser.add_argument('--user-nlu-server', {
-        required: false,
-        default: 'http://127.0.0.1:8400',
+    parser.add_argument('--user-nlu-server-url', {
+        required: true,
         help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
     });
-    parser.add_argument('--agent-nlu-server', {
-        required: false,
-        default: 'http://127.0.0.1:8400',
+    parser.add_argument('--agent-nlu-server-url', {
+        required: true,
         help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
     });
     parser.add_argument('--only-multidomain', {

@@ -25,13 +25,13 @@ import LocalParserClient, { LocalParserOptions } from './localparserclient';
 import { ExactMatcher } from './types';
 export * from './types';
 
-const URL = 'https://almond-nl.stanford.edu';
+import { NLP_URL } from '../config';
 
 // export for documentation
 export { RemoteParserClient, LocalParserClient };
 export type ParserClient = RemoteParserClient | LocalParserClient;
 
-export function get(url = URL,
+export function get(url = NLP_URL,
                     locale : string,
                     platform ?: Tp.BasePlatform,
                     exactmatcher ?: ExactMatcher,

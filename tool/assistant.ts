@@ -27,9 +27,7 @@ import Platform from './lib/cmdline-platform';
 
 import Conversation from '../lib/dialogue-agent/conversation';
 import { Message } from '../lib/dialogue-agent/protocol';
-import { DEFAULT_THINGPEDIA_URL, getConfig } from './lib/argutils';
-
-const NL_SERVER_URL = 'https://nlp.almond.stanford.edu';
+import { DEFAULT_THINGPEDIA_URL, DEFAULT_NLP_URL, getConfig } from './lib/argutils';
 
 class CommandLineDelegate {
     private _rl : readline.Interface;
@@ -245,12 +243,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         nargs: '+',
         help: 'Path to a directory containing Thingpedia device definitions (overrides --thingpedia-url).'
     });
-    parser.add_argument('--nlu-server', {
+    parser.add_argument('--nlu-server-url', {
         required: false,
-        default: NL_SERVER_URL,
         help: 'NLP server URL to use for NLU (can be a file:/// URL).'
     });
-    parser.add_argument('--nlg-server', {
+    parser.add_argument('--nlg-server-url', {
         required: false,
         help: 'NLP server URL to use for NLG; must be specified to use neural NLG.'
     });
@@ -265,6 +262,8 @@ export function initArgparse(subparsers : argparse.SubParser) {
 export async function execute(args : any) {
     if (!args.thingpedia_url)
         args.thingpedia_url = await getConfig('thingpedia.url', process.env.THINGPEDIA_URL || DEFAULT_THINGPEDIA_URL);
+    if (!args.nlu_server)
+        args.nlu_server = await getConfig('thingpedia.nlp-url', DEFAULT_NLP_URL);
 
     const platform = new Platform(args.workdir, args.locale, args.thingpedia_url);
     const prefs = platform.getSharedPreferences();

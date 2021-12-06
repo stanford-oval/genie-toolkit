@@ -198,9 +198,8 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: `Timezone to use to interpret dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--url', {
-        required: false,
+        required: true,
         help: "URL of the server to evaluate. Use a file:// URL pointing to a model directory to evaluate using a local instance of genienlp",
-        default: 'http://127.0.0.1:8400',
     });
     parser.add_argument('--tokenized', {
         required: false,

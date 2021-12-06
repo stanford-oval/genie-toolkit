@@ -27,7 +27,7 @@ import * as util from 'util';
 
 import * as StreamUtils from '../../lib/utils/stream-utils';
 
-import { THINGPEDIA_URL } from '../../lib/config';
+import { NLP_URL, THINGPEDIA_URL } from '../../lib/config';
 
 export function maybeCreateReadStream(filename : string) : stream.Readable {
     if (filename === '-')
@@ -68,4 +68,7 @@ export async function getConfig<T>(key : string, _default ?: T) : Promise<string
     }
 }
 
-export { THINGPEDIA_URL as DEFAULT_THINGPEDIA_URL };
+export {
+    THINGPEDIA_URL as DEFAULT_THINGPEDIA_URL,
+    NLP_URL as DEFAULT_NLP_URL
+};
