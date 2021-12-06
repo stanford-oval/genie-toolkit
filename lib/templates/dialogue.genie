@@ -191,7 +191,7 @@ $agent : S.AgentReplyRecord = {
     ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-    ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null), null, null, { end: false }),
+    ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null), null, null),
 
     ?anything_else {
         ctx:ctx_cancel anything_else_phrase

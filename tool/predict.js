@@ -30,12 +30,12 @@ import * as ParserClient from '../lib/prediction/parserclient';
 class PredictStream extends Stream.Transform {
     constructor(parser, tokenized, debug) {
         super({ objectMode: true });
-        
+
         this._parser = parser;
         this._tokenized = tokenized;
         this._debug = debug;
     }
-    
+
     async _process(ex) {
         const parsed = await this._parser.sendUtterance(ex.preprocessed, ex.context, {}, {
             tokenized: this._tokenized,
@@ -50,11 +50,11 @@ class PredictStream extends Stream.Transform {
         else
             throw new Error(`no prediction produced for ${ex.id}`);
     }
-    
+
     _transform(ex, encoding, callback) {
         this._process(ex).then(() => callback(null, ex), callback);
     }
-    
+
     _flush(callback) {
         process.nextTick(callback);
     }
@@ -70,9 +70,8 @@ export function initArgparse(subparsers) {
         type: fs.createWriteStream
     });
     parser.add_argument('--url', {
-        required: false,
+        required: true,
         help: "URL of the server to use. Use a file:// URL pointing to a model directory to predict using a local instance of genienlp",
-        default: 'http://127.0.0.1:8400',
     });
     parser.add_argument('--contextual', {
         action: 'store_true',

@@ -18,10 +18,19 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-// The URL of the Cloud version of ThingEngine (used for Cloud sync)
+/**
+ * The URL of the Cloud version of ThingEngine (used for Cloud sync).
+ */
 export const THINGENGINE_URL = 'https://thingpedia.stanford.edu';
 
-// The default URL of Thingpedia, used if the platform layer does not provide
-// a different URL or a platform-specific ThingpediaClient
+/**
+ * The default URL of Thingpedia, used if the platform layer does not provide
+ * a different URL or a platform-specific ThingpediaClient.
+ */
 export const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
+
+/**
+ * The default URL of the NLP server, used if the platform layer does not
+ * provide a different URL.
+ */
+export const NLP_URL = 'https://almond-nl.stanford.edu';

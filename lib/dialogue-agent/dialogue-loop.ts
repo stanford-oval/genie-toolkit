@@ -246,19 +246,13 @@ export class DialogueLoop {
 
     private async _analyzeCommand(command : UserInput) : Promise<[DialogueHandler<any, any>|undefined, CommandAnalysisResult]> {
         try {
-            // This algorithm will choose the dialogue handlers that reports:
-            // - the highest confidence
-            // - if a tie, the highest priority
-            // - if a tie, the current handler
-            // - if a tie, the first handler that reports any confidence at all
-
             const handlers = [...this._iterateDialogueHandlers()];
             const handlerCandidates = await Promise.all(handlers.map(async (handler) => {
                 const analysis = await handler.analyzeCommand(command);
                 return { handler: handler, analysis: analysis };
             }));
 
-            return pickHandler(this._currentHandler, handlerCandidates, command, this._debug);
+            return pickHandler(this._currentHandler, this.expecting, handlerCandidates, command, this._debug);
         } catch(e : any) {
             if (e.code === 'EHOSTUNREACH' || e.code === 'ETIMEDOUT') {
                 await this.reply(this._("Sorry, I cannot contact the Genie service. Please check your Internet connection and try again later."), null);
@@ -702,6 +696,7 @@ export class DialogueLoop {
 }
 
 export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResult, any> | null,
+                            expecting : ValueCategory|null,
                             handlerCandidates : Array<{ handler : DialogueHandler<CommandAnalysisResult, any>; analysis : CommandAnalysisResult; }>,
                             command : UserInput,
                             debug = false) : [DialogueHandler<any, any>|undefined, CommandAnalysisResult]  {
@@ -709,12 +704,71 @@ export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResu
     let bestanalysis : CommandAnalysisResult|undefined = undefined;
     let bestconfidence = Confidence.NO;
 
+    // If "expecting === null",
+    //   this algorithm will choose the dialogue handlers that reports:
+    //   - the highest confidence
+    //   - if a tie, the highest priority
+    //   - if a tie, the current handler
+    //   - if a tie, the first handler that reports any confidence at all
+    //
+    // If "expecting !== null",
+    //   this algorithm will choose the current handler, unless one of the following
+    //   is true:
+    //   - some other handler returns exact_in_domain_command (or similar exact level type)
+    //     and it's either higher priority or higher confidence than the current handler
+    //   - the current handler returns out_of_domain
+
+    if (debug) {
+        for (const handlerItem of handlerCandidates) {
+            const handler = handlerItem.handler;
+            const analysis = handlerItem.analysis;
+            console.log(`Handler ${handler.uniqueId} reports ${CommandAnalysisType[analysis.type]}`);
+        }
+    }
+
+    if (expecting !== null && currentHandler !== null) {
+        const currentAnalysis = handlerCandidates.find((cand) => cand.handler === currentHandler)!.analysis;
+        if (currentAnalysis.type !== CommandAnalysisType.OUT_OF_DOMAIN_COMMAND) {
+            let best : DialogueHandler<any, any>|undefined = undefined;
+            let bestanalysis : CommandAnalysisResult|undefined = undefined;
+
+            for (const handlerItem of handlerCandidates) {
+                const handler = handlerItem.handler;
+                const analysis = handlerItem.analysis;
+
+                switch (analysis.type) {
+                case CommandAnalysisType.STOP:
+                case CommandAnalysisType.DEBUG:
+                case CommandAnalysisType.NEVERMIND:
+                case CommandAnalysisType.WAKEUP:
+                case CommandAnalysisType.EXACT_IN_DOMAIN_COMMAND:
+                    if (best === undefined ||
+                        (
+                            handler.priority > best.priority ||
+                            (currentHandler === handler && handler.priority >= best.priority)
+                        )) {
+                        best = handler;
+                        bestanalysis = analysis;
+                    }
+                    break;
+
+                default:
+                    // ignore this handler
+                }
+            }
+
+            if (best)
+                return [best, bestanalysis!];
+
+            return [currentHandler, currentAnalysis];
+        }
+
+        // fallthrough to the expecting === null case
+    }
+
     for (const handlerItem of handlerCandidates) {
         const handler = handlerItem.handler;
         const analysis = handlerItem.analysis;
-
-        if (debug)
-            console.log(`Handler ${handler.uniqueId} reports ${CommandAnalysisType[analysis.type]}`);
 
         switch (analysis.type) {
         case CommandAnalysisType.STOP:
