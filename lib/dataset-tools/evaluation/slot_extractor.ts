@@ -170,7 +170,7 @@ export default class SlotExtractor {
         try {
             return await this._tpClient!.lookupEntity(type, searchKey);
         } catch(e) {
-            if (e.code === 404)
+            if (typeof e.code === 'number') // http error
                 return { data: [] };
             throw e;
         }
