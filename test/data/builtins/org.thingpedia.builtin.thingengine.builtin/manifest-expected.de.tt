@@ -297,7 +297,7 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
   #[confirm=false]
   #[minimal_projection=[]];
 
-  action faq_reply(in req question : Enum(about_almond_identity, about_almond_age, about_almond_how_are_you, about_almond_location, about_almond_comparison, about_almond_training, about_almond_partner, about_almond_junk, about_almond_preference, check_capability_home_assistant, check_capability_phone, general_help, iot_help, positive_emotion_thanks, positive_emotion_cool, abusive, revoke_consent, how_to_train, how_to_configure_skill, how_to_disable_skill, how_to_set_language, how_to_access_settings, how_to_use_wakeword, troubleshooting_home_assistant)
+  action faq_reply(in req question : Enum(about_almond_identity, about_almond_age, about_almond_how_are_you, about_almond_special, about_almond_motivation, about_almond_location, about_almond_comparison, about_almond_training, about_almond_partner, about_almond_junk, about_almond_preference, check_capability_home_assistant, check_capability_phone, general_help, iot_help, positive_emotion_thanks, positive_emotion_cool, abusive, revoke_consent, how_to_train, how_to_configure_skill, how_to_disable_skill, how_to_set_language, how_to_access_settings, how_to_use_wakeword, troubleshooting_home_assistant)
                    #_[prompt="was möchten Sie wissen"]
                    #_[canonical={
                      default="base",
@@ -308,6 +308,8 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
                        about_almond_identity="über Mandelidentität",
                        about_almond_age="über Mandelalter",
                        about_almond_how_are_you="über Mandel wie geht es dir",
+                       about_almond_special="über Mandelspezial",
+                       about_almond_motivation="über Mandelmotivation",
                        about_almond_location="über Mandellage",
                        about_almond_comparison="über Mandelvergleich",
                        about_almond_training="über Mandeltraining",

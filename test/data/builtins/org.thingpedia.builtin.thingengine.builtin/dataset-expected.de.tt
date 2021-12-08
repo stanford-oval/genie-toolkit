@@ -99,6 +99,12 @@ dataset @org.thingpedia.builtin.thingengine.builtin
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_how_are_you)
   #_[utterances=["Wie geht's?", "Wie geht es u?", "Wie geht's dir?", "Wie geht es dir?", "Wie geht es dir heute?", "Wie geht es dir heute?", "Wie fühlst du dich heute?", "Wie fühlst du dich heute?"]];
 
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_special)
+  #_[utterances=["Was macht dich besonders?", "Was macht Sie einzigartig?", "Was macht dich anders?", "Was ist an dir besonders?", "Was ist an dir einzigartig?", "Was ist an dir anders?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_motivation)
+  #_[utterances=["Warum sollte ich mich um dich kümmern?", "Warum sollte mir der Geist wichtig sein?", "Warum sollte ich mich um den Assistenten kümmern?", "Warum sollten Heimassistenten sich um Sie kümmern?", "Warum sollten Heimassistenten sich um Genie kümmern?", "Warum sollten Heimassistenten sich um den Assistenten kümmern?", "Warum sollten sich die Benutzer um Sie kümmern?", "Warum sollten sich die Benutzer um den Geist kümmern?", "Warum sollten sich die Benutzer um den Assistenten kümmern?", "Was ist an Ihnen für Heimassistenten wichtig?", "Was ist an Ihnen wichtig für ha Nutzer?", "Warum sind Sie für Heimassistenten wichtig?", "Warum sind Sie für ha Benutzer wichtig?"]];
+
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_location)
   #_[utterances=["Wo sind Sie?", "Wo sind Sie jetzt?"]];
 
