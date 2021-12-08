@@ -150,7 +150,7 @@ export default class SlotExtractor {
             }
         } else {
             // resolve as regular Thingpedia entity
-            const candidates = await this._tpClient!.lookupEntity(value.type, searchKey);
+            const candidates = await this._safeLookupEntity(value.type, searchKey);
             if (candidates.data.length === 0) {
                 // this entity has no NER
                 resolved = {
@@ -164,6 +164,16 @@ export default class SlotExtractor {
         }
         this._cachedEntityMatches.set(cacheKey, resolved);
         return resolved;
+    }
+
+    private async _safeLookupEntity(type : string, searchKey : string) {
+        try {
+            return await this._tpClient!.lookupEntity(type, searchKey);
+        } catch(e) {
+            if (typeof e.code === 'number') // http error
+                return { data: [] };
+            throw e;
+        }
     }
 
     private async _valueToSlot(value : Ast.Value) : Promise<string> {
