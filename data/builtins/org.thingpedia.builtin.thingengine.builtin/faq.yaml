@@ -119,7 +119,7 @@ general_help:
     - Can you give me another suggestion?
     - Show skills
   a:
-    - I'm a new virtual assistant. At the moment, I can help you with music, jokes, news, podcasts, weather, reminders, and managing IoT devices.
+    - At the moment, I can help you with music, jokes, news, podcasts, weather, reminders, and managing IoT devices.
 
 iot_help:
   q:
