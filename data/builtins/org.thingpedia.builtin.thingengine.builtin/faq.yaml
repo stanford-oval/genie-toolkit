@@ -124,7 +124,9 @@ general_help:
     - Can you give me another suggestion?
     - Show skills
   a:
-    - At the moment, I can help you with music, jokes, news, podcasts, weather, reminders, and managing IoT devices.
+    - >-
+      Anyone can create skills for Genie. So far, people have created skills
+      for music, news, weather, jokes and other services.
 
 iot_help:
   q:
@@ -132,7 +134,9 @@ iot_help:
     - "What IoT devices can you work with?"
     - "What devices can I connect you to?"
   a:
-    - At the moment, I can control lights, switches, as well as various sensors. Check the Thingpedia website for the full, up-to-date list, and check your My Skills page to see which of your devices I recognize.
+    - >-
+      At the moment, I can control lights, switches, vacuums, fans and air
+      conditioners, as well as a variety of sensors.
 
 positive_emotion_thanks:
   q:
