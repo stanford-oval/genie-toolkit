@@ -4,7 +4,8 @@ branches:
   - "/^dependabot/"
 language: node_js
 node_js: '12'
-dist: xenial
+python: '3.8'
+dist: bionic
 env:
   global:
   - COVERALLS_PARALLEL=true
@@ -55,6 +56,7 @@ jobs:
       name: "Translation Tests"
       install:
       - pyenv global 3.8.1
+      - virtualenv --py $(pyenv which python3) venv && . ./venv/bin/activate
       - ./travis/install-starter-deps.sh
       - pip3 install polib
       - travis_retry npm ci
@@ -64,6 +66,7 @@ jobs:
       name: "Starter Code Tests (Basic)"
       install:
       - pyenv global 3.8.1
+      - virtualenv --py	$(pyenv	which python3) venv && . ./venv/bin/activate
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/basic-starter.sh
@@ -72,6 +75,7 @@ jobs:
       name: "Starter Code Tests (Schema.org)"
       install:
       - pyenv global 3.8.1
+      - virtualenv --py	$(pyenv	which python3) venv && . ./venv/bin/activate
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/schemaorg-starter.sh
@@ -79,6 +83,7 @@ jobs:
     - name: "Starter Code Tests (Wikidata)"
       install:
       - pyenv global 3.8.1
+      - virtualenv --py	$(pyenv	which python3) venv && . ./venv/bin/activate
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/wikidata-starter.sh
@@ -87,6 +92,7 @@ jobs:
       name: "Starter Code Tests (MultiWOZ)"
       install:
       - pyenv global 3.8.1
+      - virtualenv --py	$(pyenv	which python3) venv && . ./venv/bin/activate
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/multiwoz-starter.sh
@@ -95,6 +101,7 @@ jobs:
       name: "Starter Code Tests (Custom Skills)"
       install:
       - pyenv global 3.8.1
+      - virtualenv --py	$(pyenv	which python3) venv && . ./venv/bin/activate
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/custom-starter.sh
