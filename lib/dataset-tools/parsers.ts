@@ -312,6 +312,10 @@ class DialogueParser extends Stream.Transform {
             // ignore `====` at the beginning or at the end
             // or consecutive appearances of `====`
             // this simplifies concatenating datasets
+
+            // but reset the ID, otherwise the next dialogue will have the wrong
+            // ID
+            this._id = undefined;
             callback();
             return;
         }
