@@ -1284,3 +1284,12 @@ A: sound: alarm-clock-elapsed
 A: Str:QUOTED_STRING::42:.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.builtin.thingengine.builtin . say ( message = QUOTED_STRING_0 ) #[ results = [ { message = QUOTED_STRING_0 , message_output = QUOTED_STRING_1 } ] ] ; // {"QUOTED_STRING_0":"hello","QUOTED_STRING_1":"str:QUOTED_STRING::42:"}
 A: >> expecting = null
+
+====
+# 87-iot-confirm
+
+U: \t monitor(@org.thingpedia.iot.switch(name="kitchen").state()), state == enum on;
+
+A: Alright, I will notify you when the power state of your Kitchen Switches switch changes and it becomes true that the state is equal to on.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_rule_enable_success ; monitor ( @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . state ( ) ) filter state == enum on #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-kitchen","display":"Kitchen Switches"}}
+A: >> expecting = null
