@@ -463,6 +463,18 @@ const TEST_CASES = [
     [` @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").eat_data(data="some data ");`,
     `Eat data on test with data some data.`,
     `Test`],
+
+    [`monitor(@org.thingpedia.iot.switch.state());`,
+    `Notify me when the switch state changes.`,
+    `Switch`],
+
+    [`monitor(@org.thingpedia.iot.switch(name="kitchen").state());`,
+    `Notify me when the power state of my kitchen switch changes.`,
+    `Switch`],
+
+    [`monitor(@org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).state());`,
+    `Notify me when the power state of my Kitchen Switches switch changes.`,
+    `Switch`]
 ];
 
 async function test(i) {
@@ -481,8 +493,10 @@ async function test(i) {
         const kinds = new Set();
         for (const [, prim] of prog.iteratePrimitives(false))
             kinds.add(prim.selector.kind);
-        for (const kind of kinds)
-            describer.setDataset(kind, await schemaRetriever.getExamplesByKind(kind));
+        for (const kind of kinds) {
+            const dataset = await schemaRetriever.getExamplesByKind(kind);
+            describer.setDataset(kind, dataset);
+        }
 
         let reconstructed = describer.describe(prog).chooseBest();
         reconstructed = langPack.postprocessNLG(langPack.postprocessSynthetic(reconstructed, prog, null, 'agent'), allocator.entities, {

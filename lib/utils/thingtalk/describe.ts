@@ -952,11 +952,13 @@ export class Describer {
                     return false;
                 const invocation = ex.value.invocation;
 
-                return invocation.selector.kind === kind && invocation.channel === functionName;
+                return ex.type === forSchema.functionType && invocation.selector.kind === kind && invocation.channel === functionName;
             });
         }
 
         const templates : Array<{ utterance : Replaceable, replaceablenames : string[], othernames : string[], score : number }> = [];
+
+        const hasDeviceName = forSelector ? (!!forSelector.id || !!this._getDeviceAttribute(forSelector, 'name')) : false;
 
         // map each example from a form with p_ parameters into a "confirmation"-like form
         for (const ex of relevantExamples) {
@@ -993,11 +995,11 @@ export class Describer {
                 assert(invocation.selector.attributes[0].value instanceof Ast.VarRefValue);
                 deviceNameParam = invocation.selector.attributes[0].value.name;
 
-                if (forSelector && forSelector.id)
+                if (hasDeviceName)
                     score += 1; // normal match
                 else
                     score -= 0.5; // placeholder
-            } else if (forSelector && forSelector.id) {
+            } else if (hasDeviceName) {
                 // missing a space to put a device name (and we won't append
                 // the device name later) so this is bad
                 //
