@@ -1504,7 +1504,8 @@ export default class ThingpediaLoader {
         }
 
         for (const entity of entityTypes) {
-            entity.has_ner_support = !!(entity.type.startsWith('tt:') && entity.has_ner_support);
+            entity.has_ner_support = !!((entity.type.startsWith('tt:') || entity.type === 'org.freedesktop:app_id')
+                && entity.has_ner_support);
             this._loadEntityType(entity.type, entity);
         }
         for (const device of devices)
