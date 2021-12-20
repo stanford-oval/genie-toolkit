@@ -848,7 +848,7 @@ C: ]]
 C: #[count=50]
 C: #[more=true];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The distance is 1 mile.
+A: The distance is 1.3 miles.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: up
 #! comment: test comment for dialogue turns
