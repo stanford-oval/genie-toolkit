@@ -689,14 +689,25 @@ export default class ParameterReplacer {
 
         let valueListKey = await this._getParamListKey(slot, arg);
         const fallbackKey = this._getFallbackParamListKey(slot);
-        if (valueListKey[0] === 'string' && valueListKey[1] !== fallbackKey &&
-            coin(this._untypedStringProbability, this._rng))
-            valueListKey = ['string', fallbackKey];
+        if (valueListKey[0] === 'string') {
+            if (valueListKey[1] === fallbackKey) {
+                const isExplicit = arg ? !!arg.getImplementationAnnotation<string>('string_values') : false;
+                if (!isExplicit) {
+                    this._warn('default-free-text:' + slot.tag + ':' + slot.type,
+                        `Using default value of ${valueListKey[0]} ${valueListKey[1]} for ${slot.tag}:${slot.type}`);
+                }
+            } else {
+                if (coin(this._untypedStringProbability, this._rng))
+                    valueListKey = ['string', fallbackKey];
+            }
+        }
 
         let valueList = await this._loader.get(valueListKey);
         if (valueList.size === 0) {
-            if (this._debug)
-                this._warn('novalue:' + slot.tag + ':' + slot.type, `Found no values for ${slot.tag}:${slot.type}, falling back to ${fallbackKey}`);
+            if (this._debug) {
+                this._warn('novalue:' + slot.tag + ':' + slot.type + ':' + valueListKey[0] + ':' + valueListKey[1],
+                    `Found no values for ${slot.tag}:${slot.type} (searching for ${valueListKey[0]} ${valueListKey[1]}), falling back to ${fallbackKey}`);
+            }
 
             valueList = await this._loader.get(['string', fallbackKey]);
             if (valueList.size === 0)
