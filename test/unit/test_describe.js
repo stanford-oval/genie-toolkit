@@ -454,10 +454,10 @@ const TEST_CASES = [
     @com.yelp.restaurant(), openingHours == new RecurrentTimeSpecification(
         { beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum monday },
         { beginTime=new Time(8,0), endTime=new Time(18,0), dayOfWeek=enum tuesday },
-        { beginTime=new Time(15,0), endTime=new Time(18,0), dayOfWeek=enum monday, beginDate=new Date("2021-12-25"), endDate=new Date("2021-12-25") },
-        { beginTime=new Time(15,0), endTime=new Time(18,0), dayOfWeek=enum tuesday, beginDate=new Date("2021-12-25"), endDate=new Date("2021-12-25") }
+        { beginTime=new Time(15,0), endTime=new Time(18,0), dayOfWeek=enum monday, beginDate=new Date(2023,12,25), endDate=new Date(2023,12,25) },
+        { beginTime=new Time(15,0), endTime=new Time(18,0), dayOfWeek=enum tuesday, beginDate=new Date(2023,12,25), endDate=new Date(2023,12,25) }
         );`,
-    'Get restaurants such that the opening hours is equal to from 8:00 AM to 6:00 PM on Monday and Tuesday, from 3:00 PM to 6:00 PM on Monday between December 24 and December 24, and from 3:00 PM to 6:00 PM on Tuesday between December 24 and December 24.',
+    'Get restaurants such that the opening hours is equal to from 8:00 AM to 6:00 PM on Monday and Tuesday, from 3:00 PM to 6:00 PM on Monday between December 25, 2023 and December 25, 2023, and from 3:00 PM to 6:00 PM on Tuesday between December 25, 2023 and December 25, 2023.',
     `Yelp`],
 
     [` @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").eat_data(data="some data ");`,

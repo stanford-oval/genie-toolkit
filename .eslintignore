@@ -7,3 +7,4 @@ lib/utils/template-string/grammar.js
 node_modules
 dist
 coverage
+scripts/

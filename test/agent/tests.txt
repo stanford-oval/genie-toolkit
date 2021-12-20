@@ -382,7 +382,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [distance(geo, $location.current_location)] of (@com.yelp.restaurant()) => notify;
 
-A: The distance is 1 mile.
+A: The distance is 1.3 miles.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ distance ( geo , LOCATION_0 ) ] of @com.yelp . restaurant ( ) #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , distance = MEASURE_m_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"LOCATION_0":{"latitude":37.4275,"longitude":-122.1697,"display":null},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"MEASURE_m_0":{"unit":"m","value":2155.6170081160226},"NUMBER_0":50}
 A: >> expecting = null
 
