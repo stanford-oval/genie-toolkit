@@ -57,6 +57,14 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
   #[doc="get the current time"]
   #[confirm=false];
 
+  list query get_timezone(out timezone: Entity(tt:timezone)
+                          #_[canonical=["time zone"]]
+                          #[filterable=false])
+  #_[canonical=["time zone"]]
+  #_[result=["the current time zone is ${timezone}"]]
+  #[doc="get the current time zone"]
+  #[confirm=false];
+
   query get_date(out date: Date
                  #_[canonical=["date"]]
                  #[filterable=false])
@@ -150,6 +158,62 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
   #[doc="query info about supported Thingpedia devices"]
   // specify minimal_projection explicitly otherwise we'll default to ["id"]
   // which is incorrect because "id" is input not output
+  #[minimal_projection=[]]
+  #[confirm=false];
+
+  list query configured_device_info(out id : Entity(tt:device)
+                                    #_[canonical={
+                                      base=["name"],
+                                      passive_verb=["named #", "called #"]
+                                    }],
+                                    out description : String
+                                    #_[canonical={
+                                      base=["description"]
+                                    }]
+                                    #[string_values="tt:long_free_text"]
+                                    #[filterable=false],
+                                    out kind : String
+                                    #_[canonical={
+                                      base=["kind"],
+                                      adjective=["#"],
+                                      preposition=["in the # kind"]
+                                    }],
+                                    out version : Number
+                                    #_[canonical={
+                                      base=["version"],
+                                      passive_verb=["version #"]
+                                    }],
+                                    out category : Enum(physical, online, data, system)
+                                    #_[canonical={
+                                      base=["category"],
+                                      adjective=["#"],
+                                      preposition=["in the # category"]
+                                    }],
+                                    out engine_id : String
+                                    #_[canonical={
+                                      base=["engine id"]
+                                    }]
+                                    #[filterable=false],
+                                    out is_transient : Boolean
+                                    #_[canonical={
+                                      base=["is transient"]
+                                    }],
+                                    out auth_type : String
+                                    #_[canonical={
+                                      base=["authentication type"]
+                                    }]
+                                    #[filterable=false])
+  #_[canonical=["information about configured devices",
+                "information about configured entities",
+                "configured devices",
+                "configured entities",
+                "device list",
+                "entity list",
+                "iot devices",
+                "iot entities"]]
+  #_[result={list="here are the cofigured devices"}]
+  #_[formatted=[{ type="text", text="${id}" }]]
+  #[doc="query info about configured devices"]
   #[minimal_projection=[]]
   #[confirm=false];
 

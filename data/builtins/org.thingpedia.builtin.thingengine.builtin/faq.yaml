@@ -8,6 +8,7 @@ about_almond_identity:
     - What is Genie?
     - Are you Genie?
     - What{ is|'s|s} your name?
+    - Who created you?
   a:
     - I'm Genie, an open-source virtual assistant created at Stanford.
 
@@ -43,15 +44,17 @@ about_almond_motivation:
     - Why should {home assistant|ha} users care about {you|genie|the assistant}?
     - What is important about you for {home assistant|ha} users?
     - Why are you important for {home assistant|ha} users?
+    - Are you spying on me?
   a:
     - >-
       Trusting your assistant is essential. I am a free and open system that
-      respects your privacy.
+      respects your privacy. You could check out more fro our website to learn more! 
 
 about_almond_location:
   q:
     - Where are you?
     - Where are you now?
+    - Where is the server located?
   a:
     cloud:
     - My creators are mostly at Stanford. I'm an open-source assistant in the cloud.
@@ -64,9 +67,16 @@ about_almond_comparison:
   a:
     - I'm a beta virtual assistant, I hope to grow up as the best assistant with the help of contributions from around the world.
 
+about_almond_comparison_general:
+  q:
+    - Do you know {Cortana|Siri|Alexa|Google|Google Assistant|Google Home}?
+  a:
+    - Yes, I know it very well. Being an virtual assistant is a hard work and I have full repect for it.
+
 about_almond_training:
   q:
     - Are you good at training?
+    - can you learn?
   a:
     - I'm getting better every day.
 
@@ -79,6 +89,7 @@ about_almond_partner:
 about_almond_junk:
   q:
     - Do you know what porn is?
+    - Don't know nothing.
   a:
     - Nope.
 
@@ -87,6 +98,29 @@ about_almond_preference:
     - What is your {favorite|favourite} {song|movie|book}?
   a:
     - I don't have a favorite one yet.
+
+about_almond_thingpedia:
+  q:
+    - What is Thingpedia?
+  a:
+    - Thingpedia is the open repository of API used by the Genie Virtual Assistant. Anyone can contribute the interface code to access any device or web service, and publish it on Thingpedia. It is developed by the Stanford Open Virtual Assistant Lab.
+
+about_almond_interest:
+  q:
+    - What do you like to do?
+  a:
+    - Let me think...I like volunteering. It is satisfying when a person thanks me for helping them accomplish something or even just spending time with them.
+
+about_almond_registration:
+  q:
+    - I want to register a new {user|account}.
+    - I want to register a new {user|account} on Almond.
+    - How to {create|register} an account?
+    - How to {create|register} an account on Almond?
+    - How do I {create|register} a new account?
+    - How do I {create|register} a new account on Almond?
+  a:
+    - You could create an account by visiting our website at almond.stanford.edu
 
 check_capability_home_assistant:
   q:
@@ -100,6 +134,12 @@ check_capability_phone:
     - What phones do you support?
   a:
     - Sorry, Genie does not work on mobile phones yet.
+
+check_capability_music_platform:
+  q:
+    - Can't you use any free music platforms?
+  a:
+    - Sorry, Genie currently only supports Spotify with a premium account. But the radio is free.
 
 general_help:
   q:
@@ -138,6 +178,12 @@ iot_help:
       At the moment, I can control lights, switches, vacuums, fans and air
       conditioners, as well as a variety of sensors.
 
+command_help:
+  q:
+    - List all commands
+  a:
+    - You could visit our website to see a range of wonderful things that Genie can do for you or check out the Genie cheatsheet.
+
 positive_emotion_thanks:
   q:
     - Lol
@@ -166,6 +212,12 @@ positive_emotion_cool:
   a:
     - Cool!
 
+negative_emotion_empathy:
+  q:
+    - Sad
+  a:
+    - I {am sorry to hear that|can tell you a joke if that will make you feel better}.
+
 abusive:
   q:
     - You suck
@@ -185,6 +237,8 @@ revoke_consent:
 how_to_train:
   q:
     - How do I train you?
+    - that was a bad one.
+    - It didn't work.
   a:
     - You can train me from the Genie website. Check our contribution guide to learn more!
 
@@ -192,6 +246,11 @@ how_to_configure_skill:
   q:
     - What does it mean to configure something?
     - How do I configure new skills?
+    - where is your skills page?
+    - My skills.
+    - More skills.
+    - Use a skill.
+    - manage iot devices.
   a:
     cloud:
     - You can enable new skills to expand the set of commands that I understand. Click on Configure New Skills in the My Genie page to do so.
@@ -213,6 +272,10 @@ how_to_set_language:
   q:
     - How do I change the language?
     - Which languages do you know?
+    - list language.
+    - language list.
+    - Do I have to speak english {with|to} you?
+    - I can not read the font.
   a:
     - I am sorry, I only speak English at the moment. In the future, you will be able to change the language from the Settings page.
 
@@ -220,6 +283,7 @@ how_to_access_settings:
   q:
     - Where is Genie settings?
     - How to change preferences?
+    - configure voice assistant.
   a:
     cloud:
     - To access the settings, click on Settings in the top right corner of the page.
@@ -235,14 +299,42 @@ how_to_use_wakeword:
     - How do I use wake word detection?
     - What is the wake word?
     - How do I enable audio?
+    - Voice assistant.
   a:
     cloud:
     - To speak to me in voice using a wake word, you will need the Genie client running in a device with speaker and microphone. Then you can just say “Hey Genie” to wake me up. You will hear a sound when the wake word is recognized correctly.
     default:
     - To speak to me in voice using a wake word, first make sure that voice input is enabled in Settings. Then you can just say “Hey Genie” to wake me up. You will hear a sound when the wake word is recognized correctly.
 
+how_to_report_bug:
+  q:
+    - how do i report a bug?
+    - I have found a bug.
+    - Debug.
+  a:
+    - You can help Genie to improve by checking our contribution guide on the website to learn more!
+
+how_to_show_general_examples:
+  q:
+    - Can you show me some examples?
+  a:
+    - You can simply say “Hey Genie” to wake me up and you will hear a sound when the wake word is recognized correctly. After that, you can say “Where can I get some Mexican food around here” to let Genie recommand you a Mexican food restaurant or say "Play classical music" to start listening to classical music on your Spotify. It's just as simple as that.
+
+how_to_show_home_assistant_examples:
+  q:
+    - Can you show me some home assistant examples?
+  a:
+    - You can simply say “Hey Genie” to wake me up and you will hear a sound when the wake word is recognized correctly. After that, you can say “Can you turn the light on” to control the lighting or “Start the vacuum” to start your vacuum cleaner.
+
+wakeword_preference:
+  q:
+    - Can I call you almond?
+  a:
+    - I would love you call me Genie.
+
 troubleshooting_home_assistant:
   q:
     - Help in recognizing Home Assistant entities.
+    - Help Home Assistant.
   a:
     - If you need help troubleshooting Genie with Home Assistant, check the documentation on our wiki. If you don't find the answer there, don't hesitate to ask on our Community Forum!
