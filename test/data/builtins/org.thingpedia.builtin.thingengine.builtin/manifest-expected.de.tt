@@ -200,6 +200,69 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
   #[minimal_projection=[]]
   #[confirm=false];
 
+  list query configured_device_info(out id : Entity(tt:device_id)
+                                    #_[canonical={
+                                      default="base",
+                                      base="Bezeichnung: [pos=base]",
+                                      filter_phrase="{benannt nach ${value} [pos=passive_verb]|aufgerufen. ${value} [pos=passive_verb]}",
+                                      enum_filter={}
+                                    }],
+                                    out description : String
+                                    #_[canonical={
+                                      default="base",
+                                      base="Beschreibung: [pos=base]",
+                                      enum_filter={}
+                                    }]
+                                    #[string_values="tt:long_free_text"]
+                                    #[filterable=false],
+                                    out kind : Entity(tt:device)
+                                    #_[canonical={
+                                      default="base",
+                                      base="Art der [pos=base]",
+                                      filter_phrase="{${value} [pos=adjective]|im Anhang ${value} Art der [pos=preposition]}",
+                                      enum_filter={}
+                                    }],
+                                    out version : Number
+                                    #_[canonical={
+                                      default="base",
+                                      base="Fassung: [pos=base]",
+                                      filter_phrase="Fassung: ${value} [pos=passive_verb]",
+                                      enum_filter={}
+                                    }],
+                                    out category : Enum(physical, online, data, system)
+                                    #_[canonical={
+                                      default="base",
+                                      base="Kategorie: [pos=base]",
+                                      filter_phrase="{${value} [pos=adjective]|im Anhang ${value} Kategorie: [pos=preposition]}",
+                                      enum_filter={},
+                                      enum_value={
+                                        physical="physischer",
+                                        online="online",
+                                        data="Datendaten",
+                                        system="System:"
+                                      }
+                                    }],
+                                    out is_transient : Boolean
+                                    #_[canonical={
+                                      default="base",
+                                      base="ist vorübergehend [pos=base]",
+                                      enum_filter={}
+                                    }],
+                                    out auth_type : String
+                                    #_[canonical={
+                                      default="base",
+                                      base="Art der Authentifizierung [pos=base]",
+                                      enum_filter={}
+                                    }]
+                                    #[filterable=false])
+  #_[canonical="{Informationen über konfigurierte Geräte|Informationen über konfigurierte Entities|konfigurierte Geräte|konfigurierte Entities|Geräteliste [plural=one]|Gerätelisten [plural=other]|Liste der Unternehmen [plural=one]|Entitätslisten [plural=other]|Geräte für die Fernsteuerung|Iot-Einheiten}"]
+  #_[result={
+    list ="Du hast ${id}"
+  }]
+  #[doc="query info about configured devices"]
+  #[minimal_projection=[]]
+  #[confirm=false];
+
   action open_url(in req url : Entity(tt:url)
                   #_[prompt=["Was URL wollen Sie öffnen", "was wollen Sie öffnen"]]
                   #_[canonical={
@@ -297,7 +360,7 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
   #[confirm=false]
   #[minimal_projection=[]];
 
-  action faq_reply(in req question : Enum(about_almond_identity, about_almond_age, about_almond_how_are_you, about_almond_special, about_almond_motivation, about_almond_location, about_almond_comparison, about_almond_training, about_almond_partner, about_almond_junk, about_almond_preference, check_capability_home_assistant, check_capability_phone, general_help, iot_help, positive_emotion_thanks, positive_emotion_cool, abusive, revoke_consent, how_to_train, how_to_configure_skill, how_to_disable_skill, how_to_set_language, how_to_access_settings, how_to_use_wakeword, troubleshooting_home_assistant)
+  action faq_reply(in req question : Enum(about_almond_identity, about_almond_age, about_almond_how_are_you, about_almond_special, about_almond_motivation, about_almond_location, about_almond_comparison, about_almond_comparison_general, about_almond_training, about_almond_partner, about_almond_junk, about_almond_preference, about_almond_thingpedia, about_almond_interest, about_almond_registration, check_capability_home_assistant, check_capability_phone, check_capability_music_platform, general_help, iot_help, command_help, positive_emotion_thanks, positive_emotion_cool, negative_emotion_empathy, abusive, revoke_consent, how_to_train, how_to_configure_skill, how_to_disable_skill, how_to_set_language, how_to_access_settings, how_to_use_wakeword, how_to_report_bug, how_to_show_general_examples, how_to_show_home_assistant_examples, troubleshooting_home_assistant)
                    #_[prompt="was möchten Sie wissen"]
                    #_[canonical={
                      default="base",
@@ -312,16 +375,23 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
                        about_almond_motivation="über Mandelmotivation",
                        about_almond_location="über Mandellage",
                        about_almond_comparison="über Mandelvergleich",
+                       about_almond_comparison_general="über Mandelvergleich allgemein",
                        about_almond_training="über Mandeltraining",
                        about_almond_partner="über Mandelpartner",
                        about_almond_junk="über Mandelschrott",
                        about_almond_preference="über Mandeln bevorzugt",
+                       about_almond_thingpedia="über Mandel-Dingpedia",
+                       about_almond_interest="über Mandel-Interessen",
+                       about_almond_registration="über die Mandelregistrierung",
                        check_capability_home_assistant="Kontrollfähigkeit Home Assistent",
                        check_capability_phone="Überprüfung Fähigkeit Telefon",
+                       check_capability_music_platform="Fähigkeit Musik-Plattform überprüfen",
                        general_help="Allgemeine Hilfe",
                        iot_help="Hilfeleistung",
+                       command_help="Befehlshilfe",
                        positive_emotion_thanks="positive Emotion dank",
                        positive_emotion_cool="positive Emotion kühl",
+                       negative_emotion_empathy="negative Gefühlsempathie",
                        abusive="missbräuchlich",
                        revoke_consent="Widerruf der Einwilligung",
                        how_to_train="Wie man trainiert",
@@ -330,6 +400,9 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
                        how_to_set_language="wie man Sprache setzt",
                        how_to_access_settings="Wie man auf Einstellungen zugreift",
                        how_to_use_wakeword="Wie man Wakeword verwendet",
+                       how_to_report_bug="wie Fehler zu melden sind",
+                       how_to_show_general_examples="Wie man allgemeine Beispiele zeigt",
+                       how_to_show_home_assistant_examples="Wie man Heimassistentenbeispiele zeigt",
                        troubleshooting_home_assistant="Fehlersuche zu Hause Assistent"
                      }
                    }],

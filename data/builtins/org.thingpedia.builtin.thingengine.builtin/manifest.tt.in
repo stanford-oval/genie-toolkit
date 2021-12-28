@@ -181,7 +181,6 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
                                       adjective=["#"],
                                       preposition=["in the # category"]
                                     }],
-                                    #[filterable=false],
                                     out is_transient : Boolean
                                     #_[canonical={
                                       base=["is transient"]
