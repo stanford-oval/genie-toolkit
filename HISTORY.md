@@ -1,3 +1,26 @@
+0.9.0-rc.1
+==========
+
+## Dialogue agent improvements
+* Added another confidence level, used to override normal confidence [#848].
+* The logic to choose dialogue handlers was improved to avoid an accidental switch
+  when answering a question from the agent [#850].
+
+## New features in engine and runtime
+* Improved handling of active and inactive conversations, allowing the engine to
+  go to sleep without losing the conversation state [#836].
+* Added support for persistent conversation history [#835].
+
+## Changes to synthesis and training tools
+* Added support for disk-based sampling of parameters during augmentation [#846].
+* Starter makefiles now download parameter datasets from S3 instead of Thingpedia [#846].
+
+## Other changes
+* `genie assistant` now uses the Thingpedia URL configured in git, if present [#850].
+* Added some more FAQs to the builtin skill [#851, #855, #856].
+* Misc bug fixes [#852, #853, #854].
+* Updated dependencies [#833, #837, #857].
+
 0.9.0-alpha.1
 =============
 
