@@ -120,7 +120,7 @@ about_almond_registration:
     - How do I {create|register} a new account?
     - How do I {create|register} a new account on Almond?
   a:
-    - You could create an account by visiting our website at almond.stanford.edu
+    - You could create an account by visiting our website at genie.stanford.edu
 
 check_capability_home_assistant:
   q:
@@ -325,12 +325,6 @@ how_to_show_home_assistant_examples:
     - Can you show me some home assistant examples?
   a:
     - You can simply say “Hey Genie” to wake me up and you will hear a sound when the wake word is recognized correctly. After that, you can say “Can you turn the light on” to control the lighting or “Start the vacuum” to start your vacuum cleaner.
-
-wakeword_preference:
-  q:
-    - Can I call you almond?
-  a:
-    - I would love you call me Genie.
 
 troubleshooting_home_assistant:
   q:

@@ -75,10 +75,6 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         return [{ random: Math.round(low + (Math.random() * (high! - low))) }];
     }
 
-    get_get_timezone() {
-        return [{ timezone: new Tp.Value.Entity(Temporal.Now.timeZone().id, Temporal.Now.timeZone().toString()) }];
-    }
-
     get_get_name() {
         const platform = this.platform;
         const prefs = platform.getSharedPreferences();
@@ -163,10 +159,9 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
             return {
                 id: new Tp.Value.Entity(dev.uniqueId, dev.name),
                 description: dev.description, 
-                kind: dev.kind,
+                kind: new Tp.Value.Entity(dev.kind, dev.kind),
                 version: dev.version,
                 category: dev.class,
-                engine_id: dev.ownerTier,
                 is_transient: dev.isTransient,
                 auth_type: dev.authType
             };

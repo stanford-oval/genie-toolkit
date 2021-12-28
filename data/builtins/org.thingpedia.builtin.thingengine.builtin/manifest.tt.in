@@ -57,14 +57,6 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
   #[doc="get the current time"]
   #[confirm=false];
 
-  list query get_timezone(out timezone: Entity(tt:timezone)
-                          #_[canonical=["time zone"]]
-                          #[filterable=false])
-  #_[canonical=["time zone"]]
-  #_[result=["the current time zone is ${timezone}"]]
-  #[doc="get the current time zone"]
-  #[confirm=false];
-
   query get_date(out date: Date
                  #_[canonical=["date"]]
                  #[filterable=false])
@@ -161,7 +153,7 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
   #[minimal_projection=[]]
   #[confirm=false];
 
-  list query configured_device_info(out id : Entity(tt:device)
+  list query configured_device_info(out id : Entity(tt:device_id)
                                     #_[canonical={
                                       base=["name"],
                                       passive_verb=["named #", "called #"]
@@ -172,7 +164,7 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
                                     }]
                                     #[string_values="tt:long_free_text"]
                                     #[filterable=false],
-                                    out kind : String
+                                    out kind : Entity(tt:device)
                                     #_[canonical={
                                       base=["kind"],
                                       adjective=["#"],
@@ -189,10 +181,6 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
                                       adjective=["#"],
                                       preposition=["in the # category"]
                                     }],
-                                    out engine_id : String
-                                    #_[canonical={
-                                      base=["engine id"]
-                                    }]
                                     #[filterable=false],
                                     out is_transient : Boolean
                                     #_[canonical={
@@ -211,8 +199,7 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
                 "entity list",
                 "iot devices",
                 "iot entities"]]
-  #_[result={list="here are the cofigured devices"}]
-  #_[formatted=[{ type="text", text="${id}" }]]
+  #_[result={ list="You have ${id}" }]
   #[doc="query info about configured devices"]
   #[minimal_projection=[]]
   #[confirm=false];
