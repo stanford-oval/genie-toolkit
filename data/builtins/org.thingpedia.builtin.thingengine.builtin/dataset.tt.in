@@ -56,6 +56,18 @@ dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
                    "${p_device} documentation"]]
     #[name="DeviceInfoWithDevice"];
 
+    query := @org.thingpedia.builtin.thingengine.builtin.configured_device_info()
+    #_[utterances=["information about configured devices",
+                   "information about configured entities",
+                   "device list",
+                   "entity list",
+                   "all devices",
+                   "configured devices",
+                   "configured entities",
+                   "recognized devices",
+                   "recognized entities"]]
+    #[name="ConfiguredDeviceInfo"];
+
     action (p_message :String) := @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
     #_[utterances=["send me a message ${p_message:const}",
                    "tell me $p_message",

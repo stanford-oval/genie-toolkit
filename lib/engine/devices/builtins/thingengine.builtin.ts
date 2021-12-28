@@ -153,6 +153,21 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         }];
     }
 
+    async get_configured_device_info(params : unknown, hints ?: TT.Runtime.CompiledQueryHints) {
+        const engine = this.engine as AssistantEngine;
+        return engine.getDeviceInfos().map((dev) => {
+            return {
+                id: new Tp.Value.Entity(dev.uniqueId, dev.name),
+                description: dev.description, 
+                kind: new Tp.Value.Entity(dev.kind, dev.kind),
+                version: dev.version,
+                category: dev.class,
+                is_transient: dev.isTransient,
+                auth_type: dev.authType
+            };
+        });
+    }
+
     async get_commands(params : unknown, hints ?: TT.Runtime.CompiledQueryHints) {
         let dataset;
         if (hints && hints.filter) {

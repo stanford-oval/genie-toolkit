@@ -153,6 +153,56 @@ class @org.thingpedia.builtin.thingengine.builtin extends @org.thingpedia.volume
   #[minimal_projection=[]]
   #[confirm=false];
 
+  list query configured_device_info(out id : Entity(tt:device_id)
+                                    #_[canonical={
+                                      base=["name"],
+                                      passive_verb=["named #", "called #"]
+                                    }],
+                                    out description : String
+                                    #_[canonical={
+                                      base=["description"]
+                                    }]
+                                    #[string_values="tt:long_free_text"]
+                                    #[filterable=false],
+                                    out kind : Entity(tt:device)
+                                    #_[canonical={
+                                      base=["kind"],
+                                      adjective=["#"],
+                                      preposition=["in the # kind"]
+                                    }],
+                                    out version : Number
+                                    #_[canonical={
+                                      base=["version"],
+                                      passive_verb=["version #"]
+                                    }],
+                                    out category : Enum(physical, online, data, system)
+                                    #_[canonical={
+                                      base=["category"],
+                                      adjective=["#"],
+                                      preposition=["in the # category"]
+                                    }],
+                                    out is_transient : Boolean
+                                    #_[canonical={
+                                      base=["is transient"]
+                                    }],
+                                    out auth_type : String
+                                    #_[canonical={
+                                      base=["authentication type"]
+                                    }]
+                                    #[filterable=false])
+  #_[canonical=["information about configured devices",
+                "information about configured entities",
+                "configured devices",
+                "configured entities",
+                "device list",
+                "entity list",
+                "iot devices",
+                "iot entities"]]
+  #_[result={ list="You have ${id}" }]
+  #[doc="query info about configured devices"]
+  #[minimal_projection=[]]
+  #[confirm=false];
+
   /*
   list query commands(out id : Entity(tt:command_id),
                       out device: Entity(tt:device)

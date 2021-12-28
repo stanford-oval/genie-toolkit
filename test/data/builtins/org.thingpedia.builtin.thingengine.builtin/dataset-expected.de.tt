@@ -39,6 +39,10 @@ dataset @org.thingpedia.builtin.thingengine.builtin
   #_[utterances=["Informationen über ${p_device}", "Hilfe bei ${p_device}", "${p_device} Hilfe!", "${p_device} Dokumentationen"]]
   #[name="DeviceInfoWithDevice"];
 
+  query = @org.thingpedia.builtin.thingengine.builtin.configured_device_info()
+  #_[utterances=["Informationen über konfigurierte Geräte", "Informationen über konfigurierte Entities", "Geräteliste", "Liste der Unternehmen", "alle Geräte", "konfigurierte Geräte", "konfigurierte Entities", "anerkannte Geräte", "anerkannte Einrichtungen"]]
+  #[name="ConfiguredDeviceInfo"];
+
   action (p_message : String) = @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
   #_[utterances=["Schick mir eine Nachricht ${p_message:const}", "Sag mir, $p_message", "sagen: $p_message"]]
   #[id=53269140]
@@ -91,7 +95,7 @@ dataset @org.thingpedia.builtin.thingengine.builtin
   #_[utterances=["Verwendung: ${p_unit:no-undefined} für Temperaturen", "Verwendung: ${p_unit:no-undefined} zur Anzeige von Temperaturen", "Sagen Sie mir die Temperatur in ${p_unit:no-undefined}"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_identity)
-  #_[utterances=["Wer sind Sie?", "Was sind Sie?", "Was ist Genie?", "Bist du Genie?", "Wie heißt du?", "Wie heißt du?", "Wie heißt du?"]];
+  #_[utterances=["Wer sind Sie?", "Was sind Sie?", "Was ist Genie?", "Bist du Genie?", "Wie heißt du?", "Wie heißt du?", "Wie heißt du?", "Wer hat dich erschaffen?"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_age)
   #_[utterances=["Wie alt bist du?", "Wann wurden Sie geboren?"]];
@@ -103,25 +107,37 @@ dataset @org.thingpedia.builtin.thingengine.builtin
   #_[utterances=["Was macht dich besonders?", "Was macht Sie einzigartig?", "Was macht dich anders?", "Was ist an dir besonders?", "Was ist an dir einzigartig?", "Was ist an dir anders?"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_motivation)
-  #_[utterances=["Warum sollte ich mich um dich kümmern?", "Warum sollte mir der Geist wichtig sein?", "Warum sollte ich mich um den Assistenten kümmern?", "Warum sollten Heimassistenten sich um Sie kümmern?", "Warum sollten Heimassistenten sich um Genie kümmern?", "Warum sollten Heimassistenten sich um den Assistenten kümmern?", "Warum sollten sich die Benutzer um Sie kümmern?", "Warum sollten sich die Benutzer um den Geist kümmern?", "Warum sollten sich die Benutzer um den Assistenten kümmern?", "Was ist an Ihnen für Heimassistenten wichtig?", "Was ist an Ihnen wichtig für ha Nutzer?", "Warum sind Sie für Heimassistenten wichtig?", "Warum sind Sie für ha Benutzer wichtig?"]];
+  #_[utterances=["Warum sollte ich mich um dich kümmern?", "Warum sollte mir der Geist wichtig sein?", "Warum sollte ich mich um den Assistenten kümmern?", "Warum sollten Heimassistenten sich um Sie kümmern?", "Warum sollten Heimassistenten sich um Genie kümmern?", "Warum sollten Heimassistenten sich um den Assistenten kümmern?", "Warum sollten sich die Benutzer um Sie kümmern?", "Warum sollten sich die Benutzer um den Geist kümmern?", "Warum sollten sich die Benutzer um den Assistenten kümmern?", "Was ist an Ihnen für Heimassistenten wichtig?", "Was ist an Ihnen wichtig für ha Nutzer?", "Warum sind Sie für Heimassistenten wichtig?", "Warum sind Sie für ha Benutzer wichtig?", "Spionierst du mich aus?"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_location)
-  #_[utterances=["Wo sind Sie?", "Wo sind Sie jetzt?"]];
+  #_[utterances=["Wo sind Sie?", "Wo sind Sie jetzt?", "Wo befindet sich der Server?"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_comparison)
   #_[utterances=["Bist du besser als Cortana?", "Bist du besser als Siri?", "Bist du besser als Alexa?", "Sind Sie besser als Google?", "Sind Sie besser als Google Assistant?", "Sind Sie besser als Google Home?"]];
 
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_comparison_general)
+  #_[utterances=["Kennen Sie Cortana?", "Kennen Sie Siri?", "Kennst du Alexa?", "Kennen Sie Google?", "Kennen Sie Google Assistant?", "Kennen Sie Google Home?"]];
+
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_training)
-  #_[utterances=["Bist du gut im Training?"]];
+  #_[utterances=["Bist du gut im Training?", "Kannst du es lernen?"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_partner)
   #_[utterances=["Haben Sie einen Partner?", "Haben Sie einen bedeutenden anderen?", "Haben Sie einen GF?", "Hast du eine Freundin?", "Haben Sie einen Bf?", "Hast du einen Freund?", "Hast du einen Freund?"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_junk)
-  #_[utterances=["Weißt du, was Porno ist?"]];
+  #_[utterances=["Weißt du, was Porno ist?", "Ich weiß nichts"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_preference)
   #_[utterances=["Was ist dein Lieblingslied?", "Was ist dein Lieblingsfilm?", "Was ist dein Lieblingsbuch?", "Was ist dein Lieblingslied?", "Was ist dein Lieblingsfilm?", "Was ist dein Lieblingsbuch?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_thingpedia)
+  #_[utterances=["Was ist Thingpedia?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_interest)
+  #_[utterances=["Was machst du gerne?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_registration)
+  #_[utterances=["Ich möchte einen neuen Benutzer registrieren", "Ich möchte ein neues Konto registrieren", "Ich möchte einen neuen Benutzer auf Almond registrieren", "Ich möchte ein neues Konto bei Almond registrieren", "Wie erstellt man ein Konto?", "Wie kann ich ein Konto registrieren?", "Wie erstellt man ein Konto auf Almond?", "Wie kann ich ein Konto bei Almond registrieren?", "Wie erstelle ich ein neues Konto?", "Wie registriere ich ein neues Konto?", "Wie erstelle ich ein neues Konto auf Almond?", "Wie registriere ich ein neues Konto bei Almond?"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum check_capability_home_assistant)
   #_[utterances=["Arbeiten Sie mit Home Assistant?"]];
@@ -129,17 +145,26 @@ dataset @org.thingpedia.builtin.thingengine.builtin
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum check_capability_phone)
   #_[utterances=["Unterstützen Sie irgendwelche Telefone?", "Welche Handys unterstützen Sie?"]];
 
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum check_capability_music_platform)
+  #_[utterances=["Kannst du keine kostenlosen Musikplattformen benutzen?"]];
+
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum general_help)
   #_[utterances=["Was kannst du tun?", "Was kann ich tun?", "Was kannst du für mich tun?", "Hilfe!", "Befehle auflisten", "Hilfefähigkeit", "Was soll ich sagen?", "Was machst du?", "Was können Sie tun?", "Was kann u tun?", "Was soll ich tun?", "Welchen Befehl gibt es?", "Welche Fähigkeiten gibt es?", "Was kannst du überhaupt tun?", "Was könntest du für mich tun?", "Befehle:", "Geräte:", "Beispiele:", "Können Sie mir noch einen Vorschlag machen?", "Fähigkeiten anzeigen"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum iot_help)
   #_[utterances=["Was für IoT-Geräte", "Mit welchen IoT-Geräten können Sie arbeiten?", "Mit welchen Geräten kann ich Sie verbinden?"]];
 
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum command_help)
+  #_[utterances=["Alle Befehle auflisten"]];
+
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum positive_emotion_thanks)
   #_[utterances=["Lol", "Kühl", "Schön", "Ich liebe dich", "Großartig", "Gute Arbeit", "Sehr lustig", "Super", ":- )", ":o", "Guter Junge", "Du bist unglaublich"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum positive_emotion_cool)
   #_[utterances=["Lustig", "- Ich weiß", "Wow! - Was ist das?", "- Ich weiß", "Lustig haha", "Ich liebe Programmieren"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum negative_emotion_empathy)
+  #_[utterances=["Traurig"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum abusive)
   #_[utterances=["Du bist scheiße", "Töte dich selbst", "Geh sterben", "Leck mich am Arsch!"]];
@@ -148,23 +173,32 @@ dataset @org.thingpedia.builtin.thingengine.builtin
   #_[utterances=["Wiedererweckte Zustimmung", "Hör auf, meine Befehle aufzuzeichnen"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_train)
-  #_[utterances=["Wie lerne ich dich?"]];
+  #_[utterances=["Wie lerne ich dich?", "Das war ein schlechter", "Es hat nicht funktioniert"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_configure_skill)
-  #_[utterances=["Was bedeutet es, etwas zu konfigurieren?", "Wie konfiguriere ich neue Fähigkeiten?"]];
+  #_[utterances=["Was bedeutet es, etwas zu konfigurieren?", "Wie konfiguriere ich neue Fähigkeiten?", "Wo ist deine Seite?", "Meine Fähigkeiten", "Mehr Fähigkeiten", "Benutze eine Fähigkeit", "Verwaltung von Iot-Geräten"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_disable_skill)
   #_[utterances=["Wie kann ich eine Fähigkeit deaktivieren?"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_set_language)
-  #_[utterances=["Wie ändere ich die Sprache?", "Welche Sprachen kennst du?"]];
+  #_[utterances=["Wie ändere ich die Sprache?", "Welche Sprachen kennst du?", "liste", "Sprachenliste", "Muss ich mit dir Englisch sprechen?", "Muss ich mit dir Englisch sprechen?", "Ich kann die Schrift nicht lesen"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_access_settings)
-  #_[utterances=["Wo sind Genie-Einstellungen?", "Wie man Präferenzen ändert?"]];
+  #_[utterances=["Wo sind Genie-Einstellungen?", "Wie man Präferenzen ändert?", "Sprachassistent konfigurieren"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_use_wakeword)
-  #_[utterances=["Wie verwende ich Sprachbefehle?", "Wie verwende ich Hotword-Erkennung?", "Wie verwende ich Weckworterkennung?", "Was ist das Weckwort?", "Wie kann ich Audio aktivieren?"]];
+  #_[utterances=["Wie verwende ich Sprachbefehle?", "Wie verwende ich Hotword-Erkennung?", "Wie verwende ich Weckworterkennung?", "Was ist das Weckwort?", "Wie kann ich Audio aktivieren?", "Sprachassistentin"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_report_bug)
+  #_[utterances=["Wie melde ich einen Fehler?", "Ich habe einen Käfer gefunden", "Debug. - Nein"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_show_general_examples)
+  #_[utterances=["Können Sie mir ein paar Beispiele zeigen?"]];
+
+  program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum how_to_show_home_assistant_examples)
+  #_[utterances=["Können Sie mir ein paar Beispiele zeigen?"]];
 
   program = @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum troubleshooting_home_assistant)
-  #_[utterances=["Hilfe bei der Erkennung von Home Assistant Entities"]];
+  #_[utterances=["Hilfe bei der Erkennung von Home Assistant Entities", "Hilfe, Hausassistent"]];
 }
