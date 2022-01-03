@@ -381,7 +381,7 @@ const TEST_CASES = [
     ``],
 
     [`$dialogue @org.thingpedia.dialogue.transaction.execute;
-    ontimer(date=[set_time(new Date("2021-08-12T00:00:00.000-07:00"), new Time(12, 35))]) => @org.thingpedia.builtin.thingengine.builtin.alert();`,
+    ontimer(date=[set_time(new Date("2022-08-12T00:00:00.000-07:00"), new Time(12, 35))]) => @org.thingpedia.builtin.thingengine.builtin.alert();`,
     `Alert at 12:35 PM on August 12.`,
     ``],
 

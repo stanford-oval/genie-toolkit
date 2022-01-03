@@ -17,8 +17,8 @@ const tomorrow = new Date(today.getTime() + 86400000);
 const nextweek = new Date(today);
 nextweek.setDate(nextweek.getDate() - nextweek.getDay() + 7);
 
-const preciseDate1 = new Date(2021, 5, 7, 0, 0, 0);
-const preciseDate2 = new Date(2021, 5, 7, 11, 0, 0);
+const preciseDate1 = new Date(today.getFullYear(), 5, 7, 0, 0, 0);
+const preciseDate2 = new Date(today.getFullYear(), 5, 7, 11, 0, 0);
 
 const TEST_CASES = [
     ['it will be cloudy on DATE_0 in LOCATION_0 .', {
