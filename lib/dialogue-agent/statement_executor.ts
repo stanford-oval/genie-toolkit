@@ -37,7 +37,7 @@ const MORE_SIZE = 50;
 const PAGE_SIZE = 10;
 
 interface ErrorWithCode extends Error {
-    code ?: string;
+    code ?: unknown;
 }
 
 /**
@@ -172,7 +172,9 @@ export default class InferenceStatementExecutor {
         const annotations : Ast.AnnotationMap = {};
         let errorValue;
         if (error) {
-            if (error.code)
+            if (typeof error.code === 'number')
+                errorValue = new Ast.Value.Enum(`http_${error.code}`);
+            else if (typeof error.code === 'string' && error.code)
                 errorValue = new Ast.Value.Enum(error.code);
             else
                 errorValue = new Ast.Value.String(error.message);
