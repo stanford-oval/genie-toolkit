@@ -65,7 +65,7 @@ eslint ?= node_modules/.bin/eslint
 
 geniedir ?= node_modules/genie-toolkit
 memsize ?= 8500
-parallel ?= 7
+parallel ?= 1
 genie ?= node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
 
 thingpedia_url ?= https://thingpedia.stanford.edu/thingpedia
