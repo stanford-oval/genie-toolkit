@@ -246,8 +246,14 @@ everything/$(eval_set)/%.nlu.results: everything/models/%/best.pth everything/$(
 datadir/agent: everything/synthetic.agent.tsv everything/augmented.agent.tsv everything/dev/agent.tsv
 	mkdir -p $@
 	cp everything/synthetic.agent.tsv $@/
-	cp everything/augmented.agent.tsv $@/train.tsv ; \
-	cp everything/dev/agent.tsv $@/eval.tsv ; \
+	if test -s everything/dev/agent.tsv ; then \
+	  cp everything/augmented.agent.tsv $@/train.tsv ; \
+	  cp everything/dev/agent.tsv $@/eval.tsv ; \
+	else \
+	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
+	    --eval-probability 0.1 --split-strategy raw-sentence \
+	    --contextual --eval-on-synthetic everything/augmented.agent.tsv ; \
+	fi
 	touch $@
 
 datadir/nlg: everything/synthetic.agent.tsv everything/dev/agent.tsv
@@ -259,8 +265,14 @@ datadir/nlg: everything/synthetic.agent.tsv everything/dev/agent.tsv
 datadir/user: everything/synthetic.user.tsv everything/augmented.user.tsv everything/dev/user.tsv
 	mkdir -p $@
 	cp everything/synthetic.user.tsv $@/
-	cp everything/augmented.user.tsv $@/train.tsv ; \
-	cp everything/dev/user.tsv $@/eval.tsv ; \
+	if test -s everything/dev/user.tsv ; then \
+	  cp everything/augmented.user.tsv $@/train.tsv ; \
+	  cp everything/dev/user.tsv $@/eval.tsv ; \
+	else \
+	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
+	    --eval-probability 0.1 --split-strategy raw-sentence \
+	    --contextual --eval-on-synthetic everything/augmented.user.tsv ; \
+	fi
 	touch $@
 
 datadir/fewshot: everything/train/user.tsv everything/dev/user.tsv everything/train/agent.tsv everything/dev/agent.tsv
