@@ -55,6 +55,8 @@ import * as CommonTemplates from './templates/common.genie.out';
 import * as TransactionPolicy from './templates/transactions';
 import ThingpediaLoader from './templates/load-thingpedia';
 
+import genBaseCanonical from '../tool/autoqa/lib/base-canonical-generator';
+
 export {
     // sentence generation
     BasicSentenceGenerator,
@@ -85,6 +87,9 @@ export {
     SpeechHandler,
     AssistantEngine,
     EngineModules,
+
+    // autoqa
+    genBaseCanonical,
 
     // semi-unstable API
     parallelize,
