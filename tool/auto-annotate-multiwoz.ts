@@ -233,8 +233,8 @@ interface ConverterOptions {
     timezone : string;
     thingpedia : string;
     database_file : string;
-    user_nlu_server : string;
-    agent_nlu_server : string;
+    user_nlu_server_url : string;
+    agent_nlu_server_url : string;
     only_multidomain : boolean;
     use_existing : boolean;
     max_turn : number|undefined;
@@ -283,8 +283,8 @@ class Converter extends stream.Readable {
         this._onlyMultidomain = args.only_multidomain;
         this._tpClient = new Tp.FileClient(args);
         this._schemas = new SchemaRetriever(this._tpClient, null, true);
-        this._userParser = ParserClient.get(args.user_nlu_server, 'en-US');
-        this._agentParser = ParserClient.get(args.agent_nlu_server, 'en-US');
+        this._userParser = ParserClient.get(args.user_nlu_server_url, 'en-US');
+        this._agentParser = ParserClient.get(args.agent_nlu_server_url, 'en-US');
         this._useExisting = args.use_existing;
         this._maxTurn = args.max_turn;
         this._timezone = args.timezone;
