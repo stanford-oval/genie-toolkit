@@ -1,3 +1,23 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2021 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Jake Wu <jmhw0123@gmail.com>
+
 
 import * as argparse from 'argparse';
 import * as fs from 'fs';
@@ -17,6 +37,36 @@ import { makeLookupKeys } from '../lib/dataset-tools/mturk/sample-utils';
 import { PARTS_OF_SPEECH, Canonicals, CanonicalAnnotation } from './autoqa/lib/base-canonical-generator';
 import genBaseCanonical from './autoqa/lib/base-canonical-generator';
 import * as utils from '../lib/utils/misc-utils';
+
+
+export interface Entity {
+    value : string;
+    display : string;
+}
+
+interface Constant {
+    value ?: any,
+    display : string
+}
+
+export interface EntityRecord {
+    type : string;
+    value : string;
+    canonical : string;
+    name : string;
+}
+
+export interface ParameterRecord {
+    preprocessed : string;
+    value : string;
+    weight : number;
+}
+
+export interface ParameterProvider {
+    get(type : 'entity'|'string', key : string) : Promise<ParameterRecord[]>;
+    getEntity(key : string) : Promise<EntityRecord[]>;
+}
+
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('synthetic-data-sampler', {
@@ -73,16 +123,6 @@ export function isString(type : Type) : boolean {
     return false;
 }
 
-export interface Entity {
-    value : string;
-    display : string;
-}
-
-interface Constant {
-    value ?: any,
-    display : string
-}
-
 function sampleEntities(sample_size : number, data : EntityRecord[]) : Entity[] {
     const rng = seedrandom.alea("777");
     const sampled = choose(data.filter((entity) => entity.name.length < 25), sample_size, rng);
@@ -127,24 +167,6 @@ function countArgTypes(schema : Ast.FunctionDef) : Record<string, number> {
         count[typestr] = (count[typestr] || 0) + 1;
     }
     return count;
-}
-
-export interface EntityRecord {
-    type : string;
-    value : string;
-    canonical : string;
-    name : string;
-}
-
-export interface ParameterRecord {
-    preprocessed : string;
-    value : string;
-    weight : number;
-}
-
-export interface ParameterProvider {
-    get(type : 'entity'|'string', key : string) : Promise<ParameterRecord[]>;
-    getEntity(key : string) : Promise<EntityRecord[]>;
 }
 
 async function retrieveEntitySamples(constProvider : ParameterProvider, name : string) {
