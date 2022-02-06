@@ -41,6 +41,8 @@ interface AutoCanonicalGeneratorOptions {
     remove_existing_canonicals : boolean,
     type_based_projection : boolean,
     max_per_pos ?: number,
+    annotate_property_canonical : boolean,
+    annotate_query_canonical : boolean,
     batch_size : number,
     filtering : boolean,
     debug : boolean

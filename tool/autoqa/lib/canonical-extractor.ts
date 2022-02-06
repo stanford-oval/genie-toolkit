@@ -30,6 +30,8 @@ interface AnnotationExtractorOptions {
     batch_size : number,
     filtering : boolean,
     debug : boolean,
+    annotate_property_canonical : boolean,
+    annotate_query_canonical : boolean,
 }
 
 function stem(str : string) : string {
@@ -105,12 +107,38 @@ class ConflictResolver {
     }
 }
 
+class Counter {
+    private counter : Record<string, number>;
+
+    constructor() {
+        this.counter = {};
+    }
+
+    add(item : string) {
+        if (!(item in this.counter))
+            this.counter[item] = 0;
+        this.counter[item] += 1;
+    }
+
+    get(item : string) {
+        return this.counter[item];
+    }
+
+    getTop(percent : number, minimumCount = 0) {
+        const total = Object.keys(this.counter).length;
+        const size = Math.ceil(total * percent / 100);
+        const entries =  Object.entries(this.counter).sort(([, c1], [, c2]) => c2 - c1).slice(0, size);
+        return entries.filter(([, c]) => c > minimumCount).map(([i, ]) => i);
+    }
+}
+
 export default class AnnotationExtractor {
     private class : Ast.ClassDef;
     private queries : string[];
     private options : AnnotationExtractorOptions;
     private parser : PosParser;
-    private candidates : Record<string, Record<string, Record<string, string[]>>>;
+    private propertyCanonicalCandidates : Record<string, Record<string, Record<string, string[]>>>;
+    private queryCanonicalCandidates : Record<string, Counter>;
 
     constructor(klass : Ast.ClassDef, queries : string[], options : AnnotationExtractorOptions) {
         this.class = klass;
@@ -118,11 +146,13 @@ export default class AnnotationExtractor {
         this.options = options;
         this.parser = new PosParser();
 
-        this.candidates = {};
+        this.queryCanonicalCandidates = {};
+        this.propertyCanonicalCandidates = {};
         for (const qname of this.queries) {
-            this.candidates[qname] = {};
+            this.queryCanonicalCandidates[qname] = new Counter();
+            this.propertyCanonicalCandidates[qname] = {};
             for (const arg of this.class.getFunction('query', qname)!.iterateArguments())
-                this.candidates[qname][arg.name] = {};
+                this.propertyCanonicalCandidates[qname][arg.name] = {};
         }
     }
 
@@ -132,14 +162,23 @@ export default class AnnotationExtractor {
         // validate extracted canonicals and add to schema
         for (const qname of this.queries) {
             const query : Ast.FunctionDef = this.class.getFunction('query', qname)!;
-            // filter candidates for each argument
-            for (const candidates of Object.values(this.candidates[qname]))
-                this._filterCandidates(candidates);
-            // remove conflict candidates among arguments
-            this._removeConflictedCandidates(qname);
-            // add filtered candidates to the canonical annotation
-            for (const [arg, candidates] of Object.entries(this.candidates[qname]))
-                this._addCandidates(query.getArgument(arg)!, candidates);
+            // Add query canonical:
+            if (this.options.annotate_query_canonical) {
+                const queryCanonical : string[] = query.getNaturalLanguageAnnotation('canonical')!;
+                queryCanonical.push(...this.queryCanonicalCandidates[qname].getTop(80, 2));
+            }
+
+            // Add property canonical:
+            if (this.options.annotate_property_canonical) {
+                // 1. filter candidates for each argument
+                for (const candidates of Object.values(this.propertyCanonicalCandidates[qname]))
+                    this._filterPropertyCanonicalCandidates(candidates);
+                // 2. remove conflict candidates among arguments
+                this._removeConflictedCandidates(qname);
+                // 3. add filtered candidates to the canonical annotation
+                for (const [arg, candidates] of Object.entries(this.propertyCanonicalCandidates[qname]))
+                    this._addPropertyCanonicalCandidates(query.getArgument(arg)!, candidates);
+            }
         }
     }
 
@@ -147,13 +186,26 @@ export default class AnnotationExtractor {
         // FIXME: In case of boolean parameter or projection, values field is empty, skip for now
         if (typeof example.value !== 'string') 
             return;
-
-        const canonical = this.candidates[example.query][example.argument];
-        for (const paraphrase of example.paraphrases)
-            this._extractOneCanonical(canonical, paraphrase, example.value, example.queryCanonical);
+            
+        const canonical = this.propertyCanonicalCandidates[example.query][example.argument];
+        for (const paraphrase of example.paraphrases) {
+            this._extractQueryCanonical(example.query, example.queryCanonical, example.utterance, paraphrase);
+            this._extractPropertyCanonical(canonical, paraphrase, example.value, example.queryCanonical);
+        }
     }
 
-    private _extractOneCanonical(canonical : Record<string, string[]>, paraphrase : string, value : string, queryCanonical : string) {
+    private _extractQueryCanonical(query : string, queryCanonical : string, original : string, paraphrase : string) {
+        if (!original.includes(queryCanonical))
+            return;
+        const [lhs, rhs] = original.split(queryCanonical);
+        if (paraphrase.startsWith(lhs) && paraphrase.endsWith(rhs)) {
+            const candidate = paraphrase.slice(lhs.length, -rhs.length);
+            if (candidate.length > 0)
+                this.queryCanonicalCandidates[query].add(candidate);
+        }
+    }
+
+    private _extractPropertyCanonical(canonical : Record<string, string[]>, paraphrase : string, value : string, queryCanonical : string) {
         const annotations = this.parser.match('query', paraphrase, [queryCanonical], value);
         if (annotations) {
             for (const annotation of annotations) {
@@ -163,7 +215,7 @@ export default class AnnotationExtractor {
         }
     }
         
-    private _filterCandidates(candidatesByPos : Record<string, string[]>) {
+    private _filterPropertyCanonicalCandidates(candidatesByPos : Record<string, string[]>) {
         const wordCounter = this._countWords(candidatesByPos);
         for (const [pos, candidates] of Object.entries(candidatesByPos)) {
             const dedupedCandidates = new Set(candidates);
@@ -203,11 +255,11 @@ export default class AnnotationExtractor {
     }
 
     private _removeConflictedCandidates(query : string) {
-        const conflictResolver = new ConflictResolver(this.class.getFunction('query', query)!, this.candidates[query]);
+        const conflictResolver = new ConflictResolver(this.class.getFunction('query', query)!, this.propertyCanonicalCandidates[query]);
         conflictResolver.resolve();
     }
 
-    private _addCandidates(argument : Ast.ArgumentDef, candidates : Record<string, string[]>) {
+    private _addPropertyCanonicalCandidates(argument : Ast.ArgumentDef, candidates : Record<string, string[]>) {
         const canonicalAnnotation : Record<string, string[]> = argument.getNaturalLanguageAnnotation('canonical')!;
         for (const [pos, canonicals] of Object.entries(candidates)) {
             if (canonicals.length === 0)
