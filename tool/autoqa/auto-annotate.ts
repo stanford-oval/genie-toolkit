@@ -110,6 +110,24 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 10,
         help: `The maximum number of canonicals per part of speech`
     });
+    parser.add_argument('--annotate-property-canonical', {
+        required: false,
+        default: true,
+        action: 'store_true',
+        help: `Auto annotate canonicals of properties`
+    });
+    parser.add_argument('--no-annotate-property-canonical', {
+        required: false,
+        dest: 'annotate-property-canonical',
+        action: 'store_false',
+        help: `Do not auto annotate canonicals of properties`
+    });
+    parser.add_argument('--annotate-query-canonical', {
+        required: false,
+        default: false,
+        action: 'store_true',
+        help: `Auto annotate canonicals of queries`
+    });
     parser.add_argument('--debug', {
         required: false,
         default: false,
