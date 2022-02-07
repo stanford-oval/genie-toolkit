@@ -37,7 +37,8 @@ import { makeLookupKeys } from '../lib/dataset-tools/mturk/sample-utils';
 import { PARTS_OF_SPEECH, Canonicals, CanonicalAnnotation } from './autoqa/lib/base-canonical-generator';
 import genBaseCanonical from './autoqa/lib/base-canonical-generator';
 import * as utils from '../lib/utils/misc-utils';
-
+import { serializePrediction } from '../lib/utils/thingtalk';
+import { EntityUtils } from '../lib';
 
 export interface Entity {
     value : string;
@@ -65,6 +66,10 @@ export interface ParameterRecord {
 export interface ParameterProvider {
     get(type : 'entity'|'string', key : string) : Promise<ParameterRecord[]>;
     getEntity(key : string) : Promise<EntityRecord[]>;
+}
+
+interface NewParaphraseExample extends ParaphraseExample {
+    thingtalk : string
 }
 
 
@@ -352,17 +357,16 @@ function generateBaseCanonicalAnnotation(func : Ast.FunctionDef,
     return canonicalAnnotation;
 }
 
-function toTSV(device : string, data : ParaphraseExample[], useHeading : boolean) {
+function toTSV(device : string, data : NewParaphraseExample[], useHeading : boolean) {
     let headings : string = '';
     if (useHeading)
         headings = ["id", "utterance", "thingtalk", "query", "queryCanonical", "argument", "value"].join('\t') + '\n';
     const rows = data.reduce((acc : string[], colValue, idx) => {
         const id = `${device}-${idx.toLocaleString('en-US', {minimumIntegerDigits: 3, useGrouping:false})}`;
-        const thingtalk = "";
         const tmp = [
             id,
             colValue["utterance"],
-            thingtalk,
+            colValue["thingtalk"],
             colValue["query"],
             colValue["queryCanonical"],
             colValue["argument"],
@@ -389,8 +393,10 @@ export async function execute(args : any) {
         await constProvider.load();
         sampledConstants = await sampleConstants(functions, constProvider, device, locale);
     }
-    const examples : ParaphraseExample[] = [];
+    // const examples : ParaphraseExample[] = [];
+    const ttExamples : NewParaphraseExample[] = [];
     const queries = Object.keys(deviceClass.queries).concat(Object.keys(deviceClass.actions));
+    const options = { locale: 'en', timezone: undefined, includeEntityValue: true };
     for (const fname of queries) {
         const func = deviceClass.queries[fname] || deviceClass.actions[fname];
         const typeCounts = countArgTypes(func);
@@ -398,11 +404,80 @@ export async function execute(args : any) {
             const sampleValues = retrieveSamples(deviceClass, sampledConstants, fname, arg);
             // console.log(sampleValues);
             const canonicalAnnotation = generateBaseCanonicalAnnotation(func, arg, typeCounts, queries, false);
-            examples.push(...generateExamples(func, arg, canonicalAnnotation, sampleValues));
+            const thingtalkExamples = generateExamples(func, arg, canonicalAnnotation, sampleValues);
+            for (const ex of thingtalkExamples) {
+                const newEx = ex as NewParaphraseExample;
+                const preprocessed = newEx.utterance;
+                const property = newEx.argument;
+                const prog = generateProjectionAst(device, fname, property);
+                newEx.thingtalk = serializePrediction(prog, preprocessed, EntityUtils.makeDummyEntities(preprocessed), options).join(' ');
+                ttExamples.push(newEx);
+            }
+            // examples.push(...ttExamples);
         }
     }
-    const output = toTSV(device.split('.').pop(), examples, false);
+    const output = toTSV(device.split('.').pop(), ttExamples, false);
     console.log(output);
     args.output.write(output);
     process.stdout.write("Done!\n");
+}
+
+// function generateFilterAst(device : string, func : string, property : string, operator : string, value : any) : Ast.Program {
+//     const invocation = new Ast.InvocationExpression(
+//         null, 
+//         new Ast.Invocation(null, new Ast.DeviceSelector(null, device, null, null), func, [], null),
+//         null
+//     );
+//     const filter = new Ast.AtomBooleanExpression(
+//         null,
+//         property, 
+//         operator, 
+//         value, // 
+//         null
+//     );
+//     const filtered = new Ast.FilterExpression(
+//         null, 
+//         invocation, 
+//         filter, 
+//         null
+//     );
+//     const statement = new Ast.ExpressionStatement(
+//         null,
+//         new Ast.ChainExpression(null, [filtered], null)
+//     );
+//     return new Ast.Program(
+//         null,
+//         [], 
+//         [],
+//         [statement],
+//         {}
+//     );
+// }
+
+
+function generateProjectionAst(device : string, func : string, property : string) : Ast.Program {
+    const invocation = new Ast.InvocationExpression(
+        null, 
+        new Ast.Invocation(null, new Ast.DeviceSelector(null, device, null, null), func, [], null),
+        null
+    );
+    const projection = new Ast.ProjectionExpression(
+        null,
+        invocation, 
+        [property],
+        [], 
+        [], 
+        null
+    );
+    const statement = new Ast.ExpressionStatement(
+        null,
+        new Ast.ChainExpression(null, [projection], null)
+    );
+    return new Ast.Program(
+        null,
+        [], 
+        [],
+        [statement],
+        {}
+    );
 }
