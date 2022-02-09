@@ -29,7 +29,7 @@ You need a recent version of NPM for this.
 ```bash
 git clone https://github.com/stanford-oval/genie-toolkit
 cd genie-toolkit
-npm install
+npm ci
 npm link
 ```
 
