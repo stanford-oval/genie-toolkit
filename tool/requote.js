@@ -516,6 +516,7 @@ export async function execute(args) {
                     console.error('**************');
                     console.error('Failed to requote');
                     console.error(String(e));
+                    console.error(ex.id);
                     console.error(ex.preprocessed);
                     console.error(ex.target_code);
                     console.error('**************');

@@ -262,14 +262,14 @@ export function initArgparse(subparsers : argparse.SubParser) {
 export async function execute(args : any) {
     if (!args.thingpedia_url)
         args.thingpedia_url = await getConfig('thingpedia.url', process.env.THINGPEDIA_URL || DEFAULT_THINGPEDIA_URL);
-    if (!args.nlu_server)
-        args.nlu_server = await getConfig('thingpedia.nlp-url', DEFAULT_NLP_URL);
+    if (!args.nlu_server_url)
+        args.nlu_server_url = await getConfig('thingpedia.nlp-url', DEFAULT_NLP_URL);
 
     const platform = new Platform(args.workdir, args.locale, args.thingpedia_url);
     const prefs = platform.getSharedPreferences();
     if (args.thingpedia_dir && args.thingpedia_dir.length)
         prefs.set('developer-dir', args.thingpedia_dir);
-    prefs.set('experimental-use-neural-nlg', !!args.nlg_server);
+    prefs.set('experimental-use-neural-nlg', !!args.nlg_server_url);
     const engine = new Engine(platform);
 
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -277,8 +277,8 @@ export async function execute(args : any) {
 
     await engine.open();
     const conversation = await engine.assistant.getOrOpenConversation('main', {
-        nluServerUrl: args.nlu_server,
-        nlgServerUrl: args.nlg_server,
+        nluServerUrl: args.nlu_server_url,
+        nlgServerUrl: args.nlg_server_url,
         debug: args.debug,
         showWelcome: true
     });
