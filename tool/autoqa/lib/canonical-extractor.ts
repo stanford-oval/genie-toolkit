@@ -165,7 +165,8 @@ export default class AnnotationExtractor {
             // Add query canonical:
             if (this.options.annotate_query_canonical) {
                 const queryCanonical : string[] = query.getNaturalLanguageAnnotation('canonical')!;
-                queryCanonical.push(...this.queryCanonicalCandidates[qname].getTop(80, 2));
+                if (queryCanonical)
+                    queryCanonical.push(...this.queryCanonicalCandidates[qname].getTop(80, 2));
             }
 
             // Add property canonical:
