@@ -2383,29 +2383,13 @@ UT: $stop;
 ====
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: What are the side effects of the vaccine?
-UT: $dialogue @org.thingpedia.dialogue.faq.question;
-C: $dialogue @org.thingpedia.dialogue.faq.question;
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Vaccine recipients commonly experience mild to moderate side effects that occur within the first three days of vaccination and resolve within 1-3 days of onset. These are normal signs that your body is building protection. Common side effects include mild to moderate pain, swelling, or redness at the injection site and/or mild to moderate flu-like symptoms (for example, fever, fatigue, headache, chills, muscle aches). Serious side effects are very rare.
-AT: $dialogue @org.thingpedia.dialogue.faq.answer;
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: \t $stop;
-UT: $stop;
-====
-# test
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: !! test command always bing !!
 UT: $dialogue @com.bing.search;
 C: $dialogue @com.bing.search;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Here is something I found on the web.
 AT: $dialogue @com.bing.sys_search_result;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2448,7 +2432,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Both Adrien Silva and M. Shabani are player stats with the dribble equal to 0.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2476,7 +2460,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Your request was completed successfully.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2492,7 +2476,7 @@ UT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Did you mean set on the lights?
 A: You do not have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2512,7 +2496,7 @@ C: null
 A: Did you mean set on the lights?
 A: Sorry I couldn't help on that.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_clarify;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2540,7 +2524,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Reminder: my reminder.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2568,7 +2552,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Reminder: my reminder.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2590,7 +2574,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: It is 5:50 PM.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2618,7 +2602,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alert: it is 5:50 PM.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2655,7 +2639,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: The artist is Adele.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2676,7 +2660,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Currently playing Hello. The artist is Adele.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2697,7 +2681,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Oren's Hummus opens from 11:00 AM to 2:30 PM every day.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2718,7 +2702,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Str:QUOTED_STRING::42:.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2737,7 +2721,7 @@ C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alright, I will notify you when the power state of your Kitchen Switches switch changes and it becomes true that the state is equal to on.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
