@@ -97,7 +97,10 @@ export default class AutoCanonicalGenerator {
         this.class = classDef;
         this.entities = entities;
         this.constants = constants;
-        this.functions = functions ? functions : Object.keys(classDef.queries).concat(Object.keys(classDef.actions));
+        const whitelist = this.class.getImplementationAnnotation('whitelist') as string[];
+        this.functions = functions ? functions : (
+            whitelist ?? Object.keys(classDef.queries).concat(Object.keys(classDef.actions))
+        );
         this.paraphraserModel = options.paraphraser_model;
         this.annotatedProperties = [];
         this.langPack = new EnglishLanguagePack('en-US');
