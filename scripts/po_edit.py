@@ -138,7 +138,7 @@ def clean_translated_output(text):
 
 
 def create_final():
-    pofile = polib.pofile(args.input_file)
+    pofile = polib.pofile(args.input_file, encoding='utf-8')
 
     translated_mapping = {}
     with open(args.translated_file, 'r') as fin:
