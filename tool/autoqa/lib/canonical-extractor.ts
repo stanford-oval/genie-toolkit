@@ -128,6 +128,7 @@ class Counter {
         const total = Object.keys(this.counter).length;
         const size = Math.ceil(total * percent / 100);
         const entries =  Object.entries(this.counter).sort(([, c1], [, c2]) => c2 - c1).slice(0, size);
+        console.log(entries);
         return entries.filter(([, c]) => c > minimumCount).map(([i, ]) => i);
     }
 }
@@ -196,11 +197,18 @@ export default class AnnotationExtractor {
     }
 
     private _extractQueryCanonical(query : string, queryCanonical : string, original : string, paraphrase : string) {
+        original = original.toLowerCase().replace(/[ .?!]*$/g, '');;
+        paraphrase = paraphrase.toLowerCase().replace(/[ .?!]*$/g, '');; 
+        if (original === paraphrase)
+            return;
         if (!original.includes(queryCanonical))
             return;
         const [lhs, rhs] = original.split(queryCanonical);
         if (paraphrase.startsWith(lhs) && paraphrase.endsWith(rhs)) {
             const candidate = paraphrase.slice(lhs.length, -rhs.length);
+            const tokens = candidate.split(' ');
+            if (['you', 'me', 'my', 'your', 'one', 'that', 'those', 'this', 'these'].some((token) => tokens.includes(token)))
+                return;
             if (candidate.length > 0)
                 this.queryCanonicalCandidates[query].add(candidate);
         }
