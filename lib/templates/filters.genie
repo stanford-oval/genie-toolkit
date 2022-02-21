@@ -511,7 +511,7 @@ whose_npp_filter : C.FilterSlot = {
 
 //FIXME: calculate threshold using max rating instead of a fixed number
 quality_filter : C.DomainIndependentFilterSlot = {
-    ('good' | 'great' | 'nice' | 'decent') => C.makeDomainIndependentFilter('aggregateRating.ratingValue', '>=', new Ast.Value.Number(4));
+    ?schema_org ('good' | 'great' | 'nice' | 'decent') => C.makeDomainIndependentFilter('aggregateRating.ratingValue', '>=', new Ast.Value.Number(4));
 }
 
 within_filter : ({ distance : Ast.Value, place : Ast.Value }) = {
