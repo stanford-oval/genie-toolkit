@@ -111,7 +111,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'extract-translatable-annotations': require('./extract-translatable-annotations'),
     'translate-schema-annotations': require('./translate-schema-annotations'),
 
-    'synthetic-data-sampler': require('./synthetic-data-sampler')
+    'sample-synthetic-data': require('./sample-synthetic-data')
 };
 
 async function main() {
