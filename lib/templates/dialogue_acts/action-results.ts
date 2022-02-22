@@ -30,8 +30,6 @@ import {
     ContextInfo,
     makeAgentReply,
     makeSimpleState,
-    setOrAddInvocationParam,
-    addNewItem,
 } from '../state_manip';
 import {
     isInfoPhraseCompatibleWithResult
@@ -192,32 +190,6 @@ function checkThingpediaErrorMessage(ctx : ContextInfo, msg : ErrorMessage) {
     return ctx;
 }
 
-function checkActionErrorMessage(ctx : ContextInfo, action : Ast.Invocation) {
-    // check the action is the same we actually executed, and all the parameters we're mentioning
-    // match the actual parameters of the action
-    if (!C.isSameFunction(ctx.currentFunction!, action.schema!))
-        return null;
-    const ctxInvocation = C.getInvocation(ctx.current!);
-    for (const newParam of action.in_params) {
-        if (newParam.value.isUndefined)
-            continue;
-
-        let found = false;
-        for (const oldParam of ctxInvocation.in_params) {
-            if (newParam.name === oldParam.name) {
-                if (!newParam.value.equals(oldParam.value))
-                    return null;
-                found = true;
-                break;
-            }
-        }
-        if (!found)
-            return null;
-    }
-
-    return ctx;
-}
-
 function makeActionErrorPhrase(ctx : ContextInfo, questions : C.ParamSlot[]) {
     const schema = ctx.currentFunction!;
     for (const q of questions) {
@@ -239,60 +211,10 @@ function makeActionErrorPhrase(ctx : ContextInfo, questions : C.ParamSlot[]) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_error_question', questions.map((q) => q.name)));
 }
 
-function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputParamSlot) {
-    const schema = ctx.currentFunction!;
-    const questions = ctx.state.dialogueActParam as string[] || [];
-    let ipslot : C.InputParamSlot;
-    if (answer instanceof Ast.Value) {
-        if (questions.length !== 1)
-            return null;
-        const arg = schema.getArgument(questions[0]);
-        if (!arg || !arg.is_input || !arg.type.equals(answer.getType()))
-            return null;
-        ipslot = {
-            schema,
-            ptype: answer.getType(),
-            ast: new Ast.InputParam(null, questions[0], answer)
-        };
-    } else {
-        ipslot = answer;
-        if (!C.isSameFunction(ipslot.schema, schema))
-            return null;
-    }
-    // TODO implement this template for queries
-    if (schema.functionType !== 'action')
-        return null;
-
-    const clone = ctx.current!.clone();
-    const action = C.getInvocation(clone);
-    if (!action || !(action instanceof Ast.Invocation))
-        return null;
-    setOrAddInvocationParam(action, ipslot.ast.name, ipslot.ast.value);
-    return addNewItem(ctx, 'execute', null, 'accepted', clone);
-}
-
-function actionSuccessQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
-    if (ctx.resultInfo && ctx.resultInfo.hasStream)
-        return null;
-
-    for (const q of questions) {
-        if (!C.isSameFunction(q.schema, ctx.currentFunction!))
-            return null;
-        const arg = ctx.currentFunction!.getArgument(q.name);
-        if (!arg || arg.is_input)
-            return null;
-    }
-    return makeSimpleState(ctx, 'action_question', questions.map((q) => q.name));
-}
-
 export {
     makeThingpediaActionSuccessPhrase,
     makeCompleteActionSuccessPhrase,
     makeGenericActionSuccessPhrase,
     checkThingpediaErrorMessage,
-    checkActionErrorMessage,
     makeActionErrorPhrase,
-
-    actionErrorChangeParam,
-    actionSuccessQuestion
 };

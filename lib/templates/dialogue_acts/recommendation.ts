@@ -23,10 +23,7 @@ import assert from 'assert';
 
 import { Ast, } from 'thingtalk';
 
-import * as ThingTalkUtils from '../../utils/thingtalk';
-
 import * as C from '../ast_manip';
-import ThingpediaLoader from '../load-thingpedia';
 
 import { SlotBag } from '../slot_bag';
 import {
@@ -41,11 +38,6 @@ import {
     isInfoPhraseCompatibleWithResult,
     findChainParam
 } from './common';
-import {
-    refineFilterToAnswerQuestionOrChangeFilter,
-    combinePreambleAndRequest,
-    proposalReply
-} from './refinement-helpers';
 import type { ListProposal } from './list-proposal';
 
 export interface Recommendation {
@@ -66,38 +58,6 @@ export function recommendationKeyFn(rec : Recommendation) {
 function checkInvocationCast(x : Ast.Invocation|Ast.FunctionCallExpression) : Ast.Invocation {
     assert(x instanceof Ast.Invocation);
     return x;
-}
-
-function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) : Recommendation|null {
-    // we don't offer actions during recommendations
-    if (ctx.state.dialogueAct === 'notification')
-        return null;
-    assert(action instanceof Ast.Invocation);
-
-    const results = ctx.results;
-    assert(results && results.length > 0);
-    const currentStmt = ctx.current!.stmt;
-    const currentTable = currentStmt.expression;
-    const last = currentTable.last;
-    if ((last instanceof Ast.SliceExpression ||
-        (last instanceof Ast.ProjectionExpression && last.expression instanceof Ast.SliceExpression))
-        && results.length !== 1)
-        return null;
-
-    const topResult = results[0];
-    const id = topResult.value.id;
-    if (!id)
-        return null;
-
-    if (action.in_params.length !== 1)
-        return null;
-
-    for (const param of action.in_params) {
-        if (param.value.equals(id))
-            return { ctx, topResult, info: null, action, hasLearnMore: false, hasAnythingElse: false };
-    }
-
-    return null;
 }
 
 function makeArgMinMaxRecommendation(ctx : ContextInfo, name : Ast.Value, base : Ast.Expression, param : C.ParamSlot, direction : 'asc'|'desc') {
@@ -187,42 +147,6 @@ function checkRecommendation(rec : Recommendation, info : SlotBag|null) : Recomm
         info: merged,
         action: rec.action,
         hasLearnMore: rec.hasLearnMore,
-        hasAnythingElse: rec.hasAnythingElse
-    };
-}
-
-function checkActionForRecommendation(rec : Recommendation, action : Ast.Invocation) {
-    // we don't offer actions during recommendations
-    if (rec.ctx.state.dialogueAct === 'notification')
-        return null;
-    if (!rec.topResult.value.id)
-        return null;
-    const resultType = rec.topResult.value.id.getType();
-
-    if (rec.action !== null) {
-        if (!C.isSameFunction(rec.action.schema!, action.schema!))
-            return null;
-    }
-
-    if (!C.hasArgumentOfType(action, resultType))
-        return null;
-
-    return {
-        ctx: rec.ctx, topResult: rec.topResult,
-        info: rec.info,
-        action,
-        hasLearnMore: rec.hasLearnMore,
-        hasAnythingElse: rec.hasAnythingElse
-    };
-}
-
-export function recommendationSetLearnMore(rec : Recommendation) {
-    return {
-        ctx: rec.ctx, topResult: rec.topResult,
-        info: rec.info,
-        // reset the action to null if the agent explicitly asks to "learn more"
-        action: null,
-        hasLearnMore: true,
         hasAnythingElse: rec.hasAnythingElse
     };
 }
@@ -329,86 +253,6 @@ export function makeDisplayResultReplyFromList(ctx : ContextInfo, proposal : Lis
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
 }
 
-function negativeRecommendationReply(ctx : ContextInfo, [preamble, request] : [Ast.Expression|null, Ast.Expression|null]) {
-    if (!((preamble === null || preamble instanceof Ast.FilterExpression) &&
-          (request === null || request instanceof Ast.FilterExpression)))
-        return null;
-
-    const proposal = ctx.aux;
-    const { topResult, info, } = proposal;
-    const proposalType = topResult.value.id ? topResult.value.id.getType() : null;
-    request = combinePreambleAndRequest(preamble, request, info, proposalType);
-    if (request === null)
-        return null;
-    return proposalReply(ctx, request, refineFilterToAnswerQuestionOrChangeFilter);
-}
-
-function positiveRecommendationReply(loader : ThingpediaLoader,
-                                     ctx : ContextInfo,
-                                     acceptedAction : Ast.Invocation|null,
-                                     name : Ast.Value|null) {
-    const proposal = ctx.aux as Recommendation;
-    const { topResult, action: actionProposal } = proposal;
-
-    // FIXME this should be allowed when we can parameter-pass by non-ID
-    if (!topResult.value.id)
-        return null;
-
-    if (acceptedAction === null) {
-        // if the user did not give an action earlier, and no action
-        // was proposed by the agent right now, the flow is roughly
-        //
-        // U: hello i am looking for a restaurant
-        // A: how about the ... ?
-        // U: sure I like that
-        //
-        // this doesn't make much sense, so we don't want this flow
-        if (actionProposal === null)
-            return null;
-
-        acceptedAction = actionProposal;
-    }
-    assert(acceptedAction);
-
-    if (actionProposal !== null && !C.isSameFunction(actionProposal.schema!, acceptedAction.schema!))
-        return null;
-    if (name !== null && !topResult.value.id.equals(name))
-        return null;
-
-    // do not consider a phrase of the form "play X" to be "accepting the action by name"
-    // if the action auto-confirms, because the user is likely playing something else
-    if (name) {
-        const confirm = ThingTalkUtils.normalizeConfirmAnnotation(acceptedAction.schema as Ast.FunctionDef);
-        if (confirm === 'auto')
-            return null;
-    }
-
-    const chainParam = findChainParam(topResult, acceptedAction);
-    if (!chainParam)
-        return null;
-    return addActionParam(ctx, 'execute', acceptedAction!, chainParam, topResult.value.id, 'accepted');
-}
-
-function recommendationCancelReply(ctx : ContextInfo, valid : boolean) {
-    // see dialogue.genie for the meaning of this boolean
-    if (!valid)
-        return null;
-
-    // "thank you" closes the dialogue
-    // we cannot close the dialogue if we have pending actions
-    if (ctx.next)
-        return null;
-    return makeSimpleState(ctx, 'cancel', null);
-}
-
-function recommendationLearnMoreReply(ctx : ContextInfo, name : Ast.Value|null) {
-    const proposal = ctx.aux as Recommendation;
-    const { topResult, } = proposal;
-    if (name !== null && (!topResult.value.id || !topResult.value.id.equals(name)))
-        return null;
-    return makeSimpleState(ctx, 'learn_more', null);
-}
-
 function repeatCommandReply(ctx : ContextInfo) {
     if (ctx.next)
         return null;
@@ -423,21 +267,15 @@ function repeatCommandReply(ctx : ContextInfo) {
 }
 
 export {
-    makeActionRecommendation,
     makeArgMinMaxRecommendation,
     makeRecommendation,
     makeThingpediaRecommendation,
     checkRecommendation,
-    checkActionForRecommendation,
     makeDisplayResult,
     combineDisplayResult,
     checkDisplayResult,
     makeRecommendationReply,
     makeDisplayResultReply,
 
-    positiveRecommendationReply,
-    negativeRecommendationReply,
-    recommendationCancelReply,
-    recommendationLearnMoreReply,
     repeatCommandReply,
 };
