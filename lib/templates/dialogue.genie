@@ -55,14 +55,12 @@ import './commands.genie';
 // common dialogue elements
 import './dlg/shared.genie';
 import './dlg/results.genie';
-import './dlg/coref-actions.genie';
 
 // specific interactions
 // keep this in alphabetical order
 import './dlg/action-confirm.genie';
 import './dlg/action-results.genie';
 import './dlg/aggregation-results.genie';
-import './dlg/coref-questions.genie';
 import './dlg/empty-search.genie';
 import './dlg/initial-request.genie';
 import './dlg/list-proposal.genie';
@@ -279,15 +277,11 @@ $user : Ast.DialogueState = {
         => D.actionConfirmAcceptPhrase(ctx);
     ctx:ctx_sys_confirm_action reject_phrase [weight=0.1]
         => D.actionConfirmRejectPhrase(ctx);
-    ctx:ctx_sys_confirm_action reject_phrase ('can you try' | 'how about') answer:imprecise_slot_fill_answer_phrase ('instead ?' | '') [weight=0.1]
-        => D.actionConfirmChangeParam(ctx, answer);
 
     // action and non-list query results
     ( ctx:ctx_sys_action_success thanks_phrase ('goodbye !' | '')
     | ctx:ctx_sys_display_result thanks_phrase ('goodbye !' | '')
     ) => S.makeSimpleState(ctx, 'cancel', null);
-    ctx:ctx_sys_action_success questions:simple_user_search_question
-        => D.actionSuccessQuestion(ctx, questions);
 
     ( ctx:ctx_sys_display_result repeat_command_phrase
     | ctx:ctx_sys_action_error repeat_command_on_error_phrase
@@ -314,95 +308,7 @@ $user : Ast.DialogueState = {
     | ctx:ctx_sys_action_error nevermind_phrase
     ) => S.makeSimpleState(ctx, 'cancel', null);
 
-    /*
-    FIXME this template is too slow, so it is temporarily commented out
-    ctx:ctx_sys_action_error ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('can you try' | 'how about') answer:imprecise_slot_fill_answer_phrase '?'
-        => D.actionErrorChangeParam(ctx, answer);
-    */
-
-    // empty search errors
-    ctx:ctx_sys_empty_search accept_phrase
-        => D.acceptEmptySearchOffer(ctx);
-
     // slot fill questions
-    ctx:ctx_sys_slot_fill answer:precise_slot_fill_answer with { functionName = ctx.nextFunction }
-        => D.preciseSlotFillAnswer(ctx, answer);
     ctx:ctx_sys_slot_fill answer:imprecise_slot_fill_answer
         => D.impreciseSlotFillAnswer(ctx, answer);
-
-    // asking for a recommendation
-    ?multiwoz {
-        ctx:ctx_sys_recommend_many ask_recommend_phrase
-            => S.makeSimpleState(ctx, 'ask_recommend', null);
-        ctx:ctx_sys_search_question ask_recommend_phrase
-            => S.makeSimpleState(ctx, 'ask_recommend', null);
-    }
-
-    // accepting recommendations
-    ctx:ctx_sys_recommend_one accept_phrase [weight=0.7]
-        => D.positiveRecommendationReply($loader, ctx, null, null);
-    ctx:ctx_sys_recommend_one acceptedAction:recommendation_accept_phrase_with_action [weight=0.7]
-        => D.positiveRecommendationReply($loader, ctx, acceptedAction, null);
-    ?multiwoz ctx:ctx_sys_recommend_one name:recommendation_accept_phrase_by_name [weight=0.7]
-        => D.positiveRecommendationReply($loader, ctx, name[1], name[0]);
-
-    // accepting recommendation to learn more
-    ( ctx:ctx_sys_recommend_one tell_me_more_phrase [weight=0.5]
-    | ctx:ctx_sys_recommend_one accept_phrase tell_me_more_phrase [weight=0.5]
-    ) => D.recommendationLearnMoreReply(ctx, null);
-    ctx:ctx_sys_recommend_one name:list_proposal_tell_me_more
-        => D.recommendationLearnMoreReply(ctx, name);
-
-    // cancelling the transaction from a recommendation
-    // "thanks" without "yes" or "no" is always good
-    ctx:ctx_sys_recommend_one thanks_phrase ('goodbye !' | '')
-        => D.recommendationCancelReply(ctx, true);
-    // "ok thanks" is good if there was no question
-    ctx:ctx_sys_recommend_one ok_thanks_phrase ('goodbye !' | '')
-        => D.recommendationCancelReply(ctx, !ctx.aux.action && !ctx.aux.hasLearnMore);
-    // "no thanks" is good if there was a question
-    ctx:ctx_sys_recommend_one no_thanks_phrase ('goodbye !' | '')
-        => D.recommendationCancelReply(ctx, ctx.aux.action || ctx.aux.hasLearnMore);
-
-    // a "user search question" is one that uses the same Thingpedia primitive, and adds
-    // a filter on ID
-    ctx:ctx_sys_recommend_one questions:user_search_question with { functionName = ctx.currentFunction }
-        => D.recommendationSearchQuestionReply(ctx, questions);
-    ctx:ctx_sys_learn_more_what questions:user_search_question with { functionName = ctx.currentFunction }
-        => D.learnMoreSearchQuestionReply(ctx, questions);
-    ctx:ctx_sys_display_result questions:user_search_question with { functionName = ctx.currentFunction }
-        => D.displayResultSearchQuestionReply(ctx, questions);
-
-    // accepting list proposals
-    ctx:ctx_sys_recommend_many reply:positive_list_proposal_reply [weight=10 * 0.7]
-        => D.positiveListProposalReply($loader, ctx, reply);
-    ?multiwoz ctx:ctx_sys_recommend_many action:list_proposal_accept_phrase_with_action_by_name [weight=10 * 0.7]
-        => D.positiveListProposalReplyActionByName($loader, ctx, action);
-
-    // accepting list proposal to learn more
-    ctx:ctx_sys_recommend_many name:list_proposal_tell_me_more
-        => D.listProposalLearnMoreReply(ctx, name);
-
-    // continuing with a question
-    ctx:ctx_sys_recommend_many questions:user_search_question_for_list with { functionName = ctx.currentFunction }
-        => D.listProposalSearchQuestionReply(ctx, questions);
-
-    // streams
-    !nostream {
-        ctx:ctx_sys_action_success stream:add_separate_stream
-            => D.addStream(ctx, stream);
-        ctx:ctx_sys_recommend_one stream:add_separate_stream_to_query
-            => D.addStream(ctx, stream);
-        ctx:ctx_sys_recommend_many stream:add_separate_stream_to_query
-            => D.addStream(ctx, stream);
-        ctx:ctx_sys_display_result stream:add_separate_stream_to_query
-            => D.addStream(ctx, stream);
-
-        ctx:ctx_sys_recommend_one with { is_monitorable = true } make_monitor_phrase
-            => D.makeMonitor(ctx, { monitorItemID : false });
-        ctx:ctx_sys_recommend_many with { is_monitorable = true } make_monitor_phrase
-            => D.makeMonitor(ctx, { monitorItemID : false });
-        ctx:ctx_sys_display_result with { is_monitorable = true } make_monitor_phrase
-            => D.makeMonitor(ctx, { monitorItemID : false });
-    }
 }
