@@ -19,8 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-import assert from 'assert';
-
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
@@ -31,7 +29,6 @@ import {
     NameList,
     makeAgentReply,
     makeSimpleState,
-    addAction,
 } from '../state_manip';
 import {
     isInfoPhraseCompatibleWithResult,
@@ -46,22 +43,14 @@ import {
 export interface ListProposal {
     results : Ast.DialogueHistoryResultItem[];
     info : SlotBag|null;
-    action : Ast.Invocation|null;
-    hasLearnMore : boolean;
 }
 
-export function listProposalKeyFn({ results, info, action, hasLearnMore } : ListProposal) {
+export function listProposalKeyFn({ results, info } : ListProposal) {
     return {
         idType: results[0].value.id ? results[0].value.id.getType() : null,
         queryName: info ? info.schema!.qualifiedName : null,
-        actionName: action ? action.schema!.qualifiedName : null,
         length: results.length
     };
-}
-
-function checkInvocationCast(x : Ast.Invocation|Ast.FunctionCallExpression) : Ast.Invocation {
-    assert(x instanceof Ast.Invocation);
-    return x;
 }
 
 function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMore : boolean) : ListProposal|null {
@@ -102,8 +91,7 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
     }
 
 
-    const action = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null;
-    return { results, info, action, hasLearnMore };
+    return { results, info };
 }
 
 export type ThingpediaListProposal = [ContextInfo, SlotBag];
@@ -133,8 +121,7 @@ export function checkThingpediaListProposal(proposal : ThingpediaListProposal, a
     if (!mergedInfo)
         return null;
 
-    const action = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null;
-    return { results: ctx.results!, info: mergedInfo, action, hasLearnMore: false };
+    return { results: ctx.results!, info: mergedInfo };
 }
 
 export function makeListProposalFromDirectAnswers(...phrases : DirectAnswerPhrase[]) : ListProposal|null {
@@ -181,16 +168,14 @@ export function makeListProposalFromDirectAnswers(...phrases : DirectAnswerPhras
 
     const results = ctx.results!.slice(0, phrases.length);
 
-    return { results, info: null, action: null, hasLearnMore: false };
+    return { results, info: null };
 }
 
 function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
-    const { results, action, hasLearnMore } = proposal;
+    const { results } = proposal;
     const options : AgentReplyOptions = {
         numResults: results.length
     };
-    if (action || hasLearnMore)
-        options.end = false;
     let dialogueAct;
     switch (results.length) {
     case 2:
@@ -205,10 +190,7 @@ function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
     default:
         dialogueAct = 'sys_recommend_many';
     }
-    if (action === null)
-        return makeAgentReply(ctx, makeSimpleState(ctx, dialogueAct, null), proposal, null, options);
-    else
-        return makeAgentReply(ctx, addAction(ctx, dialogueAct, action, 'proposed'), proposal, null, options);
+    return makeAgentReply(ctx, makeSimpleState(ctx, dialogueAct, null), proposal, null, options);
 }
 
 export {

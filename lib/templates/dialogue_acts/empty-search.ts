@@ -26,13 +26,9 @@ import {
     ContextInfo,
     makeAgentReply,
     makeSimpleState,
-    addNewStatement,
 } from '../state_manip';
-import {
-    isValidSearchQuestion
-} from './common';
 
-type EmptySearch = [Ast.Expression|null, C.ParamSlot|null, boolean];
+type EmptySearch = [Ast.Expression|null];
 
 /**
  * Agent dialogue act: a search command returned no result.
@@ -41,43 +37,10 @@ type EmptySearch = [Ast.Expression|null, C.ParamSlot|null, boolean];
  * @param base - the base table used in the reply
  * @param question - a search question used in the reply
  */
-export function makeEmptySearchError(ctx : ContextInfo, [base, question, offerMonitor] : EmptySearch) {
+export function makeEmptySearchError(ctx : ContextInfo, [base] : EmptySearch) {
     if (base !== null && !C.isSameFunction(base.schema!, ctx.currentTableFunction!))
         return null;
-    if (question !== null && !C.isSameFunction(ctx.currentTableFunction!, question.schema))
-        return null;
 
-    let type, state;
-    if (question !== null) {
-        if (!isGoodEmptySearchQuestion(ctx, question))
-            return null;
-
-        const arg = ctx.currentTableFunction!.getArgument(question.name);
-        if (!arg)
-            return null;
-        type = arg.type;
-        state = makeSimpleState(ctx, 'sys_empty_search_question', [question.name]);
-    } else if (offerMonitor) {
-        const monitor = C.tableToStream(ctx.current!.stmt.lastQuery!, { monitorItemID : true });
-        if (!monitor)
-            return null;
-        state = addNewStatement(ctx, 'sys_empty_search', null, 'proposed', monitor);
-    } else {
-        type = null;
-        state = makeSimpleState(ctx, 'sys_empty_search', null);
-    }
-    return makeAgentReply(ctx, state, [base, question], type);
-}
-
-function isGoodEmptySearchQuestion(ctx : ContextInfo, question : C.ParamSlot) {
-    const currentStmt = ctx.current!.stmt;
-    const currentTable = currentStmt.expression;
-    if (!isValidSearchQuestion(currentTable, [question]))
-        return false;
-
-    const ctxFilterTable = C.findFilterExpression(currentTable);
-    if (!ctxFilterTable || !C.filterUsesParam(ctxFilterTable.filter, question.name))
-        return false;
-
-    return true;
+    const state = makeSimpleState(ctx, 'sys_empty_search', null);
+    return makeAgentReply(ctx, state, [base]);
 }

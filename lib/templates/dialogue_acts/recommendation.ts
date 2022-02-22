@@ -31,12 +31,10 @@ import {
     ContextInfo,
     makeAgentReply,
     makeSimpleState,
-    addActionParam,
     addNewItem,
 } from '../state_manip';
 import {
     isInfoPhraseCompatibleWithResult,
-    findChainParam
 } from './common';
 import type { ListProposal } from './list-proposal';
 
@@ -44,20 +42,12 @@ export interface Recommendation {
     ctx : ContextInfo;
     topResult : Ast.DialogueHistoryResultItem;
     info : SlotBag|null;
-    action : Ast.Invocation|null;
-    hasLearnMore : boolean;
-    hasAnythingElse : boolean;
 }
 
 export function recommendationKeyFn(rec : Recommendation) {
     return {
         functionName: rec.ctx.currentFunction!.qualifiedName
     };
-}
-
-function checkInvocationCast(x : Ast.Invocation|Ast.FunctionCallExpression) : Ast.Invocation {
-    assert(x instanceof Ast.Invocation);
-    return x;
 }
 
 function makeArgMinMaxRecommendation(ctx : ContextInfo, name : Ast.Value, base : Ast.Expression, param : C.ParamSlot, direction : 'asc'|'desc') {
@@ -95,9 +85,6 @@ function makeRecommendation(ctx : ContextInfo, name : Ast.Value) : Recommendatio
     return {
         ctx, topResult,
         info: null,
-        action: ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null,
-        hasLearnMore: false,
-        hasAnythingElse: false
     };
 }
 
@@ -119,9 +106,6 @@ function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) : Recom
     return {
         ctx, topResult,
         info,
-        action: ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null,
-        hasLearnMore: false,
-        hasAnythingElse: false
     };
 }
 
@@ -145,9 +129,6 @@ function checkRecommendation(rec : Recommendation, info : SlotBag|null) : Recomm
     return {
         ctx: rec.ctx, topResult: rec.topResult,
         info: merged,
-        action: rec.action,
-        hasLearnMore: rec.hasLearnMore,
-        hasAnythingElse: rec.hasAnythingElse
     };
 }
 
@@ -165,9 +146,6 @@ function makeDisplayResult(ctx : ContextInfo, info : SlotBag)  : Recommendation|
     return {
         ctx, topResult,
         info,
-        action: ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null,
-        hasLearnMore: false,
-        hasAnythingElse: false
     };
 }
 
@@ -192,9 +170,6 @@ function combineDisplayResult(proposal : Recommendation, newInfo : SlotBag) {
         ctx: proposal.ctx,
         topResult: proposal.topResult,
         info: maybeNewInfo,
-        action: proposal.action,
-        hasLearnMore: false,
-        hasAnythingElse: proposal.hasAnythingElse,
     };
     return newProposal;
 }
@@ -216,40 +191,24 @@ function checkDisplayResult(proposal : Recommendation|null) {
 }
 
 function makeRecommendationReply(ctx : ContextInfo, proposal : Recommendation) {
-    const { topResult, action, hasLearnMore } = proposal;
     const options : AgentReplyOptions = {
         numResults: 1
     };
-    if (action || hasLearnMore)
-        options.end = false;
-    if (action === null) {
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_recommend_one', null), proposal, null, options);
-    } else {
-        const chainParam = findChainParam(topResult, action);
-        if (!chainParam)
-            return null;
-        return makeAgentReply(ctx, addActionParam(ctx, 'sys_recommend_one', action, chainParam, topResult.value.id, 'proposed'),
-            proposal, null, options);
-    }
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_recommend_one', null), proposal, null, options);
 }
 
 function makeDisplayResultReply(ctx : ContextInfo, proposal : Recommendation) {
-    const { action, hasAnythingElse } = proposal;
     const options : AgentReplyOptions = {
         numResults: 1
     };
-    if (action || hasAnythingElse)
-        options.end = false;
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
 }
 
 export function makeDisplayResultReplyFromList(ctx : ContextInfo, proposal : ListProposal) {
-    const { results, action, hasLearnMore } = proposal;
+    const { results, } = proposal;
     const options : AgentReplyOptions = {
         numResults: results.length
     };
-    if (action || hasLearnMore)
-        options.end = false;
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
 }
 
