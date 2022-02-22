@@ -21,7 +21,6 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
-import * as D from '../dialogue_acts';
 import ThingpediaLoader from '../load-thingpedia';
 
 initial_command : Ast.Expression = {
@@ -38,14 +37,6 @@ initial_command : Ast.Expression = {
     search_command [weight=2];
     complete_question [weight=0.5];
     projection_question [weight=0.1];
-
-    ?dontcare {
-        ( stmt:search_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-        | stmt:complete_action ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-        | generic_preamble_for_action stmt:complete_action ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-        | generic_preamble_for_action stmt:forward_get_do_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-        ) => D.addInitialDontCare(stmt, dontcare);
-    }
 
     // TODO
     // ?remote_commands remote_command [weight=0.1];
