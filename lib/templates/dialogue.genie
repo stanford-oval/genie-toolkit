@@ -190,21 +190,11 @@ $agent : S.AgentReplyRecord = {
     | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null), null, null),
 
-    ?anything_else {
-        ctx:ctx_cancel anything_else_phrase
-            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null), null, null, { end: false }),
-
-        ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
-            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
-    }
-    !anything_else {
-        ctx:ctx_cancel 'alright, let me know if I can help you with anything else!'
-            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
-    }
+    ctx:ctx_cancel 'alright, let me know if I can help you with anything else!'
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
 
     // action results
     action_success_phrase;
-    ?anything_else action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
     ctx:ctx_completed_action_error sorry_preamble phrase:action_error_phrase => phrase;
 
     // query results
