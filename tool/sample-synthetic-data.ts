@@ -247,6 +247,7 @@ export function generateActionExamples(query : Ast.FunctionDef,
     return examples;
 }
 
+// FIXME: Consider renmaing ParaphraseExample's queryCanonical property so we don't cause confusion here.
 function generateActionExamplesByPOS(action : Ast.FunctionDef,
                                      queryCanonical : string,
                                      argument : Ast.ArgumentDef,
