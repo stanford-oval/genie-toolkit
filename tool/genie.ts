@@ -109,7 +109,9 @@ const subcommands : { [key : string] : SubCommand } = {
     'upload-entity-values': require('./upload-entity-values'),
 
     'extract-translatable-annotations': require('./extract-translatable-annotations'),
-    'translate-schema-annotations': require('./translate-schema-annotations')
+    'translate-schema-annotations': require('./translate-schema-annotations'),
+
+    'sample-synthetic-data': require('./sample-synthetic-data')
 };
 
 async function main() {
