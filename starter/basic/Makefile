@@ -1,28 +1,20 @@
-geniedir ?= ../..
-developer_key =
-thingpedia_url = https://thingpedia.stanford.edu/thingpedia
-
 -include ./config.mk
 
-all_experiments = thingpedia custom
+# dev or test
+eval_set ?= dev
+# model to train or evaluate
+model ?=
 
-experiment ?= thingpedia
+devices ?= $(foreach d,$(wildcard */manifest.tt),$(patsubst %/manifest.tt,%,$(d)))
+pkgfiles = $(wildcard */package.json)
 
-# per-experiment variables
-thingpedia_paraphrase =
-thingpedia_test_sets = eval
-thingpedia_eval_models =
-thingpedia_test_models =
+# hyperparameters that can be overridden on the cmdline
+dataset_file ?= everything/dataset.tt
+schema_file ?= everything/schema.tt
+paraphrase_files ?= $(wildcard everything/paraphrase.tsv $(foreach d,$(devices),$(d)/eval/paraphrase.tsv))
+eval_files ?= $(wildcard everything/$(eval_set)/annotated.txt $(foreach d,$(devices),$(d)/$(eval_set)/annotated.txt))
+fewshot_files ?= $(wildcard everything/fewshot/annotated.txt $(foreach d,$(devices),$(d)/fewshot/annotated.txt))
 
-custom_paraphrase =
-custom_test_sets = eval
-custom_eval_models =
-custom_test_models =
-
-# eval (dev) or test
-eval_set ?= eval
-
-dataset_file ?= $(experiment)/dataset.tt
 synthetic_flags ?= \
 	aggregation \
 	bookkeeping \
@@ -30,17 +22,16 @@ synthetic_flags ?= \
 	policies \
 	projection \
 	projection_with_filter \
-	remote_commands \
 	timer \
 	schema_org \
 	screen_selection \
 	undefined_filter
+	
 max_depth ?= 7
 target_pruning_size ?= 500
 generate_flags = --target-pruning-size $(target_pruning_size) $(foreach v,$(synthetic_flags),--set-flag $(v)) --maxdepth $(max_depth)
 evalflags ?=
 
-model ?= 1
 train_iterations ?= 50000
 train_save_every ?= 2000
 train_log_every ?= 100
@@ -51,69 +42,98 @@ train_nlu_flags ?= \
 	--override_question .
 custom_train_nlu_flags ?=
 
-memsize := $(shell echo $$(($$(grep MemTotal /proc/meminfo | sed 's/[^0-9]//g')/1000-2500)))
-NODE ?= node
-genie ?= $(NODE) --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
+geniedir ?= node_modules/genie-toolkit
+memsize ?= 8500
+parallel ?= 1
+genie ?= node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
+
+thingpedia_url ?= https://thingpedia.stanford.edu/thingpedia
+developer_key ?= $(shell git config --get thingpedia.developer-key)
+
+
+.PRECIOUS: %/node_modules
+.PHONY: all clean lint train evaluate
+.SECONDARY:
 
 all: train
 
-.PHONY: all train evaluate
-.SECONDARY:
+$(schema_file): $(addsuffix /manifest.tt,$(devices))
+	cat $^ > $@.tmp
+	if test -f $@ && cmp $@.tmp $@ ; then rm $@.tmp ; else mv $@.tmp $@ ; fi
 
-thingpedia/thingpedia.tt:
-	$(genie) download-snapshot --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) -o $@
+$(dataset_file): $(addsuffix /dataset.tt,$(devices))
+	cat $^ > $@.tmp
+	if test -f $@ && cmp $@.tmp $@ ; then rm $@.tmp ; else mv $@.tmp $@ ; fi
 
-thingpedia/dataset.tt:
-	$(genie) download-templates --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) -o $@
-
-thingpedia/entities.json:
+entities.json:
 	$(genie) download-entities --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) -o $@
 
-$(experiment)/synthetic.tsv : $(experiment)/thingpedia.tt $(experiment)/dataset.tt $(experiment)/entities.json
+everything/synthetic-%.tsv : $(schema_file) $(dataset_file) entities.json
 	$(genie) generate \
-	  --thingpedia $(experiment)/thingpedia.tt --entities $(experiment)/entities.json --dataset $(experiment)/dataset.tt \
-	  -o $@.tmp --no-debug $(generate_flags) --random-seed $@
+	  --thingpedia $(schema_file) \
+	  --dataset $(dataset_file) \
+	  --entities entities.json \
+	  --maxdepth $$(echo $* | cut -f1 -d'-') \
+	  -o $@.tmp \
+	  --no-debug \
+	  --random-seed $@ \
+	  $(generate_flags) \
+	  $(custom_gen_flags) 
 	mv $@.tmp $@
+
+everything/synthetic.tsv: $(foreach v,1 2 3,everything/synthetic-d6-$(v).tsv) everything/synthetic-d$(maxdepth).tsv
+	cat $^ > $@
 
 parameter_dataset_url = https://almond-static.stanford.edu/test-data/parameter-datasets-en-US-20211206.tar.xz
 parameter-datasets.tsv:
 	wget --no-verbose $(parameter_dataset_url) -O parameter-datasets.tar.xz
 	tar xf parameter-datasets.tar.xz
 
-$(experiment)/augmented.tsv : $($(experiment)_paraphrase) $(experiment)/synthetic.tsv $(experiment)/thingpedia.tt $(experiment)/entities.json parameter-datasets.tsv
-	$(genie) augment -o $@.tmp -l en-US --thingpedia $(experiment)/thingpedia.tt --entities $(experiment)/entities.json\
+everything/augmented.tsv : $(paraphrase_files) everything/synthetic.tsv $(schema_file) entities.json parameter-datasets.tsv
+	$(genie) augment \
+	  -o $@.tmp \
+	  -l en-US \
+	  --thingpedia $(schema_file) \
+	  --entities entities.json \
 	  --parameter-datasets parameter-datasets.tsv \
-	  --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 60 --no-quote-paraphrasing-expand-factor 20 --quoted-fraction 0.1 \
-	  --debug $($(experiment)_paraphrase) $(experiment)/synthetic.tsv
+	  --synthetic-expand-factor 1 \
+	  --quoted-paraphrasing-expand-factor 60 \
+	  --no-quote-paraphrasing-expand-factor 20 \
+	  --quoted-fraction 0.1 \
+	  --debug \
+	  $(paraphrase_files) everything/synthetic.tsv 
 	mv $@.tmp $@
 
-datadir: $(experiment)/augmented.tsv $(experiment)/eval/annotated.tsv
+everything/eval/annotated.tsv: $(addsuffix /$(eval_set)/annotated.tsv,$(devices))
+	cat $^ > $@.tmp
+	if test -f $@ && cmp $@.tmp $@ ; then rm $@.tmp ; else mv $@.tmp $@ ; fi
+
+datadir: everything/augmented.tsv everything/eval/annotated.tsv
 	mkdir -p $@
-	if test -s $(experiment)/eval/annotated.tsv ; then \
-	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
-	  cut -f1-3 $(experiment)/eval/annotated.tsv > $@/eval.tsv ; \
+	if test -s everything/eval/annotated.tsv ; then \
+	  cp everything/augmented.tsv $@/train.tsv ; \
+	  cut -f1-3 everything/eval/annotated.tsv > $@/eval.tsv ; \
 	else \
 	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
 	    --eval-probability 0.1 --split-strategy sentence \
-	    --eval-on-synthetic $(experiment)/augmented.tsv ; \
+	    --eval-on-synthetic everything/augmented.tsv ; \
 	fi
 	touch $@
 
 clean:
-	for exp in $(all_experiments) ; do \
-		rm -rf $$exp/synthetic* $$exp/augmented.tsv $$exp/constants.tsv ; \
-	done
+	rm -fr entities.json
+	rm -rf everything/schema*.tt everything/dataset.tt everything/synthetic* parameter-datasets* everything/augmented*
 
 train: datadir
-	mkdir -p $(experiment)/models/$(model)
+	mkdir -p everything/models/$(model)
 	-rm datadir/almond
 	ln -sf . datadir/almond
 	genienlp train \
 	  --no_commit \
 	  --data datadir \
 	  --embeddings .embeddings \
-	  --save $(experiment)/models/$(model) \
-	  --tensorboard_dir $(experiment)/models/$(model) \
+	  --save everything/models/$(model) \
+	  --tensorboard_dir everything/models/$(model) \
 	  --cache datadir/.cache \
 	  --train_tasks almond \
 	  --preserve_case \
