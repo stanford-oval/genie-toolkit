@@ -121,10 +121,15 @@ datadir: everything/augmented.tsv everything/eval/annotated.tsv
 	  cp everything/augmented.tsv $@/train.tsv ; \
 	  cut -f1-3 everything/eval/annotated.tsv > $@/eval.tsv ; \
 	else \
-	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
+	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv.tmp \
 	    --eval-probability 0.1 --split-strategy sentence \
-	    --eval-on-synthetic everything/augmented.tsv ; 
-	  cp $@/eval.tsv everything/eval/annotated.tsv
+	    --eval-on-synthetic everything/augmented.tsv ; \
+	  $(genie) typecheck \
+	    -o $@/eval.tsv \
+		--dropped $@/eval-dropped.tsv \
+		--thingpedia $(schema_file) \
+		$@/eval.tsv.tmp ; \
+	  cp $@/eval.tsv everything/eval/annotated.tsv ; \
 	fi
 	touch $@
 
