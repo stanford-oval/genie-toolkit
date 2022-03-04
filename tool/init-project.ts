@@ -70,6 +70,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         choices: Object.keys(LICENSES),
         help: "The code license to use for the repository, as a SPDX identifier (defaults to BSD-3-Clause)"
     });
+    parser.add_argument('--type', {
+        required: false,
+        default: 'dialog',
+        choices: ['dialog', 'basic'],
+    });
     parser.add_argument('output_dir', {
     });
 }
@@ -113,7 +118,8 @@ export async function execute(args : any) {
         await execCommand(['git', 'config', 'thingpedia.developer-key', args.developer_key], { debug: true, cwd: args.output_dir });
 
     console.log('Copying skeleton code...');
-    await copyTree(path.resolve(path.dirname(module.filename), '../../starter/custom'), args.output_dir);
+    const starter = args.type === 'dialog' ? 'custom' : 'basic';
+    await copyTree(path.resolve(path.dirname(module.filename), `../../starter/${starter}`), args.output_dir);
 
     console.log('Writing metadata...');
 

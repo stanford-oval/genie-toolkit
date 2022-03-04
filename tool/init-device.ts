@@ -44,6 +44,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('class_name', {
         help: "The name (unique ID) of the new device, in reverse-DNS notation (e.g. com.example.foo)"
     });
+    parser.add_argument('--type', {
+        required: false,
+        default: 'dialog',
+        choices: ['dialog', 'basic'],
+    });
 }
 
 export async function execute(args : any) {
@@ -69,8 +74,10 @@ export async function execute(args : any) {
 #[license="${packageInfo.license}"]
 #[license_gplcompatible=${packageInfo.license !== 'Proprietary'}]
 #[subcategory="service"] {
-import loader from @${args.loader}();
-import config from @org.thingpedia.config.none();
+  import loader from @${args.loader}();
+  import config from @org.thingpedia.config.none();
+
+  // add functions below
 }
 `);
 
@@ -79,12 +86,19 @@ import config from @org.thingpedia.config.none();
 }
 `);
 
-    await pfs.mkdir(path.resolve(args.class_name, 'eval'));
-    await pfs.mkdir(path.resolve(args.class_name, 'eval/dev'));
-    await pfs.writeFile(path.resolve(args.class_name, 'eval/dev/annotated.txt'), '');
-    await pfs.mkdir(path.resolve(args.class_name, 'eval/train'));
-    await pfs.writeFile(path.resolve(args.class_name, 'eval/train/annotated.txt'), '');
-    await pfs.writeFile(path.resolve(args.class_name, 'eval/paraphrase.tsv'), '');
+    if (args.type === 'dialog') {
+        await pfs.mkdir(path.resolve(args.class_name, 'eval'));
+        await pfs.mkdir(path.resolve(args.class_name, 'eval/dev'));
+        await pfs.writeFile(path.resolve(args.class_name, 'eval/dev/annotated.txt'), '');
+        await pfs.mkdir(path.resolve(args.class_name, 'eval/train'));
+        await pfs.writeFile(path.resolve(args.class_name, 'eval/train/annotated.txt'), '');
+        await pfs.writeFile(path.resolve(args.class_name, 'eval/paraphrase.tsv'), '');
+    } else {
+        await pfs.mkdir(path.resolve(args.class_name, 'dev'));
+        await pfs.writeFile(path.resolve(args.class_name, 'dev/annotated.tsv'), '');
+        await pfs.writeFile(path.resolve(args.class_name, 'fewshot.tsv'), '');
+        await pfs.writeFile(path.resolve(args.class_name, 'paraphrase.tsv'), '');
+    }
 
     if (args.loader === 'org.thingpedia.v2') {
         await pfs.writeFile(path.resolve(args.class_name, 'package.json'), JSON.stringify({
