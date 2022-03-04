@@ -3,7 +3,7 @@
 # dev or test
 eval_set ?= dev
 # model to train or evaluate
-model ?=
+model ?= 1
 
 devices ?= $(foreach d,$(wildcard */manifest.tt),$(patsubst %/manifest.tt,%,$(d)))
 pkgfiles = $(wildcard */package.json)
@@ -32,14 +32,21 @@ target_pruning_size ?= 500
 generate_flags = --target-pruning-size $(target_pruning_size) $(foreach v,$(synthetic_flags),--set-flag $(v)) --maxdepth $(max_depth)
 evalflags ?=
 
-train_iterations ?= 50000
+train_iterations ?= 30000
 train_save_every ?= 2000
 train_log_every ?= 100
 train_nlu_flags ?= \
-	--model TransformerLSTM \
-	--pretrained_model bert-base-cased \
-	--trainable_decoder_embeddings 50 \
-	--override_question .
+	--model TransformerSeq2Seq \
+	--pretrained_model facebook/bart-large \
+	--lr_multiply 0.01 \
+	--warmup 20 \
+	--gradient_accumulation_steps 20 \
+	--eval_set_name eval \
+	--train_batch_tokens 2000 \
+	--val_batch_size 4000 \
+	--override_question= \
+	--preserve_case \
+	--preprocess_special_tokens
 custom_train_nlu_flags ?=
 
 geniedir ?= node_modules/genie-toolkit
@@ -116,7 +123,8 @@ datadir: everything/augmented.tsv everything/eval/annotated.tsv
 	else \
 	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
 	    --eval-probability 0.1 --split-strategy sentence \
-	    --eval-on-synthetic everything/augmented.tsv ; \
+	    --eval-on-synthetic everything/augmented.tsv ; 
+	  cp $@/eval.tsv everything/eval/annotated.tsv
 	fi
 	touch $@
 
@@ -134,7 +142,6 @@ train: datadir
 	  --embeddings .embeddings \
 	  --save everything/models/$(model) \
 	  --tensorboard_dir everything/models/$(model) \
-	  --cache datadir/.cache \
 	  --train_tasks almond \
 	  --preserve_case \
 	  --train_iterations $(train_iterations) \
@@ -142,16 +149,22 @@ train: datadir
 	  --log_every $(train_log_every) \
 	  --val_every $(train_save_every) \
 	  --exist_ok \
-	  --skip_cache \
 	  $(train_nlu_flags) \
 	  $(custom_train_nlu_flags)
 
-evaluate: $(foreach v,$($(experiment)_$(eval_set)_models),$(experiment)/$(eval_set)/$(v).results)
-	for f in $^ ; do echo $$f ; cat $$f ; done
-
-$(experiment)/$(eval_set)/%.results: $(experiment)/models/%/best.pth $(experiment)/$(eval_set)/annotated.tsv $(experiment)/thingpedia.tt
-	$(genie) evaluate-server --url "file://$(abspath $(dir $<))" --thingpedia $(experiment)/thingpedia.tt $(experiment)/$(eval_set)/annotated.tsv --debug --csv-prefix $(eval_set) --csv $(evalflags) --max-complexity 3 -o $@.tmp | tee $(experiment)/$(eval_set)/$*.debug
+everything/eval/%.results: everything/models/%/best.pth everything/eval/annotated.tsv $(schema_file)
+	$(genie) evaluate-server \
+	  --url "file://$(abspath $(dir $<))" \
+	  --thingpedia $(schema_file) \
+	  everything/eval/annotated.tsv \
+	  --debug \
+	  --csv-prefix $(eval_set) \
+	  --csv \
+	  $(evalflags) \
+	  --max-complexity 3 \
+	  -o $@.tmp | tee everything/eval/$*.debug
 	mv $@.tmp $@
 
-evaluate-all:
-	for t in $($(experiment)_test_sets) ; do make eval_set=$$t evaluate ; done
+evaluate: everything/eval/$(model).results
+	@cat everything/eval/$(model).results
+
