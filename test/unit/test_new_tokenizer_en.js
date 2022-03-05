@@ -167,6 +167,7 @@ const TEST_CASES = [
     ['at least three hundred thousands', 'at least 300000', 'at least 300000', {}],
     ['at least three hundred fifteen thousands', 'at least 315000', 'at least 315000', {}],
     ['more than a hundred seventy reviews', 'more than 170 reviews', 'more than 170 reviews', {}],
+    ['100,000,000', '100000000', '100000000', {}],
 
     // ordinals
     ['i want the 1st', 'i want the 1st', 'i want the 1st', {}],

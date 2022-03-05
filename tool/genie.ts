@@ -103,10 +103,11 @@ const subcommands : { [key : string] : SubCommand } = {
     'init-device': require('./init-device'),
     'lint-device': require('./lint-device'),
     'lint-po-files': require('./lint-po-files'),
-
+    
     'upload-device': require('./upload-device'),
     'upload-string-values': require('./upload-string-values'),
     'upload-entity-values': require('./upload-entity-values'),
+    'retokenize-string-values': require('./retokenize-string-values'),
 
     'extract-translatable-annotations': require('./extract-translatable-annotations'),
     'translate-schema-annotations': require('./translate-schema-annotations'),
