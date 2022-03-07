@@ -67,8 +67,6 @@ export async function execute(args : any) {
 
     await pfs.writeFile(path.resolve(args.class_name, 'manifest.tt'),
         `class @${args.class_name}
-#_[name="${args.name || args.class_name}"]
-#_[description="${args.description}"]
 #_[thingpedia_name="${args.name || args.class_name}"]
 #_[thingpedia_description="${args.description}"]
 #[license="${packageInfo.license}"]
@@ -77,6 +75,8 @@ export async function execute(args : any) {
   import loader from @${args.loader}();
   import config from @org.thingpedia.config.none();
 
+  // declare your entities below
+  
   // add functions below
 }
 `);
