@@ -129,6 +129,7 @@ datadir: everything/augmented.tsv everything/eval/annotated.tsv
 		--dropped $@/eval-dropped.tsv \
 		--thingpedia $(schema_file) \
 		$@/eval.tsv.tmp ; \
+	  rm $@/eval.tsv.tmp $@/eval-dropped.tsv ; \
 	  cp $@/eval.tsv everything/eval/annotated.tsv ; \
 	fi
 	touch $@
