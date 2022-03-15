@@ -48,6 +48,7 @@ export * from './metadata';
 import { POLICY_NAME } from './metadata';
 import { makeContextPhrase } from './context-phrases';
 import { CancellationError } from '../dialogue-runtime';
+// import { addNewStatement } from '../utils/thingtalk/state-manipulation';
 
 /**
  * This module defines the basic logic of transaction dialogues: how
@@ -80,7 +81,6 @@ function actionShouldHaveResult(ctx : ContextInfo) : boolean {
 function greet(dlg : DialogueInterface, ctx : ContextInfo) {
     dlg.say(dlg._("{hello|hi}{!|,} {how can i help you|what are you interested in|what can i do for you}?"),
         () => D.makeAgentReply(ctx, StateM.makeSimpleState(dlg.state, POLICY_NAME, 'sys_greet'), null, null, { end: false }));
-
     dlg.expect(function*(tpLoader : ThingpediaLoader) {
         yield mkUserTmpl(Templates.greeting, (state) => StateM.makeSimpleState(state, POLICY_NAME, 'greet'));
         yield mkUserTmpl(Templates.initial_command, (state, stmt) => D.startNewRequest(tpLoader, state, stmt));
@@ -114,6 +114,45 @@ async function ctxNotification(dlg : DialogueInterface, ctx : ContextInfo) {
     return dlg.flush();
 }
 
+async function followUp (dlg : DialogueInterface, ctx : ContextInfo) {
+    dlg.say("next?");
+    const cmd = await dlg.get({
+        expecting: Type.Boolean,
+        acceptActs: ['execute', 'cancel', 'next_entity'],
+        acceptQueries: ['org.kqed.kqed_podcasts'],
+    });
+    dlg.updateState();
+    if (cmd.type === POLICY_NAME + '.cancel') {
+        dlg.say("bye.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+        return 0;
+    }
+    if (cmd.type !== POLICY_NAME + '.next_entity') {
+        await dlg.execute(cmd.meaning);
+        return 1;
+    }
+}
+
+async function KqedLoop(dlg : DialogueInterface, ctx : ContextInfo) {
+    const description = ctx.results![0].value.description;
+    dlg.say("${description}", { description });
+    return followUp(dlg, ctx);
+}
+
+
+async function ctxKqed(dlg : DialogueInterface) {
+    for (;;) {
+        // get the context based on what the user said
+        const ctx = ContextInfo.get(dlg.state);
+
+        if (ctx.results!.length === 0) {
+            dlg.say("no more news.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
+            return dlg.flush();
+        }
+        if (!await KqedLoop(dlg, ctx))
+            return dlg.flush();
+    }
+}
+
 async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextInfo) {
     if (ctx.results!.length > 1) {
         return dlg.either([
@@ -122,11 +161,14 @@ async function ctxCompleteSearchCommand(dlg : DialogueInterface, ctx : ContextIn
             },
             async () => {
                 dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
-            }
+            },
         ]);
     } else {
-        dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
-        return dlg.flush();
+        return dlg.either([
+            async () => {
+                dlg.say(Templates.system_recommendation, (rec) => D.makeRecommendationReply(ctx, rec));
+            },
+        ]);
     }
 }
 
@@ -143,13 +185,7 @@ async function ctxIncompleteSearchCommand(dlg : DialogueInterface, ctx : Context
                 dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
             },
             async () => {
-                D.searchResultPreamble(dlg, ctx);
-                dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
-            },
-            async () => {
-                if (!dlg.flags.multiwoz)
-                    return;
-                await D.systemGenericProposal(dlg, ctx);
+                dlg.say(Templates.system_generic_proposal, (prop) => prop);
             },
         ]);
     } else {
@@ -161,30 +197,10 @@ async function ctxIncompleteSearchCommand(dlg : DialogueInterface, ctx : Context
                 dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
             },
             async () => {
-                D.searchResultPreamble(dlg, ctx);
-                dlg.say(Templates.search_question, (questions) => D.makeSearchQuestion(ctx, questions));
-            },
-            async () => {
-                if (!dlg.flags.multiwoz)
-                    return;
-                await D.systemGenericProposal(dlg, ctx);
+                dlg.say(Templates.system_generic_proposal, (prop) => prop);
             },
         ]);
     }
-}
-
-function isMissingProjection(ctx : ContextInfo) {
-    if (!ctx.resultInfo!.projection)
-        return false;
-
-    const topResult = ctx.results![0];
-    if (!topResult)
-        return false;
-    for (const p of ctx.resultInfo!.projection) {
-        if (!topResult.value[p])
-            return true;
-    }
-    return false;
 }
 
 async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<D.AgentReplyRecord|null> {
@@ -196,7 +212,6 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<
         // we have an action we want to execute, or a query that needs confirmation
         if (ctx.nextInfo.chainParameter === null || ctx.nextInfo.chainParameterFilled) {
             // we don't need to fill any parameter from the current query
-
             if (ctx.nextInfo.isComplete) {
                 // we have all the parameters but we didn't execute: we need to confirm
                 dlg.say(Templates.action_confirm_phrase, (phrase) => phrase);
@@ -231,15 +246,12 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<
         }
     }
 
+    if (ctx.currentFunction!.qualifiedName === 'org.kqed.kqed_podcasts')
+        return ctxKqed(dlg);
+
     if (ctx.resultInfo.hasEmptyResult) {
         // note: aggregation cannot be empty (it would be zero)
         dlg.say(Templates.empty_search_error, (error) => D.makeEmptySearchError(ctx, error));
-        return dlg.flush();
-    }
-
-    if (isMissingProjection(ctx)) {
-        dlg.say(dlg._("sorry, I don't have that information at the moment"),
-            () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_recommend_one')));
         return dlg.flush();
     }
 
@@ -267,7 +279,8 @@ async function ctxExecute(dlg : DialogueInterface, ctx : ContextInfo) : Promise<
             // "what's the food and price range of restaurants nearby?"
             // we treat these the same as "find restaurants nearby", but we make sure
             // that the necessary fields are computed
-            return ctxIncompleteSearchCommand(dlg, ctx);
+            return ctxCompleteSearchCommand(dlg, ctx);
+            // return ctxIncompleteSearchCommand(dlg, ctx);
         } else {
             // "what's the food and price range of restaurants nearby?"
             // we treat these the same as "find restaurants nearby", but we make sure
@@ -302,22 +315,21 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
         console.log('Policy start');
     let lastReply : D.AgentReplyRecord|null = null;
     switch (startMode) {
-    case PolicyStartMode.NORMAL:
-        lastReply = await greet(dlg, ContextInfo.initial());
-        break;
-    case PolicyStartMode.NO_WELCOME:
-        break;
-    case PolicyStartMode.RESUME:
-        // nothing to do, just wait for the next command
-        break;
-    case PolicyStartMode.USER_FIRST_TIME:
-        throw new Error(`first time for the user`);
-        break;
+        case PolicyStartMode.NORMAL:
+            lastReply = await greet(dlg, ContextInfo.initial());
+            break;
+        case PolicyStartMode.NO_WELCOME:
+            break;
+        case PolicyStartMode.RESUME:
+            // nothing to do, just wait for the next command
+            break;
+        case PolicyStartMode.USER_FIRST_TIME:
+            throw new Error(`first time for the user`);
+            break;
     }
 
     for (;;) {
         try {
-
             const cmd = await dlg.get({
                 expecting: lastReply?.expecting,
                 rawHandler: lastReply?.raw ? ((cmd, loader) => interpretAnswer(dlg.state, new Ast.StringValue(cmd), loader)) : undefined,
@@ -348,47 +360,47 @@ export async function policy(dlg : DialogueInterface, startMode : PolicyStartMod
             const ctx = ContextInfo.get(dlg.state);
 
             switch (cmd.type) {
-            case POLICY_NAME + '.end':
-                dlg.say(dlg._("alright, {bye|good bye}!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
-                return;
-
-            case POLICY_NAME + '.greet':
-            case POLICY_NAME + '.reinit':
-                lastReply = await greet(dlg, ctx);
-                break;
-
-            case POLICY_NAME + '.action_question':
-                lastReply = await D.ctxCompletedActionSuccess(dlg, ctx);
-                break;
-
-            case POLICY_NAME + '.learn_more':
-                dlg.say(Templates.system_learn_more, () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_learn_more_what'), null, null, { end: false }));
-                lastReply = await dlg.flush();
-                break;
-
-            case POLICY_NAME + '.cancel':
-                if (dlg.flags.anything_else)
-                    dlg.say(Templates.anything_else_phrase, () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
-                else
-                    dlg.say(dlg._("alright, let me know if I can help you with anything else!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
-                return;
-
-            case POLICY_NAME + '.notification':
-                lastReply = await ctxNotification(dlg, ctx);
-                break;
-
-            case POLICY_NAME + '.init':
-            case POLICY_NAME + '.insist':
-            case POLICY_NAME + '.execute':
-            case POLICY_NAME + '.ask_recommend':
-            case CommandType.THINGTALK_ACTION:
-            case CommandType.THINGTALK_QUERY:
-            case CommandType.THINGTALK_STREAM:
-                lastReply = await ctxExecute(dlg, ctx);
-                break;
-
-            default:
-                throw new Error(`Unexpected user dialogue act ${ctx.state.dialogueAct}`);
+                case POLICY_NAME + '.end':{
+                    dlg.say(dlg._("alright, {bye|good bye}!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
+                    return;
+                }
+                case POLICY_NAME + '.greet':
+                case POLICY_NAME + '.reinit': {
+                    lastReply = await greet(dlg, ctx);
+                    break;
+                }
+                case POLICY_NAME + '.action_question': {
+                    lastReply = await D.ctxCompletedActionSuccess(dlg, ctx);
+                    break;
+                }
+                case POLICY_NAME + '.learn_more':{
+                    dlg.say(Templates.system_learn_more, () => D.makeAgentReply(ctx, StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_learn_more_what'), null, null, { end: false }));
+                    lastReply = await dlg.flush();
+                    break;
+                }
+                case POLICY_NAME + '.cancel':{
+                    if (dlg.flags.anything_else)
+                        dlg.say(Templates.anything_else_phrase, () => StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
+                    else
+                        dlg.say(dlg._("alright, let me know if I can help you with anything else!"), StateM.makeSimpleState(ctx.state, POLICY_NAME, 'sys_end'));
+                    return;
+                }
+                case POLICY_NAME + '.notification':{
+                    lastReply = await ctxNotification(dlg, ctx);
+                    break;
+                }
+                case POLICY_NAME + '.init':
+                case POLICY_NAME + '.insist':
+                case POLICY_NAME + '.execute':
+                case POLICY_NAME + '.ask_recommend':
+                case CommandType.THINGTALK_ACTION:
+                case CommandType.THINGTALK_QUERY:
+                case CommandType.THINGTALK_STREAM:{
+                    lastReply = await ctxExecute(dlg, ctx);
+                    break;
+                }
+                default:
+                    throw new Error(`Unexpected user dialogue act ${ctx.state.dialogueAct}`);
             }
         } catch(e) {
             // catch legacy cancellation errors coming from dlg.execute()
@@ -438,14 +450,19 @@ export function interpretAnswer(state : Ast.DialogueState|null,
         return null;
 
     const ctx = ContextInfo.get(state);
-
     // if the agent proposed something and the user says "yes", we accept the proposal
     if (state.history.length > 0 && state.history[state.history.length-1].confirm === 'proposed'
         && answer instanceof Ast.BooleanValue) {
-        if (answer.value) // yes accepts
+        if (answer.value) {
+            // yes accepts
             return D.acceptAllProposedStatements(state);
-        else // no is cancel
+        } else {
+            if (ctx.currentFunction?.qualifiedName === 'org.kqed.kqed_podcasts')
+                return StateM.makeSimpleState(state, POLICY_NAME, 'next_entity');
+
+            // no is cancel otherwise
             return StateM.makeSimpleState(state, POLICY_NAME, 'cancel');
+        }
     }
 
     switch (state.dialogueAct) {
