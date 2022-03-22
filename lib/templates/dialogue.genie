@@ -55,16 +55,21 @@ import './commands.genie';
 // common dialogue elements
 import './dlg/shared.genie';
 import './dlg/results.genie';
+import './dlg/coref-actions.genie';
 
 // specific interactions
 // keep this in alphabetical order
 import './dlg/action-confirm.genie';
 import './dlg/action-results.genie';
 import './dlg/aggregation-results.genie';
+import './dlg/coref-questions.genie';
 import './dlg/empty-search.genie';
 import './dlg/initial-request.genie';
 import './dlg/list-proposal.genie';
 import './dlg/recommendation.genie';
+import './dlg/refinement.genie';
+import './dlg/related-questions.genie';
+import './dlg/search-questions.genie';
 import './dlg/slot-fill.genie';
 import './dlg/streams.genie';
 

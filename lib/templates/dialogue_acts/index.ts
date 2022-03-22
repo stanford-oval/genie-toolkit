@@ -22,6 +22,8 @@ export * from './action-confirm';
 export * from './action-results';
 export * from './aggregation-results';
 export * from './empty-search';
+export * from './coref-actions';
+export * from './coref-questions';
 export * from './initial-request';
 export * from './list-proposal';
 export * from './recommendation';
