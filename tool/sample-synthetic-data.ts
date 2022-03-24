@@ -26,7 +26,7 @@ import * as utils from '../lib/utils/misc-utils';
 import { Ast, Type, SchemaRetriever } from 'thingtalk';
 import { ParaphraseExample, generateExamples as generateQueryExamples } from './autoqa/lib/canonical-example-constructor';
 import { parseConstantFile } from './lib/constant-file';
-import { getElementType } from './autoqa/wikidata/utils';
+import { getElementType, WikidataUnitToTTUnit } from './autoqa/wikidata/utils';
 import { makeLookupKeys } from '../lib/dataset-tools/mturk/sample-utils';
 import { 
     PARTS_OF_SPEECH, 
@@ -54,6 +54,12 @@ function typeToString(type : Type) : string {
     const elemType = getElementType(type);
     if (elemType instanceof Type.Entity)
         return elemType.type;
+    if (elemType instanceof Type.Measure) {
+        const unitName = Object.keys(WikidataUnitToTTUnit).find(
+            key => WikidataUnitToTTUnit[key].toLowerCase() === elemType.unit.toString().toLowerCase()
+        );
+        return unitName ? unitName : elemType.unit.toString();
+    }
     return type.toString();
 }
 
@@ -93,12 +99,18 @@ function parseConstantKeys(classDef : Ast.ClassDef,
     return sampleConstants;
 }
 
+function generateRandomIntArray(max : number) {
+    return Array.from({length: 10}, () => Math.floor(Math.random() * max));
+}
+
 function retrieveSampleValues(classDef : Ast.ClassDef, 
                               sampleMeta : Record<string, Constant[]>, 
                               fname : string, 
                               arg : Ast.ArgumentDef) : string[] {
     if (arg.type instanceof Type.Enum) 
         return arg.type.entries!.slice(0, 10).map(utils.clean);
+    if (arg.type instanceof Type.Measure)
+        return generateRandomIntArray(100).map(String);
     const sampleConstants = parseConstantKeys(classDef, sampleMeta, fname, arg);
     return sampleConstants.map((v) => {
         if ((arg.type === Type.String) || 
@@ -128,6 +140,8 @@ function toThingtalkValue(classDef : Ast.ClassDef,
         return { value: new Ast.Value.String(value), op: "=~" };
     if (type === Type.Number)
         return { value: new Ast.Value.Number(parseFloat(value)), op: "==" };
+    if (type instanceof Type.Measure)
+        return { value: new Ast.Value.Measure(parseFloat(value), type.unit), op: "==" };
     if (type instanceof Type.Array) {
         type = type.elem as Type;
         if (type instanceof Type.Entity) {
