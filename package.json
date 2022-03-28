@@ -82,7 +82,7 @@
     "pegjs": "^0.10.0",
     "source-map-support": "^0.5.21",
     "ts-node": "^10.4.0",
-    "typedoc": "^0.22.10"
+    "typedoc": "^0.22.13"
   },
   "scripts": {
     "create-pot": "make -f po/main.mk create-pot",
