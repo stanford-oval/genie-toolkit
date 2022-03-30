@@ -68,7 +68,7 @@ class Trainer extends events.EventEmitter {
     private _locale : string;
     private _timezone : string;
 
-    private _nextLine : Iterator<string>;
+    private _nextLine : Iterator<Record<string, string|undefined>>;
 
     private _state : 'loading'|'code'|'top3'|'full';
     private _candidates : ThingTalk.Ast.Input[]|undefined;
@@ -79,7 +79,7 @@ class Trainer extends events.EventEmitter {
     private _serial : number;
     private _id : string|undefined;
 
-    constructor(rl : readline.Interface, lines : string[], options : TrainerOptions) {
+    constructor(rl : readline.Interface, lines : Array<Record<string, string|undefined>>, options : TrainerOptions) {
         super();
 
         this._rl = rl;
@@ -244,7 +244,7 @@ class Trainer extends events.EventEmitter {
         this._utterance = utterance;
         let oldTargetCode = target_code || preprocessed;
 
-        const parsed = await this._parser.sendUtterance(utterance, /* context */ undefined, /* contextEntities */ {}, {
+        const parsed = await this._parser.sendUtterance(utterance!, /* context */ undefined, /* contextEntities */ {}, {
             tokenized: false,
             skip_typechecking: true
         });
@@ -343,10 +343,10 @@ export async function execute(args : any) {
     const dropped = csvstringify({ header: true, delimiter: '\t' });
     dropped.pipe(droppedfile);
 
-    let lines : string[] = [];
+    let lines : Array<Record<string, string|undefined>> = [];
     args.input.setEncoding('utf8');
     const input = args.input.pipe(csvparse({ columns: true, relax: true, delimiter: '\t' }));
-    input.on('data', (line : string) => {
+    input.on('data', (line : Record<string, string|undefined>) => {
         lines.push(line);
     });
     await waitEnd(input);
