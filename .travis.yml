@@ -3,7 +3,9 @@ branches:
   - "/^wip/"
   - "/^dependabot/"
 language: node_js
-node_js: '14'
+node_js: 
+  - "14"
+  - "16"
 python: '3.8'
 dist: bionic
 env:
