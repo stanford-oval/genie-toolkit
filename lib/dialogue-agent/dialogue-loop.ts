@@ -668,7 +668,7 @@ export class DialogueLoop {
      * ready to accept the next command from the user.
      */
     private _waitNextCommand() : Promise<void> {
-        const promise = new Promise<void>((callback, errback) => {
+        const promise = new Promise<void>((callback) => {
             this._mgrResolve = callback;
         });
         this._mgrPromise = promise;
@@ -692,6 +692,12 @@ export class DialogueLoop {
             this._userInputQueue.push(command);
 
         return promise;
+    }
+
+    async executeStatement(stmt : any) {
+        const [results,] = await this._agent.executor.executeStatement(stmt, undefined, undefined);
+        const promise = this._waitNextCommand();
+        return {results : results, promise : promise};
     }
 }
 

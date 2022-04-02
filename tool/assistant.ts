@@ -209,6 +209,8 @@ class CommandLineHandler {
                     await this._runDeviceCommand(...line.substr(3).split(' ') as [string, string]);
                 else if (line[1] === '=')
                     await this._runPrefCommand(...line.substr(3).split(' ') as [string, string]);
+                else if (line[1] === 'x')
+                    await this._conversation.testThingTalkInterface(line.substr(3));
                 else
                     console.log('Unknown command ' + line[1]);
             } else if (line.trim()) {
