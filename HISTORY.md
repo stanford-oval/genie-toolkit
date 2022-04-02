@@ -1,3 +1,14 @@
+=====
+0.9.1
+
+* Add synthetic data sampler for string and entity types [#871]
+* Disable parallelization in the custom starter code, which no longer works [#865]
+* Remove mmap-io for the exact matcher in the parser [#898]
+* Move travis testing environment from 12 to 14 [#897]
+* Misc bug fixes [#872, #899]
+* Update dependencies [#873, #878, #886, #889, #890, #892, #893, #894, #895, #896, #901, #902]
+* Typos [#864]
+
 0.9.0
 =====
 
