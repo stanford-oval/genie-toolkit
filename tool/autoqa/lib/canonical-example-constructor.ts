@@ -54,10 +54,7 @@ function generateExamplesByPOS(query : Ast.FunctionDef,
     const interrogativePronoun = isHumanType(argument.type) ? 'who' : `which ${queryCanonical}`;
     if (!PROJECTION_PARTS_OF_SPEECH.includes(pos)) {
         if (!argumentCanonical.includes('#'))
-            if (argument.type instanceof Type.Measure)
-                argumentCanonical = '#' + argumentCanonical;
-            else
-                argumentCanonical = argumentCanonical + ' #';
+            argumentCanonical = argumentCanonical + ' #';
     }
     const predicate = typeof value === 'string' ? argumentCanonical.replace('#', value) : argumentCanonical;
     switch (pos) {
