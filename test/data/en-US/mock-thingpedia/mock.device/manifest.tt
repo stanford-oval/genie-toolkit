@@ -1,0 +1,53 @@
+class @mock.device
+#_[thingpedia_name="mock"]
+#_[thingpedia_description="mock"]
+#_[canonical="mock"]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="service"]
+{
+    import loader from @org.thingpedia.v2();
+    import config from @org.thingpedia.config.none();
+
+    entity items #_[description="Packaged items"];
+
+    query setting(out state : Enum(off, on)
+                  #_[canonical=["status"]],
+                  out value : Number
+                  #_[canonical=["value"]])
+    #_[canonical="setting"]
+    #[minimal_projection=["state", "value"]];
+
+    query person(out name : String
+                 #_[canonical=["name"]]
+                 #[string_values="tt:person_first_name"]
+                 #[filterable=false])
+    #_[canonical=["person"]]
+    #[minimal_projection=[]];
+
+    query machine(out speed : Measure(mph)
+                  #_[canonical=["speed"]])
+    #_[canonical=["machine"]]
+    #[minimal_projection=[]];
+
+    query website(out url : Entity(tt:url)
+                  #[filterable=false]
+                  #_[canonical="link"])
+    #_[canonical=["website"]]
+    #[minimal_projection=[]];
+
+    query packages(out fruits : Array(Entity(mock.device:fruits))
+                   #_[canonical=["items"]])
+    #_[canonical=["packages"]]
+    #[minimal_projection=[]];
+
+    query base_station(out geo : Location
+                       #_[canonical=["location"]])
+    #_[canonical=["base station"]]
+    #[minimal_projection=[]];
+
+    query contact(out phone : Entity(tt:phone_number)
+                  #_[canonical=["phone number"]])
+    #_[canonical=["customer support"]]
+    #[minimal_projection=[]];
+}

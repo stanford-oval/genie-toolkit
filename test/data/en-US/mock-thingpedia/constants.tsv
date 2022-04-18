@@ -1,0 +1,2 @@
+param:@mock.device.packages:items:Entity(mock.device:items)	apple	Apple
+param:@mock.device.packages:items:Entity(mock.device:items)	banana	Banana
