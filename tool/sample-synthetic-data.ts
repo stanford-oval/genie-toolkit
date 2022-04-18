@@ -462,12 +462,14 @@ function generateQueryExamples(query : Ast.FunctionDef,
     for (const [pos, canonicals] of Object.entries(baseCanonicalAnnotation)) {
         if (!PARTS_OF_SPEECH.includes(pos)) 
             continue;
-        for (const canonical of canonicals) {
+        for (let canonical of canonicals) {
             if (PROJECTION_PARTS_OF_SPEECH.includes(pos)) {
                 examples.push(...generateExamplesByPOS(query, queryCanonical, arg, canonical, pos));
             } else {
-                for (const value of sampleValues) 
+                for (const value of sampleValues) {
+                    canonical = canonical.replace(/\$\{value.*/i, '#');
                     examples.push(...generateExamplesByPOS(query, queryCanonical, arg, canonical, pos, value));
+                }
             }
         }    
     }
@@ -493,7 +495,7 @@ function generateExamplesByPOS(query : Ast.FunctionDef,
     }
     const interrogativePronoun = isHumanType(argument.type) ? 'who' : `which ${queryCanonical}`;
     if (!PROJECTION_PARTS_OF_SPEECH.includes(pos)) {
-        if (!argumentCanonical.includes('#'))
+        if (!argumentCanonical.includes('#')) {
             if (argument.type instanceof Type.Measure) {
                 const argType = argument.type;
                 const unitName = Object.keys(WikidataUnitToTTUnit).find(
@@ -503,6 +505,7 @@ function generateExamplesByPOS(query : Ast.FunctionDef,
             }
             else
                 argumentCanonical = argumentCanonical + ' #';
+        }
     }
     const predicate = typeof value === 'string' ? argumentCanonical.replace('#', value) : argumentCanonical;
     switch (pos) {
@@ -556,7 +559,6 @@ function generateExamplesByPOS(query : Ast.FunctionDef,
     default:
         return [];
     }
-    
 }
 
 function generateBaseCanonicalAnnotation(func : Ast.FunctionDef, 
@@ -596,10 +598,11 @@ function generateBaseCanonicalAnnotation(func : Ast.FunctionDef,
     if (typestr && typeCounts[typestr] === 1) {
         // if an entity is unique, allow dropping the property name entirely
         // FIXME: consider type hierarchy, or probably drop it entirely
-        if (canonicalAnnotation.property && !queries.includes(typestr.substring(typestr.indexOf(':') + 1))) {            
-            if (!canonicalAnnotation.property.includes('#') && !(arg.type instanceof Type.Measure))
-                canonicalAnnotation.property.push('#');
-        }
+        // if (canonicalAnnotation.property && !queries.includes(typestr.substring(typestr.indexOf(':') + 1))) {            
+        //     if (!canonicalAnnotation.property.includes('#') && 
+        //         !((arg.type instanceof Type.Measure) || (arg.type === Type.Location)))
+        //         canonicalAnnotation.property.push('#');
+        // }
 
         // if property is missing, use the type information
         if (!('base' in canonicalAnnotation)) {
@@ -715,7 +718,6 @@ function generateActionExamplesByPOS(action : Ast.FunctionDef,
     default:
         return [];
     }
-    
 }
 
 function generateFilterAst(device : string, 
@@ -838,13 +840,9 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
 }
 
-export async function execute(args : any) {
-    process.stdout.write("Generating samples... ");
-    checkOutputPath(args);
-    const tpClient = new Tp.FileClient(args);
-    const schemaRetriever = new SchemaRetriever(tpClient, null, false);
-    const deviceClass = await schemaRetriever.getFullSchema(args.device);
-    const baseTokenizer : I18n.BaseTokenizer = I18n.get(args.locale).getTokenizer();
+export default async function sampler(deviceClass : Ast.ClassDef,
+                                      baseTokenizer : I18n.BaseTokenizer,
+                                      args : any) {
     const functionNames = Object.keys(deviceClass.queries).concat(Object.keys(deviceClass.actions));
     const sampleMeta = await parseConstantFile(args.locale, args.constants);
     const utteranceThingtalkPairs : NewParaphraseExample[] = [];
@@ -897,6 +895,17 @@ export async function execute(args : any) {
             }
         }
     }
+    return utteranceThingtalkPairs;
+}
+
+export async function execute(args : any) {
+    process.stdout.write("Generating samples... ");
+    checkOutputPath(args);
+    const tpClient = new Tp.FileClient(args);
+    const schemaRetriever = new SchemaRetriever(tpClient, null, false);
+    const deviceClass = await schemaRetriever.getFullSchema(args.device);
+    const baseTokenizer : I18n.BaseTokenizer = I18n.get(args.locale).getTokenizer();
+    const utteranceThingtalkPairs = await sampler(deviceClass, baseTokenizer, args);
     const output = toTSV(args.device, utteranceThingtalkPairs, false);
     // console.log(output);
     args.output.write(output);
