@@ -255,7 +255,7 @@ const CITIES = [
     'Miramar',
     'Olathe',
     'Metairie'
-]
+];
 
 function typeToString(type : Type) : string {
     const elemType = getElementType(type);
@@ -314,17 +314,17 @@ function makeJSDate(year : number, month : number, day : number) : Date {
 }
 
 function generateRandomIntArray(max : number, sampleSize : number) {
-    return Array.from({length: sampleSize}, () => randomInt(0, max, Math.random));
+    return Array.from({ length : sampleSize }, () => randomInt(0, max, Math.random));
 }
 
 function generateDateArray(timezone : string, sampleSize : number) {
     const _getDates = function(startDate : Date, period : number) {
-        let dates = [];
+        const dates = [];
         let i = 0;
-        let d = new Date(startDate);
+        const d = new Date(startDate);
         while (i++ < period) {
             dates.push(new Date(d));
-            d.setDate(d.getDate() + 1)
+            d.setDate(d.getDate() + 1);
         }
         return dates;
     };
@@ -334,7 +334,7 @@ function generateDateArray(timezone : string, sampleSize : number) {
 }
 
 function generateTimeArray(sampleSize : number) {
-    let times = [];
+    const times = [];
     for (let i=0; i<sampleSize; i++) {
         const newTime = new Builtin.Time(randomInt(0, 23, Math.random), randomInt(0, 59, Math.random), 0);
         times.push(newTime);
@@ -377,10 +377,10 @@ async function retrieveSampleValues(classDef : Ast.ClassDef,
 }
 
 function toThingtalkValue(classDef : Ast.ClassDef, 
-                                sampleMeta : Record<string, Constant[]>, 
-                                fname : string, 
-                                argDef : Ast.ArgumentDef, 
-                                value : string) : { value: Ast.Value; op: string; } {
+                          sampleMeta : Record<string, Constant[]>, 
+                          fname : string, 
+                          argDef : Ast.ArgumentDef, 
+                          value : string) : { value : Ast.Value; op : string; } {
     value = value.toLowerCase();
     let type = argDef.type;
     if (type instanceof Type.Entity) {
@@ -499,12 +499,12 @@ function generateExamplesByPOS(query : Ast.FunctionDef,
             if (argument.type instanceof Type.Measure) {
                 const argType = argument.type;
                 const unitName = Object.keys(WikidataUnitToTTUnit).find(
-                    key => WikidataUnitToTTUnit[key].toLowerCase() === argType.unit.toString().toLowerCase()
+                    (key) => WikidataUnitToTTUnit[key].toLowerCase() === argType.unit.toString().toLowerCase()
                 );
                 argumentCanonical = argumentCanonical + ` # ${unitName}`;
-            }
-            else
+            } else {
                 argumentCanonical = argumentCanonical + ' #';
+            }
         }
     }
     const predicate = typeof value === 'string' ? argumentCanonical.replace('#', value) : argumentCanonical;
@@ -872,14 +872,16 @@ export default async function sampler(deviceClass : Ast.ClassDef,
                     if (example.value) {
                         const { value, } = toThingtalkValue(deviceClass, sampleMeta, fname, argDef, `${example.value}`);
                         program = generateActionAst(fname, example.argument, value);
-                    } else
+                    } else {
                         continue;
+                    }
                 } else {
                     if (example.value) {
                         const { value, op } = toThingtalkValue(deviceClass, sampleMeta, fname, argDef, `${example.value}`);
                         program = generateFilterAst(args.device, fname, example.argument, op, value);
-                    } else
+                    } else {
                         program = generateProjectionAst(args.device, fname, example.argument);
+                    }
                 }
                 try {
                     const entityDummy = EntityUtils.makeDummyEntities(prepUtterance);

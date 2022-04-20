@@ -1,14 +1,31 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of ThingTalk
+//
+// Copyright 2017-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Jake Wu <jmhw0123@gmail.com>
 
 import assert from 'assert';
-import * as fs from 'fs';
 import * as ThingTalk from 'thingtalk';
 import * as Tp from 'thingpedia';
 import * as I18n from '../../lib/i18n';
 import * as Path from 'path';
-const { ArgumentParser } = require('argparse');
 import sampler from '../../tool/sample-synthetic-data';
-
-const Type = ThingTalk.Type;
+import { ArgumentParser } from 'argparse';
+// const Type = ThingTalk.Type;
 
 const TEST_CASES = [
 
@@ -26,11 +43,11 @@ const TEST_CASES = [
 ];
 
 String.prototype.format = function() {
-    var args = arguments;
-    return this.replace(/{([0-9]+)}/g, function (match, index) {
-        return typeof args[index] == 'undefined' ? match : args[index];
+    const args = arguments;
+    return this.replace(/{([0-9]+)}/g, (match, index) => {
+        return typeof args[index] === 'undefined' ? match : args[index];
     });
-}
+};
 
 function initArgparse() {
     const parser = new ArgumentParser({
@@ -78,9 +95,8 @@ export default async function main() {
         args.function = query;
         const ret = await sampler(deviceClass, baseTokenizer, args);
         const item = ret.filter((x) => {
-            if (typeof x.value !== undefined) {
+            if (typeof x.value !== undefined)
                 utterance = utterance.format(x.value);
-            }
             return x.utterance.toLowerCase() === utterance.toLowerCase();
         });
         try {
@@ -107,4 +123,4 @@ export default async function main() {
 }
 
 if (!module.parent)
-   main();
+    main();
