@@ -853,8 +853,8 @@ export default async function sampler(deviceClass : Ast.ClassDef,
         const func = deviceClass.queries[fname] || deviceClass.actions[fname];
         const typeCounts = countArgTypes(func);
         for (const argDef of func.iterateArguments()) {
-            if (argDef.direction !== Ast.ArgDirection.OUT)
-                continue;
+            // if (argDef.direction !== Ast.ArgDirection.OUT)
+            //     continue;
             if (argDef.name.indexOf('.') >= 0)
                 continue;
             const sampleValues = await retrieveSampleValues(deviceClass, sampleMeta, fname, argDef, args.sampleSize);
