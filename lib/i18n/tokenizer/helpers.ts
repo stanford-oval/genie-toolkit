@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+// white spaces
 export const WS = /[ \t\n\r\v\u180e\u2000-\u200b\u202f\u205f\u3000\ufeff]+/;
 
 export function makeToken<T>(index : number,

@@ -326,11 +326,10 @@ export default class BaseTokenizer {
     protected _initPhoneNumber() {
         this._addDefinition('INTL_PREFIX', /\+?1-?|\+[2-9][0-9]{1,2}-?/);
         this._addDefinition('AREA_CODE', /(?:\([0-9]{3,4}\)|[0-9]{3,4})-?/);
-        this._addDefinition('STRICT_PHONE_NUMBER', /(?:[0-9][*#-]?){6,}/);
-        this._addDefinition('LENIENT_PHONE_NUMBER', /[0-9*#-]{3,}{WS}?[a-z0-9*#-]{3,}/);
-        this._addDefinition('TOUCH_TONE_PHONE_NUMBER', /[a-z0-9*#-]{5,}/);
+        this._addDefinition('LENIENT_PHONE_NUMBER', /[0-9*#-]{3,}{WS}?[0-9*#-]{3,}/);
+        this._addDefinition('TOUCH_TONE_PHONE_NUMBER', /[0-9*#-]{5,}/);
 
-        this._lexer.addRule(/{INTL_PREFIX}{AREA_CODE}{TOUCH_TONE_PHONE_NUMBER}|(?:{INTL_PREFIX}{WS}?)?{AREA_CODE}{WS}?{LENIENT_PHONE_NUMBER}|{STRICT_PHONE_NUMBER}/, (lexer) => {
+        this._lexer.addRule(/{INTL_PREFIX}{AREA_CODE}{TOUCH_TONE_PHONE_NUMBER}|(?:{INTL_PREFIX}{WS}?)?{AREA_CODE}{WS}?{LENIENT_PHONE_NUMBER}/, (lexer) => {
             let normalized = this._addIntlPrefix(lexer.text);
             normalized = normalized.replace(/[() -]/g, '').replace(/[a-z]/g, (char) => TOUCH_TONES[char]);
             return makeToken(lexer.index, lexer.text, normalized, 'PHONE_NUMBER', normalized);
