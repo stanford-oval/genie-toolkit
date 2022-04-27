@@ -33,7 +33,7 @@ const Type = ThingTalk.Type;
 
 const _cache = new Map();
 
-const WikidataUnitToTTUnit : Record<string, string> = {
+export const WikidataUnitToTTUnit : Record<string, string> = {
     // time
     'millisecond': 'ms',
     'second': 's',
