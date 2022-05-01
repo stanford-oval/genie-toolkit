@@ -34,6 +34,7 @@ import * as I18n from '../../i18n';
 
 import ValueCategory from '../value-category';
 import { UserInput, } from '../user-input';
+import { AgentInput, } from '../agent-input';
 import { CancellationError } from '../errors';
 
 import DialoguePolicy from '../dialogue_policy';
@@ -216,9 +217,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         return null;
     }
 
-    async analyzeCommand(command : UserInput) : Promise<ThingTalkCommandAnalysisType> {
+    async analyzeCommand(command : UserInput|AgentInput) : Promise<ThingTalkCommandAnalysisType> {
         const analysis = await this._parseCommand(command);
-
         if (analysis.type === CommandAnalysisType.DEBUG || analysis.type === CommandAnalysisType.STOP)
             return analysis;
 
@@ -240,7 +240,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         };
     }
 
-    async _parseCommand(command : UserInput) : Promise<ThingTalkCommandAnalysisType> {
+    async _parseCommand(command : UserInput|AgentInput) : Promise<ThingTalkCommandAnalysisType> {
         if (command.type === 'thingtalk') {
             const type = this._getSpecialThingTalkType(command.parsed);
             return {

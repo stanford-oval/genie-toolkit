@@ -32,6 +32,7 @@ import * as I18n from '../i18n';
 import ValueCategory from './value-category';
 import QueueItem from './dialogue_queue';
 import { UserInput, } from './user-input';
+import { AgentInput } from './agent-input';
 import { PlatformData } from './protocol';
 import { CancellationError } from './errors';
 
@@ -303,6 +304,55 @@ export class DialogueLoop {
         await this.setExpected(reply.expecting);
     }
 
+    // FIXME: do Jackie's stuff
+    private async _mockGetFollowUp(reply : ReplyResult) {
+        console.log(reply.messages);
+        return null;
+    }
+
+    //FIXME: handle AgentInput
+    private async _handleAgentInput(ttCommand : AgentInput) {
+        // pick agent input designated handler
+        const handlers = [...this._iterateDialogueHandlers()];
+        const handler = handlers.filter((handler) => handler.uniqueId.toLowerCase() === 'thingtalk')[0];
+        console.log(handler)
+        if (!handler) {
+            await this.fail();
+            return;
+        }
+
+        // reset the state of the handler when we switch to a different one
+        if (this._currentHandler && handler !== this._currentHandler)
+            this._currentHandler.reset();
+        this._currentHandler = handler;
+
+        // parse thingtalk invocation
+        const analysis = await handler.analyzeCommand(ttCommand);
+        // execute thingtalk invocation and get results
+        const reply = await handler.getReply(analysis);
+        this.icon = handler.icon;
+
+        const followUp : ReplyResult|null = await this._mockGetFollowUp(reply);
+        // const followUp : ReplyResult|null = await handler.getFollowUp();
+        if (followUp === null)
+            return;
+        this.icon = handler.icon;
+        await this._sendAgentReply(followUp);   
+    }
+
+    private _putAgentInputToQueue(analysis : any) {
+        if (analysis.inner && ('device' in analysis.inner) && ('agent_init' in analysis.inner)) {
+            const ttc : AgentInput = {
+                type : 'thingtalk',
+                device : analysis.inner.device,
+                parsed : analysis.inner.agent_init,
+                platformData : {}
+            };
+            this._pushQueueItem(new QueueItem.AgentInput(ttc));
+            console.log('Put AgentInput to QueueItem');
+        }
+    }
+
     private async _handleUserInput(command : UserInput) {
         for (;;) {
             const [handler, analysis] = await this._analyzeCommand(command);
@@ -329,6 +379,10 @@ export class DialogueLoop {
                 await this._currentHandler.reset();
             this._currentHandler = handler;
             const reply = await handler.getReply(analysis);
+
+            //FIXME: put AgentInput into QueueItem if there is any
+            this._putAgentInputToQueue(analysis);
+
             this.icon = handler.icon;
             await this._sendAgentReply(reply);
 
@@ -383,6 +437,8 @@ export class DialogueLoop {
                 item = await this.nextQueueItem();
                 if (item instanceof QueueItem.UserInput)
                     await this._handleUserInput(item.command);
+                else if (item instanceof QueueItem.AgentInput)
+                    await this._handleAgentInput(item.ttCommand);
                 else
                     await this._handleAPICall(item);
             } catch(e : any) {
@@ -697,7 +753,7 @@ export class DialogueLoop {
     async executeStatement(stmt : any) {
         const [results,] = await this._agent.executor.executeStatement(stmt, undefined, undefined);
         const promise = this._waitNextCommand();
-        return {results : results, promise : promise};
+        return { results : results, promise : promise };
     }
 }
 

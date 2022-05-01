@@ -36,7 +36,7 @@ import ConversationLogger from './logging';
 import { ConversationStateRow, LocalTable } from "../engine/db";
 import ConversationHistory from './conversation_history';
 
-import { ThingtalkComposer } from '../utils/interface-to-thingtalk';
+// import { ThingtalkComposer } from '../utils/interface-to-thingtalk';
 
 const DummyStatistics = {
     hit() {
@@ -412,26 +412,26 @@ export default class Conversation extends events.EventEmitter {
         return this._loop.handleCommand({ type: 'thingtalk', parsed, platformData });
     }
 
-    async testThingTalkInterface(line : string) {
-        const q = new ThingtalkComposer(this._engine.schemas, line);
-        const stmt = await q.invoke("station");
-        const ret = await this._loop.executeStatement(stmt);
-        let entity : any;
-        for (const item of ret.results!.results) {
-            const id = item.value.id;
-            if (!id || !(id instanceof ThingTalk.Ast.EntityValue))
-                continue;
-            entity = {
-                type: "",
-                value: id.value!,
-                canonical: id.display!.toLowerCase(),
-                name: id.display!
-            };
-            break;
-        }
-        this.sendReply(`I found: ${entity.name}`, null);
-        return ret.promise;
-    }
+    // async testThingTalkInterface(line : string) {
+    //     const q = new ThingtalkComposer(this._engine.schemas, line);
+    //     const stmt = await q.invoke("station");
+    //     const ret = await this._loop.executeStatement(stmt);
+    //     let entity : any;
+    //     for (const item of ret.results!.results) {
+    //         const id = item.value.id;
+    //         if (!id || !(id instanceof ThingTalk.Ast.EntityValue))
+    //             continue;
+    //         entity = {
+    //             type: "",
+    //             value: id.value!,
+    //             canonical: id.display!.toLowerCase(),
+    //             name: id.display!
+    //         };
+    //         break;
+    //     }
+    //     this.sendReply(`I found: ${entity.name}`, null);
+    //     return ret.promise;
+    // }
 
     sendReply(message : string, icon : string|null) {
         if (this._debug)

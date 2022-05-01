@@ -34,6 +34,9 @@ import { PolicyModule } from '../../sentence-generator/types';
 import { expressionUsesIDFilter } from './ast-utils';
 export { clean, tokenizeExample };
 
+import ThingtalkComposer from '../../utils/interface-to-thingtalk';
+export { ThingtalkComposer };
+
 export type Input = Ast.Input;
 export type DialogueState = Ast.DialogueState;
 export type Simulator = SimulationDialogueAgent;

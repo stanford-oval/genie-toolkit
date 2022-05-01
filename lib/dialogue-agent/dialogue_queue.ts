@@ -21,6 +21,7 @@
 import AppExecutor from '../engine/apps/app_executor';
 
 import type { UserInput as Command } from './user-input';
+import type { AgentInput as ttCommand } from './agent-input';
 
 class QueueItem {
 }
@@ -35,6 +36,16 @@ namespace QueueItem {
 
         toString() {
             return `UserInput(${this.command})`;
+        }
+    }
+
+    export class AgentInput extends QueueItem {
+        constructor(public ttCommand : ttCommand) {
+            super();
+        }
+
+        toString() {
+            return `AgentInput(${this.ttCommand})`;
         }
     }
 
