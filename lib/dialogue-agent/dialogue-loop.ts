@@ -315,23 +315,15 @@ export class DialogueLoop {
         // pick agent input designated handler
         const handlers = [...this._iterateDialogueHandlers()];
         const handler = handlers.filter((handler) => handler.uniqueId.toLowerCase() === 'thingtalk')[0];
-        console.log(handler)
         if (!handler) {
             await this.fail();
             return;
         }
-
-        // reset the state of the handler when we switch to a different one
-        if (this._currentHandler && handler !== this._currentHandler)
-            this._currentHandler.reset();
-        this._currentHandler = handler;
-
         // parse thingtalk invocation
         const analysis = await handler.analyzeCommand(ttCommand);
         // execute thingtalk invocation and get results
         const reply = await handler.getReply(analysis);
-        this.icon = handler.icon;
-
+        // pass results to followUp
         const followUp : ReplyResult|null = await this._mockGetFollowUp(reply);
         // const followUp : ReplyResult|null = await handler.getFollowUp();
         if (followUp === null)
@@ -340,15 +332,16 @@ export class DialogueLoop {
         await this._sendAgentReply(followUp);   
     }
 
-    private _putAgentInputToQueue(analysis : any) {
+    private _addAgentInputToQueue(analysis : any) {
         if (analysis.inner && ('device' in analysis.inner) && ('agent_init' in analysis.inner)) {
-            const ttc : AgentInput = {
+            const agentItem : AgentInput = {
                 type : 'thingtalk',
                 device : analysis.inner.device,
                 parsed : analysis.inner.agent_init,
                 platformData : {}
             };
-            this._pushQueueItem(new QueueItem.AgentInput(ttc));
+            const item = new QueueItem.AgentInput(agentItem);
+            this._pushQueueItem(item);
             console.log('Put AgentInput to QueueItem');
         }
     }
@@ -380,9 +373,6 @@ export class DialogueLoop {
             this._currentHandler = handler;
             const reply = await handler.getReply(analysis);
 
-            //FIXME: put AgentInput into QueueItem if there is any
-            this._putAgentInputToQueue(analysis);
-
             this.icon = handler.icon;
             await this._sendAgentReply(reply);
 
@@ -406,8 +396,11 @@ export class DialogueLoop {
             // (requiring a wakeword again to continue) and start
             // processing notifications again
 
-            if (this.expecting === null)
+            if (this.expecting === null) {
+                //FIXME: put AgentInput into QueueItem if there is any
+                this._addAgentInputToQueue(analysis);
                 return;
+            }
             command = await this.nextCommand();
         }
     }
