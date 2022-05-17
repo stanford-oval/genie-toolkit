@@ -604,7 +604,7 @@ function generateBaseCanonicalAnnotation(func : Ast.FunctionDef,
         //         canonicalAnnotation.property.push('#');
         // }
 
-        // if property is missing, use the type information
+        // if base is missing, use the type information
         if (!('base' in canonicalAnnotation)) {
             if (typestr.startsWith('Measure')) {
                 const base = func.name.toLowerCase();
@@ -615,9 +615,11 @@ function generateBaseCanonicalAnnotation(func : Ast.FunctionDef,
 
         // if property is missing, use the type information
         if (!('property' in canonicalAnnotation)) {
-            const base = utils.clean(typestr.substring(typestr.indexOf(':') + 1));
-            canonicalAnnotation['property'] = [base];
-            canonicalAnnotation['base'] = [base];
+            if (!typestr.startsWith('Enum')) {
+                const base = utils.clean(typestr.substring(typestr.indexOf(':') + 1));
+                canonicalAnnotation['property'] = [base];
+                canonicalAnnotation['base'] = [base];
+            }
         }
 
         // if it's the only people entity, adding adjective form
