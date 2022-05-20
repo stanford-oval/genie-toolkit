@@ -64,8 +64,7 @@ Given the skill definition, we will proceed to synthesize a dataset of commands 
 can train on. To do so, use:
 
 ```bash
-genie generate --locale en-US --thingpedia thingpedia.tt --entities entities.json --dataset dataset.tt
-  -o synthesized.tsv
+genie generate --locale en-US --thingpedia thingpedia.tt --entities entities.json --dataset dataset.tt -o synthesized.tsv
 ```
 
 The format of resulting file is tab-separated, with three columns: ID, sentence,
