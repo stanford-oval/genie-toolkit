@@ -93,7 +93,7 @@ export default async function main() {
     const baseTokenizer = I18n.get(args.locale).getTokenizer();
     for (let [query, utterance, thingtalk] of TEST_CASES) {
         args.function = query;
-        const ret = await sampler(deviceClass, baseTokenizer, args);
+        const ret = await sampler(tpClient, deviceClass, baseTokenizer, args);
         const item = ret.filter((x) => {
             if (typeof x.value !== undefined)
                 utterance = utterance.format(x.value);
