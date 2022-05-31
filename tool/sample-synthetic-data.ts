@@ -663,7 +663,7 @@ async function toThingtalkValue(tpClient : Tp.FileClient,
                                 sampleMeta : Record<string, Constant[]>, 
                                 fname : string, 
                                 argDef : Ast.ArgumentDef, 
-                                value : string) : Promise<{ value: Ast.Value; op: string; }> {
+                                value : string) : Promise<{ value : Ast.Value; op : string; }> {
     value = value.toLowerCase();
     let type = argDef.type;
     if (type instanceof Type.Entity) {
