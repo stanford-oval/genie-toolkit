@@ -29,17 +29,17 @@ import { ArgumentParser } from 'argparse';
 
 const TEST_CASES = [
 
-    // query, utterance, thingtalk 
-    ['setting', 'what is the status of the setting ?', '[ state ] of @mock.device . setting ( ) ;'],
-    ['setting', `which setting has status {0} ?`, '@mock.device . setting ( ) filter state == enum {0} ;'],
-    ['person', 'what is the name of the person ?', '[ name ] of @mock.device . person ( ) ;'],
-    ['machine', 'what is the speed of the machine ?', '[ speed ] of @mock.device . machine ( ) ;'],
-    ['machine', 'which machine has speed {0} metre per second ?', '@mock.device . machine ( ) filter speed == {0} mps ;'],
-    ['website', "what is the website 's link ?", '[ url ] of @mock.device . website ( ) ;'],
-    ['packages', 'what items does the packages have ?', '[ fruits ] of @mock.device . packages ( ) ;'],
-    ['base_station', 'what is the location of the base station ?', '[ geo ] of @mock.device . base_station ( ) ;'],
-    ['base_station', 'show me a base station with location {0} .', '@mock.device . base_station ( ) filter geo == new Location ( " {0} " ) ;'],
-    ['contact', "what phone number does the customer support have ?", '[ phone ] of @mock.device . contact ( ) ;']
+    // query, type, utterance, thingtalk 
+    ['setting', 'enum', 'what is the status of the setting ?', '[ state ] of @mock.device . setting ( ) ;'],
+    ['setting', 'enum', `which setting has status {0} ?`, '@mock.device . setting ( ) filter state == enum {0} ;'],
+    ['person', 'string', 'what is the name of the person ?', '[ name ] of @mock.device . person ( ) ;'],
+    ['machine', 'measure', 'what is the speed of the machine ?', '[ speed ] of @mock.device . machine ( ) ;'],
+    ['machine', 'measure', 'which machine has speed {0} metre per second ?', '@mock.device . machine ( ) filter speed == {0} mps ;'],
+    ['website', 'entity', "what is the website 's link ?", '[ url ] of @mock.device . website ( ) ;'],
+    ['packages', 'array', 'what items does the packages have ?', '[ fruits ] of @mock.device . packages ( ) ;'],
+    ['base_station', 'location', 'what is the location of the base station ?', '[ geo ] of @mock.device . base_station ( ) ;'],
+    ['base_station', 'location', 'show me a base station with location {0} .', '@mock.device . base_station ( ) filter geo == new Location({0}) ;'],
+    ['contact', 'entity', "what phone number does the customer support have ?", '[ phone ] of @mock.device . contact ( ) ;']
 ];
 
 String.prototype.format = function() {
@@ -91,19 +91,25 @@ export default async function main() {
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, true);
     const deviceClass = await schemaRetriever.getFullSchema(args.device);
     const baseTokenizer = I18n.get(args.locale).getTokenizer();
-    for (let [query, utterance, thingtalk] of TEST_CASES) {
+    for (let [query, type, utterance, thingtalk] of TEST_CASES) {
         args.function = query;
         const ret = await sampler(tpClient, deviceClass, baseTokenizer, args);
         const item = ret.filter((x) => {
-            if (typeof x.value !== undefined)
+            if (x.value !== undefined)
                 utterance = utterance.format(x.value);
             return x.utterance.toLowerCase() === utterance.toLowerCase();
         });
         try {
             assert(item.length === 1);
-            if (typeof item[0].value !== undefined) {
+            if (item[0].value !== undefined) {
                 utterance = utterance.format(item[0].value);
-                thingtalk = thingtalk.format(item[0].value);
+                if (type === 'location') {
+                    const regExp = /Location\s?\(([^)]+)\)/gi;
+                    const matches = regExp.exec(item[0].thingtalk);
+                    thingtalk = thingtalk.format(matches[1]);
+                } else {
+                    thingtalk = thingtalk.format(item[0].value);
+                }
             }
             assert.deepStrictEqual(item[0].query, query);
             assert.deepStrictEqual(item[0].utterance.toLowerCase(), utterance.toLowerCase());
