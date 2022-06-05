@@ -301,10 +301,12 @@ export default class ThingpediaLoader {
         }
     }
 
-    private _recordType(type : Type, fromArgument ?: Ast.ArgumentDef) {
+    private _recordType(type : Type, fromArgument ?: Ast.ArgumentDef) : string|null {
         if (type instanceof Type.Compound) {
-            for (const field in type.fields)
+            for (const field in type.fields) 
                 this._recordType(type.fields[field].type, fromArgument);
+            if (type.fields.value)
+                return this._recordType(type.fields.value.type, fromArgument);
             return null;
         }
         if (type instanceof Type.Array)
@@ -320,14 +322,14 @@ export default class ThingpediaLoader {
         if (type.isArray)
             return 'Any';
 
-        this._addRule<Ast.Value[], Ast.Value>('constant_or_undefined', [this._getConstantNT(type, 'value')], '${value}',
+        this._addRule<Ast.Value[], Ast.Value>('constant_or_undefined', [this._getConstantNT(type, 'value')!], '${value}',
             identity, keyfns.valueKeyFn);
 
         if (!this._grammar.hasSymbol('constant_' + typestr)) {
             if (!type.isEnum && !type.isEntity)
                 throw new Error('Missing definition for type ' + typestr);
             this._grammar.declareSymbol('constant_' + typestr);
-            this._addRule<Ast.Value[], Ast.Value>('constant_Any', [this._getConstantNT(type, 'value')], '${value}',
+            this._addRule<Ast.Value[], Ast.Value>('constant_Any', [this._getConstantNT(type, 'value')!], '${value}',
                 identity, keyfns.valueKeyFn);
 
             if (type instanceof Type.Enum) {
@@ -363,7 +365,9 @@ export default class ThingpediaLoader {
     }
 
     private _getConstantNT(type : Type, name ?: string, { mustBeTrueConstant = false, strictTypeCheck = false } = {}) {
-        const typestr = this._recordType(type)!;
+        const typestr = this._recordType(type);
+        if (!typestr)
+            return null; 
 
         // mustBeTrueConstant indicates that we really need just a constant literal
         // as oppposed to some relative constant like "today" or "here"
@@ -446,6 +450,8 @@ export default class ThingpediaLoader {
 
         const corefconst = new SentenceGeneratorRuntime.NonTerminal('coref_constant', 'value');
         const constant = this._getConstantNT(ptype, 'value');
+        if (!constant)
+            return;
 
         for (const form of canonical.base)
             this._addRule('input_param', [], String(form), () => pslot, keyfns.paramKeyFn, {});
@@ -600,6 +606,9 @@ export default class ThingpediaLoader {
         this._addOutParam(pslot, baseforms.trim());
 
         const constant = this._getConstantNT(vtype, 'value');
+        if (!constant)
+            return;
+
         const corefconst = new SentenceGeneratorRuntime.NonTerminal('coref_constant', 'value');
         const both_prefix = new SentenceGeneratorRuntime.NonTerminal('both_prefix');
         const pronoun_the_second = new SentenceGeneratorRuntime.NonTerminal('pronoun_the_second');
@@ -826,6 +835,9 @@ export default class ThingpediaLoader {
 
                 const nonTerm = canUseUndefined ? new SentenceGeneratorRuntime.NonTerminal('constant_or_undefined', param, ['type', type])
                     : this._getConstantNT(type, param, { strictTypeCheck: true });
+                if (!nonTerm)
+                    throw new Error(`Invalid placeholder \${${param}} with no constant in primitive template`);
+
                 nonTerminals.push(nonTerm);
                 names.push(param);
                 options.push(elem.option);
@@ -1423,6 +1435,8 @@ export default class ThingpediaLoader {
             const ttType = new Type.Entity(entityType);
             const { has_ner_support } = this._entities[entityType];
             const typestr = this._recordType(ttType);
+            if (!typestr)
+                return;
 
             if (has_ner_support) {
                 if (this.idQueries.has(entityType)) {
