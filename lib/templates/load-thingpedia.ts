@@ -541,6 +541,8 @@ export default class ThingpediaLoader {
             return;
         }
 
+        /**
+         * FIXME what is this for?
         if (ptype instanceof Type.Array && ptype.elem instanceof Type.Compound) {
             this.compoundArrays[pname] = ptype.elem;
             for (const field in ptype.elem.fields) {
@@ -548,6 +550,7 @@ export default class ThingpediaLoader {
                 this._recordOutputParam(schema, arg);
             }
         }
+         */
 
         if (arg.metadata.counted_object) {
             const forms = Array.isArray(arg.metadata.counted_object) ?
