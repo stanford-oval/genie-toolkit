@@ -71,7 +71,7 @@ export function replacePlaceholdersWithConstants(ex : Ast.Example,
         if (name === null)
             continue;
 
-        assert(value.getType().equals(ex.args[name]));
+        assert(Type.isAssignable(value.getType(), ex.args[name]));
         replacements[name] = value;
     }
 
