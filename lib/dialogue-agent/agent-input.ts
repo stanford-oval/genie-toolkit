@@ -16,28 +16,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Author: Jake Wu <jmhw0123@gmail.com>
 
 import * as ThingTalk from 'thingtalk';
 
-import { EntityMap } from '../utils/entity-utils';
 import { PlatformData } from './protocol';
 
-export interface PreparsedCommand {
-    code : string[];
-    entities : EntityMap;
-    slots ?: string[];
-    slotTypes ?: Record<string, string>;
-}
-
-interface NaturalLanguageUserInput {
-    type : 'command';
-    utterance : string;
-    platformData : PlatformData;
-}
-interface ThingTalkUserInput {
-    type : 'userThingtalk';
+export type AgentInput = {
+    type : 'agentThingtalk';
     parsed : ThingTalk.Ast.Input;
     platformData : PlatformData;
-}
-export type UserInput = NaturalLanguageUserInput|ThingTalkUserInput;
+    device ?: any;
+    caller ?: any;
+};

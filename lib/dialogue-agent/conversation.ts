@@ -388,7 +388,7 @@ export default class Conversation extends events.EventEmitter {
             schemaRetriever: this._engine.schemas,
             loadMetadata: true
         }, true);
-        return this._loop.handleCommand({ type: 'thingtalk', parsed, platformData });
+        return this._loop.handleCommand({ type: 'userThingtalk', parsed, platformData });
     }
 
     async handleThingTalk(program : string, platformData : PlatformData = {}) : Promise<void> {
@@ -407,7 +407,7 @@ export default class Conversation extends events.EventEmitter {
             schemaRetriever: this._engine.schemas,
             loadMetadata: true
         });
-        return this._loop.handleCommand({ type: 'thingtalk', parsed, platformData });
+        return this._loop.handleCommand({ type: 'userThingtalk', parsed, platformData });
     }
 
     sendReply(message : string, icon : string|null) {

@@ -32,6 +32,7 @@ import * as I18n from '../i18n';
 import ValueCategory from './value-category';
 import QueueItem from './dialogue_queue';
 import { UserInput, } from './user-input';
+import { AgentInput, } from './agent-input';
 import { PlatformData } from './protocol';
 import { CancellationError } from './errors';
 
@@ -88,6 +89,8 @@ export interface ReplyResult {
     // used in the conversation logs
     context : string;
     agent_target : string;
+
+    agent_input ?: AgentInput|null;
 }
 
 export interface DialogueHandler<AnalysisType extends CommandAnalysisResult, StateType> {
@@ -99,7 +102,7 @@ export interface DialogueHandler<AnalysisType extends CommandAnalysisResult, Sta
     getState() : StateType;
     reset() : void;
 
-    analyzeCommand(command : UserInput) : Promise<AnalysisType>;
+    analyzeCommand(command : UserInput|AgentInput) : Promise<AnalysisType>;
     getReply(command : AnalysisType) : Promise<ReplyResult>;
     getFollowUp() : Promise<ReplyResult|null>;
 }
@@ -109,7 +112,7 @@ export class DialogueLoop {
     engine : Engine;
 
     private _langPack : I18n.LanguagePack;
-    private _userInputQueue : AsyncQueue<UserInput>;
+    private _commandInputQueue : AsyncQueue<UserInput|AgentInput>;
     private _notifyQueue : AsyncQueue<QueueItem>;
     private _debug : boolean;
     private _agent : ExecutionDialogueAgent;
@@ -130,6 +133,8 @@ export class DialogueLoop {
     private _mgrResolve : (() => void)|null;
     private _mgrPromise : Promise<void>|null;
 
+    private _isMixedInitiative = false;
+
     constructor(conversation : Conversation,
                 engine : Engine,
                 options : {
@@ -144,7 +149,7 @@ export class DialogueLoop {
                         lowConfidence ?: number;
                     }>
                 }) {
-        this._userInputQueue = new AsyncQueue();
+        this._commandInputQueue = new AsyncQueue();
         this._notifyQueue = new AsyncQueue();
 
         this._debug = options.debug;
@@ -226,11 +231,11 @@ export class DialogueLoop {
             return String(error);
     }
 
-    async nextCommand() : Promise<UserInput> {
+    async nextCommand() : Promise<UserInput|AgentInput> {
         await this.conversation.sendAskSpecial();
         this._mgrPromise = null;
         this._mgrResolve!();
-        const intent = await this._userInputQueue.pop();
+        const intent = await this._commandInputQueue.pop();
         this.platformData = intent.platformData;
         return intent;
     }
@@ -244,15 +249,20 @@ export class DialogueLoop {
         yield* this._dynamicHandlers.values();
     }
 
-    private async _analyzeCommand(command : UserInput) : Promise<[DialogueHandler<any, any>|undefined, CommandAnalysisResult]> {
+    private async _analyzeCommand(command : UserInput|AgentInput) : Promise<[DialogueHandler<any, any>|undefined, CommandAnalysisResult]> {
         try {
             const handlers = [...this._iterateDialogueHandlers()];
-            const handlerCandidates = await Promise.all(handlers.map(async (handler) => {
+            if (command.type === 'agentThingtalk') {
+                const handler = handlers.filter((handler) => handler.uniqueId.toLowerCase() === 'thingtalk')[0];
                 const analysis = await handler.analyzeCommand(command);
-                return { handler: handler, analysis: analysis };
-            }));
-
-            return pickHandler(this._currentHandler, this.expecting, handlerCandidates, command, this._debug);
+                return [handler, analysis];
+            } else {
+                const handlerCandidates = await Promise.all(handlers.map(async (handler) => {
+                    const analysis = await handler.analyzeCommand(command);
+                    return { handler: handler, analysis: analysis };
+                }));
+                return pickHandler(this._currentHandler, this.expecting, handlerCandidates, command, this._debug);
+            }
         } catch(e : any) {
             if (e.code === 'EHOSTUNREACH' || e.code === 'ETIMEDOUT') {
                 await this.reply(this._("Sorry, I cannot contact the Genie service. Please check your Internet connection and try again later."), null);
@@ -301,9 +311,14 @@ export class DialogueLoop {
             await this.replyGeneric(msg);
 
         await this.setExpected(reply.expecting);
+    } 
+
+    // FIXME: from GenieScript
+    private agentFollowUp(reply : ReplyResult) {
+        return reply;
     }
 
-    private async _handleUserInput(command : UserInput) {
+    private async _handleCommandInput(command : UserInput|AgentInput) {
         for (;;) {
             const [handler, analysis] = await this._analyzeCommand(command);
             // save the utterance and complete the turn
@@ -324,21 +339,24 @@ export class DialogueLoop {
                 continue;
             }
 
-            // reset the state of the handler when we switch to a different one
-            if (this._currentHandler && handler !== this._currentHandler)
-                await this._currentHandler.reset();
-            this._currentHandler = handler;
             const reply = await handler.getReply(analysis);
+
+            if (!this._isMixedInitiative) {
+                // reset the state of the handler when we switch to a different one
+                if (this._currentHandler && handler !== this._currentHandler)
+                    await this._currentHandler.reset();
+            }
+            this._currentHandler = handler;
+
             this.icon = handler.icon;
             await this._sendAgentReply(reply);
-
+            
             while (this.expecting === null) {
-                const followUp : ReplyResult|null = await handler.getFollowUp();
-                if (followUp === null)
+                if (!this._isMixedInitiative)
                     break;
-
+                const gsReply : ReplyResult|null = await this.agentFollowUp(reply);
                 this.icon = handler.icon;
-                await this._sendAgentReply(followUp);
+                await this._sendAgentReply(gsReply);
             }
 
             // if we're not expecting any more answer from the user,
@@ -352,8 +370,15 @@ export class DialogueLoop {
             // (requiring a wakeword again to continue) and start
             // processing notifications again
 
-            if (this.expecting === null)
+            if (this.expecting === null) {
+                if (reply.agent_input) {
+                    this.pushCommand(reply.agent_input);
+                    this._isMixedInitiative = true;
+                } else {
+                    this._isMixedInitiative = false;
+                }
                 return;
+            }
             command = await this.nextCommand();
         }
     }
@@ -381,8 +406,8 @@ export class DialogueLoop {
             let item;
             try {
                 item = await this.nextQueueItem();
-                if (item instanceof QueueItem.UserInput)
-                    await this._handleUserInput(item.command);
+                if (item instanceof QueueItem.UserInput || item instanceof QueueItem.AgentInput)
+                    await this._handleCommandInput(item.command);
                 else
                     await this._handleAPICall(item);
             } catch(e : any) {
@@ -398,7 +423,7 @@ export class DialogueLoop {
                 } else {
                     console.error(`Error processing queue item`, item);
                     console.error(e);
-                    if (item instanceof QueueItem.UserInput) {
+                    if (item instanceof QueueItem.UserInput || item instanceof QueueItem.AgentInput) {
                         await this.replyInterp(this._("Sorry, I had an error processing your command: ${error}."), { //"
                             error: this._formatError(e)
                         });
@@ -419,7 +444,7 @@ export class DialogueLoop {
         this._mgrPromise = null;
         this._mgrResolve!();
         const queueItem = await this._notifyQueue.pop();
-        if (queueItem instanceof QueueItem.UserInput)
+        if (queueItem instanceof QueueItem.UserInput || queueItem instanceof QueueItem.AgentInput)
             this.platformData = queueItem.command.platformData;
         else
             this.platformData = {};
@@ -627,6 +652,7 @@ export class DialogueLoop {
 
     async stop() {
         this._stopped = true;
+        this._isMixedInitiative = false;
 
         // wait until the dialog is ready to accept commands, then inject
         // a cancellation error
@@ -636,7 +662,7 @@ export class DialogueLoop {
         if (this._isInDefaultState())
             this._notifyQueue.cancelWait(new CancellationError());
         else
-            this._userInputQueue.cancelWait(new CancellationError());
+            this._commandInputQueue.cancelWait(new CancellationError());
 
         this._dynamicHandlers.stop();
         await this._nlu.stop();
@@ -644,6 +670,7 @@ export class DialogueLoop {
     }
 
     async reset() {
+        this._isMixedInitiative = false;
         // wait until the dialog is ready to accept commands
         await this._mgrPromise;
         assert(this._mgrPromise === null);
@@ -651,7 +678,7 @@ export class DialogueLoop {
         if (this._isInDefaultState())
             this._notifyQueue.cancelWait(new CancellationError());
         else
-            this._userInputQueue.cancelWait(new CancellationError());
+            this._commandInputQueue.cancelWait(new CancellationError());
     }
 
     private _pushQueueItem(item : QueueItem) {
@@ -675,11 +702,17 @@ export class DialogueLoop {
         return promise;
     }
 
-    pushCommand(command : UserInput) {
-        this._pushQueueItem(new QueueItem.UserInput(command));
+    pushCommand(command : UserInput|AgentInput) {
+        if (command.type === 'agentThingtalk') {
+            console.log('Put AgentInput to QueueItem');
+            this._pushQueueItem(new QueueItem.AgentInput(command));
+        } else {
+            console.log('Put UserInput to QueueItem')
+            this._pushQueueItem(new QueueItem.UserInput(command));
+        }
     }
 
-    async handleCommand(command : UserInput) : Promise<void> {
+    async handleCommand(command : UserInput|AgentInput) : Promise<void> {
         // wait until the dialog is ready to accept commands
         await this._mgrPromise;
         assert(this._mgrPromise === null);
@@ -689,7 +722,7 @@ export class DialogueLoop {
         if (this._isInDefaultState())
             this.pushCommand(command);
         else
-            this._userInputQueue.push(command);
+            this._commandInputQueue.push(command);
 
         return promise;
     }

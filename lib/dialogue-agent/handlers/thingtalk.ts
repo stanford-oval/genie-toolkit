@@ -34,6 +34,7 @@ import * as I18n from '../../i18n';
 
 import ValueCategory from '../value-category';
 import { UserInput, } from '../user-input';
+import { AgentInput, } from '../agent-input';
 import { CancellationError } from '../errors';
 
 import DialoguePolicy from '../dialogue_policy';
@@ -216,7 +217,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         return null;
     }
 
-    async analyzeCommand(command : UserInput) : Promise<ThingTalkCommandAnalysisType> {
+    async analyzeCommand(command : UserInput|AgentInput) : Promise<ThingTalkCommandAnalysisType> {
         const analysis = await this._parseCommand(command);
 
         if (analysis.type === CommandAnalysisType.DEBUG || analysis.type === CommandAnalysisType.STOP)
@@ -240,16 +241,25 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         };
     }
 
-    async _parseCommand(command : UserInput) : Promise<ThingTalkCommandAnalysisType> {
-        if (command.type === 'thingtalk') {
+    async _parseCommand(command : UserInput|AgentInput) : Promise<ThingTalkCommandAnalysisType> {
+        if (command.type === 'userThingtalk' || command.type === 'agentThingtalk') {
             const type = this._getSpecialThingTalkType(command.parsed);
-            return {
-                type,
-                utterance: `\\t ${command.parsed.prettyprint()}`,
-                user_target: command.parsed.prettyprint(),
-                answer: this._maybeGetThingTalkAnswer(command.parsed),
-                parsed: command.parsed,
-            };
+            if (command.type === 'userThingtalk')
+                return {
+                    type,
+                    utterance: `\\t ${command.parsed.prettyprint()}`,
+                    user_target: command.parsed.prettyprint(),
+                    answer: this._maybeGetThingTalkAnswer(command.parsed),
+                    parsed: command.parsed,
+                };
+            else
+                return {
+                    type,
+                    utterance: `\\t ${command.parsed.prettyprint()}`,
+                    user_target: `agent_init ${command.parsed.prettyprint()}`,
+                    answer: this._maybeGetThingTalkAnswer(command.parsed),
+                    parsed: command.parsed,
+                };
         }
 
         // ok so this was a natural language
