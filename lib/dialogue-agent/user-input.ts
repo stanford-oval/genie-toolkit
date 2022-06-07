@@ -30,12 +30,12 @@ export interface PreparsedCommand {
     slotTypes ?: Record<string, string>;
 }
 
-interface NaturalLanguageUserInput {
+export interface NaturalLanguageUserInput {
     type : 'command';
     utterance : string;
     platformData : PlatformData;
 }
-interface ThingTalkUserInput {
+export interface ThingTalkUserInput {
     type : 'userThingtalk';
     parsed : ThingTalk.Ast.Input;
     platformData : PlatformData;

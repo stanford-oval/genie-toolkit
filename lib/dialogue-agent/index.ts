@@ -41,6 +41,7 @@ export {
     ConversationOptions,
     default as Conversation
 } from './conversation';
+export * as Geniescript from "./geniescript";
 export * as Protocol from './protocol';
 export * from './errors';
 export { default as AudioController } from './audio/controller';
