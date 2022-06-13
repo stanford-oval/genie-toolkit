@@ -334,7 +334,12 @@ export class Placeholder extends Replaceable {
     }
 
     preprocess(langPack : LanguagePack, placeholders : string[]) {
-        this._index = getPlaceholderIndex(placeholders, this.param);
+        try {
+            const param = [this.param, ...this.key].join('.');
+            this._index = getPlaceholderIndex(placeholders, param);
+        } catch(e) {
+            this._index = getPlaceholderIndex(placeholders, this.param);
+        }
         return this;
     }
 

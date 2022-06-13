@@ -824,7 +824,7 @@ export default class ThingpediaLoader {
         const parsed : SentenceGeneratorRuntime.Replaceable = SentenceGeneratorRuntime.Replaceable.parse(preprocessed);
         parsed.visit((elem) => {
             if (elem instanceof SentenceGeneratorRuntime.Placeholder) {
-                const param = elem.param;
+                const param = [elem.param, ...elem.key].join('.');
                 if (names.includes(param))
                     return true;
 
