@@ -1079,6 +1079,14 @@ function addFilter(loader : ThingpediaLoader,
     return addFilterInternal(table, filter.ast, options);
 }
 
+function makeVerificationQuestion(loader : ThingpediaLoader,
+                                  table : Ast.Expression,
+                                  filter : FilterSlot|DomainIndependentFilterSlot) : Ast.Expression|null {
+    if (!checkFilter(loader, table, filter))
+        return null;
+    return new Ast.BooleanQuestionExpression(null, table, filter.ast, table.schema!.clone());
+}
+
 function tableToStream(table : Ast.Expression, options : { monitorItemID : boolean }) : Ast.Expression|null {
     if (!table.schema!.is_monitorable)
         return null;
@@ -1797,7 +1805,8 @@ function findFilterExpression(root : Ast.Expression) : Ast.FilterExpression|null
             expr instanceof Ast.IndexExpression ||
             expr instanceof Ast.SliceExpression ||
             expr instanceof Ast.ProjectionExpression ||
-            expr instanceof Ast.AliasExpression) {
+            expr instanceof Ast.AliasExpression ||
+            expr instanceof Ast.BooleanQuestionExpression) {
             expr = expr.expression;
             continue;
         }
@@ -2113,6 +2122,7 @@ export {
     makeSingleFieldProjection,
     makeMultiFieldProjection,
     sayProjection,
+    makeVerificationQuestion,
 
     // joins
     makeSelfJoin,
