@@ -348,6 +348,10 @@ with_filter : C.FilterSlot = {
     // array but
     !turking p:out_param_Any with { type = (Type.Any) } ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter($loader, p, 'contains', [x, y]);
 
+    // null value
+    !turking 'no' p:out_param_NotArray__Any => C.makeFilter($loader, p, '==', new Ast.Value.Null);
+    p:out_param_NotArray__Any => C.makeFilter($loader, p, '==', new Ast.Value.Null, true);
+
     // aggregate filters - count
     !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '==', new Ast.Value.Number(0));
     x:constant_Number p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '==', x);

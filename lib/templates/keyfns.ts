@@ -79,6 +79,7 @@ export function paramKeyFn(slot : ParamSlot) {
         functionName: slot.schema.qualifiedName,
         type: slot.type,
         is_numeric: slot.type.isNumeric(),
+        is_array: slot.type instanceof Type.Array,
         elem: slot.type instanceof Type.Array ? slot.type.elem as Type : null,
         is_numeric_elem: slot.type instanceof Type.Array ? (slot.type.elem as Type).isNumeric() : false,
         associatedIdType: id && !id.is_input ? id.type : null,

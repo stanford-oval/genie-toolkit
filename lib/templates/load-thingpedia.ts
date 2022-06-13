@@ -361,6 +361,8 @@ export default class ThingpediaLoader {
             const elem = pslot.type.elem as Type;
             if (elem instanceof Type.Compound)
                 this._addRule('out_param_Array__Compound', [], canonical, () => pslot, keyfns.paramKeyFn);
+        } else {
+            this._addRule('out_param_NotArray__Any', [], canonical, () => pslot, keyfns.paramKeyFn);
         }
     }
 
