@@ -18,6 +18,7 @@ interface LogicParameter {
 enum LogicParameterType {
     ANALYZE_COMMAND = "AnalyzeCommand",
     GET_REPLY = "getReply",
+    CALLBACK = "callback",
 }
 
 export type GeniescriptLogic = AsyncGenerator<CommandAnalysisResult | ReplyResult | GeniescriptReplyResult | null, any, LogicParameter>;
@@ -59,6 +60,12 @@ export abstract class GeniescriptAgent implements DialogueHandler<GeniescriptAna
 
     async getReply(analyzed : GeniescriptAnalysisResult) : Promise<ReplyResult | GeniescriptReplyResult> {
         const result0 = this._logic!.next({ type: LogicParameterType.GET_REPLY, content: analyzed });
+        const result = await result0;
+        return result.value;
+    }
+
+    async getAgentInputFollowUp(return_value : any) {
+        const result0 = this._logic!.next({ type: LogicParameterType.CALLBACK, content: value });
         const result = await result0;
         return result.value;
     }
