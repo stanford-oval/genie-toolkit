@@ -133,7 +133,7 @@ export class DialogueLoop {
     private _mgrResolve : (() => void)|null;
     private _mgrPromise : Promise<void>|null;
 
-    private _isMixedInitiative = false;
+    private _mixedInitiative : boolean;
 
     constructor(conversation : Conversation,
                 engine : Engine,
@@ -175,6 +175,8 @@ export class DialogueLoop {
 
         this._mgrResolve = null;
         this._mgrPromise = null;
+        
+        this._mixedInitiative = this._useMixedInitiative();
     }
 
     get _() : (x : string) => string {
@@ -218,6 +220,11 @@ export class DialogueLoop {
 
         const tmpl = Replaceable.get(msg, this._langPack, names);
         return this._langPack.postprocessNLG(tmpl.replace({ replacements, constraints: {} })!.chooseBest(), {}, this._agent);
+    }
+
+    private _useMixedInitiative() : boolean {
+        const pref = this.engine.platform.getSharedPreferences();
+        return pref.get('mixed-initiative') as boolean;
     }
 
     private _formatError(error : Error|string) {
@@ -311,7 +318,7 @@ export class DialogueLoop {
             await this.replyGeneric(msg);
 
         await this.setExpected(reply.expecting);
-    } 
+    }
 
     // FIXME: from GenieScript
     private agentFollowUp(reply : ReplyResult) {
@@ -341,7 +348,7 @@ export class DialogueLoop {
 
             const reply = await handler.getReply(analysis);
 
-            if (!this._isMixedInitiative) {
+            if (!this._mixedInitiative) {
                 // reset the state of the handler when we switch to a different one
                 if (this._currentHandler && handler !== this._currentHandler)
                     await this._currentHandler.reset();
@@ -352,7 +359,7 @@ export class DialogueLoop {
             await this._sendAgentReply(reply);
             
             while (this.expecting === null) {
-                if (!this._isMixedInitiative)
+                if (!this._mixedInitiative)
                     break;
                 const gsReply : ReplyResult|null = await this.agentFollowUp(reply);
                 this.icon = handler.icon;
@@ -371,12 +378,8 @@ export class DialogueLoop {
             // processing notifications again
 
             if (this.expecting === null) {
-                if (reply.agent_input) {
+                if (reply.agent_input)
                     this.pushCommand(reply.agent_input);
-                    this._isMixedInitiative = true;
-                } else {
-                    this._isMixedInitiative = false;
-                }
                 return;
             }
             command = await this.nextCommand();
@@ -401,6 +404,9 @@ export class DialogueLoop {
 
     private async _loop(showWelcome : boolean, initialState : Record<string, unknown>|null) {
         await this._initialize(showWelcome, initialState);
+        
+        if (this._mixedInitiative)
+            console.log(`Mixed-initiative mode activated`);
 
         while (!this._stopped) {
             let item;
@@ -652,7 +658,6 @@ export class DialogueLoop {
 
     async stop() {
         this._stopped = true;
-        this._isMixedInitiative = false;
 
         // wait until the dialog is ready to accept commands, then inject
         // a cancellation error
@@ -670,7 +675,6 @@ export class DialogueLoop {
     }
 
     async reset() {
-        this._isMixedInitiative = false;
         // wait until the dialog is ready to accept commands
         await this._mgrPromise;
         assert(this._mgrPromise === null);
