@@ -12,7 +12,7 @@ interface GeniescriptAnalysisResult extends CommandAnalysisResult {
 
 interface LogicParameter {
     type : LogicParameterType;
-    content : string | GeniescriptAnalysisResult | CommandAnalysisResult;
+    content : string | GeniescriptAnalysisResult | CommandAnalysisResult | ReplyResult;
 }
 
 enum LogicParameterType {
@@ -64,8 +64,8 @@ export abstract class GeniescriptAgent implements DialogueHandler<GeniescriptAna
         return result.value;
     }
 
-    async getAgentInputFollowUp(return_value : any) {
-        const result0 = this._logic!.next({ type: LogicParameterType.CALLBACK, content: value });
+    async getAgentInputFollowUp(return_value : ReplyResult) {
+        const result0 = this._logic!.next({ type: LogicParameterType.CALLBACK, content: return_value });
         const result = await result0;
         return result.value;
     }
@@ -87,48 +87,51 @@ export class AgentDialog {
     private readonly _user_target : string;
     private readonly _skill_name : string;
     private _last_result : GeniescriptAnalysisResult | GeniescriptReplyResult | null;
+    private _last_result_only_prompt : GeniescriptReplyResult | null;
     private _last_branch : string | null;
     private _last_analyzed : string | null;
     private _last_messages : string[];
     private _last_expecting : ValueCategory | null;
     private _last_target : string | null;
-    private _last_agent_input : AgentInput | null;
-
 
     constructor(user_target : string, skill_name : string) {
         this._user_target = user_target;
         this._skill_name = skill_name;
         this._last_result = null;
+        this._last_result_only_prompt = null;
         this._last_branch = null;
         this._last_analyzed = null;
         this._last_messages = [];
         this._last_expecting = null;
         this._last_target = null;
-        this._last_agent_input = null;
     }
 
     async *expect(
         func_map : Map<string,
             (GeneratorFunction | AsyncGeneratorFunction | (() => Promise<any>)| (() => any))
-            >
+            >,
+        prompt : string | null
     ) : GeniescriptLogic {
         if (this._last_analyzed !== null) {
-            if (this._last_agent_input !== null) {
-                this._last_result = {
-                    messages: this._last_messages,
-                    expecting: this._last_expecting,
-                    context: this._last_analyzed,
-                    agent_target: this._last_target!,
-                    agent_input: this._last_agent_input!
-                };
-            } else {
-                this._last_result = {
-                    messages: this._last_messages,
+            this._last_result = {
+                messages: this._last_messages,
+                expecting: this._last_expecting,
+                context: this._last_analyzed,
+                agent_target: this._last_target!
+            };
+
+            if (prompt) {
+                this._last_result.messages.push(prompt);
+                this._last_result_only_prompt = {
+                    messages: [prompt!],
                     expecting: this._last_expecting,
                     context: this._last_analyzed,
                     agent_target: this._last_target!
                 };
+            } else {
+                this._last_result_only_prompt = null;
             }
+
             this._last_messages = [];
             this._last_expecting = null;
             this._last_target = null;
@@ -168,6 +171,8 @@ export class AgentDialog {
                     return current_func();
                 else
                     throw Error("current_func is not a Function or GeneratorFunction");
+            } else if (input.type === LogicParameterType.CALLBACK) {
+                this._last_result = this._last_result_only_prompt;
             }
         }
     }
@@ -180,8 +185,43 @@ export class AgentDialog {
         this._last_expecting = expecting;
     }
 
-    execute(agent_input : AgentInput) {
-        this._last_agent_input = agent_input;
+    async *execute(agent_input : AgentInput, type_check : ((reply : ReplyResult) => boolean) | null = null) : GeniescriptLogic {
+        if (this._last_analyzed !== null) {
+            this._last_result = {
+                messages: this._last_messages,
+                expecting: this._last_expecting,
+                context: this._last_analyzed,
+                agent_target: this._last_target!,
+                agent_input: agent_input
+            };
+            this._last_result_only_prompt = this._last_result;
+
+            this._last_messages = [];
+            this._last_expecting = null;
+            this._last_target = null;
+            this._last_analyzed = null;
+        }
+        while (true) {
+            const input = yield this._last_result;
+            if (input.type === LogicParameterType.ANALYZE_COMMAND) {
+                const content = input.content as string;
+                this._last_result = {
+                    type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND,
+                    utterance: content,
+                    user_target: '',
+                    branch: ''
+                };
+            } else if (input.type === LogicParameterType.GET_REPLY) {
+                throw Error("Cannot get reply in a execute!");
+            } else if (input.type === LogicParameterType.CALLBACK) {
+                if (type_check && !type_check(input.content as ReplyResult))
+                    yield this._last_result_only_prompt;
+                else
+                    return input.content;
+
+            }
+        }
+
     }
 
 }

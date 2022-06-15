@@ -123,6 +123,7 @@ export class DialogueLoop {
     private _faqHandlers : Record<string, FAQDialogueHandler>;
     private _dynamicHandlers : DeviceInterfaceMapper<DialogueHandler<CommandAnalysisResult, any>>;
     private _currentHandler : DialogueHandler<CommandAnalysisResult, any>|null;
+    private _prevGeniescriptAgent : GeniescriptAgent | null;
 
     private icon : string|null;
     expecting : ValueCategory|null;
@@ -168,6 +169,7 @@ export class DialogueLoop {
         this._dynamicHandlers = new DeviceInterfaceMapper(new DeviceView(engine.devices, 'org.thingpedia.dialogue-handler', {}),
             (device) => new ThingpediaDialogueHandler(device));
         this._currentHandler = null;
+        this._prevGeniescriptAgent = null;
 
         this.icon = null;
         this.expecting = null;
@@ -353,14 +355,25 @@ export class DialogueLoop {
 
             this.icon = handler.icon;
             await this._sendAgentReply(reply);
-            
+
+            const isCurrentGeniescript = handler instanceof GeniescriptAgent;
+
+            if (isCurrentGeniescript)
+                this._prevGeniescriptAgent = handler;
+
+
             while (this.expecting === null) {
                 if (!this._mixedInitiative)
                     break;
-                assert(handler instanceof GeniescriptAgent);
-                const gsReply : ReplyResult = await handler.getAgentInputFollowUp(reply);
-                this.icon = handler.icon;
-                await this._sendAgentReply(gsReply);
+                if (!isCurrentGeniescript && this._prevGeniescriptAgent !== null) {
+                    const gsReply = await this._prevGeniescriptAgent.getAgentInputFollowUp(reply);
+                    if (gsReply) {
+                        this.icon = this._prevGeniescriptAgent.icon;
+                        await this._sendAgentReply(gsReply);
+                    } else {
+                        break;
+                    }
+                }
             }
 
             // if we're not expecting any more answer from the user,
@@ -708,7 +721,7 @@ export class DialogueLoop {
             console.log('Put AgentInput to QueueItem');
             this._pushQueueItem(new QueueItem.AgentInput(command));
         } else {
-            console.log('Put UserInput to QueueItem')
+            console.log('Put UserInput to QueueItem');
             this._pushQueueItem(new QueueItem.UserInput(command));
         }
     }
