@@ -744,7 +744,7 @@ export default class ThingpediaLoader {
         });
     }
 
-    private async _loadTemplate(ex : Ast.Example) {
+    private async _loadTemplate(ex : Ast.Example, entityTable = false) {
         try {
             await ex.typecheck(this._schemas, true);
         } catch(e) {
@@ -803,7 +803,7 @@ export default class ThingpediaLoader {
             if (this._options.forSide === 'agent')
                 preprocessed = this._langPack.toAgentSideUtterance(preprocessed);
 
-            this._addPrimitiveTemplate(grammarCat, preprocessed, ex);
+            this._addPrimitiveTemplate(grammarCat, preprocessed, ex, entityTable);
             if (grammarCat === 'action') {
                 const pastform = this._langPack.toVerbPast(preprocessed);
                 if (pastform)
@@ -817,7 +817,8 @@ export default class ThingpediaLoader {
 
     private _addPrimitiveTemplate(grammarCat : PrimitiveTemplateType,
                                   preprocessed : string,
-                                  example : Ast.Example) {
+                                  example : Ast.Example,
+                                  entityTable = false) {
         // compute the names used in the primitive template for each non-terminal
         const nonTerminals : SentenceGeneratorRuntime.NonTerminal[] = [];
         const names : string[] = [];
@@ -852,7 +853,7 @@ export default class ThingpediaLoader {
         parsed.preprocess(this._langPack, names);
 
         // template #1: just constants and/or undefined
-        this._addConstantOrUndefinedPrimitiveTemplate(grammarCat, parsed, nonTerminals, names, example);
+        this._addConstantOrUndefinedPrimitiveTemplate(grammarCat, parsed, nonTerminals, names, example, entityTable);
 
         // template #2: replace placeholders with whole queries or streams
         // TODO: enable this for table joins with param passing
@@ -1027,11 +1028,17 @@ export default class ThingpediaLoader {
                                                      expansion : SentenceGeneratorRuntime.Replaceable,
                                                      nonTerminals : SentenceGeneratorRuntime.NonTerminal[],
                                                      names : string[],
-                                                     example : Ast.Example) {
+                                                     example : Ast.Example,
+                                                     entityTable = false) {
         const attributes = { priority: this._getPrimitiveTemplatePriority(example) };
         this._addRule<Ast.Value[], Ast.Expression>('thingpedia_complete_' + grammarCat, nonTerminals, expansion,
             (...args) => replacePlaceholdersWithConstants(example, names, args),
             keyfns.expressionKeyFn, attributes);
+        if (entityTable) {
+            this._addRule<Ast.Value[], Ast.Expression>('entity_table', nonTerminals, expansion,
+                (...args) => replacePlaceholdersWithConstants(example, names, args),
+                keyfns.expressionKeyFn, attributes);
+        }
     }
 
     private async _makeExampleFromAction(a : Ast.FunctionDef) {
@@ -1140,7 +1147,7 @@ export default class ThingpediaLoader {
                 span,
                 span,
                 {}
-            ));
+            ), true);
         } else {
             const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
             await this._loadTemplate(new Ast.Example(
@@ -1152,7 +1159,7 @@ export default class ThingpediaLoader {
                 span,
                 span,
                 {}
-            ));
+            ), true);
         }
 
         // we only apply reverse_property/implicit_identity to the function's

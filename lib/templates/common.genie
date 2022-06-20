@@ -240,6 +240,9 @@ coref_reverse_verb_input_param : C.InputParamSlot = {}
 question_projection_table = {}
 command_projection_table = {}
 
+// id filtered table 
+entity_table = {}
+
 
 constant_name : Ast.EntityValue|Ast.NumberValue = {
     // numbers are always allowed as "names" (id values)
