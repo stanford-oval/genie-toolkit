@@ -151,6 +151,10 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         this._executorState = undefined; // private object managed by DialogueExecutor
     }
 
+    isGeniescript() : boolean {
+        return false;
+    }
+
     getState() : string {
         return this._dialogueState ? this._dialogueState.prettyprint() : 'null';
     }
@@ -244,7 +248,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     async _parseCommand(command : UserInput|AgentInput) : Promise<ThingTalkCommandAnalysisType> {
         if (command.type === 'userThingtalk' || command.type === 'agentThingtalk') {
             const type = this._getSpecialThingTalkType(command.parsed);
-            if (command.type === 'userThingtalk')
+            if (command.type === 'userThingtalk') {
                 return {
                     type,
                     utterance: `\\t ${command.parsed.prettyprint()}`,
@@ -252,7 +256,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                     answer: this._maybeGetThingTalkAnswer(command.parsed),
                     parsed: command.parsed,
                 };
-            else
+            } else {
                 return {
                     type,
                     utterance: `\\t ${command.parsed.prettyprint()}`,
@@ -260,6 +264,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                     answer: this._maybeGetThingTalkAnswer(command.parsed),
                     parsed: command.parsed,
                 };
+            }
         }
 
         // ok so this was a natural language
