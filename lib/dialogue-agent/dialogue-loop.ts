@@ -363,7 +363,6 @@ export class DialogueLoop {
             if (isCurrentGeniescript)
                 this._prevGeniescriptAgent = handler as ThingpediaDialogueHandler<any, any>;
 
-
             while (this.expecting === null) {
                 if (!isCurrentGeniescript)
                     break;
@@ -391,12 +390,14 @@ export class DialogueLoop {
 
             if (this.expecting === null) {
                 if (reply.program) {
-                    const ast = await ThingTalkUtils.parse(reply.program, {
+                    const opt : ParseOptions = {
                         timezone: this.engine.platform.timezone,
                         thingpediaClient: this.engine.thingpedia,
-                        schemaRetriever: this.engine.schemas,
+                        // FIXME: temporary solution
+                        schemaRetriever: this.engine.schemas as unknown as ThingTalk.SchemaRetriever,
                         loadMetadata: true
-                    } as ParseOptions);
+                    };
+                    const ast = await ThingTalkUtils.parse(reply.program, opt);
                     const agent_input : AgentInput = {
                         type: 'agentThingtalk',
                         parsed: ast,
