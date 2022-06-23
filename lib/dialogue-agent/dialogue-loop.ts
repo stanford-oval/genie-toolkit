@@ -365,9 +365,9 @@ export class DialogueLoop {
 
 
             while (this.expecting === null) {
-                if (!this._mixedInitiative)
+                if (!isCurrentGeniescript)
                     break;
-                if (!isCurrentGeniescript && this._prevGeniescriptAgent !== null) {
+                if (this._prevGeniescriptAgent !== null) {
                     const gsReply = await this._prevGeniescriptAgent.getAgentInputFollowUp(reply.messages);
                     if (gsReply) {
                         this.icon = this._prevGeniescriptAgent.icon;
