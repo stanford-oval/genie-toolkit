@@ -63,6 +63,7 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
     }
 
     async getAgentInputFollowUp(return_value : ReplyType) {
+        console.log("AbstractGeniescriptHandler getAgentInputFollowUp");
         const result0 = this._logic!.next({ type: LogicParameterType.CALLBACK, content: return_value });
         const result = await result0;
         return result.value;
