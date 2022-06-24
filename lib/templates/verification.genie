@@ -23,14 +23,14 @@ import * as C from './ast_manip';
 import ThingpediaLoader from './load-thingpedia';
 
 boolean_question = {
-    ( ('does'|'do'|'did') table:with_filtered_table 'have' filter:npp_filter with { functionName = table.functionName }
-    | ('does'|'do'|'did') table:with_filtered_table 'have' filter:with_filter with { functionName = table.functionName }
-    | ('are'|'is'|'was'|'were') table:with_filtered_table ('a'|'an'|'') filter:npi_filter with { functionName = table.functionName }
-    | ('are'|'is'|'was'|'were') table:with_filtered_table filter:apv_filter with { functionName = table.functionName }
-    | ('are'|'is'|'was'|'were') table:with_filtered_table filter:npv_filter with { functionName = table.functionName }
+    ( ('does'|'do'|'did') table:entity_table 'have' filter:npp_filter with { functionName = table.functionName }
+    | ('does'|'do'|'did') table:entity_table 'have' filter:with_filter with { functionName = table.functionName }
+    | ('are'|'is'|'was'|'were') table:entity_table ('a'|'an'|'') filter:npi_filter with { functionName = table.functionName }
+    | ('are'|'is'|'was'|'were') table:entity_table filter:apv_filter with { functionName = table.functionName }
+    | ('are'|'is'|'was'|'were') table:entity_table filter:npv_filter with { functionName = table.functionName }
     ) => C.makeVerificationQuestion($loader, table, filter);
      
-    ('does'|'do'|'did') ('the' | '' | 'any') table:with_filtered_table 'have' p:out_param_NotArray__Any with { functionName = table.functionName }
+    ('does'|'do'|'did') ('the' | '' | 'any') table:entity_table 'have' p:out_param_NotArray__Any with { functionName = table.functionName }
     => {
         const projection = C.makeFilter($loader, p, '==', new Ast.Value.Null);
         if (!projection)
