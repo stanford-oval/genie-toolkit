@@ -241,7 +241,7 @@ question_projection_table = {}
 command_projection_table = {}
 
 // id filtered table 
-entity_table = {}
+entity_table : Ast.Expression = {}
 
 
 constant_name : Ast.EntityValue|Ast.NumberValue = {
