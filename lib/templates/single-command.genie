@@ -60,9 +60,9 @@ $root : Ast.Input = {
     | stmt:backward_get_do_command [weight=0.1]
 
     | stmt:search_command
-    | stmt:complete_question [weight=0.1]
-    | stmt:projection_question [weight=0.1]
-    | stmt:boolean_question
+    | stmt:complete_question 
+    | stmt:projection_question
+    | stmt:boolean_question [weight=0.2]
     ) => C.makeProgram($loader, stmt);
 }
 
