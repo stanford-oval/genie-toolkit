@@ -28,11 +28,32 @@ boolean_question = {
     | ('are'|'is'|'was'|'were') table:entity_table ('a'|'an'|'') filter:npi_filter with { functionName = table.functionName }
     | ('are'|'is'|'was'|'were') table:entity_table filter:apv_filter with { functionName = table.functionName }
     | ('are'|'is'|'was'|'were') table:entity_table filter:npv_filter with { functionName = table.functionName }
+    | ('does'|'do'|'did') 'not' table:entity_table 'have' filter:npp_filter with { functionName = table.functionName } [weight=0.1]
+    | ('does'|'do'|'did') 'not' table:entity_table 'have' filter:with_filter with { functionName = table.functionName } [weight=0.1]
+    | ('are'|'is'|'was'|'were') 'not' table:entity_table ('a'|'an'|'') filter:npi_filter with { functionName = table.functionName } [weight=0.1]
+    | ('are'|'is'|'was'|'were') 'not' table:entity_table filter:apv_filter with { functionName = table.functionName } [weight=0.1]
+    | ('are'|'is'|'was'|'were') 'not' table:entity_table filter:npv_filter with { functionName = table.functionName } [weight=0.1]
+    ) => C.makeVerificationQuestion($loader, table, filter);
+
+    ( ('does'|'do'|'did') table:entity_table 'have' 'no' filter:npp_filter with { functionName = table.functionName } [weight=0.1]
+    | ('does'|'do'|'did') table:entity_table 'have' 'no' filter:with_filter with { functionName = table.functionName } [weight=0.1]
+    | ('are'|'is'|'was'|'were') table:entity_table 'not' ('a'|'an'|'') filter:npi_filter with { functionName = table.functionName } [weight=0.1]
+    | ('are'|'is'|'was'|'were') table:entity_table 'not' filter:apv_filter with { functionName = table.functionName } [weight=0.1]
+    | ('are'|'is'|'was'|'were') table:entity_table 'not' filter:npv_filter with { functionName = table.functionName } [weight=0.1]
     ) => C.makeVerificationQuestion($loader, table, filter);
      
-    ('does'|'do'|'did') ('the' | '' | 'any') table:entity_table 'have' p:out_param_NotArray__Any with { functionName = table.functionName }
-    => {
+    ( ('does'|'do'|'did') table:entity_table 'have' p:out_param_NotArray__Any with { functionName = table.functionName }
+    | ('does'|'do'|'did') 'not' table:entity_table 'have' p:out_param_NotArray__Any with { functionName = table.functionName } [weight=0.1]
+    ) => {
         const projection = C.makeFilter($loader, p, '==', new Ast.Value.Null);
+        if (!projection)
+            return null;
+        C.makeVerificationQuestion($loader, table, projection);
+    };
+
+    ('does'|'do'|'did') ('the' | '') table:entity_table 'have' 'no' p:out_param_NotArray__Any with { functionName = table.functionName } [weight=0.1]
+    => {
+        const projection = C.makeFilter($loader, p, '==', new Ast.Value.Null, true);
         if (!projection)
             return null;
         C.makeVerificationQuestion($loader, table, projection);

@@ -1081,10 +1081,16 @@ function addFilter(loader : ThingpediaLoader,
 
 function makeVerificationQuestion(loader : ThingpediaLoader,
                                   table : Ast.Expression,
-                                  filter : FilterSlot|DomainIndependentFilterSlot) : Ast.Expression|null {
+                                  filter : FilterSlot|DomainIndependentFilterSlot,
+                                  negate = false) : Ast.Expression|null {
     if (!checkFilter(loader, table, filter))
         return null;
-    return new Ast.BooleanQuestionExpression(null, table, filter.ast, table.schema!.clone());
+    let verification;    
+    if (negate)
+        verification = new Ast.NotBooleanExpression(null, filter.ast);
+    else 
+        verification = filter.ast;
+    return new Ast.BooleanQuestionExpression(null, table, verification, table.schema!.clone());
 }
 
 function tableToStream(table : Ast.Expression, options : { monitorItemID : boolean }) : Ast.Expression|null {
