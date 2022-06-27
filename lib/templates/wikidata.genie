@@ -1,0 +1,59 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2022 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Silei Xu <silei@cs.stanford.edu>
+
+import { Ast, } from 'thingtalk';
+import * as C from './ast_manip';
+import ThingpediaLoader from './load-thingpedia';
+
+one_with_filter_table = {
+    ?wikidata table:complete_table ('with'|'having') filter:npp_id_soft_filter [weight=0.1] => C.addFilter($loader, table, filter);
+}
+
+one_clean_filter_table = {
+    ?wikidata table:complete_table filter:pvp_id_soft_filter [weight=0.1] => C.addFilter($loader, table, filter);
+}
+
+two_with_filter_table = {
+    ?wikidata {
+        ( table:one_with_filter_table 'and' filter:npp_id_soft_filter [weight=0.1]
+        | table:one_which_filter_table ('and having' | 'and with' | ', with' | 'and have') filter:npp_id_soft_filter [weight=0.1]
+        | table:one_clean_filter_table ('with'|'having') filter:npp_id_soft_filter [weight=0.1]
+        ) => C.addFilter($loader, table, filter);
+    }
+}
+
+two_clean_filter_table = {
+    ?wikidata table:one_clean_filter_table filter:pvp_id_soft_filter [weight=0.1] => C.addFilter($loader, table, filter);
+}
+
+boolean_question = {
+    ?wikidata {
+        ( ('are'|'were'|'is'|'was') 'there' ('a'|'') table:complete_table filter:pvp_id_soft_filter [weight=0.2]
+        | ('are'|'were'|'is'|'was') 'there' ('a'|'') table:complete_table ('with'|'having') filter:npp_id_soft_filter [weight=0.2] 
+        | ('are'|'were'|'is'|'was') 'there' ('a'|'') table:with_filtered_table filter:pvp_id_soft_filter [weight=0.1]
+        | ('are'|'were'|'is'|'was') 'there' ('a'|'') table:with_filtered_table ('with'|'having') filter:npp_id_soft_filter [weight=0.1]
+        ) => C.makeVerificationQuestion($loader, table, filter);
+    }
+}
+
+
+
+
+

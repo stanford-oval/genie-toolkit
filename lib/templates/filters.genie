@@ -524,3 +524,11 @@ within_filter : ({ distance : Ast.Value, place : Ast.Value }) = {
     'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location
         => ({ distance, place });
 }
+
+// id softmatch
+npp_id_soft_filter : C.DomainIndependentFilterSlot = {
+    ('name' | 'title') x:constant_String => C.makeDomainIndependentFilter('id', '=~', x);
+}
+pvp_id_soft_filter : C.DomainIndependentFilterSlot = {
+    ('called' | 'named') x:constant_String => C.makeDomainIndependentFilter('id', '=~', x);
+}
