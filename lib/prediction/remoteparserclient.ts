@@ -21,6 +21,7 @@
 
 import * as ThingTalk from 'thingtalk';
 import * as Tp from 'thingpedia';
+import * as Utils from '../utils/misc-utils';
 import qs from 'qs';
 
 import { EntityMap } from '../utils/entity-utils';
@@ -30,6 +31,7 @@ import {
     PredictionResult,
     GenerationResult,
     ExactMatcher,
+    GenerationOptions,
 } from './types';
 import ExactMatcherBuilder from './exactbuilder';
 
@@ -168,4 +170,30 @@ export default class RemoteParserClient {
 
         return parsed.candidates;
     }
+
+    async translateUtterance(input : string[], entities : string[]|undefined, generationOptions : GenerationOptions) : Promise<GenerationResult[]> {
+        input = Utils.qpisEntities(input, entities);
+
+        const data = {
+            input: input.join(' '),
+            tgt_locale: generationOptions.tgt_locale,
+            entities: entities,
+            alignment: generationOptions.do_alignment,
+            src_locale: generationOptions.src_locale,
+            // always remove quotation marks in the output string used to mark entity boundaries
+            align_remove_output_quotation: true,
+            // always break input utterance into individual sentences before translation
+            translate_example_split: true
+        };
+
+        const response = await Tp.Helpers.Http.post(`${this._baseUrl}/translate`, JSON.stringify(data), {
+            dataContentType: 'application/json' //'
+        });
+        const parsed = JSON.parse(response);
+        if (parsed.error)
+            throw new Error('Error received from Genie server: ' + parsed.error);
+
+        return parsed.candidates;
+    }
+
 }

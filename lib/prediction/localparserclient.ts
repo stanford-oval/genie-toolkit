@@ -35,12 +35,14 @@ import {
     PredictionCandidate,
     PredictionResult,
     GenerationResult,
-    ExactMatcher
+    ExactMatcher,
+    GenerationOptions
 } from './types';
 
 const SEMANTIC_PARSING_TASK = 'almond';
 const NLU_TASK = 'almond_dialogue_nlu';
 const NLG_TASK = 'almond_dialogue_nlg';
+const TRANSLATION_TASK = 'almond_translate';
 const NLG_QUESTION = 'what should the agent say ?';
 
 export interface CacheInterface {
@@ -287,6 +289,17 @@ export default class LocalParserClient {
 
     async generateUtterance(contextCode : string[], contextEntities : EntityMap, targetAct : string[]) : Promise<GenerationResult[]> {
         const candidates = await this._predictor.predict(contextCode.join(' ') + ' ' + targetAct.join(' '), NLG_QUESTION, undefined, NLG_TASK);
+        return candidates.map((cand) => {
+            return {
+                answer: cand.answer,
+                score: cand.score.confidence ?? 1
+            };
+        });
+    }
+
+    async translateUtterance(input : string[], entities : string[]|undefined, generationOptions : GenerationOptions) : Promise<GenerationResult[]> {
+        input = Utils.qpisEntities(input, entities);
+        const candidates = await this._predictor.predict('', input.join(' '), undefined, TRANSLATION_TASK, undefined, generationOptions);
         return candidates.map((cand) => {
             return {
                 answer: cand.answer,
