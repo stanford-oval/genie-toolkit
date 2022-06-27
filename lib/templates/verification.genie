@@ -40,7 +40,7 @@ boolean_question = {
     | ('are'|'is'|'was'|'were') table:entity_table 'not' ('a'|'an'|'') filter:npi_filter with { functionName = table.functionName } [weight=0.1]
     | ('are'|'is'|'was'|'were') table:entity_table 'not' filter:apv_filter with { functionName = table.functionName } [weight=0.1]
     | ('are'|'is'|'was'|'were') table:entity_table 'not' filter:npv_filter with { functionName = table.functionName } [weight=0.1]
-    ) => C.makeVerificationQuestion($loader, table, filter);
+    ) => C.makeVerificationQuestion($loader, table, filter, true);
      
     ( ('does'|'do'|'did') table:entity_table 'have' p:out_param_NotArray__Any with { functionName = table.functionName }
     | ('does'|'do'|'did') 'not' table:entity_table 'have' p:out_param_NotArray__Any with { functionName = table.functionName } [weight=0.1]
@@ -48,7 +48,7 @@ boolean_question = {
         const projection = C.makeFilter($loader, p, '==', new Ast.Value.Null);
         if (!projection)
             return null;
-        C.makeVerificationQuestion($loader, table, projection);
+        return C.makeVerificationQuestion($loader, table, projection);
     };
 
     ('does'|'do'|'did') ('the' | '') table:entity_table 'have' 'no' p:out_param_NotArray__Any with { functionName = table.functionName } [weight=0.1]
@@ -56,7 +56,8 @@ boolean_question = {
         const projection = C.makeFilter($loader, p, '==', new Ast.Value.Null, true);
         if (!projection)
             return null;
-        C.makeVerificationQuestion($loader, table, projection);
+        return C.makeVerificationQuestion($loader, table, projection);
     };
 
+    //TODO: add templates for "are there any XXX"
 }
