@@ -232,7 +232,7 @@ export class DialogueLoop {
         return pref.get('mixed-initiative') as boolean;
     }
 
-    private _getDefaultDeviec() : string {
+    private _getDefaultDevice() : string {
         const pref = this.engine.platform.getSharedPreferences();
         return pref.get('default-device') as string;
     }
@@ -464,7 +464,7 @@ export class DialogueLoop {
         
         if (this._mixedInitiative) {
             console.log(`Mixed-initiative mode activated`);
-            const defaultDevice = this._getDefaultDeviec();
+            const defaultDevice = this._getDefaultDevice();
             this._initializeDefaultDevice(defaultDevice);
         }
 
