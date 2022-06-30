@@ -232,6 +232,11 @@ export class DialogueLoop {
         return pref.get('mixed-initiative') as boolean;
     }
 
+    private _getDefaultDeviec() : string {
+        const pref = this.engine.platform.getSharedPreferences();
+        return pref.get('default-device') as string;
+    }
+
     private _formatError(error : Error|string) {
         if (typeof error === 'string')
             return error;
@@ -417,6 +422,7 @@ export class DialogueLoop {
         let bestreply : ReplyResult|undefined, bestpriority = -1;
         for (const handler of this._iterateDialogueHandlers()) {
             const reply = await handler.initialize(initialState ? initialState[handler.uniqueId] : undefined, showWelcome);
+            console.log(handler.icon);
             if (reply !== null && handler.priority > bestpriority) {
                 bestpriority = handler.priority;
                 bestreply = reply;
@@ -429,11 +435,38 @@ export class DialogueLoop {
             await this.setExpected(null);
     }
 
+    private async _initializeDefaultDevice(device : string) {
+        console.log(`Initialize default assistant: ${device}`);
+        const opt : ParseOptions = {
+            timezone: this.engine.platform.timezone,
+            thingpediaClient: this.engine.thingpedia,
+            schemaRetriever: this.engine.schemas as unknown as ThingTalk.SchemaRetriever,
+            loadMetadata: true
+        };
+        const program = `@${device}.kqed_podcasts();`
+        const ast = await ThingTalkUtils.parse(program, opt);
+        const default_input1 : UserInput = {
+            type: 'userThingtalk',
+            parsed: ast,
+            platformData: this.platformData
+        };
+        this.pushCommand(default_input1);
+        const default_input2 : UserInput = {
+            type: 'command',
+            utterance: `${device} init`,
+            platformData: this.platformData
+        };
+        this.pushCommand(default_input2);
+    }
+
     private async _loop(showWelcome : boolean, initialState : Record<string, unknown>|null) {
         await this._initialize(showWelcome, initialState);
         
-        if (this._mixedInitiative)
+        if (this._mixedInitiative) {
             console.log(`Mixed-initiative mode activated`);
+            const defaultDevice = this._getDefaultDeviec();
+            this._initializeDefaultDevice(defaultDevice);
+        }
 
         while (!this._stopped) {
             let item;
