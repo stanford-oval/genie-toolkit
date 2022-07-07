@@ -379,6 +379,8 @@ export class DialogueLoop {
                     } else {
                         break;
                     }
+                } else {
+                    break;
                 }
             }
 
