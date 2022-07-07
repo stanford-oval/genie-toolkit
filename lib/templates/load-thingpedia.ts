@@ -512,13 +512,16 @@ export default class ThingpediaLoader {
         if (!this._recordType(ptype, arg))
             return;
 
+        if (this._options.flags.wikidata && pname.includes('.'))
+            return;
+
         const filterable = arg.getImplementationAnnotation<boolean>('filterable') ?? true;
         const symmetric = arg.getImplementationAnnotation<boolean>('symmetric') ?? false;
         const pslot : ParamSlot = { schema, name: pname, type: ptype,
             filterable, symmetric, ast: new Ast.Value.VarRef(pname) };
         this.params.push(pslot);
-
-        if (ptype.isCompound)
+        
+        if (!this._options.flags.wikidata && ptype.isCompound)
             return;
 
         if (arg.metadata.prompt) {
@@ -586,6 +589,9 @@ export default class ThingpediaLoader {
             } else if (pname === 'id' && !this._options.flags.no_soft_match_id) {
                 vtypes = [Type.String];
             }
+
+            if (this._options.flags.wikidata) 
+                vtypes = vtypes.map((vtype) => vtype instanceof Type.Compound ? vtype.fields.value.type : vtype );
         }
 
         if (!this._options.flags.turking && op === 'contains')
