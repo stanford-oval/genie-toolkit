@@ -554,7 +554,7 @@ export function makeTypeBasedStreamProjection(table : Ast.Expression) : Ast.Proj
 function isEqualityFilteredOnParameter(table : Ast.Expression, pname : string) : boolean {
     for (const [,filter] of iterateFilters(table)) {
         for (const field of iterateFields(filter)) {
-            if (field.name === pname && field instanceof Ast.AtomBooleanExpression &&
+            if (field instanceof Ast.AtomBooleanExpression && field.name === pname && 
                 (field.operator === '==' || field.operator === '=~'))
                 return true;
         }
@@ -669,7 +669,9 @@ function makeSortedTable(table : Ast.Expression, pname : string, direction = 'de
 
     for (const [,filter] of iterateFilters(table)) {
         for (const atom of iterateFields(filter)) {
-            if (atom.name === pname)
+            if ('name' in atom && atom.name === pname)
+                return null;
+            if ('lhs' in atom && atom.lhs instanceof Ast.Value.VarRef && atom.lhs.name === pname)
                 return null;
         }
     }
@@ -920,7 +922,7 @@ function* iterateFilters(table : Ast.Expression) : Generator<[Ast.FunctionDef, A
     }
 }
 
-function* iterateFields(filter : Ast.BooleanExpression) : Generator<Ast.AtomBooleanExpression|Ast.DontCareBooleanExpression, void> {
+function* iterateFields(filter : Ast.BooleanExpression) : Generator<Ast.AtomBooleanExpression|Ast.DontCareBooleanExpression|Ast.ComparisonSubqueryBooleanExpression, void> {
     assert(filter instanceof Ast.BooleanExpression);
     if (filter instanceof Ast.AndBooleanExpression) {
         for (const operand of filter.operands)
@@ -929,8 +931,10 @@ function* iterateFields(filter : Ast.BooleanExpression) : Generator<Ast.AtomBool
         yield *iterateFields(filter.expr);
     } else if (filter instanceof Ast.AtomBooleanExpression || filter instanceof Ast.DontCareBooleanExpression) {
         yield filter;
+    } else if (filter instanceof Ast.ComparisonSubqueryBooleanExpression) { 
+        yield filter;
     } else {
-        assert(filter.isTrue || filter.isFalse || filter.isOr || filter.isCompute || filter.isExternal);
+        assert(filter.isTrue || filter.isFalse || filter.isOr || filter.isCompute || filter.isExternal || filter.isExistentialSubquery);
     }
 }
 
@@ -1050,7 +1054,9 @@ function addFilterInternal(table : Ast.Expression,
         const conflict = arg.getImplementationAnnotation<string[]>('conflict_filter');
         if (conflict !== undefined) {
             for (const atom2 of iterateFields(existing)) {
-                if (conflict.includes(atom2.name))
+                if ('name' in atom2 && conflict.includes(atom2.name))
+                    return null;
+                if ('lhs' in atom2 && atom2.lhs instanceof Ast.Value.VarRef && conflict.includes(atom2.lhs.name))
                     return null;
             }
         }
@@ -1427,7 +1433,7 @@ function hasConflictParam(table : Ast.Expression, pname : string, operation : st
 function maybeGetIdFilter(subquery : Ast.Expression) : Ast.Value|undefined {
     for (const [, filter] of iterateFilters(subquery)) {
         for (const atom of iterateFields(filter)) {
-            if (atom.name === 'id' && atom instanceof Ast.AtomBooleanExpression)
+            if (atom instanceof Ast.AtomBooleanExpression && atom.name === 'id')
                 return atom.value;
         }
     }
@@ -1606,7 +1612,9 @@ function makeComputeArgMinMaxExpression(table : Ast.Expression,
         return null;
     for (const [, filter] of iterateFilters(table)) {
         for (const atom of iterateFields(filter)) {
-            if (atom.name === (operands[0] as Ast.VarRefValue).name)
+            if ('name' in atom && atom.name === (operands[0] as Ast.VarRefValue).name)
+                return null;
+            if ('lhs' in atom && atom.lhs instanceof Ast.VarRefValue && atom.lhs.name ===  (operands[0] as Ast.VarRefValue).name)
                 return null;
         }
     }
