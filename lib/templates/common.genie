@@ -256,3 +256,6 @@ base_table_hidden : Ast.InvocationExpression = {}
 base_noun_phrase : Ast.FunctionDef = {}
 generic_anything_noun_phrase : Ast.InvocationExpression = {}
 generic_base_noun_phrase : Ast.InvocationExpression = {}
+
+// qualifier
+time_qualifier : C.FilterSlot = {}

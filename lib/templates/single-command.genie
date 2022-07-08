@@ -36,6 +36,7 @@ import './commands.genie';
 import './stream_tables.genie';
 import './joins.genie';
 import './verification.genie';
+import './qualifier.genie';
 import './wikidata.genie';
 
 $root : Ast.Input = {

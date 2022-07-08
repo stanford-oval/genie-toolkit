@@ -148,6 +148,10 @@ export default class ThingpediaLoader {
         base : string;
         canonical : string;
     }>;
+    qualifiers : Array<{
+        pname : string;
+        pslot : ParamSlot;
+    }>
     idQueries : Map<string, Ast.FunctionDef>;
     compoundArrays : { [key : string] : InstanceType<typeof Type.Compound> };
     globalWhiteList : string[]|null;
@@ -192,6 +196,7 @@ export default class ThingpediaLoader {
         this.types = new Map;
         this.params = [];
         this.projections = [];
+        this.qualifiers = [];
         this.idQueries = new Map;
         this.compoundArrays = {};
         this.entitySubTypeMap = {};
@@ -506,14 +511,49 @@ export default class ThingpediaLoader {
         }
     }
 
+    
+    private _recordOutputQualifier(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
+        const pname = arg.name;
+        const ptype = arg.type;
+
+        assert(ptype instanceof Type.Array && ptype.elem instanceof Type.Compound);
+        for (const [field, argdef] of Object.entries(ptype.elem.fields)) {
+            if (field === 'value')
+                continue;
+            const pslot = { schema, name:field, type:argdef.type, filterable: true, symmetric: false, ast: new Ast.Value.VarRef(field) };
+            this.qualifiers.push({ pname, pslot });
+        }
+        /*
+        for (const [fname, field] of Object.entries(ptype.elem.fields)) {
+            let op = '==';
+            const slotOperator = field.getImplementationAnnotation<string>('slot_operator');
+            if (slotOperator) {
+                op = slotOperator;
+                assert(['==', '>=', '<=', 'contains'].includes(op));
+            } 
+            const canonical = this._langPack.preprocessParameterCanonical(field, this._options.forSide);
+            const filterforms = this._collectByPOS(canonical.filter_phrase);
+            for (const pos in filterforms) {
+                const forms = filterforms[pos];
+                const attributes = this._getRuleAttributes(canonical, pos, ptype);
+                const expansion = '{' + forms.join('|') + '}';
+                this._addRule(pos + '_qualifier', [])
+            }
+        }*/
+    }
+
     private _recordOutputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
         if (!this._recordType(ptype, arg))
             return;
 
-        if (this._options.flags.wikidata && pname.includes('.'))
-            return;
+        if (this._options.flags.wikidata) {
+            if (pname.includes('.'))
+                return;
+            if (ptype instanceof Type.Array && ptype.elem instanceof Type.Compound)
+                this._recordOutputQualifier(schema, arg);
+        }
 
         const filterable = arg.getImplementationAnnotation<boolean>('filterable') ?? true;
         const symmetric = arg.getImplementationAnnotation<boolean>('symmetric') ?? false;
