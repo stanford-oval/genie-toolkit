@@ -744,11 +744,17 @@ export function combineStreamQuery(loader : ThingpediaLoader,
 }
 
 function checkQualifier(ptype : Type.Compound, filter : Ast.BooleanExpression) : boolean {
-    if (!(filter instanceof Ast.AtomBooleanExpression))
-        return false;
-    const field = filter.name;
-    if (!(field in ptype.fields))
-        return false;
+    for (const atom of iterateFields(filter)) {
+        let field;
+        if (atom instanceof Ast.AtomBooleanExpression)
+            field = atom.name;
+        else if (atom instanceof Ast.ComparisonSubqueryBooleanExpression)
+            field = (atom.lhs as Ast.VarRefValue).name;
+        if (!field)
+            return false;
+        if (!(field in ptype.fields))
+            return false;
+    }
     // TODO: typecheck filter inside qualifiedValue
     return true;    
 }
@@ -2107,16 +2113,35 @@ export function whenDoRule(table : Ast.Expression, action : ExpressionWithCorefe
 }
 
 function makeWikidataTimeFilter(qualifier : { pname : string, pslot : ParamSlot } , op : string, constants : Ast.Value[]) : FilterSlot|null {
-    // date point
     assert(constants.length === 1 || constants.length === 2);
+    const ptype = qualifier.pslot.schema.getArgType(qualifier.pname);
+    if (!(ptype instanceof Type.Array) || !(ptype.elem instanceof Type.Compound))
+        return null;
     if (constants.length === 1) {
+        // date point
         const filter = new Ast.BooleanExpression.Atom(null, qualifier.pslot.name, op, constants[0]);
         return {
             schema: qualifier.pslot.schema,
-            ptype: qualifier.pslot.type,
+            ptype,
             ast: filter
         };
-    } 
+    } else if (op === '==' && (qualifier.pslot.name === 'start_time' || qualifier.pslot.name === 'end_time')) {
+        // date range with start_time & end_time
+        if (!('start_time' in ptype.elem.fields && 'end_time' in ptype.elem.fields))
+            return null;
+        const filter = new Ast.BooleanExpression.Or(null, [
+            new Ast.BooleanExpression.Atom(null, 'start_time', '>=', constants[1]),
+            new Ast.BooleanExpression.Atom(null, 'end_time', '<=', constants[0])
+        ]);
+        return { schema: qualifier.pslot.schema, ptype, ast: filter };
+    } else if (op === '==' && qualifier.pslot.name === 'point_in_time') {
+        // date range with point_in_time
+        const filter = new Ast.BooleanExpression.And(null, [
+            new Ast.BooleanExpression.Atom(null, 'point_in_time', '>=', constants[0]),
+            new Ast.BooleanExpression.Atom(null, 'point_in_time', '<=', constants[1])
+        ]);
+        return { schema: qualifier.pslot.schema, ptype, ast: filter };
+    }
     return null;
 }
 
@@ -2126,14 +2151,20 @@ function addFilterWithQualifier(loader : ThingpediaLoader,
                                 qualifier : FilterSlot) {
     if (!(filter.ast instanceof Ast.AtomBooleanExpression))
         return null;
-    if (!(qualifier.ast instanceof Ast.AtomBooleanExpression))
-        return null;
-    const field = qualifier.ast.name;
     const ptype = table.schema?.getArgType(filter.ast.name);
     if (!(ptype instanceof Type.Array && ptype.elem instanceof Type.Compound))
         return null;
-    if (!(field in ptype.elem.fields))
-        return null;
+    for (const atom of iterateFields(qualifier.ast)) {
+        let field;
+        if (atom instanceof Ast.AtomBooleanExpression)
+            field = atom.name;
+        else if (atom instanceof Ast.ComparisonSubqueryBooleanExpression)
+            field = (atom.lhs as Ast.VarRefValue).name;
+        if (!field)
+            return null;
+        if (!(field in ptype.elem.fields))
+            return null;
+    }
     const qualifiedFilter : Ast.BooleanExpression = new Ast.BooleanExpression.Compute(
         null,
         new Ast.FilterValue(new Ast.Value.VarRef(filter.ast.name), qualifier.ast),

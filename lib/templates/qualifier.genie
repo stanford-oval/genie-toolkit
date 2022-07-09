@@ -35,8 +35,8 @@ for (const qualifier of $loader.qualifiers) {
 
 one_with_filter_table : Ast.Expression = {
     !nofilter {
-        ( table:complete_table ('with' | 'having') filter:with_filter with { functionName = table.functionName } qualifier:time_qualifier
-        | table:complete_table ('with' | 'having') filter:npp_filter with { functionName = table.functionName } qualifier:time_qualifier
+        ( table:complete_table ('with' | 'having') filter:with_filter with { functionName = table.functionName } qualifier:time_qualifier with { type = filter.type }
+        | table:complete_table ('with' | 'having') filter:npp_filter with { functionName = table.functionName } qualifier:time_qualifier with { type = filter.type }
         ) => C.addFilterWithQualifier($loader, table, filter, qualifier);
     }
 }
