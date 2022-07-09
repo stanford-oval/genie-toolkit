@@ -259,3 +259,5 @@ generic_base_noun_phrase : Ast.InvocationExpression = {}
 
 // qualifier
 time_qualifier : C.FilterSlot = {}
+qualified_with_filter : C.FilterSlot = {}
+qualified_npp_filter : C.FilterSlot = {}

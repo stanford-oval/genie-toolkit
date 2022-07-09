@@ -32,11 +32,21 @@ for (const qualifier of $loader.qualifiers) {
     } 
 }
 
+qualified_with_filter : C.FilterSlot = {
+    filter:with_filter qualifier:time_qualifier with { type = filter.type }
+    => C.makeQualifiedFilter(filter, qualifier);
+}
+
+qualified_npp_filter : C.FilterSlot = {
+    filter:npp_filter qualifier:time_qualifier with { type = filter.type }
+    => C.makeQualifiedFilter(filter, qualifier);
+}
+
 
 one_with_filter_table : Ast.Expression = {
     !nofilter {
-        ( table:complete_table ('with' | 'having') filter:with_filter with { functionName = table.functionName } qualifier:time_qualifier with { type = filter.type }
-        | table:complete_table ('with' | 'having') filter:npp_filter with { functionName = table.functionName } qualifier:time_qualifier with { type = filter.type }
-        ) => C.addFilterWithQualifier($loader, table, filter, qualifier);
+        ( table:complete_table ('with' | 'having') filter:qualified_with_filter with { functionName = table.functionName }
+        | table:complete_table ('with' | 'having') filter:qualified_npp_filter with { functionName = table.functionName } 
+        ) => C.addFilter($loader, table, filter);
     }
 }

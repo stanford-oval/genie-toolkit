@@ -2145,14 +2145,8 @@ function makeWikidataTimeFilter(qualifier : { pname : string, pslot : ParamSlot 
     return null;
 }
 
-function addFilterWithQualifier(loader : ThingpediaLoader,
-                                table : Ast.Expression,
-                                filter : FilterSlot,
-                                qualifier : FilterSlot) {
-    if (!(filter.ast instanceof Ast.AtomBooleanExpression))
-        return null;
-    const ptype = table.schema?.getArgType(filter.ast.name);
-    if (!(ptype instanceof Type.Array && ptype.elem instanceof Type.Compound))
+function makeQualifiedFilter(filter : FilterSlot, qualifier : FilterSlot) : FilterSlot|null {
+    if (!(filter.ptype instanceof Type.Array && filter.ptype.elem instanceof Type.Compound))
         return null;
     for (const atom of iterateFields(qualifier.ast)) {
         let field;
@@ -2162,17 +2156,27 @@ function addFilterWithQualifier(loader : ThingpediaLoader,
             field = (atom.lhs as Ast.VarRefValue).name;
         if (!field)
             return null;
-        if (!(field in ptype.elem.fields))
+        if (!(field in filter.ptype.elem.fields))
             return null;
     }
-    const qualifiedFilter : Ast.BooleanExpression = new Ast.BooleanExpression.Compute(
+    const ast = filter.ast instanceof Ast.NotBooleanExpression ? filter.ast.expr : filter.ast;
+    if (!(ast instanceof Ast.AtomBooleanExpression))
+        return null;
+    let qualifiedFilter = new Ast.BooleanExpression.Compute(
         null,
-        new Ast.FilterValue(new Ast.Value.VarRef(filter.ast.name), qualifier.ast),
-        filter.ast.operator,
-        filter.ast.value
+        new Ast.FilterValue(new Ast.Value.VarRef(ast.name), qualifier.ast),
+        ast.operator,
+        ast.value
     );
-    return addFilter(loader, table, { schema:filter.schema, ptype, ast:qualifiedFilter });
+    if (filter.ast instanceof Ast.NotBooleanExpression)
+        qualifiedFilter = new Ast.NotBooleanExpression(null, qualifiedFilter);
+    return { 
+        schema:filter.schema, 
+        ptype: filter.ptype, 
+        ast: qualifiedFilter 
+    };
 }
+
 
 export {
     // helpers
@@ -2218,7 +2222,7 @@ export {
 
     // wikidata qualifiers
     makeWikidataTimeFilter,
-    addFilterWithQualifier,
+    makeQualifiedFilter,
 
     // subquery
     hasExistentialSubquery,
