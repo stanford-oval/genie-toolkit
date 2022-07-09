@@ -834,7 +834,7 @@ function checkAtomFilter(loader : ThingpediaLoader, table : Ast.Expression, filt
     const valueType = filter.value.getType();
     const parentTypes = valueType instanceof Type.Entity ? loader.entitySubTypeMap[valueType.type] || [] : [];
     for (const type of vtypes) {
-        if (valueType.equals(type)) {
+        if (Type.isAssignable(valueType, type)) {
             typeMatch = true;
             break;
         } else if (type instanceof Type.Entity && parentTypes.includes(type.type)) {

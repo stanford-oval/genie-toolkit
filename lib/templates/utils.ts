@@ -177,7 +177,7 @@ function makeFilter(tpLoader : ThingpediaLoader,
             if ((vtype.isEnum && elem.isEnum) || (vtype.isEntity && elem.isEntity)) {
                 if (!Type.isAssignable(vtype, elem, {}, tpLoader.entitySubTypeMap))
                     return null;
-            } else if (!elem.equals(vtype)) {
+            } else if (!Type.isAssignable(vtype, elem, {}, tpLoader.entitySubTypeMap)) {
                 return null;
             }
         }
