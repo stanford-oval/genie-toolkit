@@ -743,9 +743,38 @@ export function combineStreamQuery(loader : ThingpediaLoader,
     return new Ast.ChainExpression(null, [stream, table], table.schema);
 }
 
-function checkComputeFilter(table : Ast.Expression, filter : Ast.ComputeBooleanExpression) : boolean {
-    if (!(filter.lhs instanceof Ast.ComputationValue))
+function checkQualifier(ptype : Type.Compound, filter : Ast.BooleanExpression) : boolean {
+    if (!(filter instanceof Ast.AtomBooleanExpression))
         return false;
+    const field = filter.name;
+    if (!(field in ptype.fields))
+        return false;
+    // TODO: typecheck filter inside qualifiedValue
+    return true;    
+}
+
+function checkQualifiedFilter(table : Ast.Expression, filter : Ast.ComputeBooleanExpression) : boolean {
+    const qualifiedValue = filter.lhs as Ast.FilterValue;
+    if (!(qualifiedValue.value instanceof Ast.Value.VarRef))
+        return false;
+    const ptype = table.schema!.getArgType(qualifiedValue.value.name);
+    if (!ptype) 
+        return false;
+    if (!(ptype instanceof Type.Array))
+        return false;
+    if (!(ptype.elem instanceof Type.Compound))
+        return false;
+    if (!Type.isAssignable(filter.rhs.getType(), ptype.elem)) 
+        return false;
+    return checkQualifier(ptype.elem, qualifiedValue.filter);
+}
+
+function checkComputeFilter(table : Ast.Expression, filter : Ast.ComputeBooleanExpression) : boolean {
+    if (!(filter.lhs instanceof Ast.ComputationValue) && !(filter.lhs instanceof Ast.FilterValue))
+        return false;
+
+    if (filter.lhs instanceof Ast.FilterValue) 
+        return checkQualifiedFilter(table, filter);
 
     // distance
     if (filter.lhs.op === 'distance') {
