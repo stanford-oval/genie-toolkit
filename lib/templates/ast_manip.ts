@@ -759,7 +759,7 @@ function checkQualifier(ptype : Type.Compound, filter : Ast.BooleanExpression) :
     return true;    
 }
 
-function checkQualifiedFilter(table : Ast.Expression, filter : Ast.ComputeBooleanExpression) : boolean {
+function checkQualifiedFilter(loader : ThingpediaLoader, table : Ast.Expression, filter : Ast.ComputeBooleanExpression) : boolean {
     const qualifiedValue = filter.lhs as Ast.FilterValue;
     if (!(qualifiedValue.value instanceof Ast.Value.VarRef))
         return false;
@@ -770,17 +770,17 @@ function checkQualifiedFilter(table : Ast.Expression, filter : Ast.ComputeBoolea
         return false;
     if (!(ptype.elem instanceof Type.Compound))
         return false;
-    if (!Type.isAssignable(filter.rhs.getType(), ptype.elem)) 
+    if (!Type.isAssignable(filter.rhs.getType(), ptype.elem, {}, loader.entitySubTypeMap)) 
         return false;
     return checkQualifier(ptype.elem, qualifiedValue.filter);
 }
 
-function checkComputeFilter(table : Ast.Expression, filter : Ast.ComputeBooleanExpression) : boolean {
+function checkComputeFilter(loader : ThingpediaLoader, table : Ast.Expression, filter : Ast.ComputeBooleanExpression) : boolean {
     if (!(filter.lhs instanceof Ast.ComputationValue) && !(filter.lhs instanceof Ast.FilterValue))
         return false;
 
     if (filter.lhs instanceof Ast.FilterValue) 
-        return checkQualifiedFilter(table, filter);
+        return checkQualifiedFilter(loader, table, filter);
 
     // distance
     if (filter.lhs.op === 'distance') {
@@ -869,7 +869,7 @@ function checkAtomFilter(loader : ThingpediaLoader, table : Ast.Expression, filt
     const valueType = filter.value.getType();
     const parentTypes = valueType instanceof Type.Entity ? loader.entitySubTypeMap[valueType.type] || [] : [];
     for (const type of vtypes) {
-        if (Type.isAssignable(valueType, type)) {
+        if (Type.isAssignable(valueType, type, {}, loader.entitySubTypeMap)) {
             typeMatch = true;
             break;
         } else if (type instanceof Type.Entity && parentTypes.includes(type.type)) {
@@ -919,7 +919,7 @@ function internalCheckFilter(loader : ThingpediaLoader, table : Ast.Expression, 
     }
 
     if (filter instanceof Ast.ComputeBooleanExpression)
-        return checkComputeFilter(table, filter);
+        return checkComputeFilter(loader, table, filter);
 
     if (filter instanceof Ast.AtomBooleanExpression)
         return checkAtomFilter(loader, table, filter);
