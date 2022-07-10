@@ -1059,7 +1059,9 @@ function addFilterInternal(table : Ast.Expression,
 
     if (table instanceof Ast.FilterExpression) {
         // if we already have a filter, don't add a new complex filter
-        if (!filter.isAtom && !(filter instanceof Ast.NotBooleanExpression && filter.expr.isAtom))
+        if (!filter.isAtom && 
+            !(filter instanceof Ast.NotBooleanExpression && filter.expr.isAtom) &&
+            !(filter instanceof Ast.ComputeBooleanExpression && filter.lhs instanceof Ast.FilterValue))
             return null;
 
         if (checkFilterUniqueness(table, filter))
@@ -1069,7 +1071,11 @@ function addFilterInternal(table : Ast.Expression,
             return null;
 
         const existing = table.filter;
-        const atom = filter instanceof Ast.NotBooleanExpression ? filter.expr : filter;
+        let atom = filter;
+        if (atom instanceof Ast.NotBooleanExpression)
+            atom = atom.expr;
+        if (atom instanceof Ast.ComputeBooleanExpression) 
+            atom = new Ast.BooleanExpression.Atom(null, ((atom.lhs as Ast.FilterValue).value as Ast.VarRefValue).name, atom.operator, atom.rhs);
         assert(atom instanceof Ast.AtomBooleanExpression);
         // check that we don't create a non-sensical filter, eg.
         // p == X && p == Y, or p > X && p > Y
