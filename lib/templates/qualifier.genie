@@ -42,11 +42,128 @@ qualified_npp_filter : C.FilterSlot = {
     => C.makeQualifiedFilter(filter, qualifier);
 }
 
+qualified_npp_filter : C.FilterSlot = {
+    filter:npp_filter qualifier:time_qualifier with { type = filter.type }
+    => C.makeQualifiedFilter(filter, qualifier);
+}
+
+qualified_npi_filter : C.FilterSlot = {
+    filter:npi_filter qualifier:time_qualifier with { type = filter.type }
+    => C.makeQualifiedFilter(filter, qualifier);
+}
+
+qualified_avp_filter : C.FilterSlot = {
+    filter:avp_filter qualifier:time_qualifier with { type = filter.type }
+    => C.makeQualifiedFilter(filter, qualifier);
+}
+
+qualified_pvp_filter : C.FilterSlot = {
+    filter:pvp_filter qualifier:time_qualifier with { type = filter.type }
+    => C.makeQualifiedFilter(filter, qualifier);
+}
+
+qualified_npv_filter : C.FilterSlot = {
+    filter:npv_filter qualifier:time_qualifier with { type = filter.type }
+    => C.makeQualifiedFilter(filter, qualifier);
+}
+
+qualified_apv_filter : C.FilterSlot = {
+    filter:apv_filter qualifier:time_qualifier with { type = filter.type }
+    => C.makeQualifiedFilter(filter, qualifier);
+}
+
+qualified_reverse_verb_filter : C.FilterSlot = {
+    filter:reverse_verb_filter qualifier:time_qualifier with { type = filter.type }
+    => C.makeQualifiedFilter(filter, qualifier);
+}
+
+qualified_preposition_filter : C.FilterSlot = {
+    filter:preposition_filter qualifier:time_qualifier with { type = filter.type }
+    => C.makeQualifiedFilter(filter, qualifier);
+}
 
 one_with_filter_table : Ast.Expression = {
     !nofilter {
         ( table:complete_table ('with' | 'having') filter:qualified_with_filter with { functionName = table.functionName }
-        | table:complete_table ('with' | 'having') filter:qualified_npp_filter with { functionName = table.functionName } 
+        | table:complete_table ('with' | 'having') filter:qualified_npp_filter with { functionName = table.functionName }
+        ) => C.addFilter($loader, table, filter);
+    }
+}
+
+one_which_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:complete_table ('which' | 'that') ('is' | 'are') filter:qualified_npi_filter with { functionName = table.functionName }
+        | table:complete_table ('which' | 'that') filter:qualified_avp_filter with { functionName = table.functionName }
+        | table:complete_table ('which' | 'that') ('is' | 'are') filter:qualified_apv_filter with { functionName = table.functionName }
+        | table:complete_table ('which' | 'that') ('is' | 'are') filter:qualified_npv_filter with { functionName = table.functionName }
+        | table:complete_table ('which' | 'that') 'have' filter:qualified_npp_filter with { functionName = table.functionName }
+        | table:complete_table ('which' | 'that') 'have' filter:qualified_with_filter with { functionName = table.functionName }
+        | table:complete_table ('which' | 'that') filter:qualified_reverse_verb_filter with { functionName = table.functionName }
+        ) => C.addFilter($loader, table, filter);
+    }
+}
+
+one_clean_filter_table : Ast.Expression = {
+    !nofilter {
+        ( filter:qualified_apv_filter table:complete_table with { functionName = filter.functionName }
+        | table:complete_table filter:qualified_pvp_filter with { functionName = table.functionName }
+        | table:complete_table filter:qualified_preposition_filter with { functionName = table.functionName }
+        ) => C.addFilter($loader, table, filter);
+    }
+}
+
+two_with_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:one_with_filter_table 'and' filter:qualified_with_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') ('and having' | 'and with' | ', with' | 'and have') filter:qualified_with_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('with' | 'having' | 'that have') filter:qualified_with_filter with { functionName = table.functionName }
+        | table:one_with_filter_table 'and' filter:qualified_npp_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') ('and having' | 'and with' | ', with' | 'and have') filter:qualified_npp_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('with' | 'having' | 'that have') filter:qualified_npp_filter with { functionName = table.functionName }
+        ) => C.addFilter($loader, table, filter);
+    }
+
+    !nofilter filter:qualified_apv_filter table:one_with_filter_table with { functionName = filter.functionName } => C.addFilter($loader, table, filter);
+}
+
+two_which_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:one_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:qualified_npi_filter with { functionName = table.functionName }
+        | table:one_with_filter_table ('' | ',') ('which' | 'that') filter:qualified_avp_filter with { functionName = table.functionName }
+        | table:one_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:qualified_apv_filter with { functionName = table.functionName }
+        | table:one_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:qualified_npv_filter with { functionName = table.functionName }
+        | table:one_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:qualified_npp_filter with { functionName = table.functionName }
+        | table:one_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:qualified_with_filter with { functionName = table.functionName }
+        | table:one_with_filter_table ('' | ',') ('which' | 'that') filter:qualified_reverse_verb_filter with { functionName = table.functionName }
+        ) => C.addFilter($loader, table, filter);
+
+        ( table:one_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:qualified_npi_filter with { functionName = table.functionName }
+        | table:one_which_filter_table 'and' filter:qualified_avp_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:qualified_apv_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:qualified_npv_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') 'and' 'have' filter:qualified_npp_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') 'and' 'have' filter:qualified_with_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') 'and' filter:qualified_reverse_verb_filter with { functionName = table.functionName }
+        ) => C.addFilter($loader, table, filter);
+
+        ( table:one_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:qualified_npi_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('which' | 'that') filter:qualified_avp_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:qualified_apv_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:qualified_npv_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:qualified_npp_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:qualified_with_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('which' | 'that') filter:qualified_reverse_verb_filter with { functionName = table.functionName }
+        ) => C.addFilter($loader, table, filter);
+
+        !nofilter filter:qualified_apv_filter table:one_which_filter_table with { functionName = filter.functionName } => C.addFilter($loader, table, filter);
+    }
+}
+
+two_clean_filter_table : Ast.Expression = {
+    !nofilter {
+        ( filter:qualified_apv_filter table:one_clean_filter_table with { functionName = filter.functionName }
+        | table:one_clean_filter_table filter:qualified_pvp_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table filter:qualified_preposition_filter with { functionName = table.functionName }
         ) => C.addFilter($loader, table, filter);
     }
 }
