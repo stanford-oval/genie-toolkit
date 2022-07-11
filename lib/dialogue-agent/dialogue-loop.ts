@@ -351,7 +351,7 @@ export class DialogueLoop {
                 continue;
             }
 
-            const reply = await handler.getReply(analysis);
+            var reply = await handler.getReply(analysis);
 
             if (!this._mixedInitiative) {
                 // reset the state of the handler when we switch to a different one
@@ -379,6 +379,7 @@ export class DialogueLoop {
                     } else {
                         break;
                     }
+                    reply = gsReply;
                 } else {
                     break;
                 }

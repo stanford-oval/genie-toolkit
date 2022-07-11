@@ -149,6 +149,13 @@ export class AgentDialog {
             this._last_expecting = null;
             this._last_target = null;
             this._last_analyzed = null;
+        } else {
+            this._last_result = {
+                messages: [prompt!].concat(this._last_messages),
+                expecting: null,
+                context: "",
+                agent_target: ""
+            };
         }
         while (true) {
             const input = yield this._last_result;
