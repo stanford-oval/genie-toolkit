@@ -133,29 +133,28 @@ export class AgentDialog {
                 agent_target: this._last_target!
             };
 
-            if (prompt) {
-                this._last_result.messages.push(prompt);
-                this._last_result_only_prompt = {
-                    messages: [prompt!],
-                    expecting: this._last_expecting,
-                    context: this._last_analyzed,
-                    agent_target: this._last_target!
-                };
-            } else {
-                this._last_result_only_prompt = null;
-            }
-
             this._last_messages = [];
             this._last_expecting = null;
             this._last_target = null;
             this._last_analyzed = null;
         } else {
             this._last_result = {
-                messages: [prompt!].concat(this._last_messages),
+                messages: this._last_messages,
                 expecting: null,
                 context: "",
                 agent_target: ""
             };
+        }
+        if (prompt) {
+            this._last_result.messages.push(prompt);
+            this._last_result_only_prompt = {
+                messages: [prompt!],
+                expecting: this._last_expecting,
+                context: this._last_analyzed ?? "",
+                agent_target: this._last_target!
+            };
+        } else {
+            this._last_result_only_prompt = null;
         }
         while (true) {
             const input = yield this._last_result;

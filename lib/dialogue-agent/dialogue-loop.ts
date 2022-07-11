@@ -376,10 +376,9 @@ export class DialogueLoop {
                     if (gsReply.messages.length) {
                         this.icon = this._prevGeniescriptAgent.icon;
                         await this._sendAgentReply(gsReply);
-                    } else {
-                        break;
                     }
                     reply = gsReply;
+                    break;
                 } else {
                     break;
                 }
