@@ -369,7 +369,7 @@ export class DialogueLoop {
                 this._prevGeniescriptAgent = handler as ThingpediaDialogueHandler<any, any>;
 
             while (this.expecting === null) {
-                if (!isCurrentGeniescript)
+                if (isCurrentGeniescript)
                     break;
                 if (this._prevGeniescriptAgent !== null) {
                     const gsReply = await this._prevGeniescriptAgent.getAgentInputFollowUp(reply.messages);
@@ -445,7 +445,7 @@ export class DialogueLoop {
             schemaRetriever: this.engine.schemas as unknown as ThingTalk.SchemaRetriever,
             loadMetadata: true
         };
-        const program = `@${device}.kqed_podcasts();`
+        const program = `@${device}.kqed_podcasts();`;
         const ast = await ThingTalkUtils.parse(program, opt);
         const default_input1 : UserInput = {
             type: 'userThingtalk',

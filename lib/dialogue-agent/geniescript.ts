@@ -23,12 +23,16 @@ export type GeniescriptLogic = AsyncGenerator<Tp.DialogueHandler.CommandAnalysis
 
 export abstract class GeniescriptAgent implements Tp.DialogueHandler<GeniescriptAnalysisResult, string> {
     private _logic : GeniescriptLogic | null;
+    private skill_name : string;
+    public dlg : AgentDialog;
 
-    protected constructor(public priority = Tp.DialogueHandler.Priority.PRIMARY, public icon : string | null = null) {
+    protected constructor(public priority = Tp.DialogueHandler.Priority.PRIMARY, public icon : string | null = null, user_target : string, skill_name : string) {
         console.log("AbstractGeniescriptHandler constructor");
         this._logic = null;
         if (this.constructor === GeniescriptAgent)
             throw new Error("Abstract classes can't be instantiated.");
+        this.skill_name = skill_name;
+        this.dlg = new AgentDialog(user_target, skill_name);
     }
 
     getState() : string {
@@ -36,14 +40,24 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
         return "geniescript state";
     }
 
+    async *__wrapped_logic() : GeniescriptLogic {
+        const self = this;
+        const prompt_str : string = self.skill_name + " init";
+        yield * this.dlg!.expect(new Map([
+            [prompt_str, ( async function*() {
+                yield * self.logic();
+            })]
+        ]), "This is KEQD Geniscript. What can I help you with?");
+    }
+
     reset() : void {
-        this._logic = this.logic();
+        this._logic = this.__wrapped_logic();
         // noinspection JSIgnoredPromiseFromCall
         this._logic.next();
     }
 
     async initialize() {
-        this._logic = this.logic();
+        this._logic = this.__wrapped_logic();
         await this._logic.next();
         return null;
     }
@@ -109,7 +123,7 @@ export class AgentDialog {
         func_map : Map<string,
             (GeneratorFunction | AsyncGeneratorFunction | (() => Promise<any>)| (() => any))
             >,
-        prompt : string | null
+        prompt : string | null = null
     ) : GeniescriptLogic {
         if (this._last_analyzed !== null) {
             this._last_result = {
