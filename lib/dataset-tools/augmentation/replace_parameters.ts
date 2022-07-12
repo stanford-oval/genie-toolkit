@@ -391,6 +391,7 @@ interface ParameterReplacerOptions {
     cleanParameters ?: boolean;
     requotable ?: boolean;
     includeEntityValue ?: boolean;
+    excludeEntityDisplay ?: boolean;
     numAttempts ?: number;
     syntheticExpandFactor ?: number;
     noQuoteExpandFactor ?: number;
@@ -422,6 +423,7 @@ export default class ParameterReplacer {
     private _cleanParameters : boolean;
     private _requotable : boolean;
     private _includeEntityValue : boolean;
+    private _excludeEntityDisplay : boolean;
     private _numAttempts : number;
     private _debug : boolean;
     private _blowUpSynthetic : number;
@@ -446,6 +448,7 @@ export default class ParameterReplacer {
         this._cleanParameters = _default(options.cleanParameters, true);
         this._requotable = _default(options.requotable, true);
         this._includeEntityValue = _default(options.includeEntityValue, false);
+        this._excludeEntityDisplay = _default(options.excludeEntityDisplay, false);
         this._numAttempts = _default(options.numAttempts, 10000);
         this._debug = _default(options.debug, true);
 
@@ -883,7 +886,9 @@ export default class ParameterReplacer {
                         output.push('"', value, '"');
                     else
                         output.push('null');
-                    output.push('^^' + token.substring('GENERIC_ENTITY_'.length, token.length-2), '(', '"', string, '"', ')');
+                    output.push('^^' + token.substring('GENERIC_ENTITY_'.length, token.length-2));
+                    if (!this._excludeEntityDisplay)
+                        output.push('(', '"', string, '"', ')');
                 } else if (token.startsWith('NUMBER_')) {
                     output.push(string);
                 } else {

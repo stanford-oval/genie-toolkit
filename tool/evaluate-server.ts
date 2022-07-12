@@ -143,6 +143,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: "Include entity value in thingtalk",
         default: false
     });
+    parser.add_argument('--exclude-entity-display', {
+        action: 'store_true',
+        help: "Exclude entity display in thingtalk",
+        default: false
+    });
     parser.add_argument('--ignore-entity-type', {
         action: 'store_true',
         help: "Ignore the exact entity type when evaluate",
@@ -167,6 +172,7 @@ export async function execute(args : any) {
             complexityMetric: args.complexity_metric,
             oracle: args.oracle,
             includeEntityValue: args.include_entity_value,
+            excludeEntityDisplay: args.exclude_entity_value,
             ignoreEntityType: args.ignore_entity_type
         }))
         .pipe(new CollectSentenceStatistics({

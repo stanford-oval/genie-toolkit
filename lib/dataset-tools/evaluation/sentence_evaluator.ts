@@ -80,8 +80,9 @@ type SentenceEvaluatorOptions = {
     tokenized ?: boolean;
     oracle ?: boolean;
     complexityMetric ?: keyof typeof COMPLEXITY_METRICS;
-    includeEntityValue ?: boolean
-    ignoreEntityType ?: boolean
+    includeEntityValue ?: boolean;
+    excludeEntityDisplay ?: boolean;
+    ignoreEntityType ?: boolean;
 } & ThingTalkUtils.ParseOptions;
 
 export interface ExampleEvaluationResult {
@@ -138,6 +139,7 @@ class SentenceEvaluator {
     private _debug : boolean;
     private _oracle : boolean;
     private _includeEntityValue : boolean;
+    private _excludeEntityDisplay : boolean;
     private _ignoreEntityType : boolean;
     private _tokenizer : I18n.BaseTokenizer;
     private _computeComplexity : ((id : string, code : string) => number)|undefined;
@@ -160,6 +162,7 @@ class SentenceEvaluator {
         this._debug = options.debug;
         this._oracle = !!options.oracle;
         this._includeEntityValue = !!options.includeEntityValue;
+        this._excludeEntityDisplay = !!options.excludeEntityDisplay;
         this._ignoreEntityType = !!options.ignoreEntityType;
         this._tokenizer = tokenizer;
 
@@ -243,7 +246,8 @@ class SentenceEvaluator {
             normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                locale: this._locale,
                timezone: this._options.timezone,
-               includeEntityValue: this._includeEntityValue
+               includeEntityValue: this._includeEntityValue,
+               excludeEntityDisplay: this._excludeEntityDisplay
             }).join(' '));
         } catch(e) {
             // if the target_code did not parse due to missing functions in thingpedia, ignore it
@@ -266,7 +270,8 @@ class SentenceEvaluator {
                 normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                    locale: this._locale,
                    timezone: this._options.timezone,
-                   includeEntityValue: this._includeEntityValue
+                   includeEntityValue: this._includeEntityValue,
+                   excludeEntityDisplay: this._excludeEntityDisplay
                 }).join(' '));
             } catch(e) {
                 console.error(this._id, this._preprocessed, this._targetPrograms);
@@ -344,7 +349,8 @@ class SentenceEvaluator {
                locale: this._locale,
                timezone: this._options.timezone,
                ignoreSentence: true,
-               includeEntityValue: this._includeEntityValue
+               includeEntityValue: this._includeEntityValue,
+               excludeEntityDisplay: this._excludeEntityDisplay
             });
             const normalizedCode = normalized.join(' ');
 

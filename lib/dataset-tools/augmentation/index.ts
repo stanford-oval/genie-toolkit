@@ -46,6 +46,7 @@ interface DatasetAugmenterOptions {
     cleanParameters : boolean;
     requotable : boolean;
     includeEntityValue : boolean;
+    excludeEntityDisplay : boolean;
 
     samplingType : 'random' | 'uniform' | 'default';
     subsetParamSet : [number, number];
@@ -94,6 +95,7 @@ export default class DatasetAugmenter extends Stream.Transform {
             cleanParameters: this._options.cleanParameters,
             requotable: this._options.requotable,
             includeEntityValue: this._options.includeEntityValue,
+            excludeEntityDisplay: this._options.excludeEntityDisplay,
             samplingType: this._options.samplingType,
             subsetParamSet: this._options.subsetParamSet,
             numAttempts: this._options.numAttempts,

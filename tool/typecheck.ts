@@ -71,6 +71,7 @@ class TypecheckStream extends Stream.Transform {
     private _locale : string;
     private _timezone : string;
     private _includeEntityValue : boolean;
+    private _excludeEntityDisplay : boolean;
     private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _cache : Map<string, CacheEntry>;
@@ -89,12 +90,20 @@ class TypecheckStream extends Stream.Transform {
                 cache : Map<string, CacheEntry>,
                 cacheOut : Stream.Writable|undefined,
                 droppedOut : Stream.Writable,
-                args : { interactive : boolean, strict : boolean, locale : string, timezone : string, include_entity_value : boolean }) {
+                args : { 
+                    interactive : boolean, 
+                    strict : boolean, 
+                    locale : string, 
+                    timezone : string, 
+                    include_entity_value : boolean, 
+                    exclude_entity_display : boolean 
+                }) {
         super({ objectMode: true });
 
         this._locale = args.locale;
         this._timezone = args.timezone;
         this._includeEntityValue = args.include_entity_value;
+        this._excludeEntityDisplay = args.exclude_entity_display;
         this._tpClient = tpClient;
         this._schemas = schemas;
         this._cache = cache;
@@ -175,7 +184,8 @@ class TypecheckStream extends Stream.Transform {
             const code = ThingTalkUtils.serializePrediction(program, this._current!.preprocessed, this._entities!, {
                 locale: this._locale,
                 timezone: this._timezone,
-                includeEntityValue: this._includeEntityValue
+                includeEntityValue: this._includeEntityValue,
+                excludeEntityDisplay: this._excludeEntityDisplay
             }).join(' ');
 
             this._doCache(code);
@@ -208,7 +218,8 @@ class TypecheckStream extends Stream.Transform {
             ex.target_code = ThingTalkUtils.serializePrediction(program!, this._current!.preprocessed, this._entities, {
                 locale: this._locale,
                 timezone: this._timezone,
-                includeEntityValue: this._includeEntityValue
+                includeEntityValue: this._includeEntityValue,
+                excludeEntityDisplay: this._excludeEntityDisplay
             }).join(' ');
             this.push(ex);
             return;
@@ -346,6 +357,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--include-entity-value', {
         action: 'store_true',
         help: "Include entity value in thingtalk",
+        default: false
+    });
+    parser.add_argument('--exclude-entity-display', {
+        action: 'store_true',
+        help: "Drop entity display in thingtalk",
         default: false
     });
 }

@@ -49,6 +49,7 @@ export default async function worker(args : any, shard : string) {
         cleanParameters: args.clean_parameters,
         requotable: args.requotable,
         includeEntityValue: args.include_entity_value,
+        excludeEntityDisplay: args.exclude_entity_display,
         samplingType: args.sampling_type,
         subsetParamSet: args.subset_param_set.split('-'),
         numAttempts: args.num_attempts

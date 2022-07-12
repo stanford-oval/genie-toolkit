@@ -137,6 +137,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'Keep entity value in thingtalk annotation.',
         default: false
     });
+    parser.add_argument('--exclude-entity-display', {
+        action: 'store_true',
+        help: 'Drop entity display in thingtalk annotation.',
+        default: false
+    });
     parser.add_argument('--clean-parameters', {
         action: 'store_true',
         help: 'Take extra effort to use parameters that are simple and do not include punctuation marks',

@@ -141,6 +141,7 @@ interface SerializeOptions {
     ignoreSentence ?: boolean;
     compatibility ?: string;
     includeEntityValue ?: boolean;
+    excludeEntityDisplay ?: boolean;
 }
 
 /**
@@ -160,6 +161,7 @@ export function serializePrediction(program : Ast.Input,
     });
     return Syntax.serialize(program, Syntax.SyntaxType.Tokenized, entityRetriever, {
         compatibility: options.compatibility,
-        includeEntityValue: options.includeEntityValue
+        includeEntityValue: options.includeEntityValue,
+        excludeEntityDisplay: options.excludeEntityDisplay
     });
 }

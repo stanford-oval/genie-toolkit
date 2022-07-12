@@ -52,6 +52,7 @@ interface DialogueToTurnStreamOptions {
     thingpediaClient : Tp.BaseClient;
     ignoreErrors : boolean;
     includeEntityValue : boolean;
+    excludeEntityDisplay : boolean;
 }
 
 class DialogueToTurnStream extends Stream.Transform {
@@ -66,6 +67,7 @@ class DialogueToTurnStream extends Stream.Transform {
     private _tokenizer : I18n.BaseTokenizer;
     private _ignoreErrors : boolean;
     private _includeEntityValue : boolean;
+    private _excludeEntityDisplay : boolean;
 
     constructor(options : DialogueToTurnStreamOptions) {
         super({ objectMode: true });
@@ -83,6 +85,7 @@ class DialogueToTurnStream extends Stream.Transform {
         this._tokenizer = I18n.get(this._locale).getTokenizer();
         this._ignoreErrors = options.ignoreErrors;
         this._includeEntityValue = options.includeEntityValue;
+        this._excludeEntityDisplay = options.excludeEntityDisplay;
     }
 
     private _preprocess(sentence : string, contextEntities : EntityMap) {
@@ -118,7 +121,8 @@ class DialogueToTurnStream extends Stream.Transform {
         const agentCode = await ThingTalkUtils.serializePrediction(agentTarget, tokens, entities, {
             locale: this._locale,
             timezone: this._timezone,
-            includeEntityValue: this._includeEntityValue
+            includeEntityValue: this._includeEntityValue,
+            excludeEntityDisplay: this._excludeEntityDisplay
         });
 
         if (this._dedupe) {
@@ -171,7 +175,8 @@ class DialogueToTurnStream extends Stream.Transform {
         const code = await ThingTalkUtils.serializePrediction(userTarget, tokens, entities, {
             locale: this._locale,
             timezone: this._timezone,
-            includeEntityValue : this._includeEntityValue
+            includeEntityValue : this._includeEntityValue,
+            excludeEntityDisplay: this._excludeEntityDisplay
         });
 
         if (this._dedupe) {
@@ -307,6 +312,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'Keep entity value in thingtalk annotation.',
         default: false
     });
+    parser.add_argument('--exclude-entity-display', {
+        action: 'store_true',
+        help: 'Exclude entity display in thingtalk annotation.',
+        default: false
+    });
 }
 
 export async function execute(args : any) {
@@ -330,7 +340,8 @@ export async function execute(args : any) {
             deduplicate: args.deduplicate,
             debug: args.debug,
             ignoreErrors: args.ignore_errors,
-            includeEntityValue: args.include_entity_value
+            includeEntityValue: args.include_entity_value,
+            excludeEntityDisplay: args.exclude_entity_value
         }))
         .pipe(new DatasetStringifier())
         .pipe(args.output);
