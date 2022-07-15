@@ -400,7 +400,6 @@ export class DialogueLoop {
                     const opt : ParseOptions = {
                         timezone: this.engine.platform.timezone,
                         thingpediaClient: this.engine.thingpedia,
-                        // FIXME: temporary solution
                         schemaRetriever: this.engine.schemas as unknown as ThingTalk.SchemaRetriever,
                         loadMetadata: true
                     };
@@ -413,8 +412,15 @@ export class DialogueLoop {
                         caller: handler
                     };
                     this.pushCommand(agent_input);
+                    return;
                 }
-                return;
+                const handlerCandidates = [...this._dynamicHandlers.values()];
+                let gsHandler = handlerCandidates.filter((handler) => handler.uniqueId.toLowerCase() === this._getDefaultDevice().toLowerCase())[0];
+                const gsReply = await gsHandler.getReply(analysis);
+                if (gsReply.messages.length) {
+                    this.icon = gsHandler.icon;
+                    await this._sendAgentReply(gsReply);
+                }
             }
             command = await this.nextCommand();
         }
@@ -424,13 +430,13 @@ export class DialogueLoop {
         let bestreply : ReplyResult|undefined, bestpriority = -1;
         for (const handler of this._iterateDialogueHandlers()) {
             const reply = await handler.initialize(initialState ? initialState[handler.uniqueId] : undefined, showWelcome);
-            if (reply !== null && handler.priority > bestpriority) {
+            if (reply !== null && handler.priority >= bestpriority) {
                 bestpriority = handler.priority;
                 bestreply = reply;
             }
         }
-        const hasDefaultDevice = this._getDefaultDevice() !== undefined;
-        if (bestreply && !hasDefaultDevice)
+        // const hasDefaultDevice = this._getDefaultDevice() !== undefined;
+        if (bestreply)
             await this._sendAgentReply(bestreply);
         else
             await this.setExpected(null);
@@ -438,12 +444,12 @@ export class DialogueLoop {
 
     private async _initializeDefaultDevice(deviceId : string) {
         console.log(`Initialize default assistant: ${deviceId}`);
-        const defaultInput : UserInput = {
-            type: 'command',
-            utterance: `${deviceId} init`,
-            platformData: this.platformData
-        };
-        this.pushCommand(defaultInput);
+        // const defaultInput : UserInput = {
+        //     type: 'command',
+        //     utterance: `${deviceId} init`,
+        //     platformData: this.platformData
+        // };
+        // this.pushCommand(defaultInput);
         await this.engine.createSimpleDevice(deviceId);
     }
 
