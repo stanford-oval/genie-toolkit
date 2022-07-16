@@ -326,6 +326,9 @@ $user : Ast.DialogueState = {
         ) => D.startNewRequest($loader, ctx, stmt);
     }
 
+    // error correction
+	ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
+
     // cancelling
 
     ( ctx:ctx_sys_action_error no_thanks_phrase

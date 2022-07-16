@@ -126,3 +126,7 @@ repeat_command_on_error_phrase : string = {
 make_monitor_phrase : string = {
     ['{ok|great|i like that|yes i like that|sure i like that|sounds good} {,|} {notify me when it changes|notify me when it changes|subscribe to changes|let me know of changes|notify me of this|subscribe to this}']: () => '',
 }
+
+generic_error_phrase : string = {
+	["{I did not ask for that | that is not what I {said | asked for}}"]: () => '',
+}

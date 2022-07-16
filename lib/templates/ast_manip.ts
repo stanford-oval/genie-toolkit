@@ -1846,6 +1846,34 @@ function getInvocation(historyItem : Ast.Node) : Ast.Invocation|Ast.FunctionCall
     return visitor.invocation;
 }
 
+class GetInvocationExpressionVisitor extends Ast.NodeVisitor {
+    invocation : Ast.InvocationExpression|Ast.FunctionCallExpression|undefined = undefined;
+
+    visitFunctionCallExpression(inv : Ast.FunctionCallExpression) : boolean {
+        // keep overwriting so we store the last invocation in traversal order
+        // which is also the last invocation in program order
+        this.invocation = inv;
+        return false; // no need to recurse
+    }
+
+    visitInvocationExpression (inv : Ast.InvocationExpression) : boolean {
+        // keep overwriting so we store the last invocation in traversal order
+        // which is also the last invocation in program order
+        this.invocation = inv;
+        return false; // no need to recurse
+    }
+}
+
+function GetInvocationExpression(historyItem : Ast.Node) : Ast.InvocationExpression|Ast.FunctionCallExpression {
+    assert(historyItem instanceof Ast.Node);
+
+    const visitor = new GetInvocationExpressionVisitor();
+    historyItem.visit(visitor);
+    assert(visitor.invocation);
+    // console.log(visitor.invocation);
+    return visitor.invocation;
+}
+
 class AdjustDefaultParametersVisitor extends Ast.NodeVisitor {
     visitInvocation(invocation : Ast.Invocation) : boolean {
         invocation.in_params = invocation.in_params.filter((ip) => {
@@ -2064,6 +2092,7 @@ export {
     getFunctionNames,
     getFunctions,
     getInvocation,
+    GetInvocationExpression,
     adjustDefaultParameters,
     hasConflictParam,
 
