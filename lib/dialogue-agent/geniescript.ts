@@ -43,11 +43,19 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
     async *__wrapped_logic() : GeniescriptLogic {
         const self = this;
         const prompt_str : string = self.skill_name + " init";
-        yield * this.dlg!.expect(new Map([
-            [prompt_str, ( async function*() {
-                yield * self.logic();
-            })]
-        ]), "This is KEQD Geniscript. What can I help you with?");
+        try {
+            yield* this.dlg!.expect(new Map([
+                [prompt_str, (async function*() {
+                    yield* self.logic();
+                })]
+            ]));
+            this.dlg.say(["geniscript should not exit."]);
+        } catch(e) {
+            this.dlg.say(["geniescript has an error:" + e]);
+        } finally {
+            yield * this.dlg!.expect(new Map([
+            ]), "Geniescript had an error or exited. Please restart genie.");
+        }
     }
 
     reset() : void {
