@@ -8,27 +8,36 @@ interface GeniescriptAnalysisResult extends Tp.DialogueHandler.CommandAnalysisRe
     branch : string;
 }
 
-interface LogicParameter {
-    type : LogicParameterType;
+interface GenieQuery {
+    type : GenieQueryType;
     content : string | GeniescriptAnalysisResult | Tp.DialogueHandler.CommandAnalysisResult | ReplyType;
 }
 
-enum LogicParameterType {
+enum GenieQueryType {
     ANALYZE_COMMAND = "AnalyzeCommand",
     GET_REPLY = "getReply",
     CALLBACK = "callback",
 }
 
-export type GeniescriptLogic = AsyncGenerator<Tp.DialogueHandler.CommandAnalysisResult | Tp.DialogueHandler.ReplyResult | GeniescriptReplyResult | null, any, LogicParameter>;
+export type GenieResponse = Tp.DialogueHandler.CommandAnalysisResult | Tp.DialogueHandler.ReplyResult | GeniescriptReplyResult | null;
+
+export type GeniescriptState<Output> =
+    AsyncGenerator<GenieResponse, Output, GenieQuery>;
+export type GeniescriptLogic<Input, Output> =
+    ((input : Input) => GeniescriptState<Output>) |
+    ((input : Input) => Promise<GeniescriptState<Output>>) |
+    ((input : Input) => Output) |
+    ((input : Input) => Promise<Output>)
+type PromptSelector = ((reply : ReplyType | null) => boolean) | ((input : ReplyType | null) => Promise<boolean>)
 
 export abstract class GeniescriptAgent implements Tp.DialogueHandler<GeniescriptAnalysisResult, string> {
-    private _logic : GeniescriptLogic | null;
+    private _state : GeniescriptState<any> | null;
     private skill_name : string;
     public dlg : AgentDialog;
 
     protected constructor(public priority = Tp.DialogueHandler.Priority.PRIMARY, public icon : string | null = null, user_target : string, skill_name : string) {
         console.log("AbstractGeniescriptHandler constructor");
-        this._logic = null;
+        this._state = null;
         if (this.constructor === GeniescriptAgent)
             throw new Error("Abstract classes can't be instantiated.");
         this.skill_name = skill_name;
@@ -40,7 +49,7 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
         return "geniescript state";
     }
 
-    async *__wrapped_logic() : GeniescriptLogic {
+    async *__wrapped_logic() : GeniescriptState<any> {
         const self = this;
         const prompt_str : string = self.skill_name + " init";
         try {
@@ -59,40 +68,40 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
     }
 
     reset() : void {
-        this._logic = this.__wrapped_logic();
+        this._state = this.__wrapped_logic();
         // noinspection JSIgnoredPromiseFromCall
-        this._logic.next();
+        this._state.next();
     }
 
     async initialize() {
-        this._logic = this.__wrapped_logic();
-        await this._logic.next();
+        this._state = this.__wrapped_logic();
+        await this._state.next();
         return null;
     }
 
     async analyzeCommand(command : string) : Promise<GeniescriptAnalysisResult> {
         const utterance = command;
         console.log("AbstractGeniescriptHandler analyzeCommand");
-        const result = await this._logic!.next({ type: LogicParameterType.ANALYZE_COMMAND, content: utterance });
+        const result = await this._state!.next({ type: GenieQueryType.ANALYZE_COMMAND, content: utterance });
         console.log(result.value);
         return result.value;
     }
 
     async getReply(command : GeniescriptAnalysisResult) : Promise<Tp.DialogueHandler.ReplyResult | GeniescriptReplyResult> {
-        const result0 = this._logic!.next({ type: LogicParameterType.GET_REPLY, content: command });
+        const result0 = this._state!.next({ type: GenieQueryType.GET_REPLY, content: command });
         const result = await result0;
         return result.value;
     }
 
     async getAgentInputFollowUp(return_value : ReplyType) {
         console.log("AbstractGeniescriptHandler getAgentInputFollowUp");
-        const result0 = this._logic!.next({ type: LogicParameterType.CALLBACK, content: return_value });
+        const result0 = this._state!.next({ type: GenieQueryType.CALLBACK, content: return_value });
         const result = await result0;
         return result.value;
     }
 
     // TODO: call this main
-    async *logic() : GeniescriptLogic {
+    async *logic() : GeniescriptState<any> {
         yield null;
         return null;
     }
@@ -104,12 +113,7 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
     abstract uniqueId : string;
 }
 
-type PromptMap = Map<((reply : ReplyType | null) => boolean) | ((reply : ReplyType | null) => Promise<boolean>),
-    (
-        GeneratorFunction | AsyncGeneratorFunction |
-        ((reply : ReplyType | null) => Promise<any>) | ((reply : ReplyType | null) => any)
-        )
-    >;
+type PromptMap = Map<PromptSelector, GeniescriptLogic<ReplyType | null, any>>;
 
 export class AgentDialog {
     private readonly _user_target : string;
@@ -137,11 +141,9 @@ export class AgentDialog {
     }
 
     async *expect(
-        func_map : Map<string | ((reply : ReplyType) => boolean) | ((reply : ReplyType) => Promise<boolean>),
-            (GeneratorFunction | AsyncGeneratorFunction | ((input : string) => Promise<any>)| ((input : string) => any))
-            >,
-        prompt : string |  null | PromptMap = null
-    ) : GeniescriptLogic {
+        func_map : Map<string, GeniescriptLogic<string, any>>,
+        prompt : string | null | PromptMap = null
+    ) : GeniescriptState<any> {
         const self = this;
 
         let prompt_map : PromptMap | null = null;
@@ -216,7 +218,7 @@ export class AgentDialog {
 
         while (true) {
             const input = yield this._last_result;
-            if (input.type === LogicParameterType.ANALYZE_COMMAND) {
+            if (input.type === GenieQueryType.ANALYZE_COMMAND) {
                 const content = input.content as string;
                 this._last_result = {
                     confident: Tp.DialogueHandler.Confidence.OUT_OF_DOMAIN_COMMAND,
@@ -242,7 +244,7 @@ export class AgentDialog {
                         }
                     }
                 }
-            } else if (input.type === LogicParameterType.GET_REPLY) {
+            } else if (input.type === GenieQueryType.GET_REPLY) {
                 const content = input.content as GeniescriptAnalysisResult;
                 this._last_analyzed = content.user_target;
                 const current_func = func_map.get(this._last_branch!)!;
@@ -252,7 +254,7 @@ export class AgentDialog {
                     return current_func(this._last_content as string);
                 else
                     throw Error("current_func is not a Function or GeneratorFunction");
-            } else if (input.type === LogicParameterType.CALLBACK) {
+            } else if (input.type === GenieQueryType.CALLBACK) {
                 this._last_messages = [];
                 yield * gen_prompt(input.content as ReplyType);
                 this._last_result = {
@@ -273,7 +275,7 @@ export class AgentDialog {
         this._last_expecting = expecting;
     }
 
-    async *execute(program : string, type_check : ((reply : ReplyType) => boolean) | null = null) : GeniescriptLogic {
+    async *execute(program : string, type_check : ((reply : ReplyType) => boolean) | null = null) : GeniescriptState<any> {
         if (this._last_analyzed !== null) {
             this._last_result = {
                 messages: this._last_messages,
@@ -291,7 +293,7 @@ export class AgentDialog {
         }
         while (true) {
             const input = yield this._last_result;
-            if (input.type === LogicParameterType.ANALYZE_COMMAND) {
+            if (input.type === GenieQueryType.ANALYZE_COMMAND) {
                 const content = input.content as string;
                 this._last_result = {
                     confident: Tp.DialogueHandler.Confidence.OUT_OF_DOMAIN_COMMAND,
@@ -299,9 +301,9 @@ export class AgentDialog {
                     user_target: '',
                     branch: ''
                 };
-            } else if (input.type === LogicParameterType.GET_REPLY) {
+            } else if (input.type === GenieQueryType.GET_REPLY) {
                 throw Error("Cannot get reply in a execute!");
-            } else if (input.type === LogicParameterType.CALLBACK) {
+            } else if (input.type === GenieQueryType.CALLBACK) {
                 if (type_check && !type_check(input.content as ReplyType))
                     yield this._last_result_only_prompt;
                 else
