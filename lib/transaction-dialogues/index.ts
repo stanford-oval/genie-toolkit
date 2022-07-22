@@ -245,9 +245,19 @@ function phraseGenerator(phrase_list : Array<string>, entity : Ast.StringValue|n
         return phrase_list[pick];
 }
 
+/**
+ * Prompt follow-up phrases
+ *
+ * @param dlg - the interface to use to interact with the user
+ * @param ctx - the context
+ * @param keyword - associated keywords from the news article
+ * @param stay_in_cateogry - whether to keep proposing articles in the same category
+ * @return {boolean} - if true, 
+ */
 async function askNextNews(dlg : DialogueInterface, ctx : ContextInfo, keyword : Ast.Node|null, stay_in_category : boolean) {  
     let proposal_expression : any;
     let article_category : Ast.StringValue;
+    // Set the category filter when invoking the Thingtalk code
     if (stay_in_category) {
         const category = ctx.results?.map((item) => item.raw && item.raw.category ? item.raw.category : [])
                                  .flat()
@@ -274,6 +284,7 @@ async function askNextNews(dlg : DialogueInterface, ctx : ContextInfo, keyword :
         assert(proposal_expression instanceof Ast.ExpressionStatement);
     }
 
+    // Prompt the follow-up message using templates and depending on the stay_in_category flag
     var next_phrase = phraseGenerator(NEXT_NEWS_PHRASE_LIST, null);
     if (stay_in_category)
         next_phrase = next_phrase.replace("?", ` in the ${article_category!.value} related category?`)
@@ -281,6 +292,7 @@ async function askNextNews(dlg : DialogueInterface, ctx : ContextInfo, keyword :
         phrase: next_phrase
     }, () => addNewStatement(dlg.state!, POLICY_NAME, "sys_propose_refined_query", [], "proposed", proposal_expression.expression));
 
+    // Update dialogue state
     const cmd = await dlg.get({
         expecting: Type.Boolean,
         acceptActs: ['execute', 'cancel', 'next_entity'],
@@ -290,6 +302,7 @@ async function askNextNews(dlg : DialogueInterface, ctx : ContextInfo, keyword :
 
     console.log(`cmd type`, cmd.type);
 
+    // If user prompted cancel, break out of this loop.
     if (cmd.type === POLICY_NAME + '.cancel') {
         // break out immediately
         console.log(`got a cancel in smartnews`);
@@ -310,12 +323,23 @@ async function askNextNews(dlg : DialogueInterface, ctx : ContextInfo, keyword :
     return false;
 }
 
+
+/**
+ * Prompt follow-up phrases
+ *
+ * @param dlg - the interface to use to interact with the user
+ * @param ctx - the context
+ * @param mentions - associated entities from the news article
+ * @param entity_tracking_set - a set of entities that are already used
+ * @return {number} - make recommendation if set to 1, stop recommendation by set to 0, and do nothing by set to -1s
+ */
 async function followUpLoop (dlg : DialogueInterface, ctx : ContextInfo, mentions: any, entity_tracking_set : Set<string>) {
     const top_category = ctx.results?.map((item) => item.raw && item.raw.category ? item.raw.category : [])
                                      .flat()
                                      .map((item) => String(item))[0];
     const article_category = new Ast.StringValue(top_category as string);
     
+    // Limit the number of follow-ups to be prompted
     for (let i = 0; i < Math.min(MAX_ENTITY_QUESTIONS, mentions!.length); i++) {
         const entity_to_ask = mentions![i];
         if (entity_tracking_set.has(entity_to_ask))
@@ -364,6 +388,7 @@ async function followUpLoop (dlg : DialogueInterface, ctx : ContextInfo, mention
     const source = ctx.results![0].value.source.toJS() as string;
     console.log("source:", source);
     console.log("ask political followup?", pick);
+    // For political articles. Suggest opposition opionions
     if (pick && 
         ((CONSERVATIVE_LEANING_MEDIA_SET.has(source) || (LIBERAL_LEANING_MEDIA_SET.has(source))) ||
         (POLITICS_RELATED_CATEGORIES.includes(article_category.value.toLowerCase())))) {
@@ -423,8 +448,23 @@ async function followUpLoop (dlg : DialogueInterface, ctx : ContextInfo, mention
     return -1;
 }
 
+/**
+ * Entry point for the SmartNews Agent.
+ * First, reads each article from the list.
+ * When there is no more news in the list or user stops the current news list loop.
+ * Suggests articles based on an associated entity/category/topic/keyword from the last article.
+ *
+ * @param dlg - the interface to use to interact with the user
+ * @param ctx - the context
+ * @param enetity_tracking_set - a set used to avoid repeating the same entities
+ * @param article_tracking_set - a set used to avoid repeating the same articles
+ * @return {boolean} - make recommendation if true, otherwise continue with the next news in the list
+ */
 async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, entity_tracking_set : Set<string>, article_tracking_set : Set<string>) {
     let stay_in_category = true;
+    // If news list is not empty, pop the first article in the list and check if it has been read. 
+    // If it has not been read (not in the article_tracking_list), add it to the article_tracking_list and break.
+    // If the last article in the list has been read before, suggest other articles by entity/category/topic/keyword.
     do {
         console.log(`article_tracking_set:`, article_tracking_set);
         const id = String(ctx.results![0].value.id.toJS());
@@ -447,10 +487,12 @@ async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, 
         }
     } while (ctx.results!.length);
 
+    // Get the article summary and associated entities and keywords
     const summary = ctx.results![0].value.summary;
     const mentions = ctx.results![0].value.mention?.toJS() as string[]|undefined;
     const keyword = ctx.results![0].value.keyword;
     
+    // If there is no associated entity, read the summary and suggest new articles in the same cateogry
     if (!mentions || !mentions.length || ctx.results!.length === 1) {
         dlg.say("${summary}", {
             summary
@@ -462,22 +504,30 @@ async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, 
         return await askNextNews(dlg, ctx, null, stay_in_category);
     }
 
+    // If there are associated entities, read the summary and add entity to the tracking list
     dlg.say("${summary}", { summary });
-
     console.log(`mentioned entities`, mentions);
     if (keyword)
         entity_tracking_set.add(String(keyword));
 
+    // Prompt follow-up questions using the entities from the current news article
+    // Continue making recommendation if the return is 1
+    // Stop making recommendation if the return is 0
+    // Continue the conversation if the return is -1
     const loopRet = await followUpLoop(dlg, ctx, mentions, entity_tracking_set);
     if(loopRet === 0)
         return false;
     else if (loopRet === 1)
         return true
 
+    // Continue providing the news in the same category
+    // Continue making recommendation by returning true
     stay_in_category = true;
     if (await askNextNews(dlg, ctx, keyword, stay_in_category))
         return true;
 
+    // Propose articles from different category if there is no more news in the same category
+    // Continue making recommendation by returning true
     stay_in_category = false;
     if (await askNextNews(dlg, ctx, keyword, stay_in_category))
         return true;
@@ -486,19 +536,25 @@ async function smartNewsArticleLoop(dlg : DialogueInterface, ctx : ContextInfo, 
     return false;
 }
 
-
+/**
+ * Entry point for the SmartNews if the context is related to SmartNews
+ *
+ * @param dlg the interface to use to interact with the user
+ */
 async function ctxSmartNews(dlg : DialogueInterface) {
     const entity_tracking_set = new Set<string>();
     const article_tracking_set = new Set<string>();
 
     for (;;) {
-        // get the context based on what the user said
+        // Get the context based on what the user said
         const ctx = ContextInfo.get(dlg.state);
 
+        // 
         if (ctx.results!.length === 0) {
             dlg.say("sorry, there is no more news related to that topic.", StateM.makeSimpleState(dlg.state, POLICY_NAME, "sys_end"));
             return dlg.flush();
         }
+        // Check if the agent is set to ask follow-ups. If yes,  
         if (followUpConfig.ASK_FOLLOWUPS) {
             if (!await smartNewsArticleLoop(dlg, ctx, entity_tracking_set, article_tracking_set))
                 return dlg.flush();
