@@ -351,7 +351,7 @@ export class DialogueLoop {
                 continue;
             }
 
-            var reply = await handler.getReply(analysis);
+            let reply = await handler.getReply(analysis);
 
             if (!this._mixedInitiative) {
                 // reset the state of the handler when we switch to a different one

@@ -104,6 +104,13 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
     abstract uniqueId : string;
 }
 
+type PromptMap = Map<((reply : ReplyType | null) => boolean) | ((reply : ReplyType | null) => Promise<boolean>),
+    (
+        GeneratorFunction | AsyncGeneratorFunction |
+        ((reply : ReplyType | null) => Promise<any>) | ((reply : ReplyType | null) => any)
+        )
+    >;
+
 export class AgentDialog {
     private readonly _user_target : string;
     private readonly _skill_name : string;
@@ -114,6 +121,7 @@ export class AgentDialog {
     private _last_messages : string[];
     private _last_expecting : Type | null;
     private _last_target : string | null;
+    private _last_content : string | null;
 
     constructor(user_target : string, skill_name : string) {
         this._user_target = user_target;
@@ -125,14 +133,66 @@ export class AgentDialog {
         this._last_messages = [];
         this._last_expecting = null;
         this._last_target = null;
+        this._last_content = null;
     }
 
     async *expect(
-        func_map : Map<string,
-            (GeneratorFunction | AsyncGeneratorFunction | (() => Promise<any>)| (() => any))
+        func_map : Map<string | ((reply : ReplyType) => boolean) | ((reply : ReplyType) => Promise<boolean>),
+            (GeneratorFunction | AsyncGeneratorFunction | ((input : string) => Promise<any>)| ((input : string) => any))
             >,
-        prompt : string | (GeneratorFunction | AsyncGeneratorFunction | ((result : ReplyType) => Promise<any>)| ((result : ReplyType) => any)) |  null = null
+        prompt : string |  null | PromptMap = null
     ) : GeniescriptLogic {
+        const self = this;
+
+        let prompt_map : PromptMap | null = null;
+        if (prompt?.constructor.name === "Map") {
+            prompt_map = prompt as PromptMap;
+        } else if (prompt?.constructor.name === "String") {
+            prompt_map = new Map(
+                [
+                    [(reply : ReplyType | null) => true, (reply : ReplyType | null) => {
+                        self.say([prompt as string]);
+                    }]
+                ]
+            );
+        }
+
+        async function* gen_prompt(reply : ReplyType | null) {
+            if (prompt_map === null)
+                return;
+
+            for (let func_key of prompt_map.keys()) {
+                let match = false;
+                if (func_key.constructor.name === "Function") {
+                    func_key = func_key as (reply : ReplyType | null) => boolean;
+                    match = func_key(reply);
+                } else if (func_key.constructor.name === "AsyncFunction") {
+                    func_key = func_key as (reply : ReplyType | null) => Promise<boolean>;
+                    match = await func_key(reply);
+                } else {
+                    continue;
+                }
+                if (match) {
+                    self._last_analyzed = "prompt";
+                    const current_func = prompt_map.get(func_key)!;
+                    if (current_func.constructor.name === "GeneratorFunction")
+                        yield* current_func(reply);
+                    else if (current_func.constructor.name === "AsyncGeneratorFunction")
+                        await (yield* current_func(reply));
+                    else if (current_func.constructor.name === "AsyncFunction")
+                        await current_func(reply);
+                    else if (current_func.constructor.name === "Function" )
+                        current_func(reply);
+                    else
+                        throw Error("current_func is not a Function or GeneratorFunction");
+
+                    break;
+                }
+            }
+        }
+
+        yield * gen_prompt(null);
+
         if (this._last_analyzed !== null) {
             this._last_result = {
                 messages: this._last_messages,
@@ -153,33 +213,7 @@ export class AgentDialog {
                 agent_target: ""
             };
         }
-        let prompt_func : (GeneratorFunction | AsyncGeneratorFunction | ((result: Array<string | Tp.FormatObjects.FormattedObject>) => Promise<any>) | ((result: Array<string | Tp.FormatObjects.FormattedObject>) => any)) | null = null;
-        if (prompt && prompt.constructor.name === "String")
-            prompt_func = (result : Array<string|Tp.FormatObjects.FormattedObject>) => prompt;
-        else if (prompt && prompt.constructor.name !== "String")
-            prompt_func = prompt as (GeneratorFunction | AsyncGeneratorFunction | ((result : Array<string|Tp.FormatObjects.FormattedObject>) => Promise<any>)| ((result : Array<string|Tp.FormatObjects.FormattedObject>) => any));
 
-
-        if (prompt_func) {
-            let prompt_text = "";
-            if (prompt_func.constructor.name === "GeneratorFunction")
-                prompt_text = yield* prompt_func([]);
-            else if (prompt_func.constructor.name === "AsyncGeneratorFunction")
-                prompt_text = await (yield* prompt_func([]));
-            else if (prompt_func.constructor.name === "AsyncFunction")
-                prompt_text = await prompt_func([]);
-            else if (prompt_func.constructor.name === "Function" )
-                prompt_text = prompt_func([]);
-            this._last_result.messages.push(prompt_text);
-            this._last_result_only_prompt = {
-                messages: [prompt_text],
-                expecting: this._last_expecting,
-                context: this._last_analyzed ?? "",
-                agent_target: this._last_target!
-            };
-        } else {
-            this._last_result_only_prompt = null;
-        }
         while (true) {
             const input = yield this._last_result;
             if (input.type === LogicParameterType.ANALYZE_COMMAND) {
@@ -190,18 +224,22 @@ export class AgentDialog {
                     user_target: '',
                     branch: ''
                 };
-                for (const func_key of func_map.keys()) {
-                    const regExp = new RegExp(func_key, 'i');
-                    const match = regExp.exec(content);
-                    if (match) {
-                        this._last_branch = func_key;
-                        this._last_result = {
-                            confident: Tp.DialogueHandler.Confidence.EXACT_IN_DOMAIN_COMMAND,
-                            utterance: content,
-                            user_target: this._user_target,
-                            branch: func_key
-                        };
-                        break;
+                for (let func_key of func_map.keys()) {
+                    if (func_key.constructor.name === "String") {
+                        func_key = func_key as string;
+                        const regExp = new RegExp(func_key, 'i');
+                        const match = regExp.exec(content);
+                        if (match) {
+                            this._last_branch = func_key;
+                            this._last_content = content;
+                            this._last_result = {
+                                confident: Tp.DialogueHandler.Confidence.EXACT_IN_DOMAIN_COMMAND,
+                                utterance: content,
+                                user_target: this._user_target,
+                                branch: func_key
+                            };
+                            break;
+                        }
                     }
                 }
             } else if (input.type === LogicParameterType.GET_REPLY) {
@@ -209,34 +247,20 @@ export class AgentDialog {
                 this._last_analyzed = content.user_target;
                 const current_func = func_map.get(this._last_branch!)!;
                 if (current_func.constructor.name === "GeneratorFunction" || current_func.constructor.name === "AsyncGeneratorFunction")
-                    return yield* current_func();
+                    return yield* current_func(this._last_content as string);
                 else if (current_func.constructor.name === "AsyncFunction" || current_func.constructor.name === "Function" )
-                    return current_func();
+                    return current_func(this._last_content as string);
                 else
                     throw Error("current_func is not a Function or GeneratorFunction");
             } else if (input.type === LogicParameterType.CALLBACK) {
                 this._last_messages = [];
-                if (prompt_func) {
-                    const input_content = input.content as ReplyType;
-                    let prompt_text = "";
-                    if (prompt_func.constructor.name === "GeneratorFunction")
-                        prompt_text = yield* prompt_func(input_content);
-                    else if (prompt_func.constructor.name === "AsyncGeneratorFunction")
-                        prompt_text = await (yield* prompt_func(input_content));
-                    else if (prompt_func.constructor.name === "AsyncFunction")
-                        prompt_text = await prompt_func(input_content);
-                    else if (prompt_func.constructor.name === "Function" )
-                        prompt_text = prompt_func(input_content);
-                    this._last_result_only_prompt = {
-                        messages: this._last_messages.concat([prompt_text]),
-                        expecting: this._last_expecting,
-                        context: this._last_analyzed ?? "",
-                        agent_target: this._last_target!
-                    };
-                    this._last_result = this._last_result_only_prompt;
-                } else {
-                    this._last_result = this._last_result_only_prompt;
-                }
+                yield * gen_prompt(input.content as ReplyType);
+                this._last_result = {
+                    messages: this._last_messages,
+                    expecting: null,
+                    context: "",
+                    agent_target: ""
+                };
             }
         }
     }
