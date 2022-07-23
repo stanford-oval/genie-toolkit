@@ -19,17 +19,19 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import { Ast } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import * as C from './ast_manip';
 import ThingpediaLoader from './load-thingpedia';
 
 for (const qualifier of $loader.qualifiers) {
-    time_qualifier : C.FilterSlot = {
-        'in' range:constant_date_range => C.makeWikidataTimeFilter(qualifier, '==', range);
-        ('before'|'earlier than') date:constant_Date => C.makeWikidataTimeFilter(qualifier, '<=', [date]); 
-        ('after'|'later than') date:constant_Date => C.makeWikidataTimeFilter(qualifier, '>=', [date]);    
-    } 
+    if (qualifier.pslot.type === Type.Date) {
+        time_qualifier : C.FilterSlot = {
+            'in' range:constant_date_range => C.makeWikidataTimeFilter(qualifier, '==', range);
+            ('before'|'earlier than') date:constant_Date => C.makeWikidataTimeFilter(qualifier, '<=', [date]); 
+            ('after'|'later than') date:constant_Date => C.makeWikidataTimeFilter(qualifier, '>=', [date]);    
+        } 
+    }
 }
 
 qualified_with_filter : C.FilterSlot = {
