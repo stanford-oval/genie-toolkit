@@ -172,7 +172,7 @@ export async function execute(args : any) {
             complexityMetric: args.complexity_metric,
             oracle: args.oracle,
             includeEntityValue: args.include_entity_value,
-            excludeEntityDisplay: args.exclude_entity_value,
+            excludeEntityDisplay: args.exclude_entity_display,
             ignoreEntityType: args.ignore_entity_type
         }))
         .pipe(new CollectSentenceStatistics({
