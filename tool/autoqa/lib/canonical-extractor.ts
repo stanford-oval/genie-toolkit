@@ -278,23 +278,32 @@ export default class AnnotationExtractor {
         const cache = await this.cache.get(key);
         if (cache) {
             Object.assign(canonicalAnnotation, JSON.parse(cache));
-        } else if (qname in this.propertyCanonicalCandidates && argument.name in this.propertyCanonicalCandidates[qname]) {
-            const candidates = this.propertyCanonicalCandidates[qname][argument.name];   
-            for (const [pos, canonicals] of Object.entries(candidates)) {
-                if (canonicals.length === 0)
-                    continue;
-                if (!(pos in canonicalAnnotation)) {
-                    canonicalAnnotation[pos] = canonicals;
-                } else {
-                    for (const canonical of canonicals) {
-                        if (canonicalAnnotation[pos].includes(canonical))
-                            continue;
-                        if (canonical.endsWith(' #') && canonicalAnnotation[pos].includes(canonical.slice(0, -2)))
-                            continue;
-                        canonicalAnnotation[pos].push(canonical);
+        } else {
+            let candidates;     
+            if (this.options.cache_type === 'by-device') {
+                for (const q in this.propertyCanonicalCandidates) {
+                    if (argument.name in this.propertyCanonicalCandidates[q])
+                        candidates = this.propertyCanonicalCandidates[q][argument.name];
+                }
+            } else {
+                candidates = this.propertyCanonicalCandidates[qname][argument.name]; 
+            }
+            if (candidates) {
+                for (const [pos, canonicals] of Object.entries(candidates)) {
+                    if (canonicals.length === 0)
+                        continue;
+                    if (!(pos in canonicalAnnotation)) {
+                        canonicalAnnotation[pos] = canonicals;
+                    } else {
+                        for (const canonical of canonicals) {
+                            if (canonicalAnnotation[pos].includes(canonical))
+                                continue;
+                            if (canonical.endsWith(' #') && canonicalAnnotation[pos].includes(canonical.slice(0, -2)))
+                                continue;
+                            canonicalAnnotation[pos].push(canonical);
+                        }
                     }
                 }
-
             }
             await this.cache.set(key, JSON.stringify(canonicalAnnotation));
         }

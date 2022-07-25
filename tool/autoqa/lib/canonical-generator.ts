@@ -186,10 +186,15 @@ export default class AutoCanonicalGenerator {
     async generate() {
         await this._loadManualCanonicalOverride();
         const examples : ParaphraseExample[] = [];
+        const added : string[] = [];
         for (const fname of this.functions) {
             const func = this.class.queries[fname] || this.class.actions[fname];
             const typeCounts = countArgTypes(func);
             for (const arg of func.iterateArguments()) {
+                if (this.options.cache_type === 'by-device' && added.includes(arg.name))
+                    continue;
+                added.push(arg.name);
+
                 // skip argument with existed annotations
                 if (this.annotatedProperties.includes(arg.name) || arg.name === 'id')
                     continue;
