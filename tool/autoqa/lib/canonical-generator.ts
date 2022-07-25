@@ -212,12 +212,14 @@ export default class AutoCanonicalGenerator {
             }
         }
 
-        const paraphraser = new Paraphraser(this.paraphraserModel, this.options);
-        const startTime = (new Date()).getTime();
-        await paraphraser.paraphrase(examples);
-        if (this.options.debug) {
-            const time = Math.round(((new Date()).getTime() - startTime) / 1000);
-            console.log(`Paraphraser took ${time} seconds to run.`);
+        if (examples.length > 0) {
+            const paraphraser = new Paraphraser(this.paraphraserModel, this.options);
+            const startTime = (new Date()).getTime();
+            await paraphraser.paraphrase(examples);
+            if (this.options.debug) {
+                const time = Math.round(((new Date()).getTime() - startTime) / 1000);
+                console.log(`Paraphraser took ${time} seconds to run.`);
+            }
         }
 
         const extractor = new CanonicalExtractor(this.class, this.functions, this.options, this.cache);
