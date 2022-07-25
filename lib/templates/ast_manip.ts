@@ -1133,10 +1133,13 @@ function makeVerificationQuestion(loader : ThingpediaLoader,
     if (!checkFilter(loader, table, filter))
         return null;
     let verification;    
-    if (negate)
+    if (negate) {
+        if (filter.ast instanceof Ast.NotBooleanExpression)
+            return null;
         verification = new Ast.NotBooleanExpression(null, filter.ast);
-    else 
+    } else { 
         verification = filter.ast;
+    }
     return new Ast.BooleanQuestionExpression(null, table, verification, table.schema!.clone());
 }
 
