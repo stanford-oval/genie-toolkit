@@ -273,6 +273,7 @@ export default class AnnotationExtractor {
     }
 
     private async _addPropertyCanonicalCandidates(qname : string, argument : Ast.ArgumentDef) {
+        console.log(qname, argument.name);
         const canonicalAnnotation : Record<string, string[]> = argument.getNaturalLanguageAnnotation('canonical')!;
         const key = this.options.cache_type === 'by-device' ? `${this.class.name}.${argument.name}` : `${qname}.${argument.name}`; 
         const cache = await this.cache.get(key);
