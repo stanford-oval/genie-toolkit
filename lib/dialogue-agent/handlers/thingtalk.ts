@@ -540,6 +540,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             context: oldState ? oldState!.prettyprint() : '',
             agent_target: agentTarget,
             expecting,
+            raw_results: newResults
         };
     }
 

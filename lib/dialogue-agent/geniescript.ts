@@ -1,5 +1,6 @@
 import * as Tp from 'thingpedia';
 import { Type } from "thingtalk";
+import { ReplyResult } from './dialogue-loop';
 
 type GeniescriptReplyResult = Tp.DialogueHandler.ReplyResult;
 type ReplyType = Array<string|Tp.FormatObjects.FormattedObject>;
@@ -93,9 +94,10 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
         return result.value;
     }
 
-    async getAgentInputFollowUp(return_value : ReplyType) {
+    async getAgentInputFollowUp(return_value : ReplyResult) {
         console.log("AbstractGeniescriptHandler getAgentInputFollowUp");
-        const result0 = this._state!.next({ type: GenieQueryType.CALLBACK, content: return_value });
+        const content = return_value.messages;
+        const result0 = this._state!.next({ type: GenieQueryType.CALLBACK, content: content });
         const result = await result0;
         return result.value;
     }

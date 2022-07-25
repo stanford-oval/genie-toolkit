@@ -93,6 +93,7 @@ export interface ReplyResult {
     agent_target : string;
 
     program ?: string|null;
+    raw_results ?: Array<[string, Record<string, unknown>]>
 }
 
 export interface DialogueHandler<AnalysisType extends CommandAnalysisResult, StateType> {
@@ -372,7 +373,7 @@ export class DialogueLoop {
                 if (isCurrentGeniescript)
                     break;
                 if (this._prevGeniescriptAgent !== null) {
-                    const gsReply = await this._prevGeniescriptAgent.getAgentInputFollowUp(reply.messages);
+                    const gsReply = await this._prevGeniescriptAgent.getAgentInputFollowUp(reply);
                     if (gsReply.messages.length) {
                         this.icon = this._prevGeniescriptAgent.icon;
                         await this._sendAgentReply(gsReply);

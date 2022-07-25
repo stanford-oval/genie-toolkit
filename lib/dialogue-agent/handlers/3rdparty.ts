@@ -143,7 +143,7 @@ implements DialogueHandler<AnalysisTypeAdapter<AnalysisType>, StateType> {
         return null;
     }
 
-    async getAgentInputFollowUp(return_value : Array<string|Tp.FormatObjects.FormattedObject>) : Promise<ReplyResult> {
+    async getAgentInputFollowUp(return_value : ReplyResult) : Promise<ReplyResult> {
         const geniescript_iface = this._iface as unknown as GeniescriptAgent;
         return this._mapReplyResult(await geniescript_iface.getAgentInputFollowUp(return_value));
     }
