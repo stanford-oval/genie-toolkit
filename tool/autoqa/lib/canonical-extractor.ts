@@ -25,6 +25,7 @@ import stemmer from 'stemmer';
 import PosParser from '../../../lib/pos-parser';
 import { ParaphraseExample } from './canonical-example-constructor';
 import { PROJECTION_PARTS_OF_SPEECH } from './base-canonical-generator';
+import { CanonicalCache } from './canonical-generator';
 
 interface AnnotationExtractorOptions {
     batch_size : number,
@@ -32,6 +33,7 @@ interface AnnotationExtractorOptions {
     debug : boolean,
     annotate_property_canonical : boolean,
     annotate_query_canonical : boolean,
+    cache_type : 'by-device'|'by-function'
 }
 
 function stem(str : string) : string {
@@ -140,12 +142,14 @@ export default class AnnotationExtractor {
     private parser : PosParser;
     private propertyCanonicalCandidates : Record<string, Record<string, Record<string, string[]>>>;
     private queryCanonicalCandidates : Record<string, Counter>;
+    private cache : CanonicalCache;
 
-    constructor(klass : Ast.ClassDef, queries : string[], options : AnnotationExtractorOptions) {
+    constructor(klass : Ast.ClassDef, queries : string[], options : AnnotationExtractorOptions, cache : CanonicalCache) {
         this.class = klass;
         this.queries = queries;
         this.options = options;
         this.parser = new PosParser();
+        this.cache = cache;
 
         this.queryCanonicalCandidates = {};
         this.propertyCanonicalCandidates = {};
@@ -178,12 +182,12 @@ export default class AnnotationExtractor {
                 // 2. remove conflict candidates among arguments
                 this._removeConflictedCandidates(qname);
                 // 3. add filtered candidates to the canonical annotation
-                for (const [arg, candidates] of Object.entries(this.propertyCanonicalCandidates[qname]))
-                    this._addPropertyCanonicalCandidates(query.getArgument(arg)!, candidates);
+                for (const arg of query.iterateArguments())
+                    await this._addPropertyCanonicalCandidates(qname, arg);
             }
         }
     }
-
+    
     private _extractCanonical(example : ParaphraseExample) {
         // FIXME: In case of boolean parameter or projection, values field is empty, skip for now
         if (typeof example.value !== 'string') 
@@ -197,8 +201,8 @@ export default class AnnotationExtractor {
     }
 
     private _extractQueryCanonical(query : string, queryCanonical : string, original : string, paraphrase : string) {
-        original = original.toLowerCase().replace(/[ .?!]*$/g, '');;
-        paraphrase = paraphrase.toLowerCase().replace(/[ .?!]*$/g, '');; 
+        original = original.toLowerCase().replace(/[ .?!]*$/g, '');
+        paraphrase = paraphrase.toLowerCase().replace(/[ .?!]*$/g, '');
         if (original === paraphrase)
             return;
         if (!original.includes(queryCanonical))
@@ -268,23 +272,31 @@ export default class AnnotationExtractor {
         conflictResolver.resolve();
     }
 
-    private _addPropertyCanonicalCandidates(argument : Ast.ArgumentDef, candidates : Record<string, string[]>) {
+    private async _addPropertyCanonicalCandidates(qname : string, argument : Ast.ArgumentDef) {
         const canonicalAnnotation : Record<string, string[]> = argument.getNaturalLanguageAnnotation('canonical')!;
-        for (const [pos, canonicals] of Object.entries(candidates)) {
-            if (canonicals.length === 0)
-                continue;
-            if (!(pos in canonicalAnnotation)) {
-                canonicalAnnotation[pos] = canonicals;
-            } else {
-                for (const canonical of canonicals) {
-                    if (canonicalAnnotation[pos].includes(canonical))
-                        continue;
-                    if (canonical.endsWith(' #') && canonicalAnnotation[pos].includes(canonical.slice(0, -2)))
-                        continue;
-                    canonicalAnnotation[pos].push(canonical);
+        const key = this.options.cache_type === 'by-device' ? `${this.class.name}.${argument.name}` : `${qname}.${argument.name}`; 
+        const cache = await this.cache.get(key);
+        if (cache) {
+            Object.assign(canonicalAnnotation, JSON.parse(cache));
+        } else if (qname in this.propertyCanonicalCandidates && argument.name in this.propertyCanonicalCandidates[qname]) {
+            const candidates = this.propertyCanonicalCandidates[qname][argument.name];   
+            for (const [pos, canonicals] of Object.entries(candidates)) {
+                if (canonicals.length === 0)
+                    continue;
+                if (!(pos in canonicalAnnotation)) {
+                    canonicalAnnotation[pos] = canonicals;
+                } else {
+                    for (const canonical of canonicals) {
+                        if (canonicalAnnotation[pos].includes(canonical))
+                            continue;
+                        if (canonical.endsWith(' #') && canonicalAnnotation[pos].includes(canonical.slice(0, -2)))
+                            continue;
+                        canonicalAnnotation[pos].push(canonical);
+                    }
                 }
-            }
 
+            }
+            await this.cache.set(key, JSON.stringify(canonicalAnnotation));
         }
     }
 }

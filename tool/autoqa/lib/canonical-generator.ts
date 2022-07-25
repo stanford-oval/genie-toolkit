@@ -21,6 +21,7 @@
 import assert from 'assert';
 import * as fs from 'fs';
 import path from 'path';
+import * as sqlite3 from 'sqlite3';
 import { Ast, Type } from 'thingtalk';
 import * as Tp from 'thingpedia';
 
@@ -35,6 +36,13 @@ import { PARTS_OF_SPEECH, Canonicals, CanonicalAnnotation } from './base-canonic
 import { ParaphraseExample, generateExamples } from './canonical-example-constructor';
 import Paraphraser from './canonical-example-paraphraser';
 
+const SQLITE_SCHEMA = `
+create table canonicals (
+    property text primary key,
+    canonical text
+);
+`;
+
 interface AutoCanonicalGeneratorOptions {
     dataset : 'schemaorg'|'sgd'|'multiwoz'|'wikidata'|'custom',
     paraphraser_model : string,
@@ -45,7 +53,9 @@ interface AutoCanonicalGeneratorOptions {
     annotate_query_canonical : boolean,
     batch_size : number,
     filtering : boolean,
-    debug : boolean
+    debug : boolean,
+    cache ?: string,
+    cache_type : 'by-device'|'by-function'
 }
 
 interface Constant {
@@ -77,6 +87,56 @@ function countArgTypes(schema : Ast.FunctionDef) : Record<string, number> {
     return count;
 }
 
+export class CanonicalCache {
+    private cache ! : sqlite3.Database;
+    private cachePath : string;
+    private cacheLoaded : boolean;
+
+    constructor(path : string) {
+        this.cachePath = path;
+        this.cacheLoaded = false;
+    }
+
+    private async _loadCache() {
+        const db = new sqlite3.Database(this.cachePath, sqlite3.OPEN_CREATE|sqlite3.OPEN_READWRITE);
+        db.serialize(() => {
+            if (!fs.existsSync(this.cachePath)) 
+                db.exec(SQLITE_SCHEMA);
+        });
+        this.cache = db;
+        this.cacheLoaded = true;
+    }
+
+    async get(key : string) : Promise<string> {
+        if (!this.cacheLoaded)
+            await this._loadCache();
+        return new Promise((resolve, reject) => {
+            const sql = `select canonical from canonicals where property = ?`;
+            this.cache.get(sql, key, (err : Error|null, rows : any) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve(rows);
+            });
+        });
+    }
+
+    async set(key : string, value : string) {
+        if (!this.cacheLoaded)
+            await this._loadCache();
+        return new Promise((resolve, reject) => {
+            const sql = `insert into canonicals values (?, ?)`; 
+            this.cache.get(sql, key, value, (err : Error|null, rows : any) => {
+                if (err)
+                    reject(err);
+                else 
+                    resolve(rows);
+            });
+        });
+    }
+
+}
+
 export default class AutoCanonicalGenerator {
     private class : Ast.ClassDef;
     private entities : Tp.BaseClient.EntityTypeRecord[];
@@ -88,6 +148,7 @@ export default class AutoCanonicalGenerator {
     private options : AutoCanonicalGeneratorOptions;
     private entityNames : Record<string, string>;
     private childEntities : Record<string, string[]>;
+    private cache ! : CanonicalCache;
 
     constructor(classDef : Ast.ClassDef, 
                 entities : Tp.BaseClient.EntityTypeRecord[],
@@ -119,6 +180,7 @@ export default class AutoCanonicalGenerator {
                 }
             }
         }
+        this.cache = new CanonicalCache(options.cache ?? 'canonical-cache.sqlite');
     }
 
     async generate() {
@@ -132,6 +194,10 @@ export default class AutoCanonicalGenerator {
                 if (this.annotatedProperties.includes(arg.name) || arg.name === 'id')
                     continue;
                 if (arg.name.includes('.') && this.annotatedProperties.includes(arg.name.slice(arg.name.indexOf('.') + 1)))
+                    continue;
+                const key = this.options.cache_type === 'by-device' ? `${this.class.name}.${arg.name}` : `${fname}.${arg.name}`; 
+                const cached = await this.cache.get(key);
+                if (cached)
                     continue;
                     
                 // set starting canonical annotation
@@ -149,7 +215,7 @@ export default class AutoCanonicalGenerator {
             console.log(`Paraphraser took ${time} seconds to run.`);
         }
 
-        const extractor = new CanonicalExtractor(this.class, this.functions, this.options);
+        const extractor = new CanonicalExtractor(this.class, this.functions, this.options, this.cache);
         await extractor.run(examples);
         
         this._addProjectionCanonicals();

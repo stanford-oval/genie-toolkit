@@ -128,6 +128,15 @@ export function initArgparse(subparsers : argparse.SubParser) {
         action: 'store_true',
         help: `Auto annotate canonicals of queries`
     });
+    parser.add_argument('--cache', {
+        required: false,
+        help: `Path to the sqlite cache file`
+    });
+    parser.add_argument('--cache-type', {
+        required: false,
+        default: 'by-function', 
+        help: `Either by-function, or by-device`
+    });
     parser.add_argument('--debug', {
         required: false,
         default: false,
