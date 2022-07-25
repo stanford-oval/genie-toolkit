@@ -278,6 +278,7 @@ export default class AnnotationExtractor {
         const key = this.options.cache_type === 'by-device' ? `${this.class.name}.${argument.name}` : `${qname}.${argument.name}`; 
         const cache = await this.cache.get(key);
         if (cache) {
+            console.log(cache);
             Object.assign(canonicalAnnotation, JSON.parse(cache));
         } else {
             let candidates;     
