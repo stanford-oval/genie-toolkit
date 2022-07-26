@@ -116,7 +116,7 @@ export class CanonicalCache {
                 if (err)
                     reject(err);
                 else
-                    resolve(rows);
+                    resolve(rows ? rows[key] : undefined);
             });
         });
     }
@@ -125,8 +125,8 @@ export class CanonicalCache {
         if (!this.cacheLoaded)
             await this._loadCache();
         return new Promise((resolve, reject) => {
-            const sql = `insert into canonicals values (?, ?)`; 
-            this.cache.get(sql, key, value, (err : Error|null, rows : any) => {
+            const sql = `insert or ignore into canonicals values (?, ?)`; 
+            this.cache.get(sql, [key, value], (err : Error|null, rows : any) => {
                 if (err)
                     reject(err);
                 else 
@@ -198,6 +198,13 @@ export default class AutoCanonicalGenerator {
                 // skip argument with existed annotations
                 if (this.annotatedProperties.includes(arg.name) || arg.name === 'id')
                     continue;
+                // skip instance of property
+                if (arg.name === 'instance_of')
+                    continue;
+                // skip compound for now
+                if (arg.name.includes('.'))
+                    continue;
+                
                 if (arg.name.includes('.') && this.annotatedProperties.includes(arg.name.slice(arg.name.indexOf('.') + 1)))
                     continue;
                 const key = this.options.cache_type === 'by-device' ? `${this.class.name}.${arg.name}` : `${fname}.${arg.name}`; 
