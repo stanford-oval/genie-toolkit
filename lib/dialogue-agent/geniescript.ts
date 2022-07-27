@@ -3,7 +3,6 @@ import { Type } from "thingtalk";
 import { ReplyResult } from './dialogue-loop';
 
 type GeniescriptReplyResult = Tp.DialogueHandler.ReplyResult;
-type ReplyType = Array<string|Tp.FormatObjects.FormattedObject>;
 
 interface GeniescriptAnalysisResult extends Tp.DialogueHandler.CommandAnalysisResult {
     branch : string;
@@ -11,7 +10,7 @@ interface GeniescriptAnalysisResult extends Tp.DialogueHandler.CommandAnalysisRe
 
 interface GenieQuery {
     type : GenieQueryType;
-    content : string | GeniescriptAnalysisResult | Tp.DialogueHandler.CommandAnalysisResult | ReplyType;
+    content : string | GeniescriptAnalysisResult | Tp.DialogueHandler.CommandAnalysisResult | ReplyResult;
 }
 
 enum GenieQueryType {
@@ -97,8 +96,7 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
 
     async getAgentInputFollowUp(return_value : ReplyResult) {
         console.log("AbstractGeniescriptHandler getAgentInputFollowUp");
-        const content = return_value.messages;
-        const result0 = this._state!.next({ type: GenieQueryType.CALLBACK, content: content });
+        const result0 = this._state!.next({ type: GenieQueryType.CALLBACK, content: return_value });
         const result = await result0;
         return result.value;
     }
@@ -114,6 +112,19 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
     }
 
     abstract uniqueId : string;
+
+    public static objectType(appName : string, funcName : string) : ((reply : ReplyResult) => boolean) {
+        return (reply : ReplyResult) => {
+            if (reply.raw_results && Object.keys(reply.raw_results).length) {
+                const [_appCall, _blob] = reply.raw_results[0];
+                const [_appName, _funcName] = _appCall.split(":");
+                if ((appName === null || appName === _appName) && (funcName === null || funcName === _funcName))
+                    return true;
+
+            }
+            return false;
+        };
+    }
 }
 
 export class AgentDialog {
@@ -143,8 +154,8 @@ export class AgentDialog {
 
     async *expect(
         action_map : Map<string, GeniescriptLogic<string, any>> = new Map([]),
-        obj_predicate : ((reply : ReplyType) => boolean) | null = null,
-        yes_action : GeniescriptLogic<ReplyType, any> | null = null,
+        obj_predicate : ((reply : ReplyResult) => boolean) | null = null,
+        yes_action : GeniescriptLogic<ReplyResult, any> | null = null,
         no_prompt : string | null = null
     ) : GeniescriptState<any> {
         const self = this;
@@ -215,7 +226,7 @@ export class AgentDialog {
             } else if (input.type === GenieQueryType.CALLBACK) {
                 this._last_messages = [];
                 self._last_analyzed = "prompt";
-                const reply = input.content as ReplyType;
+                const reply = input.content as ReplyResult;
                 if (obj_predicate !== null && obj_predicate(reply)) {
                     if (yes_action.constructor.name === "GeneratorFunction")
                         return yield* yes_action(reply);
@@ -249,7 +260,7 @@ export class AgentDialog {
         this._last_expecting = expecting;
     }
 
-    async *execute(program : string, type_check : ((reply : ReplyType) => boolean) | null = null) : GeniescriptState<any> {
+    async *execute(program : string, type_check : ((reply : ReplyResult) => boolean) | null = null) : GeniescriptState<any> {
         if (this._last_analyzed !== null) {
             this._last_result = {
                 messages: this._last_messages,
@@ -278,7 +289,7 @@ export class AgentDialog {
             } else if (input.type === GenieQueryType.GET_REPLY) {
                 throw Error("Cannot get reply in a execute!");
             } else if (input.type === GenieQueryType.CALLBACK) {
-                if (type_check && !type_check(input.content as ReplyType))
+                if (type_check && !type_check(input.content as ReplyResult))
                     yield this._last_result_only_prompt;
                 else
                     return input.content;
