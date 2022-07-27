@@ -29,7 +29,6 @@ export type GeniescriptLogic<Input, Output> =
     ((input : Input) => Promise<GeniescriptState<Output>>) |
     ((input : Input) => Output) |
     ((input : Input) => Promise<Output>)
-type PromptSelector = ((reply : ReplyType | null) => boolean) | ((input : ReplyType | null) => Promise<boolean>)
 
 export abstract class GeniescriptAgent implements Tp.DialogueHandler<GeniescriptAnalysisResult, string> {
     private _state : GeniescriptState<any> | null;
@@ -63,8 +62,10 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
         } catch(e) {
             this.dlg.say(["geniescript has an error:" + e]);
         } finally {
-            yield * this.dlg!.expect(new Map([
-            ]), "Geniescript had an error or exited. Please restart genie.");
+            const error_prompt = "Geniescript had an error or exited. Please restart genie.";
+            this.dlg.say([error_prompt]);
+            yield * this.dlg.expect(new Map([
+            ]), null, null, error_prompt);
         }
     }
 
@@ -115,8 +116,6 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
     abstract uniqueId : string;
 }
 
-type PromptMap = Map<PromptSelector, GeniescriptLogic<ReplyType | null, any>>;
-
 export class AgentDialog {
     private readonly _user_target : string;
     private readonly _skill_name : string;
@@ -143,59 +142,16 @@ export class AgentDialog {
     }
 
     async *expect(
-        func_map : Map<string, GeniescriptLogic<string, any>>,
-        prompt : string | null | PromptMap = null
+        action_map : Map<string, GeniescriptLogic<string, any>> = new Map([]),
+        obj_predicate : ((reply : ReplyType) => boolean) | null = null,
+        yes_action : GeniescriptLogic<ReplyType, any> | null = null,
+        no_prompt : string | null = null
     ) : GeniescriptState<any> {
         const self = this;
 
-        let prompt_map : PromptMap | null = null;
-        if (prompt?.constructor.name === "Map") {
-            prompt_map = prompt as PromptMap;
-        } else if (prompt?.constructor.name === "String") {
-            prompt_map = new Map(
-                [
-                    [(reply : ReplyType | null) => true, (reply : ReplyType | null) => {
-                        self.say([prompt as string]);
-                    }]
-                ]
-            );
-        }
+        if (yes_action === null)
+            yes_action = (reply) => reply;
 
-        async function* gen_prompt(reply : ReplyType | null) {
-            if (prompt_map === null)
-                return;
-
-            for (let func_key of prompt_map.keys()) {
-                let match = false;
-                if (func_key.constructor.name === "Function") {
-                    func_key = func_key as (reply : ReplyType | null) => boolean;
-                    match = func_key(reply);
-                } else if (func_key.constructor.name === "AsyncFunction") {
-                    func_key = func_key as (reply : ReplyType | null) => Promise<boolean>;
-                    match = await func_key(reply);
-                } else {
-                    continue;
-                }
-                if (match) {
-                    self._last_analyzed = "prompt";
-                    const current_func = prompt_map.get(func_key)!;
-                    if (current_func.constructor.name === "GeneratorFunction")
-                        yield* current_func(reply);
-                    else if (current_func.constructor.name === "AsyncGeneratorFunction")
-                        await (yield* current_func(reply));
-                    else if (current_func.constructor.name === "AsyncFunction")
-                        await current_func(reply);
-                    else if (current_func.constructor.name === "Function" )
-                        current_func(reply);
-                    else
-                        throw Error("current_func is not a Function or GeneratorFunction");
-
-                    break;
-                }
-            }
-        }
-
-        yield * gen_prompt(null);
 
         if (this._last_analyzed !== null) {
             this._last_result = {
@@ -228,7 +184,7 @@ export class AgentDialog {
                     user_target: '',
                     branch: ''
                 };
-                for (let func_key of func_map.keys()) {
+                for (let func_key of action_map.keys()) {
                     if (func_key.constructor.name === "String") {
                         func_key = func_key as string;
                         const regExp = new RegExp(func_key, 'i');
@@ -249,7 +205,7 @@ export class AgentDialog {
             } else if (input.type === GenieQueryType.GET_REPLY) {
                 const content = input.content as GeniescriptAnalysisResult;
                 this._last_analyzed = content.user_target;
-                const current_func = func_map.get(this._last_branch!)!;
+                const current_func = action_map.get(this._last_branch!)!;
                 if (current_func.constructor.name === "GeneratorFunction" || current_func.constructor.name === "AsyncGeneratorFunction")
                     return yield* current_func(this._last_content as string);
                 else if (current_func.constructor.name === "AsyncFunction" || current_func.constructor.name === "Function" )
@@ -258,7 +214,23 @@ export class AgentDialog {
                     throw Error("current_func is not a Function or GeneratorFunction");
             } else if (input.type === GenieQueryType.CALLBACK) {
                 this._last_messages = [];
-                yield * gen_prompt(input.content as ReplyType);
+                self._last_analyzed = "prompt";
+                const reply = input.content as ReplyType;
+                if (obj_predicate !== null && obj_predicate(reply)) {
+                    if (yes_action.constructor.name === "GeneratorFunction")
+                        return yield* yes_action(reply);
+                    else if (yes_action.constructor.name === "AsyncGeneratorFunction")
+                        return (yield* yes_action(reply));
+                    else if (yes_action.constructor.name === "AsyncFunction")
+                        return yes_action(reply);
+                    else if (yes_action.constructor.name === "Function")
+                        return yes_action(reply);
+                    else
+                        throw Error("current_func is not a Function or GeneratorFunction");
+                } else {
+                    if (no_prompt !== null)
+                        self.say([no_prompt]);
+                }
                 this._last_result = {
                     messages: this._last_messages,
                     expecting: null,
