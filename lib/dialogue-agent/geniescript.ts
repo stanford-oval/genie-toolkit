@@ -112,19 +112,6 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
     }
 
     abstract uniqueId : string;
-
-    public static objectType(appName : string, funcName : string) : ((reply : ReplyResult) => boolean) {
-        return (reply : ReplyResult) => {
-            if (reply.raw_results && Object.keys(reply.raw_results).length) {
-                const [_appCall, _blob] = reply.raw_results[0];
-                const [_appName, _funcName] = _appCall.split(":");
-                if ((appName === null || appName === _appName) && (funcName === null || funcName === _funcName))
-                    return true;
-
-            }
-            return false;
-        };
-    }
 }
 
 export class AgentDialog {

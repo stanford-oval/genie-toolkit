@@ -33,6 +33,8 @@ import {
     renumberEntities,
 } from './entity-utils';
 
+import { ReplyResult } from '../dialogue-agent/dialogue-loop';
+
 class ValidationError extends Error {
     code : string;
 
@@ -74,6 +76,18 @@ export function cleanKind(kind : string) : string {
         kind = kind.substr('uk.co.'.length);
     kind = kind.replace(/[.-]/g, ' ');
     return clean(kind);
+}
+
+function isKind(appName : string, funcName : string) : ((reply : ReplyResult) => boolean) {
+    return (reply : ReplyResult) => {
+        if (reply.raw_results && Object.keys(reply.raw_results).length) {
+            const [_appCall, _blob] = reply.raw_results[0];
+            const [_appName, _funcName] = cleanKind(_appCall).split(":");
+            if ((appName === null || appName === _appName) && (funcName === null || funcName === _funcName))
+                return true;
+        }
+        return false;
+    };
 }
 
 const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
@@ -212,4 +226,6 @@ export {
     makeDummyEntity,
     makeDummyEntities,
     renumberEntities,
+
+    isKind,
 };
