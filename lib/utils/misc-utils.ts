@@ -78,11 +78,10 @@ export function cleanKind(kind : string) : string {
     return clean(kind);
 }
 
-function isKind(appName : string, funcName : string) : ((reply : ReplyResult) => boolean) {
+function isOutputType(appName : string, funcName : string) : ((reply : ReplyResult) => boolean) {
     return (reply : ReplyResult) => {
-        if (reply.raw_results && Object.keys(reply.raw_results).length) {
-            const [_appCall, _blob] = reply.raw_results[0];
-            const [_appName, _funcName] = cleanKind(_appCall).split(":");
+        if (reply.result_type) {
+            const [_appName, _funcName] = cleanKind(reply.result_type).split(':');
             if ((appName === null || appName === _appName) && (funcName === null || funcName === _funcName))
                 return true;
         }
@@ -227,5 +226,5 @@ export {
     makeDummyEntities,
     renumberEntities,
 
-    isKind,
+    isOutputType,
 };
