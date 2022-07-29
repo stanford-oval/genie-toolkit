@@ -93,7 +93,8 @@ export interface ReplyResult {
     agent_target : string;
 
     program ?: string|null;
-    raw_results ?: Array<[string, Record<string, unknown>]>
+    result_type ?: string|null;
+    result_values ?: Array<Record<string, unknown>>;
 }
 
 export interface DialogueHandler<AnalysisType extends CommandAnalysisResult, StateType> {

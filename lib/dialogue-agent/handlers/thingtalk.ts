@@ -503,7 +503,12 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         const before : Array<string|Tp.FormatObjects.FormattedObject> = [];
         const messages : Array<string|Tp.FormatObjects.FormattedObject> = [utterance];
 
+        let result_type : string|null = "";
+        const result_values : Array<Record<string, unknown>> = [];
         for (const [outputType, outputValue] of newResults.slice(0, policyResult.numResults)) {
+            if (result_type === "")
+                result_type = outputType;
+            result_values.push(outputValue);
             const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
 
             for (const msg of formatted) {
@@ -540,7 +545,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             context: oldState ? oldState!.prettyprint() : '',
             agent_target: agentTarget,
             expecting,
-            raw_results: newResults
+            result_type: result_type,
+            result_values: result_values
         };
     }
 
