@@ -18,9 +18,16 @@
 //
 // Authors: Shicheng Liu <shicheng@cs.stanford.edu> and Nathan Marks <nsmarks@stanford.edu>
 
+<<<<<<< HEAD
 import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, DontCareBooleanExpression, Expression, FilterExpression , FunctionCallExpression, InvocationExpression, NotBooleanExpression } from "thingtalk/dist/ast";
 import { GetInvocationExpression, FilterSlot } from "../ast_manip";
 import { ContextInfo, addNewStatement, addNewItem } from "../state_manip";
+=======
+import { Ast } from "thingtalk";
+import { Expression, FunctionCallExpression, InvocationExpression } from "thingtalk/dist/ast";
+import { GetInvocationExpression } from "../ast_manip";
+import { ContextInfo, addNewStatement } from "../state_manip";
+>>>>>>> templates & semantic functions setup
 import { ParamSlot } from "../utils";
 
 export function handleGenericError(ctx : ContextInfo) {
@@ -60,6 +67,7 @@ export function handleGenericError(ctx : ContextInfo) {
     return addNewStatement(newCtx, 'sys_slot_fill', 'query', 'accepted', invocation);
 }
 
+<<<<<<< HEAD
 export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, newFilter : FilterSlot) : DialogueState | null {
     // check if this has Levenshtein history, only proceed if it does
     if (!ctx.current)
