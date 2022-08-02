@@ -54,6 +54,7 @@
   },
   "devDependencies": {
     "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@types/JSONStream": "npm:@types/jsonstream@^0.8.30",
     "@types/argparse": "^2.0.10",
     "@types/body-parser": "^1.19.2",
     "@types/byline": "^4.2.33",
