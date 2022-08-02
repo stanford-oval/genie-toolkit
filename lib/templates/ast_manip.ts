@@ -1856,7 +1856,7 @@ class GetInvocationExpressionVisitor extends Ast.NodeVisitor {
         return false; // no need to recurse
     }
 
-    visitInvocationExpression (inv : Ast.InvocationExpression) : boolean {
+    visitInvocationExpression(inv : Ast.InvocationExpression) : boolean {
         // keep overwriting so we store the last invocation in traversal order
         // which is also the last invocation in program order
         this.invocation = inv;

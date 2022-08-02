@@ -22,16 +22,15 @@ import { Expression, FunctionCallExpression, InvocationExpression } from "thingt
 import { GetInvocationExpression } from "../ast_manip";
 import { ContextInfo, addNewStatement } from "../state_manip";
 
-export function handleGenericError (ctx : ContextInfo) {
+export function handleGenericError(ctx : ContextInfo) {
     // NOTE: This is a temporary, naive solution. More coming after Levenshtein apply is done
     // Creates a query with the same table as the last one, but with no fields
     // This will automatically restart the slot filling assuming that the query is correct.
     
     // If the context does not contain any DialogueHistoryItem, return NULL
     // TODO: maybe revise this
-    if (!ctx.current) {
+    if (!ctx.current)
         return null;
-    }
 
     // last expression, or in case of a chain expression, the first in the chain
     const lastExpression : Expression =  ctx.current!.stmt.expression.expressions[0];
@@ -39,9 +38,8 @@ export function handleGenericError (ctx : ContextInfo) {
     // the invocation call hidden in this expression
     const invocation : InvocationExpression|FunctionCallExpression = GetInvocationExpression(lastExpression);
 
-    if (!invocation) {
+    if (!invocation)
         return null;
-    }
 
     // REVIEW: we may not need all these copying. Investigate further later
     const newCtx = ctx.clone();
