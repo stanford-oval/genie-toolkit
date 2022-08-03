@@ -652,6 +652,8 @@ function makeSimpleState(ctx : ContextInfo,
             break;
         newState.history.push(ctx.state.history[i]);
     }
+    newState.historyLevenshtein = ctx.state.historyLevenshtein;
+    newState.historyAppliedLevenshtein = ctx.state.historyAppliedLevenshtein;
 
     return newState;
 }

@@ -328,6 +328,7 @@ $user : Ast.DialogueState = {
 
     // error correction
 	ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
+    ctx:ctx_sys_recommend_one 'i do not want' wrong_filter:with_filter ', but I want' right_filter:with_filter  => D.changeOfMindSimple(ctx, wrong_filter, right_filter);
 
     // cancelling
 

@@ -18,9 +18,9 @@
 //
 // Author: Shicheng Liu <shicheng@cs.stanford.edu>
 
-import { Expression, FunctionCallExpression, InvocationExpression } from "thingtalk/dist/ast";
-import { GetInvocationExpression } from "../ast_manip";
-import { ContextInfo, addNewStatement } from "../state_manip";
+import { applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, Expression, FilterExpression, FunctionCallExpression, InvocationExpression } from "thingtalk/dist/ast";
+import { GetInvocationExpression, FilterSlot } from "../ast_manip";
+import { ContextInfo, addNewStatement, addNewItem } from "../state_manip";
 
 export function handleGenericError(ctx : ContextInfo) {
     // NOTE: This is a temporary, naive solution. More coming after Levenshtein apply is done
@@ -57,4 +57,49 @@ export function handleGenericError(ctx : ContextInfo) {
     }
     
     return addNewStatement(newCtx, 'sys_slot_fill', 'query', 'accepted', invocation);
+}
+
+export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, newFilter : FilterSlot) : DialogueState | null {
+    // check if this has Levenshtein history, only proceed if it does
+    if (ctx.state.historyLevenshtein.length <= 0)
+        return null;
+    
+    // if the old and new filter are not of the same name, discard
+    // TODO: investigate if this is the best approach
+    if (oldFilter.toString() !== newFilter.toString())
+        return null;
+    
+    const lastLevenshtein = ctx.state.historyLevenshtein[ctx.state.historyLevenshtein.length -1];
+
+    // for now, we only proceed if:
+    // 1. last levenshtein contains only only element (a chain with only one element)
+    if (lastLevenshtein.expression.expressions.length !== 1)
+        return null;
+
+    const expr = lastLevenshtein.expression.expressions[0];
+    // 2. the last levenshtein is a filter with predicate being an AtomBooleanExpression
+    if (!(expr instanceof FilterExpression) || !(expr.filter instanceof AtomBooleanExpression))
+        return null;
+    
+    // 3. the oldFilter is an AtomBooleanExpression
+    // 4. the newFilter is an AtomBooleanExpression
+    if (!(oldFilter.ast instanceof AtomBooleanExpression) || !(newFilter.ast instanceof AtomBooleanExpression))
+        return null;
+
+    // 5. the filter predicate has the same name as the oldFilter
+    if (oldFilter.ast.name !== expr.filter.name)
+        return null;
+    
+    // setting delta
+    const delta = lastLevenshtein.clone();
+    (delta.expression.expressions[0] as FilterExpression).filter = newFilter.ast;
+    
+    // getting applied result
+    const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
+
+    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted"));
+    // console.log(`changeOfMindSimple: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
+    res.historyAppliedLevenshtein.push(delta);
+    res.historyLevenshtein.push(delta);
+    return res;
 }
