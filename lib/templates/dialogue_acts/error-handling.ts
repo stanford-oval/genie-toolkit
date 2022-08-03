@@ -63,7 +63,7 @@ export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, ne
     // check if this has Levenshtein history, only proceed if it does
     if (ctx.state.historyLevenshtein.length <= 0)
         return null;
-    
+
     // if the old and new filter are not of the same name, discard
     // TODO: investigate if this is the best approach
     if (oldFilter.toString() !== newFilter.toString())
@@ -87,7 +87,7 @@ export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, ne
         return null;
 
     // 5. the filter predicate has the same name as the oldFilter
-    if (oldFilter.ast.name !== expr.filter.name)
+    if (!oldFilter.ast.equals(expr.filter))
         return null;
     
     // setting delta
