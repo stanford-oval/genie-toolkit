@@ -62,3 +62,16 @@ didnt_ask_about_error_phrase : C.ParamSlot = {
         return attribute;
     };
 }
+
+// TODO: determine if C.ParamSlot and out_param_Any are correct types
+// TODO: make attribute:out_param_Any consistent with previous dialogue somehow
+// TODO: uncomment and test this template
+//didnt_ask_about_error_phrase : C.ParamSlot {
+//    ( 'i did not' ('mention' ('anything about' | '') | ('say anything' | 'ask' | 'talk') 'about') ('the' | '') attribute:out_param_Any '.'
+//    | 'i do not care about' ('the' | '') attribute:out_param_Any '.'
+//    | ('the' | '') attribute:out_param_Any 'is not what I' ('said' | 'care about' | 'mentioned') '.'
+//    | ('the' | '') attribute:out_param_Any ('can be' ('anything' | 'whatever') | ('does not matter' | 'is not important') ('to me' | '')) '.'
+//    ) => {
+//        return attribute;
+//    };
+//}
