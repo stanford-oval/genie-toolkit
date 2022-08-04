@@ -18,7 +18,7 @@
 //
 // Author: Shicheng Liu <shicheng@cs.stanford.edu>
 
-import { applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, Expression, FilterExpression, FunctionCallExpression, InvocationExpression } from "thingtalk/dist/ast";
+import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, Expression, FilterExpression, FunctionCallExpression, InvocationExpression, NotBooleanExpression } from "thingtalk/dist/ast";
 import { GetInvocationExpression, FilterSlot } from "../ast_manip";
 import { ContextInfo, addNewStatement, addNewItem } from "../state_manip";
 
@@ -92,7 +92,7 @@ export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, ne
     
     // setting delta
     const delta = lastLevenshtein.clone();
-    (delta.expression.expressions[0] as FilterExpression).filter = newFilter.ast;
+    (delta.expression.expressions[0] as FilterExpression).filter = new AndBooleanExpression(null, [new NotBooleanExpression(null, oldFilter.ast), newFilter.ast]);
     
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
