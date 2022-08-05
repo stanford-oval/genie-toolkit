@@ -19,6 +19,7 @@
 // Authors: Shicheng Liu <shicheng@cs.stanford.edu> and Nathan Marks <nsmarks@stanford.edu>
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, DontCareBooleanExpression, Expression, FilterExpression , FunctionCallExpression, InvocationExpression, NotBooleanExpression } from "thingtalk/dist/ast";
 import { GetInvocationExpression, FilterSlot } from "../ast_manip";
 import { ContextInfo, addNewStatement, addNewItem } from "../state_manip";
@@ -29,6 +30,11 @@ import { GetInvocationExpression } from "../ast_manip";
 import { ContextInfo, addNewStatement } from "../state_manip";
 >>>>>>> templates & semantic functions setup
 import { ParamSlot } from "../utils";
+=======
+import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, Expression, FilterExpression, FunctionCallExpression, InvocationExpression, NotBooleanExpression } from "thingtalk/dist/ast";
+import { GetInvocationExpression, FilterSlot } from "../ast_manip";
+import { ContextInfo, addNewStatement, addNewItem } from "../state_manip";
+>>>>>>> Not this but that errors
 
 export function handleGenericError(ctx : ContextInfo) {
     // NOTE: This is a temporary, naive solution. More coming after Levenshtein apply is done
@@ -67,7 +73,8 @@ export function handleGenericError(ctx : ContextInfo) {
     return addNewStatement(newCtx, 'sys_slot_fill', 'query', 'accepted', invocation);
 }
 
-<<<<<<< HEAD
+
+
 export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, newFilter : FilterSlot) : DialogueState | null {
     // check if this has Levenshtein history, only proceed if it does
     if (!ctx.current)
@@ -112,6 +119,7 @@ export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, ne
     // console.log(`changeOfMindSimple: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
     return res;
 }
+<<<<<<< HEAD
 
 export function handleThisNotThatError(ctx : ContextInfo, filters : FilterSlot[]) : DialogueState | null {
     if (filters.length === 2)
@@ -167,6 +175,68 @@ export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : Para
         return null;
     
     const lastLevenshtein = ctx.current.levenshtein;
+=======
+
+export function handleThisNotThatError(ctx : ContextInfo, filters : FilterSlot[]) : DialogueState | null {
+    if (filters.length === 2)
+        return changeOfMindSimple(ctx, filters[0], filters[1]);
+    return null;
+}
+
+// export function handleNotThatError(ctx : ContextInfo, rejection : Ast.Value) {
+//     /* TODO:
+//     set field with value == rejection to not rejection
+//         what if no field has value == rejection?
+//     */
+
+//     console.log("@@@ handleNotThatError")
+
+//     // Partially copied from above function for now
+
+//     // If the context does not contain any DialogueHistoryItem, return NULL
+//     // TODO: maybe revise this
+//     if (!ctx.current) {
+//         return null;
+//     }
+
+//     // last expression, or in case of a chain expression, the first in the chain
+//     const lastExpression : Expression =  ctx.current!.stmt.expression.expressions[0];
+
+//     console.log('ctx.toString():');
+//     console.log(ctx.toString());
+//     console.log('lastExpression.toString():')
+//     console.log(lastExpression.toString())
+//     console.log('rejection:');
+//     console.log(rejection)
+//     console.log('=========================================')
+
+//     // the invocation call hidden in this expression
+//     // const invocation : InvocationExpression|FunctionCallExpression = GetInvocationExpression(lastExpression);
+
+//     // if (!invocation) {
+//     //     return null;
+//     // }
+
+//     // console.log("invocation.in_params:")
+//     // if (invocation instanceof InvocationExpression) {
+//     //     console.log(invocation.invocation.in_params)
+
+//     //     // const invocationCopy = invocation.clone();
+//     //     // invocationCopy.invocation.in_params = [];
+//     //     // return addNewStatement(newCtx, 'execute', null, 'accepted', invocationCopy);
+//     // }
+    
+//     // if (invocation instanceof FunctionCallExpression) {
+//     //     console.log(invocation.in_params)
+
+//     //     // const invocationCopy = invocation.clone();
+//     //     // invocationCopy.in_params = [];
+//     //     // return addNewStatement(newCtx, 'execute', null, 'accepted', invocationCopy);
+//     // }
+
+//     return null;
+
+>>>>>>> Not this but that errors
 
     // for now, we only proceed if:
     // 1. last levenshtein contains only only element (a chain with only one element)
@@ -183,6 +253,7 @@ export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : Para
     if (dontCareField.name !== expr.filter.name)
         return null;
 
+<<<<<<< HEAD
     // setting delta as "dont care"
     const delta = lastLevenshtein.clone();
     (delta.expression.expressions[0] as FilterExpression).filter = new DontCareBooleanExpression(null, dontCareField.name);
@@ -194,3 +265,22 @@ export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : Para
     // console.log(`handleDidntAskAboutError: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
     return res;
 }
+=======
+
+// }
+
+// export function handleThisNotThatError(ctx : ContextInfo, that_this : Ast.Value[]) {
+//     /* TODO:
+//     set field with value == rejection to replacement
+//         what if no field has value == rejection?
+//     */
+// }
+
+// export function handleDidntAskAboutError(ctx : ContextInfo, field : Ast.InputParamSlot) {
+//     /* TODO:
+//     set field to "don't care"
+//         should field be Ast.InputParamSlot or something else?
+//             Make consistent with English template
+//     */
+// }
+>>>>>>> Not this but that errors
