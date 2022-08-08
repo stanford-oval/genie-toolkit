@@ -38,50 +38,61 @@ import {
 // Key functions: given the result of a semantic function, compute
 // a set of keys to speed-up derivation matching
 
+
+function trueType(type : Type) : Type {
+    if (type instanceof Type.Compound && 'value' in type.fields)
+        return type.fields.value.type;
+    return type;
+}
+
 export function placeholderKeyFn(pl : Placeholder) {
-    return { type: pl.type, is_numeric: pl.type.isNumeric() };
+    const type = trueType(pl.type);
+    return { type: type, is_numeric: type.isNumeric() };
 }
 
 export function valueKeyFn(value : Ast.Value) {
-    const type = value.getType();
+    const type = trueType(value.getType());
     return { type, is_numeric: type.isNumeric(), is_constant: value.isConstant() };
 }
 
 export function valueArrayKeyFn(values : Ast.Value[]) {
-    const type = values[0].getType();
+    const type = trueType(values[0].getType());
     return { type, is_numeric: type.isNumeric() };
 }
 
 export function entityOrNumberValueKeyFn(value : Ast.EntityValue|Ast.NumberValue) {
-    const type = value.getType();
+    const type = trueType(value.getType());
     return { type,is_numeric: type.isNumeric(), value: value.value };
 }
 
 export function filterKeyFn(slot : FilterSlot|DomainIndependentFilterSlot) {
     const schema = slot.schema;
     const id = schema?.getArgument('id');
+    const type = slot.ptype ? trueType(slot.ptype) : null;
     return {
         functionName: schema ? schema.qualifiedName : null,
-        type: slot.ptype,
-        is_numeric: slot.ptype ? slot.ptype.isNumeric() : false,
+        type: type,
+        is_numeric: type ? type.isNumeric() : false,
         associatedIdType: id && !id.is_input ? id.type : null
     };
 }
 
 export function inputParamKeyFn(slot : InputParamSlot) {
-    return { functionName: slot.schema.qualifiedName, type: slot.ptype };
+    return { functionName: slot.schema.qualifiedName, type: trueType(slot.ptype) };
 }
+
 
 export function paramKeyFn(slot : ParamSlot) {
     const id = slot.schema.getArgument('id');
     const symmetric = slot.schema.getArgument(slot.name)?.getImplementationAnnotation<boolean>('symmetric');
+    const type = trueType(slot.type);
     return {
         functionName: slot.schema.qualifiedName,
-        type: slot.type,
-        is_numeric: slot.type.isNumeric(),
-        is_array: slot.type instanceof Type.Array,
-        elem: slot.type instanceof Type.Array ? slot.type.elem as Type : null,
-        is_numeric_elem: slot.type instanceof Type.Array ? (slot.type.elem as Type).isNumeric() : false,
+        type: type,
+        is_numeric: type.isNumeric(),
+        is_array: type instanceof Type.Array,
+        elem: type instanceof Type.Array ? type.elem as Type : null,
+        is_numeric_elem: type instanceof Type.Array ? (type.elem as Type).isNumeric() : false,
         associatedIdType: id && !id.is_input ? id.type : null,
         filterable: slot.filterable,
         symmetric: symmetric ?? false 
@@ -93,7 +104,7 @@ export function paramArrayKeyFn(slots : ParamSlot[]) {
         return { functionName: null, type: null, associatedIdType: null, filterable: true };
 
     const id = slots[0].schema.getArgument('id');
-    return { functionName: slots[0].schema.qualifiedName, type: slots[0].type,
+    return { functionName: slots[0].schema.qualifiedName, type: trueType(slots[0].type),
         associatedIdType: id && !id.is_input ? id.type : null,
         filterable: slots.every((s) => s.filterable) };
 }
@@ -118,16 +129,16 @@ export function expressionKeyFn(expr : Ast.Expression) {
             if (isEventProjection)
                 projectionType = Type.String;
             else
-                projectionType = schema.getArgType(expr.args[0])!;
+                projectionType = trueType(schema.getArgType(expr.args[0])!);
         } else if (expr.computations.length === 1 && expr.args.length === 0) {
-            projectionType = expr.computations[0].getType();
+            projectionType = trueType(expr.computations[0].getType());
         }
     } else {
         const paramPassing = getImplicitParameterPassing(expr.schema!);
         if (paramPassing === '$event')
             implicitParamPassingType = Type.String;
         else
-            implicitParamPassingType = schema.getArgType(paramPassing)!;
+            implicitParamPassingType = trueType(schema.getArgType(paramPassing)!);
     }
     assert(projectionType !== undefined);
 
@@ -190,7 +201,7 @@ export function expressionWithCoreferenceKeyFn(coref : ExpressionWithCoreference
         idType: id && !id.is_input ? id.type : null,
 
         // coref specific keys
-        corefType: coref.type,
+        corefType: trueType(coref.type),
         corefFunctionName: coref.slot ? coref.slot.schema.qualifiedName : null,
     };
 }
