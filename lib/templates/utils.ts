@@ -186,17 +186,13 @@ function makeFilter(tpLoader : ThingpediaLoader,
     } else if (op === 'in_array') {
         if (vtype.equals(new Type.Array(Type.String)) && ptype.isEntity)
             op = 'in_array~';
-        else if (!vtype.equals(new Type.Array(ptype)))
+        else if (!Type.isAssignable(vtype, new Type.Array(ptype), {}, tpLoader.entitySubTypeMap))
             return null;
     } else {
         // note: we need to use "isAssignable" instead of "equals" here
         // to handle enums and entities correctly
-        if ((vtype.isEnum && ptype.isEnum) || (vtype.isEntity && ptype.isEntity)) {
-            if (!Type.isAssignable(vtype, ptype, {}, tpLoader.entitySubTypeMap))
-                return null;
-        } else if (!ptype.equals(vtype)) {
+        if (!Type.isAssignable(vtype, ptype, {}, tpLoader.entitySubTypeMap))
             return null;
-        }
 
         if (op === '==' && vtype.isString)
             op = '=~';
