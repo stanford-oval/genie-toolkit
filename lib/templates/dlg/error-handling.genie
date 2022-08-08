@@ -55,7 +55,6 @@ this_not_that_error_phrase : C.FilterSlot[] = {
 
 // "Not that value" errors
 // e.g. "I did not ask for Chinese food."
-<<<<<<< HEAD
 not_that_error_phrase : C.FilterSlot = {
     ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for') rejection:with_filter '.'
     | rejection:with_filter 'is not what i' ('want' | 'asked for' | 'asked about' | 'am looking for') '.'
@@ -63,19 +62,6 @@ not_that_error_phrase : C.FilterSlot = {
         return rejection;
     };
 }
-=======
-
-// TODO: make value:constant_Any consistent with previous dialogue somehow
-// not_that_error_phrase : Ast.Value = {
-//     // ( 'i' ( ('do' | 'did') 'not want' | 'did not ask for' | ('am' | 'was') 'not looking for') value:Ast.Value '.'
-//     // | value:Ast.Value 'is not what i' ('want' | 'asked ('for' | 'about') | 'am looking for') '.'
-//     ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for') value:constant_Any '.'
-//     | value:constant_Any 'is not what i' ('want' | 'asked for' | 'asked about' | 'am looking for') '.'
-//     ) => {
-//         return value;
-//     };
-// }
->>>>>>> Not this but that errors
 
 
 // "I didn't talk about that attribute/field" errors

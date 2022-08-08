@@ -338,9 +338,8 @@ $user : Ast.DialogueState = {
 =======
 	ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
     ctx:ctx_sys_recommend_one 'i do not want' wrong_filter:with_filter ', but I want' right_filter:with_filter  => D.changeOfMindSimple(ctx, wrong_filter, right_filter);
-    // TODO: could context also be ctx_sys_confirm_action?
-    //ctx:ctx_sys_display_result rejection:not_that_error_phrase => D.handleNotThatError(ctx, rejection);
-    // TODO: uncomment that_not_this when ready
+    // TODO: could context also be ctx_sys_confirm_action? or ctx_sys_display_result?
+    ctx:ctx_sys_recommend_one rejection:not_that_error_phrase => D.handleNotThatError(ctx, rejection);
     ctx:ctx_sys_recommend_one that_this:this_not_that_error_phrase => D.handleThisNotThatError(ctx, that_this);
     // TODO: uncomment didnt_ask_about_error_phrase when ready
     // ctx:ctx_sys_display_result attribute:didnt_ask_about_error_phrase => D.handleDidntAskAboutError(ctx, attribute);

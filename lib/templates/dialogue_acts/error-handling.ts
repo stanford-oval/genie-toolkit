@@ -183,6 +183,46 @@ export function handleThisNotThatError(ctx : ContextInfo, filters : FilterSlot[]
     return null;
 }
 
+export function handleNotThatError(ctx : ContextInfo, rejectFilter : FilterSlot) : DialogueState | null {    
+    // check if this has Levenshtein history, only proceed if it does
+    if (ctx.state.historyLevenshtein.length <= 0)
+        return null;
+
+    const lastLevenshtein = ctx.state.historyLevenshtein[ctx.state.historyLevenshtein.length -1];
+
+    // for now, we only proceed if:
+    // 1. last levenshtein contains only only element (a chain with only one element)
+    if (lastLevenshtein.expression.expressions.length !== 1)
+        return null;
+    
+
+    const expr = lastLevenshtein.expression.expressions[0];
+
+    // 2. the last levenshtein is a filter with predicate being an AtomBooleanExpression
+    if (!(expr instanceof FilterExpression) || !(expr.filter instanceof AtomBooleanExpression))
+        return null;
+
+    // 3. the rejectFilter is an AtomBooleanExpression
+    if (!(rejectFilter.ast instanceof AtomBooleanExpression))
+        return null;
+
+    // 4. the filter predicate from the previous turn has the same name as the rejectFilter
+    if (!rejectFilter.ast.equals(expr.filter))
+        return null;
+
+    // setting delta as "not rejectFilter"
+    const delta = lastLevenshtein.clone();
+    (delta.expression.expressions[0] as FilterExpression).filter = new NotBooleanExpression(null, rejectFilter.ast);
+
+    // getting applied result
+    const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
+
+    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted"));
+    res.historyAppliedLevenshtein.push(delta);
+    res.historyLevenshtein.push(delta);
+    return res;
+}
+
 // export function handleNotThatError(ctx : ContextInfo, rejection : Ast.Value) {
 //     /* TODO:
 //     set field with value == rejection to not rejection
