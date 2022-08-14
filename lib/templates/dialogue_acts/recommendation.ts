@@ -36,6 +36,8 @@ import {
     makeSimpleState,
     addActionParam,
     addNewItem,
+    propagateDeviceIDsLevenshtein,
+    setOrAddInvocationParam,
 } from '../state_manip';
 import {
     isInfoPhraseCompatibleWithResult,
@@ -47,6 +49,8 @@ import {
     proposalReply
 } from './refinement-helpers';
 import type { ListProposal } from './list-proposal';
+import { applyMultipleLevenshtein, ChainExpression, determineSameExpressionLevenshtein, InvocationExpression, Levenshtein } from 'thingtalk/dist/ast';
+import { appendFileSync } from 'fs';
 
 export interface Recommendation {
     ctx : ContextInfo;
@@ -340,7 +344,7 @@ function negativeRecommendationReply(ctx : ContextInfo, [preamble, request] : [A
     request = combinePreambleAndRequest(preamble, request, info, proposalType);
     if (request === null)
         return null;
-    return proposalReply(ctx, request, refineFilterToAnswerQuestionOrChangeFilter);
+    return proposalReply(ctx, request, refineFilterToAnswerQuestionOrChangeFilter, "negativeRecommendationReply_multiwoz.txt");
 }
 
 function positiveRecommendationReply(loader : ThingpediaLoader,
@@ -386,7 +390,44 @@ function positiveRecommendationReply(loader : ThingpediaLoader,
     const chainParam = findChainParam(topResult, acceptedAction);
     if (!chainParam)
         return null;
-    return addActionParam(ctx, 'execute', acceptedAction!, chainParam, topResult.value.id, 'accepted');
+    
+    // Levenshtein testing, set delta to include all undefined
+    const invocation : Ast.Invocation = acceptedAction!.clone();
+    // if (!invocation.in_params.map((i) => i.name).includes(chainParam)) {
+    //     console.log("pushed" + invocation.prettyprint());
+    //     invocation.in_params.push(new Ast.InputParam(null, chainParam, topResult.value.id));
+    // }
+    C.addInvocationInputParamLevenshtein(invocation, new Ast.InputParam(null, chainParam, topResult.value.id));
+    for (const arg of invocation.schema!.iterateArguments()) {
+        if (arg.is_input && arg.required && !invocation.in_params.map((i) => i.name).includes(arg.name))
+            invocation.in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
+    }
+
+    let applyres : ChainExpression;
+    let oldExpr  : ChainExpression | undefined;
+    const delta  : Levenshtein = new Levenshtein(invocation.location, new InvocationExpression(invocation.location, invocation, invocation.schema), "$continue");
+    // delta.expression = propagateDeviceIDsLevenshtein(ctx, delta.expression);
+    if (ctx.nextInfo) {
+        oldExpr = ctx.next!.stmt.expression;
+        applyres = applyMultipleLevenshtein(oldExpr, [delta]);
+    } else {
+        setOrAddInvocationParam(invocation, chainParam, topResult.value.id);
+        applyres = C.toChainExpression(new InvocationExpression(invocation.location, invocation, invocation.schema));
+        applyres = propagateDeviceIDsLevenshtein(ctx, applyres);
+    }
+    const res = addActionParam(ctx, 'execute', acceptedAction!, chainParam, topResult.value.id, 'accepted');
+    if (!determineSameExpressionLevenshtein(applyres, res.history[res.history.length - 1].stmt.expression, [delta], oldExpr)) {
+        const print2 = `last-turn expression   : ${oldExpr?.prettyprint()}\n`;
+        const print3 = `levenshtein expressions: ${[delta].map((i) => i.prettyprint())}\n`;
+        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
+        const print5 = `expected expression    : ${res.history[res.history.length - 1].stmt.expression.prettyprint()}\n`;
+        console.log(print2+print3+print4+print5);
+        console.log(topResult.value.id.prettyprint());
+        console.log(ctx.toString());
+        console.log(res.history.map((i) => i.prettyprint()));
+        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/positiveRecommendationReply_action_multiwoz.txt", print2 + print3 + print4 + print5);
+    }
+    return res;
 }
 
 function recommendationCancelReply(ctx : ContextInfo, valid : boolean) {

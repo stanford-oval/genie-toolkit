@@ -19,7 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
+import { appendFileSync } from 'fs';
 import { Ast, } from 'thingtalk';
+import { applyMultipleLevenshtein, determineSameExpressionLevenshtein, Levenshtein } from 'thingtalk/dist/ast';
 
 import * as C from '../ast_manip';
 
@@ -39,6 +41,7 @@ function relatedQuestion(ctx : ContextInfo, expr : Ast.Expression) {
     if (expr.schema!.functionType !== 'query')
         return null;
     const newSchema = expr.schema!;
+    // GEORGE: investigate how the invocation in expr is set. Probably in another semantic function
     if (C.isSameFunction(currentTable.schema!, newSchema))
         return null;
 
@@ -67,6 +70,17 @@ function relatedQuestion(ctx : ContextInfo, expr : Ast.Expression) {
         if (newFilter === null)
             return null;
         newFilterTable.filter = newFilter;
+    }
+
+    // Levenshtein testing
+    const delta1 = new Levenshtein(null, expr, "$continue");
+    const applyres = applyMultipleLevenshtein(currentStmt.expression, [delta1]);
+    if (!determineSameExpressionLevenshtein(applyres, newTable)) {
+        const print2 = `last-turn expression   : ${currentStmt.expression.prettyprint()}\n`;
+        const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
+        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
+        const print5 = `expected expression    : ${newTable.prettyprint()}\n`;
+        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/relatedQuestion_multiwoz.txt", print2 + print3 + print4 + print5);
     }
 
     return addQuery(ctx, 'execute', newTable, 'accepted');

@@ -64,6 +64,7 @@ export {
 export * from './keyfns';
 
 import type ThingpediaLoader from './load-thingpedia';
+import { appendFileSync } from 'fs';
 
 export type ArgMinMax = [ParamSlot, 'asc'|'desc'];
 
@@ -2080,6 +2081,32 @@ export function whenDoRule(table : Ast.Expression, action : ExpressionWithCorefe
     if (!stream)
         return null;
     return addParameterPassing(stream, action);
+}
+
+export function addInvocationInputParamLevenshtein(invocation : Ast.Invocation, param : Ast.InputParam) {
+    for (const existing of invocation.in_params) {
+        if (existing.name === param.name) {
+            if (existing.value.isUndefined)
+                existing.value = param.value;
+            return;
+        }
+    }
+    invocation.in_params.push(param);
+}
+
+export function levenshteinDebugOutput(applyres : Ast.ChainExpression,
+                                       expected : Ast.ChainExpression,
+                                       logPrefix : string,
+                                       deltas  ?: Ast.Levenshtein[],
+                                       oldExpr ?: Ast.ChainExpression,) {
+    if (!Ast.determineSameExpressionLevenshtein(applyres, expected, deltas, oldExpr)) {
+        const print2 = `last-turn expression   : ${oldExpr?.prettyprint()}\n`;
+        const print3 = `levenshtein expressions: ${deltas?.map((i) => i.prettyprint())}\n`;
+        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
+        const print5 = `expected expression    : ${expected.prettyprint()}\n`;
+        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/" + logPrefix, print2 + print3 + print4 + print5);
+    }
+                                        
 }
 
 export {

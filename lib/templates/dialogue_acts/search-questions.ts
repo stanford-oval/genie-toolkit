@@ -41,6 +41,8 @@ import {
     isSimpleFilterExpression,
     addParametersFromContext
 } from './common';
+import { applyMultipleLevenshtein, determineSameExpressionLevenshtein, FilterExpression, Levenshtein, levenshteinFindSchema } from 'thingtalk/dist/ast';
+import { appendFileSync } from 'fs';
 
 export type PreciseSearchQuestionAnswer = [Ast.Expression, Ast.Invocation|null, boolean];
 
@@ -212,10 +214,25 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
     const newTable = queryRefinement(currentTable, answerTable.filter, refineFilterToAnswerQuestion, null);
     if (newTable === null)
         return null;
-    if (answerAction !== null)
+    
+    // add levenshtein here
+    
+    if (answerAction !== null) {
         return addQueryAndAction(ctx, 'execute', newTable, answerAction, 'accepted');
-    else
+    } else {
+        // Levenshtein testing
+        const deltaFilterStatement = new FilterExpression(null, levenshteinFindSchema(currentStmt.expression), answerTable.filter, null);
+        const delta1 = new Levenshtein(null, deltaFilterStatement, "$continue");
+        const applyres = applyMultipleLevenshtein(currentStmt.expression, [delta1]);
+        if (!determineSameExpressionLevenshtein(applyres, newTable, [delta1], currentStmt.expression)) {
+            const print2 = `last-turn expression   : ${currentStmt.expression.prettyprint()}\n`;
+            const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
+            const print4 = `applied result         : ${applyres.prettyprint()}\n`;
+            const print5 = `expected expression    : ${newTable.prettyprint()}\n`;
+            appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/preciseSearchQuestionAnswer_multiwoz.txt", print2 + print3 + print4 + print5);
+        }
         return addQuery(ctx, 'execute', newTable, 'accepted');
+    }
 }
 
 
@@ -280,6 +297,18 @@ function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : C.FilterSlot|
     const newTable = queryRefinement(currentTable, answerFilter.ast, refineFilterToAnswerQuestion, null);
     if (newTable === null)
         return null;
+
+    // Levenshtein testing
+    const deltaFilterStatement = new FilterExpression(null, levenshteinFindSchema(currentStmt.expression), answerFilter.ast, null);
+    const delta1 = new Levenshtein(null, deltaFilterStatement, "$continue");
+    const applyres = applyMultipleLevenshtein(currentStmt.expression, [delta1]);
+    if (!determineSameExpressionLevenshtein(applyres, newTable, [delta1], currentStmt.expression)) {
+        const print2 = `last-turn expression   : ${currentStmt.expression.prettyprint()}\n`;
+        const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
+        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
+        const print5 = `expected expression    : ${newTable.prettyprint()}\n`;
+        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/impreciseSearchQuestionAnswer_multiwoz.txt", print2 + print3 + print4 + print5);
+    }
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 

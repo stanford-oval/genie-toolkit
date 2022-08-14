@@ -34,6 +34,8 @@ import {
     isSimpleFilterExpression
 } from './common';
 import { SlotBag } from '../slot_bag';
+import { applyMultipleLevenshtein, determineSameExpressionLevenshtein, FilterExpression, Levenshtein, levenshteinFindSchema } from 'thingtalk/dist/ast';
+import { appendFileSync } from 'fs';
 
 type UnaryExpression = Ast.SortExpression
     | Ast.MonitorExpression
@@ -185,18 +187,18 @@ function queryRefinement(ctxExpression : Ast.ChainExpression,
         //if (ctxFilterTable === null)
         //    return null;
         assert(filterExpression);
-
+        
         // TODO we need to push down the filter, if possible
         if (!isSimpleFilterExpression(filterExpression))
             return null;
-
+        
         const newRefinedFilter = refineFilter(filterExpression.filter, newFilter);
         if (newRefinedFilter === null)
             return null;
         refinedFilter = newRefinedFilter;
         filterExpression.filter = refinedFilter;
     }
-
+    
     // a projection always applies to the last element in the chain
     // (which must be a query, not an action)
     let last = cloneExpression.last;
@@ -468,7 +470,8 @@ function refineFilterForEmptySearch(ctxFilter : Ast.BooleanExpression,
  */
 function proposalReply(ctx : ContextInfo,
                        request : Ast.Expression,
-                       refinementFunction : RefineFilterCallback) {
+                       refinementFunction : RefineFilterCallback,
+                       outFileName : string) {
     if (!C.isSameFunction(ctx.currentFunction!, request.schema!))
         return null;
 
@@ -481,6 +484,19 @@ function proposalReply(ctx : ContextInfo,
     const newTable = queryRefinement(currentExpression, request.filter, refinementFunction, null);
     if (newTable === null)
         return null;
+    
+    // Levenshtein testiing
+    const deltaFilterStatement = new FilterExpression(null, levenshteinFindSchema(currentStmt.expression), request.filter, null);
+    const delta1 = new Levenshtein(null, deltaFilterStatement, "$continue");
+    const applyres = applyMultipleLevenshtein(currentStmt.expression, [delta1]);
+    if (!determineSameExpressionLevenshtein(applyres, newTable, [delta1], currentStmt.expression)) {
+        const print2 = `last-turn expression   : ${currentStmt.expression.prettyprint()}\n`;
+        const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
+        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
+        const print5 = `expected expression    : ${newTable.prettyprint()}\n`;
+        // console.log(print2 + print3 + print4 + print5);
+        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/" + outFileName, print2 + print3 + print4 + print5);
+    }
 
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }

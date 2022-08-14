@@ -33,6 +33,7 @@ import * as C from './ast_manip';
 import * as keyfns from './keyfns';
 import { SlotBag } from './slot_bag';
 import ThingpediaLoader, { ParsedPlaceholderPhrase } from './load-thingpedia';
+import { ChainExpression } from 'thingtalk/dist/ast';
 
 // NOTE: this version of arraySubset uses ===
 // the one in array_utils uses .equals()
@@ -564,6 +565,19 @@ function propagateDeviceIDs(ctx : ContextInfo,
     });
 }
 
+export function propagateDeviceIDsLevenshtein(ctx : ContextInfo, expr : ChainExpression) : ChainExpression {
+    const visitor = new CollectDeviceIDVisitor();
+    const currentIdx = ctx.currentIdx ?? -1;
+    if (currentIdx >= 0)
+        ctx.state.history[currentIdx].visit(visitor);
+    for (let i = currentIdx+1; i < ctx.state.history.length; i++)
+        ctx.state.history[i].visit(visitor);
+    const applyVisitor = new ApplyDeviceIDVisitor(visitor.collection);
+    expr = expr.clone();
+    expr.visit(applyVisitor);
+    return expr;
+}
+
 function addNewItem(ctx : ContextInfo,
                     dialogueAct : string,
                     dialogueActParam : string|null,
@@ -704,6 +718,9 @@ function addActionParam(ctx : ContextInfo,
     assert(['accepted', 'confirmed', 'proposed'].indexOf(confirm) >= 0);
 
     let newHistoryItem;
+    // console.log('addActionParam called');
+    // GEORGE: the delta in both cases are simply the new invocation
+    // the new invocation will contain all the undefined values, which in delta apply will be taken care of
     if (ctx.nextInfo) {
         const next = ctx.next;
         assert(next);
@@ -711,6 +728,8 @@ function addActionParam(ctx : ContextInfo,
         const isSameFunction = C.isSameFunction(nextInvocation.schema!, action.schema!);
 
         if (isSameFunction) {
+            // GEORGE: here, you'd like to prioritize parameters from `action`
+
             // we want to modify the existing action in case:
             // - case 1: we're currently accepting/confirming the action (perhaps with the same or
             //   a different parameter)
@@ -735,10 +754,13 @@ function addActionParam(ctx : ContextInfo,
             }
 
             newHistoryItem.confirm = confirm;
+            // console.log(`isSameFunction, newHistoryItem ${newHistoryItem.prettyprint()}`);
         }
     }
 
     if (!newHistoryItem) {
+        // GEORGE: here you prioritize the new input parameters
+        // REVIEW: I do not understand why there is such a difference
         const in_params = [new Ast.InputParam(null, pname, value)];
         const setparams = new Set;
         setparams.add(pname);

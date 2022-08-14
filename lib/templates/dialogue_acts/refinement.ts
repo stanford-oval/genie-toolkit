@@ -105,12 +105,12 @@ function negativeProposalReply(ctx : ContextInfo, [preamble, request] : [Ast.Exp
     if (refined === null)
         return null;
 
-    return proposalReply(ctx, request, refineFilterToAnswerQuestion);
+    return proposalReply(ctx, request, refineFilterToAnswerQuestion, "negativeProposalReply_multiwoz.txt");
 }
 
 function positiveProposalReply(ctx : ContextInfo) {
     const proposal = ctx.aux as Ast.FilterExpression;
-    return proposalReply(ctx, proposal, refineFilterToAnswerQuestion);
+    return proposalReply(ctx, proposal, refineFilterToAnswerQuestion, "positiveProposalReply_multiwoz.txt");
 }
 
 export {

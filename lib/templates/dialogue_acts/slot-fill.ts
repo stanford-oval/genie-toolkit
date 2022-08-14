@@ -20,8 +20,10 @@
 
 
 import assert from 'assert';
+import { appendFileSync } from 'fs';
 
 import { Ast, Type } from 'thingtalk';
+import { applyMultipleLevenshtein, determineSameExpressionLevenshtein, FunctionCallExpression, Invocation, InvocationExpression, Levenshtein } from 'thingtalk/dist/ast';
 
 import * as C from '../ast_manip';
 
@@ -131,10 +133,33 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
 
     const clone = fastSemiShallowClone(ctx.next);
     const newInvocation = C.getInvocation(clone);
+
+    // Levenshtein testing
+    // GEORGE: Levenshtein takes care of API parameter issues
+    let oldInvocation : InvocationExpression | FunctionCallExpression;
+    if (newInvocation instanceof Invocation)
+        oldInvocation = new InvocationExpression(newInvocation.location, newInvocation.clone(), newInvocation.schema);
+    else
+        oldInvocation = newInvocation.clone();
+
     assert(newInvocation instanceof Ast.Invocation);
     assert(C.isSameFunction(newInvocation.schema!, answer.schema!));
     // modify in place
     mergeParameters(newInvocation, answer);
+
+    // Levenshtein testing
+    // answer is never changed, so dont need to clone.
+    // it's the `clone` and `newInvocation` that is changed
+    const delta = new Levenshtein(oldInvocation.location, new InvocationExpression(answer.location, answer, answer.schema), "$continue");
+    const applyres = applyMultipleLevenshtein(C.toChainExpression(oldInvocation), [delta]);
+    const newTable = new InvocationExpression(newInvocation.location, newInvocation, newInvocation.schema);
+    if (!determineSameExpressionLevenshtein(applyres, C.toChainExpression(newTable))) {
+        const print2 = `last-turn expression   : ${oldInvocation.prettyprint()}\n`;
+        const print3 = `levenshtein expressions: ${[delta].map((i) => i.prettyprint())}\n`;
+        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
+        const print5 = `expected expression    : ${newTable.prettyprint()}\n`;
+        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/preciseSlotFillAnswer_multiwoz.txt", print2 + print3 + print4 + print5);
+    }
 
     return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }
@@ -147,6 +172,8 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
 
     assert(ctx.next && ctx.nextInfo);
 
+    // GEORGE: This is resolving which slot we need to modify, we probably still have to keep these
+    // because the passed in paramter does not have the slot name if it is Ast.Value
     let ipslot : C.InputParamSlot;
     if (answer instanceof Ast.Value) {
         assert(questions.length === 1);
@@ -200,6 +227,24 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
 
         slot.set(ipslot.ast.value);
     }
+    // GEORGE: The levenshtein, if added, will be the statement in clone (clone.stmt.expression), and so is the applied result
+    // arguably, for this case, it does not make sense to use Levenshtein b/c it will only
+    // complicate the situation. But, I think we should use it for consistency anyways.
+    // We may also need to re-design this ctx.next interface.
+    // for now, testing uses it as long-turn expression
+    // the expected applyRes is simply clone.stmt.expression
+
+    // Levenshtein testing
+    const delta1 = new Levenshtein(null, clone.stmt.expression, "$continue");
+    const applyres = applyMultipleLevenshtein(ctx.next.stmt.expression, [delta1]);
+    if (!determineSameExpressionLevenshtein(applyres, clone.stmt.expression)) {
+        const print2 = `last-turn expression   : ${ctx.next.stmt.expression.prettyprint()}\n`;
+        const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
+        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
+        const print5 = `expected expression    : ${clone.stmt.expression.prettyprint()}\n`;
+        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/impreciseSlotFillAnswer_multiwoz.txt", print2 + print3 + print4 + print5);
+    }
+
     return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }
 
