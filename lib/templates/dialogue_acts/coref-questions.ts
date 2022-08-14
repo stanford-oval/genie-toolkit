@@ -34,8 +34,7 @@ import {
 } from './refinement-helpers';
 import type { Recommendation } from './recommendation';
 import type { ListProposal } from './list-proposal';
-import { applyMultipleLevenshtein, Levenshtein, levenshteinFindSchema, ProjectionExpression, FilterExpression, determineSameExpressionLevenshtein } from 'thingtalk/dist/ast';
-import { appendFileSync } from 'fs';
+import { applyMultipleLevenshtein, Levenshtein, levenshteinFindSchema, ProjectionExpression, FilterExpression } from 'thingtalk/dist/ast';
 
 export type UserSearchQuestionForList = [Ast.EntityValue|Ast.NumberValue|null, C.ParamSlot[]];
 
