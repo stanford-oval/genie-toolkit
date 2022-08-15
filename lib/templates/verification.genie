@@ -59,5 +59,20 @@ boolean_question = {
         return C.makeVerificationQuestion($loader, table, projection);
     };
 
-    //TODO: add templates for "are there any XXX"
+    ( ('does'|'do'|'did') table:entity_table 'have' p:out_param_Array__Any with { functionName = table.functionName }
+    | ('does'|'do'|'did') 'not' table:entity_table 'have' p:out_param_Array__Any with { functionName = table.functionName } [weight=0.1]
+    ) => {
+        const projection = C.makeAggregateFilter(p, 'count', '*', '>=', new Ast.Value.Number(1));
+        if (!projection)
+            return null;
+        return C.makeVerificationQuestion($loader, table, projection);
+    };
+
+    ('does'|'do'|'did') ('the' | '') table:entity_table 'have' 'no' p:out_param_Array__Any with { functionName = table.functionName } [weight=0.1]
+    => {
+        const projection = C.makeAggregateFilter(p, 'count', '*', '>=', new Ast.Value.Number(1));
+        if (!projection)
+            return null;
+        return C.makeVerificationQuestion($loader, table, projection);
+    };
 }
