@@ -2192,6 +2192,24 @@ function makeQualifiedFilter(filter : FilterSlot, qualifier : FilterSlot) : Filt
     };
 }
 
+function makeExistentialVerificationTable(table : Ast.Expression) {
+    const verification = new Ast.AtomBooleanExpression(null, 'count', '>=', new Ast.Value.Number(1), null);
+    const schema  = table.schema!.clone();
+    const countArg = new Ast.ArgumentDef(
+        table.schema!.location,
+        Ast.ArgDirection.OUT,
+        'count',
+        Type.Number
+    );
+    schema.addArguments([countArg]);
+    return new Ast.BooleanQuestionExpression(
+        schema.location, 
+        new Ast.AggregationExpression(null, table, '*', 'count', schema),
+        verification,
+        schema
+    );
+}
+
 
 export {
     // helpers
@@ -2273,6 +2291,9 @@ export {
     makeComputeArgMinMaxExpression,
     makeAggComputeExpression,
     makeAggComputeArgMinMaxExpression,
+
+    // verification
+    makeExistentialVerificationTable,
 
     makeWithinGeoDistanceExpression,
 

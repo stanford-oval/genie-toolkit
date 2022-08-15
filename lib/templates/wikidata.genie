@@ -49,7 +49,12 @@ boolean_question = {
         | ('are'|'were'|'is'|'was') 'there' ('a'|'') table:complete_table ('with'|'having') filter:npp_id_soft_filter [weight=0.2] 
         | ('are'|'were'|'is'|'was') 'there' ('a'|'') table:with_filtered_table filter:pvp_id_soft_filter [weight=0.1]
         | ('are'|'were'|'is'|'was') 'there' ('a'|'') table:with_filtered_table ('with'|'having') filter:npp_id_soft_filter [weight=0.1]
-        ) => C.makeVerificationQuestion($loader, table, filter);
+        ) => {
+            const filtered_table = C.addFilter($loader, table, filter);
+            if (!filtered_table)
+                return null;
+            return C.makeExistentialVerificationTable(filtered_table);
+        };
     }
 }
 
