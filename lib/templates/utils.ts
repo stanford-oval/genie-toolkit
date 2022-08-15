@@ -198,6 +198,9 @@ function makeFilter(tpLoader : ThingpediaLoader,
             op = '=~';
 
         const arg = slot.schema.getArgument(slot.name)!;
+        if (arg.getImplementationAnnotation<boolean>('nullable') === false && value instanceof Ast.Value.Null)
+            return null;
+
         if (vtype.isNumber || vtype.isMeasure) {
             let min = -Infinity;
             const minArg = arg.getImplementationAnnotation<number>('min_number');
