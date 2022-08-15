@@ -583,6 +583,9 @@ function makeSingleFieldProjection(loader : ThingpediaLoader,
     if (!arg || arg.is_input)
         return null;
 
+    if (arg.getImplementationAnnotation<boolean>('projectable') === false)
+        return null;
+
     if (countInputOutputParams(table.schema!).output === 1)
         return table;
 
@@ -614,6 +617,9 @@ function makeMultiFieldProjection(loader : ThingpediaLoader,
         const name = outParam.name;
         const arg = table.schema!.getArgument(name);
         if (!arg || arg.is_input)
+            return null;
+
+        if (arg.getImplementationAnnotation<boolean>('projectable') === false)
             return null;
 
         if (ftype === 'table') {
