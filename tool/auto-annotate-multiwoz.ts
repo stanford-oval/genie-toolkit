@@ -612,7 +612,7 @@ class Converter extends stream.Readable {
                     new Ast.BooleanExpression.And(null, filterClauses), null);
 
                 const tableStmt = new Ast.ExpressionStatement(null, filterTable);
-                newItems.push(new Ast.DialogueHistoryItem(null, tableStmt, null, 'accepted'));
+                newItems.push(new Ast.DialogueHistoryItem(null, tableStmt, null, 'accepted', null));
             }
 
             if (newActionSlots.size && domain !== 'attraction') {
@@ -660,7 +660,7 @@ class Converter extends stream.Readable {
                 }
 
                 const actionStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null, invocation, null));
-                newItems.push(new Ast.DialogueHistoryItem(null, actionStmt, null, 'accepted'));
+                newItems.push(new Ast.DialogueHistoryItem(null, actionStmt, null, 'accepted', null));
             } else if (contextInfo.next) {
                 newItems.push(contextInfo.next.clone());
             }

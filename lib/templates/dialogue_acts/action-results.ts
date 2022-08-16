@@ -83,7 +83,7 @@ function makeCompleteActionSuccessPhrase(ctx : ContextInfo, action : Ast.Express
     else
         last = action;
     assert(last instanceof Ast.InvocationExpression);
-    const ctxInvocation = C.getInvocation(ctx.current!);
+    const ctxInvocation = C.getInvocation(ctx.current!.stmt);
     if (!C.isSameFunction(ctxInvocation.schema!, last.invocation.schema!))
         return null;
     assert(ctxInvocation instanceof Ast.Invocation);
@@ -183,7 +183,7 @@ function checkThingpediaErrorMessage(ctx : ContextInfo, msg : ErrorMessage) {
     if (!(error instanceof Ast.EnumValue) || error.value !== msg.code)
         return null;
 
-    const action = C.getInvocation(ctx.current!);
+    const action = C.getInvocation(ctx.current!.stmt);
     for (const in_param of action.in_params) {
         if (msg.bag.has(in_param.name) && !msg.bag.get(in_param.name)!.equals(in_param.value))
             return null;
@@ -197,7 +197,7 @@ function checkActionErrorMessage(ctx : ContextInfo, action : Ast.Invocation) {
     // match the actual parameters of the action
     if (!C.isSameFunction(ctx.currentFunction!, action.schema!))
         return null;
-    const ctxInvocation = C.getInvocation(ctx.current!);
+    const ctxInvocation = C.getInvocation(ctx.current!.stmt);
     for (const newParam of action.in_params) {
         if (newParam.value.isUndefined)
             continue;
@@ -264,7 +264,7 @@ function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputPar
         return null;
 
     const clone = ctx.current!.clone();
-    const action = C.getInvocation(clone);
+    const action = C.getInvocation(clone.stmt);
     if (!action || !(action instanceof Ast.Invocation))
         return null;
     setOrAddInvocationParam(action, ipslot.ast.name, ipslot.ast.value);

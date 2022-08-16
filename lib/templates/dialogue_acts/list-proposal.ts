@@ -56,8 +56,6 @@ import {
 import {
     DirectAnswerPhrase
 } from './results';
-import { applyMultipleLevenshtein, ChainExpression, determineSameExpressionLevenshtein, FilterExpression, InvocationExpression, Levenshtein, levenshteinFindSchema } from 'thingtalk/dist/ast';
-import { appendFileSync } from 'fs';
 
 export interface ListProposal {
     results : Ast.DialogueHistoryResultItem[];
@@ -118,7 +116,7 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
     }
 
 
-    const action = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null;
+    const action = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!.stmt)) : null;
     return { results, info, action, hasLearnMore };
 }
 
@@ -149,7 +147,7 @@ export function checkThingpediaListProposal(proposal : ThingpediaListProposal, a
     if (!mergedInfo)
         return null;
 
-    const action = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null;
+    const action = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!.stmt)) : null;
     return { results: ctx.results!, info: mergedInfo, action, hasLearnMore: false };
 }
 
@@ -171,7 +169,7 @@ export function addActionToListProposal(nameList : NameList, action : Ast.Invoca
     const resultType = results[0].value.id.getType();
     if (!C.hasArgumentOfType(action, resultType))
         return null;
-    const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null;
+    const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!.stmt)) : null;
     if (ctxAction && !C.isSameFunction(ctxAction.schema!, action.schema!))
         return null;
 
@@ -295,19 +293,13 @@ function positiveListProposalReply(loader : ThingpediaLoader,
         if (newTable === null)
             return null;
         
-        // Levenshtein testing
-        const deltaFilterStatement = new FilterExpression(null, levenshteinFindSchema(currentStmt.expression), namefilter, null);
-        const delta1 = new Levenshtein(null, deltaFilterStatement, "$continue");
-        const applyres = applyMultipleLevenshtein(currentStmt.expression, [delta1]);
-        if (!determineSameExpressionLevenshtein(applyres, newTable)) {
-            const print2 = `last-turn expression   : ${currentStmt.expression.prettyprint()}\n`;
-            const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
-            const print4 = `applied result         : ${applyres.toSource()}\n`;
-            const print5 = `expected expression    : ${newTable.toSource()}\n`;
-            appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/positiveListProposalReply_multiwoz.txt", print2 + print3 + print4 + print5);
-        }
+        // Levenshtein: adding a filter
+        const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), namefilter, null);
+        const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
+        const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
+        C.levenshteinDebugOutput(applyres, newTable, "positiveListProposalReply_multiwoz.txt");
 
-        return addQuery(ctx, 'execute', newTable, 'accepted');
+        return addQuery(ctx, 'execute', newTable, 'accepted', delta);
     } else {
         if (actionProposal !== null && !C.isSameFunction(actionProposal.schema!, acceptedAction.schema!))
             return null;
@@ -324,7 +316,7 @@ function positiveListProposalReply(loader : ThingpediaLoader,
         if (!chainParam)
             return null;
         
-        // Levenshtein testing, set delta to include all undefined
+        // Levenshtein: adding an invocation with undefined fields set
         const invocation : Ast.Invocation = acceptedAction!.clone();
         C.addInvocationInputParamLevenshtein(invocation, new Ast.InputParam(null, chainParam, name));
         for (const arg of invocation.schema!.iterateArguments()) {
@@ -332,29 +324,21 @@ function positiveListProposalReply(loader : ThingpediaLoader,
                 invocation.in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
         }
 
-        let applyres : ChainExpression;
-        let oldExpr  : ChainExpression | undefined;
-        const delta  : Levenshtein = new Levenshtein(invocation.location, new InvocationExpression(invocation.location, invocation, invocation.schema), "$continue");
-        // delta.expression = propagateDeviceIDsLevenshtein(ctx, delta.expression);
+        let applyres : Ast.ChainExpression;
+        let oldExpr  : Ast.ChainExpression | undefined;
+        const delta  : Ast.Levenshtein = new Ast.Levenshtein(invocation.location, new Ast.InvocationExpression(invocation.location, invocation, invocation.schema), "$continue");
         if (ctx.nextInfo) {
             oldExpr = ctx.next!.stmt.expression;
-            applyres = applyMultipleLevenshtein(oldExpr, [delta]);
+            applyres = Ast.applyMultipleLevenshtein(oldExpr, [delta]);
         } else {
             setOrAddInvocationParam(invocation, chainParam, name);
-            applyres = C.toChainExpression(new InvocationExpression(invocation.location, invocation, invocation.schema));
-            applyres = propagateDeviceIDsLevenshtein(ctx, applyres);
+            applyres = C.toChainExpression(new Ast.InvocationExpression(invocation.location, invocation, invocation.schema));
+            applyres = propagateDeviceIDsLevenshtein(ctx, applyres) as Ast.ChainExpression;
         }
 
-        const res = addActionParam(ctx, 'execute', acceptedAction, chainParam, name, 'accepted');
-        if (!determineSameExpressionLevenshtein(applyres, res.history[res.history.length - 1].stmt.expression, [delta], oldExpr)) {
-            const print2 = `last-turn expression   : ${oldExpr?.prettyprint()}\n`;
-            const print3 = `levenshtein expressions: ${[delta].map((i) => i.prettyprint())}\n`;
-            const print4 = `applied result         : ${applyres.prettyprint()}\n`;
-            const print5 = `expected expression    : ${res.history[res.history.length - 1].stmt.expression.prettyprint()}\n`;
-            appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/positiveListProposalReply_multiwoz.txt", print2 + print3 + print4 + print5);
-        }
+        const res = addActionParam(ctx, 'execute', acceptedAction, chainParam, name, 'accepted', delta);
+        C.levenshteinDebugOutput(applyres, res.history[res.history.length - 1].stmt.expression, "positiveListProposalReply_action_multiwoz.txt", [delta], oldExpr);
         return res;
-        // return addActionParam(ctx, 'execute', acceptedAction, chainParam, name, 'accepted');
     }
 }
 
@@ -430,18 +414,13 @@ function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.Value) {
     if (newTable === null)
         return null;
 
-    // Levenshtein testing
-    const deltaFilterStatement = new FilterExpression(null, levenshteinFindSchema(currentStmt.expression), namefilter, null);
-    const delta1 = new Levenshtein(null, deltaFilterStatement, "$continue");
-    const applyres = applyMultipleLevenshtein(currentStmt.expression, [delta1]);
-    if (!determineSameExpressionLevenshtein(applyres, newTable)) {
-        const print2 = `last-turn expression   : ${currentStmt.expression.prettyprint()}\n`;
-        const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
-        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
-        const print5 = `expected expression    : ${newTable.prettyprint()}\n`;
-        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/listProposalLearnMoreReply_multiwoz.txt", print2 + print3 + print4 + print5);
-    }
-    return addQuery(ctx, 'execute', newTable, 'accepted');
+    // Levenshtein: adding a filter
+    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), namefilter, null);
+    const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
+    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
+    C.levenshteinDebugOutput(applyres, newTable, "listProposalLearnMoreReply_multiwoz.txt");
+
+    return addQuery(ctx, 'execute', newTable, 'accepted', delta);
 }
 
 export {

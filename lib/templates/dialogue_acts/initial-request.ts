@@ -179,7 +179,7 @@ export function initialRequest(loader : ThingpediaLoader, stmt : Ast.Expression)
     if (newStatements === null)
         return null;
 
-    const history = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
+    const history = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted', new Ast.Levenshtein(stmt.location, stmt.expression, "$continue")));
     return new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'execute', null, history);
 }
 
@@ -197,7 +197,7 @@ export function startNewRequest(loader : ThingpediaLoader, ctx : ContextInfo, ex
     if (newStatements === null)
         return null;
 
-    const newItems = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
+    const newItems = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted', new Ast.Levenshtein(stmt.location, stmt.expression, "$continue")));
     const res = addNewItem(ctx, 'execute', null, 'accepted', ...newItems);
     
     // for now, only deal with one:

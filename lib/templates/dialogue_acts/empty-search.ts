@@ -38,8 +38,6 @@ import {
 import {
     isValidSearchQuestion
 } from './common';
-import { applyMultipleLevenshtein, determineSameExpressionLevenshtein, FilterExpression, Levenshtein, levenshteinFindSchema } from 'thingtalk/dist/ast';
-import { appendFileSync } from 'fs';
 
 type EmptySearch = [Ast.Expression|null, C.ParamSlot|null, boolean];
 
@@ -99,20 +97,15 @@ function emptySearchChangePhraseCommon(ctx : ContextInfo,
     const newExpression = queryRefinement(currentExpression, newFilter, refineFilter, null);
     if (newExpression === null)
         return null;
-    
-    // Levenshtein testing
-    const deltaFilterStatement = new FilterExpression(null, levenshteinFindSchema(currentStmt.expression), newFilter, null);
-    const delta1 = new Levenshtein(null, deltaFilterStatement, "$continue");
-    const applyres = applyMultipleLevenshtein(currentStmt.expression, [delta1]);
-    if (!determineSameExpressionLevenshtein(applyres, newExpression, [delta1], currentStmt.expression)) {
-        const print2 = `last-turn expression   : ${currentStmt.expression.prettyprint()}\n`;
-        const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
-        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
-        const print5 = `expected expression    : ${newExpression.prettyprint()}\n`;
-        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/emptySearchChangePhraseCommon_multiwoz.txt", print2 + print3 + print4 + print5);
-    }
     // XXX: do we want to remove any sort/index?
-    return addQuery(ctx, 'execute', newExpression, 'accepted');
+    
+    // Levenshtein: adding a filter
+    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, null);
+    const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
+    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
+    C.levenshteinDebugOutput(applyres, newExpression, "emptySearchChangePhraseCommon_multiwoz.txt", [delta], currentStmt.expression);
+    
+    return addQuery(ctx, 'execute', newExpression, 'accepted', delta);
 }
 
 /**

@@ -33,7 +33,7 @@ import * as C from './ast_manip';
 import * as keyfns from './keyfns';
 import { SlotBag } from './slot_bag';
 import ThingpediaLoader, { ParsedPlaceholderPhrase } from './load-thingpedia';
-import { ChainExpression } from 'thingtalk/dist/ast';
+import { ChainExpression, Levenshtein } from 'thingtalk/dist/ast';
 
 // NOTE: this version of arraySubset uses ===
 // the one in array_utils uses .equals()
@@ -565,7 +565,7 @@ function propagateDeviceIDs(ctx : ContextInfo,
     });
 }
 
-export function propagateDeviceIDsLevenshtein(ctx : ContextInfo, expr : ChainExpression) : ChainExpression {
+export function propagateDeviceIDsLevenshtein(ctx : ContextInfo, expr : ChainExpression|Levenshtein) : ChainExpression|Levenshtein {
     const visitor = new CollectDeviceIDVisitor();
     const currentIdx = ctx.currentIdx ?? -1;
     if (currentIdx >= 0)
@@ -638,7 +638,7 @@ export function addNewStatement(ctx : ContextInfo,
                                 confirm : 'accepted'|'proposed'|'confirmed',
                                 ...newExpression : Ast.Expression[]) {
     const newItems = newExpression.map((expr) =>
-        new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, expr), null, confirm));
+        new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, expr), null, confirm, null));
     return addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newItems);
 }
 
@@ -648,7 +648,7 @@ export function acceptAllProposedStatements(ctx : ContextInfo) {
 
     return new Ast.DialogueState(null, POLICY_NAME, 'execute', null, ctx.state.history.map((item) => {
         if (item.confirm === 'proposed')
-            return new Ast.DialogueHistoryItem(null, item.stmt, null, 'accepted');
+            return new Ast.DialogueHistoryItem(null, item.stmt, null, 'accepted', item.levenshtein);
         else
             return item;
     }));
@@ -666,8 +666,8 @@ function makeSimpleState(ctx : ContextInfo,
             break;
         newState.history.push(ctx.state.history[i]);
     }
-    newState.historyLevenshtein = ctx.state.historyLevenshtein;
-    newState.historyAppliedLevenshtein = ctx.state.historyAppliedLevenshtein;
+    // newState.historyLevenshtein = ctx.state.historyLevenshtein;
+    // newState.historyAppliedLevenshtein = ctx.state.historyAppliedLevenshtein;
 
     return newState;
 }
@@ -713,7 +713,8 @@ function addActionParam(ctx : ContextInfo,
                         action : Ast.Invocation,
                         pname : string,
                         value : Ast.Value,
-                        confirm : 'accepted' | 'proposed') : Ast.DialogueState {
+                        confirm : 'accepted' | 'proposed',
+                        delta : Ast.Levenshtein | null) : Ast.DialogueState {
     assert(action instanceof Ast.Invocation);
     assert(['accepted', 'confirmed', 'proposed'].indexOf(confirm) >= 0);
 
@@ -724,7 +725,7 @@ function addActionParam(ctx : ContextInfo,
     if (ctx.nextInfo) {
         const next = ctx.next;
         assert(next);
-        const nextInvocation = C.getInvocation(next);
+        const nextInvocation = C.getInvocation(next.stmt);
         const isSameFunction = C.isSameFunction(nextInvocation.schema!, action.schema!);
 
         if (isSameFunction) {
@@ -743,7 +744,7 @@ function addActionParam(ctx : ContextInfo,
             //   addNewItem() will wipe everything and we'll only one
 
             newHistoryItem = next.clone();
-            const newInvocation = C.getInvocation(newHistoryItem);
+            const newInvocation = C.getInvocation(newHistoryItem.stmt);
             assert(newInvocation instanceof Ast.Invocation);
             setOrAddInvocationParam(newInvocation, pname, value);
             // also add the new parameters from this action, if any
@@ -789,9 +790,10 @@ function addActionParam(ctx : ContextInfo,
         );
         const newStmt = new Ast.ExpressionStatement(null,
             new Ast.InvocationExpression(null, newInvocation, schema));
-        newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+        newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm, delta);
     }
 
+    newHistoryItem.levenshtein = delta;
     return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
 }
 
@@ -807,7 +809,7 @@ function addAction(ctx : ContextInfo,
         const next = ctx.next;
         assert(next);
 
-        const nextInvocation = C.getInvocation(next);
+        const nextInvocation = C.getInvocation(next.stmt);
         if (C.isSameFunction(nextInvocation.schema!, action.schema!)) {
             assert(next.results === null);
             // case 1:
@@ -820,7 +822,7 @@ function addAction(ctx : ContextInfo,
             if (confirm === 'proposed' || confirm === next.confirm)
                 return new Ast.DialogueState(null, POLICY_NAME, dialogueAct, null, ctx.state.history);
 
-            newHistoryItem = new Ast.DialogueHistoryItem(null, next.stmt, null, confirm);
+            newHistoryItem = new Ast.DialogueHistoryItem(null, next.stmt, null, confirm, null);
         }
     }
 
@@ -834,7 +836,7 @@ function addAction(ctx : ContextInfo,
         const newStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null,
             newInvocation, action.schema
         ));
-        newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+        newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm, null);
     }
 
     return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
@@ -843,10 +845,11 @@ function addAction(ctx : ContextInfo,
 function addQuery(ctx : ContextInfo,
                   dialogueAct : string,
                   newTable : Ast.Expression,
-                  confirm : 'accepted' | 'proposed') : Ast.DialogueState {
+                  confirm : 'accepted' | 'proposed',
+                  delta : Ast.Levenshtein|null) : Ast.DialogueState {
     newTable = C.adjustDefaultParameters(newTable);
     const newStmt = new Ast.ExpressionStatement(null, newTable);
-    const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+    const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm, delta);
 
     return addNewItem(ctx, dialogueAct, null, confirm === 'accepted' ? 'accepted-query' : 'proposed-query', newHistoryItem);
 }
@@ -854,15 +857,17 @@ function addQuery(ctx : ContextInfo,
 function addQueryAndAction(ctx : ContextInfo,
                            dialogueAct : string,
                            newTable : Ast.Expression,
+                           newTableDelta : Ast.Levenshtein,
                            newAction : Ast.Invocation,
+                           newActionDelta : Ast.Levenshtein,
                            confirm : 'accepted' | 'proposed') : Ast.DialogueState {
     const newTableStmt = new Ast.ExpressionStatement(null, newTable);
-    const newTableHistoryItem = new Ast.DialogueHistoryItem(null, newTableStmt, null, confirm);
+    const newTableHistoryItem = new Ast.DialogueHistoryItem(null, newTableStmt, null, confirm, newTableDelta);
 
     // add the new table history item right after the current one, and replace everything after that
 
     const newActionStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null, newAction, newAction.schema));
-    const newActionHistoryItem = new Ast.DialogueHistoryItem(null, newActionStmt, null, confirm);
+    const newActionHistoryItem = new Ast.DialogueHistoryItem(null, newActionStmt, null, confirm, newActionDelta);
 
     return addNewItem(ctx, dialogueAct, null, confirm, newTableHistoryItem, newActionHistoryItem);
 }
@@ -1200,7 +1205,7 @@ function makeErrorContextPhrase(ctx : ContextInfo,
     if (!phrases)
         return [];
 
-    const action = C.getInvocation(ctx.current!);
+    const action = C.getInvocation(ctx.current!.stmt);
 
     const output = [];
     for (const candidate of phrases) {
@@ -1252,7 +1257,7 @@ function makeListResultContextPhrase(ctx : ContextInfo,
     const describer = ctx.loader.describer;
 
     const currentFunction = ctx.currentFunction!;
-    const action = C.getInvocation(ctx.current!);
+    const action = C.getInvocation(ctx.current!.stmt);
 
     const output = [];
 
@@ -1325,7 +1330,7 @@ function makeListConcatResultContextPhrase(ctx : ContextInfo,
     const describer = ctx.loader.describer;
 
     const currentFunction = ctx.currentFunction!;
-    const action = C.getInvocation(ctx.current!);
+    const action = C.getInvocation(ctx.current!.stmt);
 
     const output = [];
 
@@ -1402,7 +1407,7 @@ function makeTopResultContextPhrase(ctx : ContextInfo,
     const describer = ctx.loader.describer;
 
     const currentFunction = ctx.currentFunction!;
-    const action = C.getInvocation(ctx.current!);
+    const action = C.getInvocation(ctx.current!.stmt);
 
     const output = [];
 
@@ -1506,7 +1511,7 @@ export function makeEmptyResultContextPhrase(ctx : ContextInfo) {
     const describer = ctx.loader.describer;
     const phrases = ctx.loader.getResultPhrases(currentFunction.qualifiedName);
 
-    const action = C.getInvocation(ctx.current!);
+    const action = C.getInvocation(ctx.current!.stmt);
     const isAction = currentFunction.functionType === 'action';
 
     const output = [];

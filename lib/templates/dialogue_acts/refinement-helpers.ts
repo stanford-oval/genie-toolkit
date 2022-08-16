@@ -34,8 +34,6 @@ import {
     isSimpleFilterExpression
 } from './common';
 import { SlotBag } from '../slot_bag';
-import { applyMultipleLevenshtein, determineSameExpressionLevenshtein, FilterExpression, Levenshtein, levenshteinFindSchema } from 'thingtalk/dist/ast';
-import { appendFileSync } from 'fs';
 
 type UnaryExpression = Ast.SortExpression
     | Ast.MonitorExpression
@@ -485,20 +483,13 @@ function proposalReply(ctx : ContextInfo,
     if (newTable === null)
         return null;
     
-    // Levenshtein testiing
-    const deltaFilterStatement = new FilterExpression(null, levenshteinFindSchema(currentStmt.expression), request.filter, null);
-    const delta1 = new Levenshtein(null, deltaFilterStatement, "$continue");
-    const applyres = applyMultipleLevenshtein(currentStmt.expression, [delta1]);
-    if (!determineSameExpressionLevenshtein(applyres, newTable, [delta1], currentStmt.expression)) {
-        const print2 = `last-turn expression   : ${currentStmt.expression.prettyprint()}\n`;
-        const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
-        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
-        const print5 = `expected expression    : ${newTable.prettyprint()}\n`;
-        // console.log(print2 + print3 + print4 + print5);
-        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/" + outFileName, print2 + print3 + print4 + print5);
-    }
+    // Levenshtein: adding a filter
+    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), request.filter, null);
+    const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
+    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
+    C.levenshteinDebugOutput(applyres, newTable, outFileName, [delta], currentStmt.expression);
 
-    return addQuery(ctx, 'execute', newTable, 'accepted');
+    return addQuery(ctx, 'execute', newTable, 'accepted', delta);
 }
 
 function isValidNegativePreambleForInfo(info : SlotBag, preamble : Ast.FilterExpression) : boolean {

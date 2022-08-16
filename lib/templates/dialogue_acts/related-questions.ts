@@ -19,9 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import { appendFileSync } from 'fs';
 import { Ast, } from 'thingtalk';
-import { applyMultipleLevenshtein, determineSameExpressionLevenshtein, Levenshtein } from 'thingtalk/dist/ast';
 
 import * as C from '../ast_manip';
 
@@ -72,18 +70,12 @@ function relatedQuestion(ctx : ContextInfo, expr : Ast.Expression) {
         newFilterTable.filter = newFilter;
     }
 
-    // Levenshtein testing
-    const delta1 = new Levenshtein(null, expr, "$continue");
-    const applyres = applyMultipleLevenshtein(currentStmt.expression, [delta1]);
-    if (!determineSameExpressionLevenshtein(applyres, newTable)) {
-        const print2 = `last-turn expression   : ${currentStmt.expression.prettyprint()}\n`;
-        const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
-        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
-        const print5 = `expected expression    : ${newTable.prettyprint()}\n`;
-        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/relatedQuestion_multiwoz.txt", print2 + print3 + print4 + print5);
-    }
+    // Levenshtein: adding a filter
+    const delta = new Ast.Levenshtein(null, expr, "$continue");
+    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
+    C.levenshteinDebugOutput(applyres, newTable, "relatedQuestion_multiwoz.txt");
 
-    return addQuery(ctx, 'execute', newTable, 'accepted');
+    return addQuery(ctx, 'execute', newTable, 'accepted', delta);
 }
 
 export {

@@ -130,7 +130,8 @@ export function computePrediction(oldState : Ast.DialogueState|null, newState : 
 
         // note: we explicitly do not clone annotations here
         // annotations are never exposed to the neural model and are not part of the prediction
-        return new Ast.DialogueHistoryItem(null, item.stmt, item.results, item.confirm);
+        // REVIEW: levenshtein needed??
+        return new Ast.DialogueHistoryItem(null, item.stmt, item.results, item.confirm, item.levenshtein);
     });
 
     // check that the results is null for everything in the prediction
@@ -278,7 +279,8 @@ export function prepareContextForPrediction(context : Ast.DialogueState|null, fo
 
         // note: we explicitly do not clone annotations here
         // annotations are never exposed to the neural model
-        const cloneItem = new Ast.DialogueHistoryItem(item.location, item.stmt, item.results, item.confirm);
+        // REVIEW: Levenshtein needed?
+        const cloneItem = new Ast.DialogueHistoryItem(item.location, item.stmt, item.results, item.confirm, item.levenshtein);
         clone.history.push(cloneItem);
     }
 

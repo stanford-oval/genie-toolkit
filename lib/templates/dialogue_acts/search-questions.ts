@@ -31,6 +31,7 @@ import {
     makeSimpleState,
     addQuery,
     addQueryAndAction,
+    propagateDeviceIDsLevenshtein,
 } from '../state_manip';
 import {
     queryRefinement,
@@ -41,8 +42,6 @@ import {
     isSimpleFilterExpression,
     addParametersFromContext
 } from './common';
-import { applyMultipleLevenshtein, determineSameExpressionLevenshtein, FilterExpression, Levenshtein, levenshteinFindSchema } from 'thingtalk/dist/ast';
-import { appendFileSync } from 'fs';
 
 export type PreciseSearchQuestionAnswer = [Ast.Expression, Ast.Invocation|null, boolean];
 
@@ -205,7 +204,7 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
                     return null;
             }
 
-            const contextInvocation = C.getInvocation(ctx.next!);
+            const contextInvocation = C.getInvocation(ctx.next!.stmt);
             assert(contextInvocation instanceof Ast.Invocation);
             answerAction = addParametersFromContext(answerAction, contextInvocation);
         }
@@ -214,24 +213,34 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
     const newTable = queryRefinement(currentTable, answerTable.filter, refineFilterToAnswerQuestion, null);
     if (newTable === null)
         return null;
+    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), answerTable.filter, null);
     
-    // add levenshtein here
+    // Levenshtein is adding a filter and possibly an action
     
     if (answerAction !== null) {
-        return addQueryAndAction(ctx, 'execute', newTable, answerAction, 'accepted');
+        // TODO: currently, addQueryAndAction constructs two dialogue history items. I add levenshtein for each of them.
+        //       however, I think ideally we should only add one
+        const invocation    = new Ast.InvocationExpression(null, answerAction.clone(), answerAction.schema);
+
+        // the invocation part of delta, no need to test
+        let deltaInvocation = new Ast.Levenshtein(null, invocation, "$contiue");
+        deltaInvocation     = propagateDeviceIDsLevenshtein(ctx, deltaInvocation) as Ast.Levenshtein;
+        
+        // the filte part of filter
+        const delta         = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
+        const applyres      = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
+        C.levenshteinDebugOutput(applyres, newTable, "preciseSearchQuestionAnswer_action_multiwoz.txt", [delta], currentStmt.expression);
+
+        // this is to be used in delta apply
+        // const deltaInner      = new Ast.FilterExpression(null, invocation, answerTable.filter, null);
+        // const delta           = new Ast.Levenshtein(null, deltaInner, "$continue");
+
+        return addQueryAndAction(ctx, 'execute', newTable, delta, answerAction, deltaInvocation, 'accepted');
     } else {
-        // Levenshtein testing
-        const deltaFilterStatement = new FilterExpression(null, levenshteinFindSchema(currentStmt.expression), answerTable.filter, null);
-        const delta1 = new Levenshtein(null, deltaFilterStatement, "$continue");
-        const applyres = applyMultipleLevenshtein(currentStmt.expression, [delta1]);
-        if (!determineSameExpressionLevenshtein(applyres, newTable, [delta1], currentStmt.expression)) {
-            const print2 = `last-turn expression   : ${currentStmt.expression.prettyprint()}\n`;
-            const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
-            const print4 = `applied result         : ${applyres.prettyprint()}\n`;
-            const print5 = `expected expression    : ${newTable.prettyprint()}\n`;
-            appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/preciseSearchQuestionAnswer_multiwoz.txt", print2 + print3 + print4 + print5);
-        }
-        return addQuery(ctx, 'execute', newTable, 'accepted');
+        const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
+        const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
+        C.levenshteinDebugOutput(applyres, newTable, "preciseSearchQuestionAnswer_multiwoz.txt", [delta], currentStmt.expression);
+        return addQuery(ctx, 'execute', newTable, 'accepted', delta);
     }
 }
 
@@ -298,18 +307,13 @@ function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : C.FilterSlot|
     if (newTable === null)
         return null;
 
-    // Levenshtein testing
-    const deltaFilterStatement = new FilterExpression(null, levenshteinFindSchema(currentStmt.expression), answerFilter.ast, null);
-    const delta1 = new Levenshtein(null, deltaFilterStatement, "$continue");
-    const applyres = applyMultipleLevenshtein(currentStmt.expression, [delta1]);
-    if (!determineSameExpressionLevenshtein(applyres, newTable, [delta1], currentStmt.expression)) {
-        const print2 = `last-turn expression   : ${currentStmt.expression.prettyprint()}\n`;
-        const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
-        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
-        const print5 = `expected expression    : ${newTable.prettyprint()}\n`;
-        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/impreciseSearchQuestionAnswer_multiwoz.txt", print2 + print3 + print4 + print5);
-    }
-    return addQuery(ctx, 'execute', newTable, 'accepted');
+    // Levenshtein: adding a filter
+    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), answerFilter.ast, null);
+    const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
+    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
+    C.levenshteinDebugOutput(applyres, newTable, "impreciseSearchQuestionAnswer_multiwoz.txt", [delta], currentStmt.expression);
+
+    return addQuery(ctx, 'execute', newTable, 'accepted', delta);
 }
 
 export {

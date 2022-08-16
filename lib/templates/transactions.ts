@@ -232,7 +232,7 @@ export function notification(appName : string|null, program : Ast.Program, resul
     assert(stmt instanceof Ast.ExpressionStatement);
 
     return new Ast.DialogueState(null, S.POLICY_NAME, 'notification', appName ? [new Ast.Value.String(appName)] : null,
-        [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [result], new Ast.NumberValue(1), false), 'confirmed')]);
+        [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [result], new Ast.NumberValue(1), false), 'confirmed', null)]);
 }
 
 export function notifyError(appName : string|null, program : Ast.Program, error : Ast.Value) {
@@ -241,7 +241,7 @@ export function notifyError(appName : string|null, program : Ast.Program, error 
     assert(stmt instanceof Ast.ExpressionStatement);
 
     return new Ast.DialogueState(null, S.POLICY_NAME, 'notification', appName ? [new Ast.Value.String(appName)] : null,
-        [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [], new Ast.NumberValue(0), false, error), 'confirmed')]);
+        [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [], new Ast.NumberValue(0), false, error), 'confirmed', null)]);
 }
 
 /**
@@ -262,7 +262,7 @@ export function initialState(tpLoader : ThingpediaLoader) {
 
     const stmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null,
         invocation, initialFunction));
-    return new Ast.DialogueState(null, S.POLICY_NAME, 'init', null, [new Ast.DialogueHistoryItem(null, stmt, null, 'accepted')]);
+    return new Ast.DialogueState(null, S.POLICY_NAME, 'init', null, [new Ast.DialogueHistoryItem(null, stmt, null, 'accepted', new Ast.Levenshtein(stmt.location, stmt.expression, "$continue"))]);
 }
 
 /**
@@ -295,7 +295,7 @@ export function getFollowUp(state : Ast.DialogueState,
     const idArg = currentfunction.getArgument('id');
     const results = ctx.results!;
     const topResult = results.length > 0 ? results[0] : undefined;
-    const action = C.getInvocation(current);
+    const action = C.getInvocation(current.stmt);
 
     if (followUp.condition) {
         let value : Ast.Value|undefined;
@@ -321,7 +321,7 @@ export function getFollowUp(state : Ast.DialogueState,
         for (let idx = ctx.currentIdx!; idx >= 0; idx --) {
             const item = ctx.state.history[idx];
             if (C.isSameFunction(item.stmt.expression.schema!, followUp.schema)) {
-                const action = C.getInvocation(item);
+                const action = C.getInvocation(item.stmt);
                 for (const in_param of action.in_params) {
                     if (followUp.params.includes(in_param.name)) {
                         invocation.in_params.push(in_param);

@@ -28,7 +28,7 @@ import { ContextInfo } from '../state_manip';
 
 function contextualAction(ctx : ContextInfo, action : Ast.Invocation) {
     assert(action instanceof Ast.Invocation);
-    const ctxInvocation = C.getInvocation(ctx.next!);
+    const ctxInvocation = C.getInvocation(ctx.next!.stmt);
     if (!ctxInvocation || !(ctxInvocation instanceof Ast.Invocation))
         return null;
     if (!C.isSameFunction(ctxInvocation.schema!, action.schema!))

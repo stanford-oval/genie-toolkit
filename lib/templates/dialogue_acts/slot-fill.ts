@@ -20,10 +20,9 @@
 
 
 import assert from 'assert';
-import { appendFileSync } from 'fs';
 
 import { Ast, Type } from 'thingtalk';
-import { applyMultipleLevenshtein, determineSameExpressionLevenshtein, FunctionCallExpression, Invocation, InvocationExpression, Levenshtein } from 'thingtalk/dist/ast';
+
 
 import * as C from '../ast_manip';
 
@@ -110,7 +109,7 @@ function fastSemiShallowClone(item : Ast.DialogueHistoryItem) {
     const newStmt = new Ast.ExpressionStatement(null,
         new Ast.ChainExpression(null, newExpressions, item.stmt.expression.schema));
 
-    return new Ast.DialogueHistoryItem(null, newStmt, null, 'accepted');
+    return new Ast.DialogueHistoryItem(null, newStmt, null, 'accepted', item.levenshtein);
 }
 
 function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
@@ -132,13 +131,13 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
     }
 
     const clone = fastSemiShallowClone(ctx.next);
-    const newInvocation = C.getInvocation(clone);
+    const newInvocation = C.getInvocation(clone.stmt);
 
     // Levenshtein testing
     // GEORGE: Levenshtein takes care of API parameter issues
-    let oldInvocation : InvocationExpression | FunctionCallExpression;
-    if (newInvocation instanceof Invocation)
-        oldInvocation = new InvocationExpression(newInvocation.location, newInvocation.clone(), newInvocation.schema);
+    let oldInvocation : Ast.InvocationExpression | Ast.FunctionCallExpression;
+    if (newInvocation instanceof Ast.Invocation)
+        oldInvocation = new Ast.InvocationExpression(newInvocation.location, newInvocation.clone(), newInvocation.schema);
     else
         oldInvocation = newInvocation.clone();
 
@@ -150,16 +149,11 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
     // Levenshtein testing
     // answer is never changed, so dont need to clone.
     // it's the `clone` and `newInvocation` that is changed
-    const delta = new Levenshtein(oldInvocation.location, new InvocationExpression(answer.location, answer, answer.schema), "$continue");
-    const applyres = applyMultipleLevenshtein(C.toChainExpression(oldInvocation), [delta]);
-    const newTable = new InvocationExpression(newInvocation.location, newInvocation, newInvocation.schema);
-    if (!determineSameExpressionLevenshtein(applyres, C.toChainExpression(newTable))) {
-        const print2 = `last-turn expression   : ${oldInvocation.prettyprint()}\n`;
-        const print3 = `levenshtein expressions: ${[delta].map((i) => i.prettyprint())}\n`;
-        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
-        const print5 = `expected expression    : ${newTable.prettyprint()}\n`;
-        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/preciseSlotFillAnswer_multiwoz.txt", print2 + print3 + print4 + print5);
-    }
+    const delta = new Ast.Levenshtein(oldInvocation.location, new Ast.InvocationExpression(answer.location, answer, answer.schema), "$continue");
+    const applyres = Ast.applyMultipleLevenshtein(C.toChainExpression(oldInvocation), [delta]);
+    const newTable = new Ast.InvocationExpression(newInvocation.location, newInvocation, newInvocation.schema);
+    C.levenshteinDebugOutput(applyres, C.toChainExpression(newTable), "preciseSlotFillAnswer_multiwoz.txt");
+    clone.levenshtein = delta;
 
     return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }
@@ -235,15 +229,10 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
     // the expected applyRes is simply clone.stmt.expression
 
     // Levenshtein testing
-    const delta1 = new Levenshtein(null, clone.stmt.expression, "$continue");
-    const applyres = applyMultipleLevenshtein(ctx.next.stmt.expression, [delta1]);
-    if (!determineSameExpressionLevenshtein(applyres, clone.stmt.expression)) {
-        const print2 = `last-turn expression   : ${ctx.next.stmt.expression.prettyprint()}\n`;
-        const print3 = `levenshtein expressions: ${[delta1].map((i) => i.prettyprint())}\n`;
-        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
-        const print5 = `expected expression    : ${clone.stmt.expression.prettyprint()}\n`;
-        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/impreciseSlotFillAnswer_multiwoz.txt", print2 + print3 + print4 + print5);
-    }
+    const delta = new Ast.Levenshtein(null, clone.stmt.expression, "$continue");
+    const applyres = Ast.applyMultipleLevenshtein(ctx.next.stmt.expression, [delta]);
+    C.levenshteinDebugOutput(applyres, clone.stmt.expression, "impreciseSlotFillAnswer_multiwoz.txt");
+    clone.levenshtein = delta;
 
     return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }

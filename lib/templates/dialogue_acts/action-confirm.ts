@@ -66,10 +66,18 @@ function actionConfirmChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputP
         return null;
 
     const clone = ctx.next.clone();
-    const action = C.getInvocation(clone);
+    const action = C.getInvocation(clone.stmt);
     if (!action || !(action instanceof Ast.Invocation)) return null;
 
+
     setOrAddInvocationParam(action, answer.ast.name, answer.ast.value);
+    
+    // levenshtein: adding an invocation directly
+    const delta = new Ast.Levenshtein(null, new Ast.InvocationExpression(null, action.clone(), action.schema), "$continue");
+    const applyres = Ast.applyMultipleLevenshtein(clone.stmt.expression, [delta]);
+    C.levenshteinDebugOutput(applyres, clone.stmt.expression, "actionConfirmChangeParam_multiwoz.txt");
+
+    clone.levenshtein = delta;
     return addNewItem(ctx, 'execute', null, 'confirmed', clone);
 }
 

@@ -87,7 +87,7 @@ function makeRefinementProposal(ctx : ContextInfo, proposal : Ast.Expression) {
     if (refinedFilter === null)
         return null;
 
-    const sysState = addQuery(ctx, 'sys_propose_refined_query', proposal, 'proposed');
+    const sysState = addQuery(ctx, 'sys_propose_refined_query', proposal, 'proposed', null);
     return makeAgentReply(ctx, sysState, proposal);
 }
 

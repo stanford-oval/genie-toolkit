@@ -165,7 +165,7 @@ export async function inputToDialogueState(policy : DialoguePolicy,
         for (const stmt of input.statements) {
             if (stmt instanceof Ast.Assignment)
                 throw new Error(`Unsupported: assignment statement`);
-            prediction.history.push(new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
+            prediction.history.push(new Ast.DialogueHistoryItem(null, stmt, null, 'accepted', null));
         }
         return prediction;
     }
