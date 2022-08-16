@@ -111,6 +111,11 @@ interface FollowUpRecord {
     };
 }
 
+interface TypeInfo {
+    type : Type,
+    canonical : string
+}
+
 /**
  * Initialize templates that depend on Thingpedia.
  *
@@ -147,6 +152,7 @@ export default class ThingpediaLoader {
         pronoun : string;
         base : string;
         canonical : string;
+        types : TypeInfo[];
     }>;
     qualifiers : Array<{
         pname : string;
@@ -721,6 +727,17 @@ export default class ThingpediaLoader {
         }
 
         const projectionforms = this._collectByPOS(canonical.projection);
+        const types = [];
+        if (vtype instanceof Type.Entity) {
+            for (const type of this.entitySubTypeMap[vtype.type] ?? []) {
+                if (type.endsWith(':entity'))
+                    continue;
+                types.push({
+                    type: new Type.Entity(type),
+                    canonical: this._entities[type].name
+                });
+            }
+        }
         for (const pos in projectionforms) {
             const forms = projectionforms[pos];
             // FIXME we cannot join all forms together in a single {} expression
@@ -731,7 +748,7 @@ export default class ThingpediaLoader {
             if (canonical.base_projection.length > 0) {
                 const baseprojection = '{' + canonical.base_projection.join('|') + '}';
                 for (const form of forms)
-                    this._addProjections(pslot, 'what', pos, baseprojection, String(form));
+                    this._addProjections(pslot, 'what', pos, baseprojection, String(form), types);
             }
 
             // add non-what question when applicable
@@ -739,7 +756,7 @@ export default class ThingpediaLoader {
             if (canonical.projection_pronoun) {
                 const pronoun = '{' + canonical.projection_pronoun.join('|') + '}';
                 for (const form of forms)
-                    this._addProjections(pslot, pronoun, pos, baseforms, String(form));
+                    this._addProjections(pslot, pronoun, pos, baseforms, String(form), types);
             } else {
                 const pronounType = interrogativePronoun(ptype);
                 if (pronounType !== 'what') {
@@ -750,13 +767,13 @@ export default class ThingpediaLoader {
                     };
                     assert(pronounType in pronouns);
                     for (const form of forms)
-                        this._addProjections(pslot, pronouns[pronounType], pos, '', String(form));
+                        this._addProjections(pslot, pronouns[pronounType], pos, '', String(form), types);
                 }
             }
         }
     }
 
-    private _addProjections(pslot : ParamSlot, pronoun : string, posCategory : string, base : string, canonical : string) {
+    private _addProjections(pslot : ParamSlot, pronoun : string, posCategory : string, base : string, canonical : string, types : TypeInfo[]) {
         if (canonical.includes('//')) {
             const [verb, prep] = canonical.split('//').map((span) => span.trim());
             this.projections.push({
@@ -765,7 +782,8 @@ export default class ThingpediaLoader {
                 category: posCategory,
                 pronoun: `${prep} ${pronoun}`,
                 base,
-                canonical: verb
+                canonical: verb,
+                types
             });
 
             // for when question, we can drop the prep entirely
@@ -776,7 +794,8 @@ export default class ThingpediaLoader {
                     category: posCategory,
                     pronoun: pronoun,
                     base,
-                    canonical: verb
+                    canonical: verb,
+                    types
                 });
             }
         }
@@ -786,7 +805,8 @@ export default class ThingpediaLoader {
             category: posCategory,
             pronoun,
             base,
-            canonical: canonical.replace(/\|/g, ' ')
+            canonical: canonical.replace(/\|/g, ' '),
+            types
         });
     }
 

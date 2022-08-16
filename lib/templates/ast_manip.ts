@@ -481,8 +481,15 @@ function resolveProjection(schema : Ast.FunctionDef,
     return clone;
 }
 
-function makeProjection(table : Ast.Expression, pname : string) : Ast.ProjectionExpression {
-    return new Ast.ProjectionExpression(null, table, [pname], [], [], resolveProjection(table.schema!, [pname]));
+function makeProjection(table : Ast.Expression, pname : string, type ?: Type) : Ast.ProjectionExpression|Ast.ProjectionExpression2 {
+    if (!type)
+        return new Ast.ProjectionExpression(null, table, [pname], [], [], resolveProjection(table.schema!, [pname]));
+    return new Ast.ProjectionExpression2(
+        null,
+        table,
+        [new Ast.ProjectionElement(pname, null, [type])],
+        resolveProjection(table.schema!, [pname])
+    );
 }
 
 /**
@@ -534,7 +541,7 @@ export function makeTypeBasedTableProjection(tpLoader : ThingpediaLoader,
     } else {
         if (!Type.isAssignable(table.schema!.getArgType(pname)!, intotype, {}, tpLoader.entitySubTypeMap))
             return null;
-        return makeProjection(table, pname);
+        return makeProjection(table, pname) as Ast.ProjectionExpression;
     }
 }
 
@@ -548,7 +555,7 @@ export function makeTypeBasedStreamProjection(table : Ast.Expression) : Ast.Proj
     if (pname === '$event')
         return null;
 
-    return makeProjection(new Ast.MonitorExpression(null, table, null, table.schema!.asType('stream')), pname);
+    return makeProjection(new Ast.MonitorExpression(null, table, null, table.schema!.asType('stream')), pname) as Ast.ProjectionExpression;
 }
 
 function isEqualityFilteredOnParameter(table : Ast.Expression, pname : string) : boolean {
@@ -567,7 +574,8 @@ function makeSingleFieldProjection(loader : ThingpediaLoader,
                                    ftype : 'table'|'stream',
                                    ptype : Type|null,
                                    table : Ast.Expression,
-                                   param : ParamSlot|'geo') : Ast.Expression|null {
+                                   param : ParamSlot|'geo',
+                                   type ?: Type) : Ast.Expression|null {
     assert(table);
     assert(ftype === 'table' || ftype === 'stream');
 
@@ -597,12 +605,12 @@ function makeSingleFieldProjection(loader : ThingpediaLoader,
             return null;
         if (isEqualityFilteredOnParameter(table, pname))
             return null;
-        return makeProjection(table, pname);
+        return makeProjection(table, pname, type);
     } else {
         if (!table.schema!.is_monitorable)
             return null;
         const stream = new Ast.MonitorExpression(null, table, null, table.schema!.asType('stream'));
-        return makeProjection(stream, pname);
+        return makeProjection(stream, pname, type);
     }
 }
 
@@ -1455,6 +1463,12 @@ function sayProjection(loader : ThingpediaLoader,
             newArgs.sort();
             maybeProj.args = newArgs;
         }
+    }
+
+    if (maybeProj instanceof Ast.ProjectionExpression2) {
+        const proj : Ast.ProjectionExpression2 = maybeProj;
+        assert(proj.projections.length > 0);
+        //TODO: check new projection expressions
     }
     return maybeProj;
 }
