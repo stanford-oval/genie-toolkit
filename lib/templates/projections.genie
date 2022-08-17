@@ -59,13 +59,15 @@ the_out_param_triple : C.ParamSlot[] = {
 }
 
 pair_projection : Ast.Expression = {
-    ( ('both' | '') outParams:the_out_param_pair 'of' table:with_filtered_table with { functionName = outParams.functionName }
+    ( ('both' | '') outParams:the_out_param_pair 'of' table:entity_table with { functionName = outParams.functionName }
+    | ('both' | '') outParams:the_out_param_pair 'of' table:with_filtered_table with { functionName = outParams.functionName }
     | outParams:the_out_param_triple 'of the' table:with_arg_min_max_table with { functionName = outParams.functionName }
     ) => C.makeMultiFieldProjection($loader, 'table', table, outParams);
 }
 
 where_question : Ast.Expression = {
-    ( 'where is the' table:with_filtered_table with { has_geo = true }
+    ( 'where is the' table:entity_table with { has_geo = true }
+    | 'where is the' table:with_filtered_table with { has_geo = true }
     | 'where is the' table:with_arg_min_max_table with { has_geo = true }
     ) => C.makeSingleFieldProjection($loader, 'table', Type.Location, table, 'geo');
 }
@@ -78,17 +80,28 @@ boolean_projection : Ast.Expression = {
     | 'is' ('the' | '') table:with_filtered_table p:npi_boolean_projection with { functionName = table.functionName }
     | 'is' ('the' | '') table:with_filtered_table p:npv_boolean_projection with { functionName = table.functionName }
     | 'is' ('the' | '') table:with_filtered_table p:apv_boolean_projection with { functionName = table.functionName }
+    | 'does' ('the' | '' | 'any') table:entity_table 'have' p:npp_boolean_projection with { functionName = table.functionName }
+    | 'does' ('the' | '' | 'any') table:entity_table p:avp_boolean_projection with { functionName = table.functionName }
+    | 'is' ('the' | '') table:entity_table p:pvp_boolean_projection with { functionName = table.functionName }
+    | 'is' ('the' | '') table:entity_table p:preposition_boolean_projection with { functionName = table.functionName }
+    | 'is' ('the' | '') table:entity_table p:npi_boolean_projection with { functionName = table.functionName }
+    | 'is' ('the' | '') table:entity_table p:npv_boolean_projection with { functionName = table.functionName }
+    | 'is' ('the' | '') table:entity_table p:apv_boolean_projection with { functionName = table.functionName }
     ) => C.makeSingleFieldProjection($loader, 'table', Type.Boolean, table, p);
 }
 
 for (const proj of $loader.projections) {
     if (proj.category === 'pvp' || proj.category === 'passive_verb' || proj.category === 'preposition') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') ('the' | '') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
 
         for (const type of proj.types) {
+            question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('is'|'was'|'are'|'were') ('the' | '') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('is'|'was'|'are'|'were') ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('is'|'was'|'are'|'were') ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
@@ -96,6 +109,8 @@ for (const proj of $loader.projections) {
         }
 
         if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } ('is'|'was'|'are'|'were') #(proj.canonical) =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } ('is'|'was'|'are'|'were') #(proj.canonical) =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } ('is'|'was'|'are'|'were') #(proj.canonical) =>
@@ -103,12 +118,16 @@ for (const proj of $loader.projections) {
         }
     }
     if (proj.category === 'avp' || proj.category === 'verb') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('do'|'does'|'did') ('the' | '') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('do'|'does'|'did') ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('do'|'does'|'did') ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
 
         for (const type of proj.types) {
+            question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('do'|'does'|'did') ('the' | '') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('do'|'does'|'did') ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('do'|'does'|'did') ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
@@ -116,6 +135,8 @@ for (const proj of $loader.projections) {
         }
 
         if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
@@ -123,12 +144,16 @@ for (const proj of $loader.projections) {
         }
     }
     if (proj.category === 'reverse_verb') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) #(proj.canonical) ('the' | '') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) #(proj.canonical) ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) #(proj.canonical) ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
 
         for (const type of proj.types) {
+            question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) #(proj.canonical) ('the' | '') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) #(proj.canonical) ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) #(proj.canonical) ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
@@ -136,6 +161,8 @@ for (const proj of $loader.projections) {
         }
 
         if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') #(proj.canonical) ('the' | '') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') #(proj.canonical) ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') #(proj.canonical) ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
@@ -143,12 +170,16 @@ for (const proj of $loader.projections) {
         }
     }
     if (proj.category === 'reverse_passive_verb') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') #(proj.canonical) ('the' | '') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') #(proj.canonical) ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') #(proj.canonical) ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
 
         for (const type of proj.types) {
+            question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical)('is'|'was'|'are'|'were')  #(proj.canonical) ('the' | '') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical)('is'|'was'|'are'|'were')  #(proj.canonical) ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical)('is'|'was'|'are'|'were')  #(proj.canonical) ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
@@ -156,6 +187,8 @@ for (const proj of $loader.projections) {
         }
 
         if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) #(proj.canonical) ('the' | '') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) #(proj.canonical) ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) #(proj.canonical) ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
@@ -164,9 +197,13 @@ for (const proj of $loader.projections) {
     }
     // e.g., which city is the sister city of beijing?
     if (proj.category === 'property' || proj.category === 'npp') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') ('the' | '') #(proj.canonical) 'of' table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') ('the' | '') #(proj.canonical) 'of' table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') ('the' | '') #(proj.canonical) 'of' table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } '\'s' #(proj.canonical) =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } '\'s' #(proj.canonical) =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
@@ -174,9 +211,13 @@ for (const proj of $loader.projections) {
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
 
         for (const type of proj.types) {
+            question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('is'|'was'|'are'|'were') ('the' | '') #(proj.canonical) 'of' table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('is'|'was'|'are'|'were') ('the' | '') #(proj.canonical) 'of' table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('is'|'was'|'are'|'were') ('the' | '') #(proj.canonical) 'of' table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
+            question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('is'|'was'|'are'|'were') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } '\'s' #(proj.canonical) =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('is'|'was'|'are'|'were') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } '\'s' #(proj.canonical) =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
@@ -185,9 +226,13 @@ for (const proj of $loader.projections) {
         }
 
         if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which') ('is'|'was'|'are'|'were') ('the' | '') #(proj.canonical) 'of' table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);   
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which') ('is'|'was'|'are'|'were') ('the' | '') #(proj.canonical) 'of' table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);      
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which') ('is'|'was'|'are'|'were') ('the' | '') #(proj.canonical) 'of' table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which') ('is'|'was'|'are'|'were') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } '\'s' #(proj.canonical) =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which') ('is'|'was'|'are'|'were') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } '\'s' #(proj.canonical) =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
@@ -197,12 +242,16 @@ for (const proj of $loader.projections) {
     }
     // e.g., which county is beijing a capital of? 
     if (proj.category === 'reverse_property' || proj.category === 'npv') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } ('a'|'an'|'the'|'') #(proj.canonical) =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } ('a'|'an'|'the'|'') #(proj.canonical) =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } ('a'|'an'|'the'|'') #(proj.canonical) =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
 
         for (const type of proj.types) {
+            question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('is'|'was'|'are'|'were') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } ('a'|'an'|'the'|'') #(proj.canonical) =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('is'|'was'|'are'|'were') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } ('a'|'an'|'the'|'') #(proj.canonical) =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('is'|'was'|'are'|'were') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } ('a'|'an'|'the'|'') #(proj.canonical) =>
@@ -210,6 +259,8 @@ for (const proj of $loader.projections) {
         }
 
         if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } ('is'|'was'|'are'|'were') #(proj.canonical) =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } ('is'|'was'|'are'|'were') #(proj.canonical) =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } ('is'|'was'|'are'|'were') #(proj.canonical) =>
@@ -218,12 +269,16 @@ for (const proj of $loader.projections) {
     }
     // e.g., which country have beijing as its capital?
     if (proj.category === 'reverse_base') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('has'|'have') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } 'as' ('its'|'their'|'the') #(proj.canonical) =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('has'|'have') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } 'as' ('its'|'their'|'the') #(proj.canonical) =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
         question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('has'|'have') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } 'as' ('its'|'their'|'the') #(proj.canonical) =>
             C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
 
         for (const type of proj.types) {
+            question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('has'|'have') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } 'as' ('its'|'their'|'the') #(proj.canonical) =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('has'|'have') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } 'as' ('its'|'their'|'the') #(proj.canonical) =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot, type.type);
             question_projection_table : Ast.Expression = #(proj.pronoun) #(type.canonical) ('has'|'have') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } 'as' ('its'|'their'|'the') #(proj.canonical) =>
@@ -231,6 +286,8 @@ for (const proj of $loader.projections) {
         }
 
         if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('has'|'have') table:entity_table with { functionName = (proj.pslot.schema.qualifiedName) } 'as' ('its'|'their'|'the') #(proj.canonical) =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('has'|'have') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } 'as' ('its'|'their'|'the') #(proj.canonical) =>
                 C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
             command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('has'|'have') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } 'as' ('its'|'their'|'the') #(proj.canonical) =>
@@ -240,14 +297,16 @@ for (const proj of $loader.projections) {
 }
 
 projection_Any : Ast.Expression = {
-    ( 'the' outParam:out_param_Any 'of' table:with_filtered_table with { functionName = outParam.functionName }
+    ( 'the' outParam:out_param_Any 'of' table:entity_table with { functionName = outParam.functionName }
+    | 'the' outParam:out_param_Any 'of' table:with_filtered_table with { functionName = outParam.functionName }
     | 'the' outParam:out_param_Any 'of the' table:with_arg_min_max_table with { functionName = outParam.functionName }
     ) =>
         C.makeSingleFieldProjection($loader, 'table', null, table, outParam);
 }
 
 verb_projection_Any : Ast.Expression = {
-    ( outParam:out_param_Any ('do' | 'does') ('the' | '') table:with_filtered_table with { functionName = outParam.functionName } 'have'
+    ( outParam:out_param_Any ('do' | 'does') ('the' | '') table:entity_table with { functionName = outParam.functionName } 'have'
+    | outParam:out_param_Any ('do' | 'does') ('the' | '') table:with_filtered_table with { functionName = outParam.functionName } 'have'
     | outParam:out_param_Any ('do' | 'does') ('the' | '') table:with_arg_min_max_table with { functionName = outParam.functionName } 'have'
     ) =>
         C.makeSingleFieldProjection($loader, 'table', null, table, outParam);
@@ -255,7 +314,8 @@ verb_projection_Any : Ast.Expression = {
 
 stream_projection_Any : Ast.Expression = {
     !nostream {
-        ( 'the' outParam:out_param_Any 'of new' table:with_filtered_table with { functionName = outParam.functionName }
+        ( 'the' outParam:out_param_Any 'of new' table:entity_table with { functionName = outParam.functionName }
+        | 'the' outParam:out_param_Any 'of new' table:with_filtered_table with { functionName = outParam.functionName }
         | 'the' outParam:out_param_Any 'of the new' table:with_arg_min_max_table with { functionName = outParam.functionName }
         ) => C.makeSingleFieldProjection($loader, 'stream', null, table, outParam);
 

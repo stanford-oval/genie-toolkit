@@ -760,19 +760,20 @@ export default class ThingpediaLoader {
             // `base` is no longer need for non-what question, thus leave as empty string
             if (canonical.projection_pronoun) {
                 const pronoun = '{' + canonical.projection_pronoun.join('|') + '}';
-                for (const form of forms)
-                    this._addProjections(pslot, pronoun, pos, baseforms, String(form), types);
+                for (const form of forms) 
+                    this._addProjections(pslot, pronoun, pos, '', String(form), []);
             } else {
                 const pronounType = interrogativePronoun(ptype);
                 if (pronounType !== 'what') {
                     const pronouns = {
                         'when': '{when|what time}',
                         'where': 'where',
-                        'who': 'who'
+                        'who': 'who',
+                        'how': 'how'
                     };
                     assert(pronounType in pronouns);
                     for (const form of forms)
-                        this._addProjections(pslot, pronouns[pronounType], pos, '', String(form), types);
+                        this._addProjections(pslot, pronouns[pronounType], pos, '', String(form), []);
                 }
             }
         }
