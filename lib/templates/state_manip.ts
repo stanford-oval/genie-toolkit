@@ -1046,6 +1046,8 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
             return [contextTable.ctx_list_notification];
         else
             return [contextTable.ctx_nonlist_notification];
+    case 'not_that':
+        return [contextTable.ctx_not_that];
 
     case 'init':
     case 'insist':

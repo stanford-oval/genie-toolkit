@@ -145,6 +145,12 @@ function makeSearchQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_search_question', questions.map((q) => q.name)));
 }
 
+function makeNotThatSearchQuestion(ctx : ContextInfo, question : C.ParamSlot) {
+    const currentStmt = ctx.current!.stmt;
+    const type = currentStmt.lastQuery!.schema!.getArgument(question.name)!.type;
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_search_question', [question.name]), null, type);
+}
+
 class AnswersQuestionVisitor extends Ast.NodeVisitor {
     answersQuestion = false;
     constructor(private questions : string[]) {
@@ -319,6 +325,7 @@ function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : C.FilterSlot|
 export {
     checkFilterPairForDisjunctiveQuestion,
     makeSearchQuestion,
+    makeNotThatSearchQuestion,
     preciseSearchQuestionAnswer,
     impreciseSearchQuestionAnswer
 };

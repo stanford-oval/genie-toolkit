@@ -214,7 +214,10 @@ export function handleNotThatError(ctx : ContextInfo, rejectFilter : FilterSlot)
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
 
-    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted"));
+    // const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted"));
+    // TODO: determine correct values for dialogueActParm (rejectFilter.ast.name?) and confirm (proposed-query?) (in both places)
+    const res = addNewItem(ctx, "not_that", rejectFilter.ast.name, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted"));
+
     res.historyAppliedLevenshtein.push(delta);
     res.historyLevenshtein.push(delta);
     return res;

@@ -62,6 +62,8 @@ export const MANIFEST = {
             'learn_more',
             // user asks to see an output parameter from the previous result
             'action_question',
+            // user says a filter value is incorrect
+            'not_that',
             // user says closes the dialogue mid-way (in the middle of a search)
             'cancel',
             // user terminates the dialogue after the agent asked if there is anything
@@ -116,6 +118,8 @@ export const MANIFEST = {
         withParam: [
             'action_question',
             'notification',
+            // user says a filter value is incorrect
+            'not_that',
             'sys_search_question',
             'sys_slot_fill',
             'sys_empty_search_question',
