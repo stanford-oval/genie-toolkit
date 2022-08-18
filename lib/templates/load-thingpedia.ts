@@ -727,17 +727,22 @@ export default class ThingpediaLoader {
         }
 
         const projectionforms = this._collectByPOS(canonical.projection);
-        const types = [];
+        const valueTypeCounter : Record<string, number> = {};
+        const valueTypeInfo : Record<string, TypeInfo> = {};
         if (vtype instanceof Type.Entity) {
             for (const type of this.entitySubTypeMap[vtype.type] ?? []) {
                 if (type.endsWith(':entity'))
                     continue;
-                types.push({
-                    type: new Type.Entity(type),
-                    canonical: this._entities[type].name
-                });
+                if (!(type in valueTypeCounter))
+                    valueTypeCounter[type] = 0;
+                if (!(type in valueTypeInfo))
+                    valueTypeInfo[type] = { type: new Type.Entity(type), canonical: this._entities[type].name };
+                valueTypeCounter[type] += 1;
             }
         }
+        const topValueTypes = Object.entries(valueTypeCounter).sort((a, b) => a[1] - b[1]).slice(3).map((a) => a[0]);
+        const types = topValueTypes.map((type) => valueTypeInfo[type]);
+
         for (const pos in projectionforms) {
             const forms = projectionforms[pos];
             // FIXME we cannot join all forms together in a single {} expression
