@@ -158,7 +158,13 @@ class DialogueToTurnStream extends Stream.Transform {
             }
 
             const userContext = ThingTalkUtils.prepareContextForPrediction(context, 'user');
-            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(userContext);
+            // the options here is used to get rid of deltas in context
+            // only the `toSourceArgument` is needed, but the other two are required parameters
+            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(userContext, {}, {
+                locale: this._locale,       
+                timezone: this._timezone,
+                toSourceArgument: "no-levenshtein",
+            });
         } else {
             context = null;
             contextCode = ['null'];
@@ -171,7 +177,8 @@ class DialogueToTurnStream extends Stream.Transform {
         const code = await ThingTalkUtils.serializePrediction(userTarget, tokens, entities, {
             locale: this._locale,
             timezone: this._timezone,
-            includeEntityValue : this._includeEntityValue
+            includeEntityValue : this._includeEntityValue,
+            toSourceArgument: "no-statement",   // this gets rid of complete statement in context
         });
 
         if (this._dedupe) {
@@ -181,6 +188,7 @@ class DialogueToTurnStream extends Stream.Transform {
             this._dedupe.add(key);
         }
 
+        assert(!contextCode.includes('$continue'));
         this.push({
             id: this._flags + '' + this._idPrefix + dlg.id + '/' + i,
             context: contextCode.join(' '),

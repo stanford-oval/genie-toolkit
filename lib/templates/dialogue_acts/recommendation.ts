@@ -408,10 +408,12 @@ function positiveRecommendationReply(loader : ThingpediaLoader,
         applyres = C.toChainExpression(new Ast.InvocationExpression(invocation.location, invocation, invocation.schema));
         applyres = propagateDeviceIDsLevenshtein(ctx, applyres) as Ast.ChainExpression;
     }
-    const res = addActionParam(ctx, 'execute', acceptedAction!, chainParam, topResult.value.id, 'accepted', delta);
-    C.levenshteinDebugOutput(applyres, res.history[res.history.length - 1].stmt.expression, "positiveRecommendationReply_action_multiwoz.txt", [delta], oldExpr);
+    // const res = addActionParam(ctx, 'execute', acceptedAction!, chainParam, topResult.value.id, 'accepted', delta);
+    // C.levenshteinDebugOutput(applyres, res.history[res.history.length - 1].stmt.expression, "positiveRecommendationReply_action_multiwoz.txt", [delta], oldExpr);
+    // return res;
+    const newHistoryItem = new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, applyres), null, 'accepted', delta);
+    return addNewItem(ctx, 'execute', null, 'accepted', newHistoryItem);
 
-    return res;
 }
 
 function recommendationCancelReply(ctx : ContextInfo, valid : boolean) {

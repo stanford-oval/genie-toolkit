@@ -124,14 +124,14 @@ export async function parseAllPredictions(candidates : PredictionCandidate[], en
  * Convert a program or dialogue state to a normalized sequence of tokens, suitable
  * to input to the neural network as context.
  */
-export function serializeNormalized(program : Ast.Input|null, entities : Syntax.EntityMap = {}) : [string[], Syntax.EntityMap] {
+export function serializeNormalized(program : Ast.Input|null, entities : Syntax.EntityMap = {}, options ?: SerializeOptions) : [string[], Syntax.EntityMap] {
     if (program === null)
         return [['null'], {}];
 
     // use UTC to compare dates for equality in normalized form
     // (this removes any ambiguity due to DST)
     const allocator = new Syntax.SequentialEntityAllocator(entities, { timezone: 'UTC' });
-    const code : string[] = Syntax.serialize(program, Syntax.SyntaxType.Tokenized, allocator);
+    const code : string[] = Syntax.serialize(program, Syntax.SyntaxType.Tokenized, allocator, options);
     return [code, entities];
 }
 
@@ -141,6 +141,9 @@ interface SerializeOptions {
     ignoreSentence ?: boolean;
     compatibility ?: string;
     includeEntityValue ?: boolean;
+    // this controls whether delta will be included in `toSource`
+    // this argument is passed to `toSource` in ThingTalk calls
+    toSourceArgument ?: string;
 }
 
 /**
@@ -160,6 +163,7 @@ export function serializePrediction(program : Ast.Input,
     });
     return Syntax.serialize(program, Syntax.SyntaxType.Tokenized, entityRetriever, {
         compatibility: options.compatibility,
-        includeEntityValue: options.includeEntityValue
+        includeEntityValue: options.includeEntityValue,
+        toSourceArgument: options.toSourceArgument,
     });
 }

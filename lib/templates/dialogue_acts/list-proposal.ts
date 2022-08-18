@@ -34,11 +34,12 @@ import {
     NameList,
     makeAgentReply,
     makeSimpleState,
-    addActionParam,
+    // addActionParam,
     addAction,
     addQuery,
     propagateDeviceIDsLevenshtein,
     setOrAddInvocationParam,
+    addNewItem,
 } from '../state_manip';
 import {
     isInfoPhraseCompatibleWithResult,
@@ -326,19 +327,21 @@ function positiveListProposalReply(loader : ThingpediaLoader,
 
         let applyres : Ast.ChainExpression;
         let oldExpr  : Ast.ChainExpression | undefined;
-        const delta  : Ast.Levenshtein = new Ast.Levenshtein(invocation.location, new Ast.InvocationExpression(invocation.location, invocation, invocation.schema), "$continue");
+        const delta  : Ast.Levenshtein = new Ast.Levenshtein(null, new Ast.InvocationExpression(null, invocation, invocation.schema), "$continue");
         if (ctx.nextInfo) {
             oldExpr = ctx.next!.stmt.expression;
             applyres = Ast.applyMultipleLevenshtein(oldExpr, [delta]);
         } else {
             setOrAddInvocationParam(invocation, chainParam, name);
-            applyres = C.toChainExpression(new Ast.InvocationExpression(invocation.location, invocation, invocation.schema));
+            applyres = C.toChainExpression(new Ast.InvocationExpression(null, invocation, invocation.schema));
             applyres = propagateDeviceIDsLevenshtein(ctx, applyres) as Ast.ChainExpression;
         }
 
-        const res = addActionParam(ctx, 'execute', acceptedAction, chainParam, name, 'accepted', delta);
-        C.levenshteinDebugOutput(applyres, res.history[res.history.length - 1].stmt.expression, "positiveListProposalReply_action_multiwoz.txt", [delta], oldExpr);
-        return res;
+        // const res = addActionParam(ctx, 'execute', acceptedAction, chainParam, name, 'accepted', delta);
+        
+        // C.levenshteinDebugOutput(applyres, res.history[res.history.length - 1].stmt.expression, "positiveListProposalReply_action_multiwoz.txt", [delta], oldExpr);
+        const newHistoryItem = new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, applyres), null, 'accepted', delta);
+        return addNewItem(ctx, 'execute', null, 'accepted', newHistoryItem);
     }
 }
 
@@ -366,6 +369,7 @@ function positiveListProposalReplyActionByName(loader : ThingpediaLoader,
     }
     if (!name)
         return null;
+    
     return positiveListProposalReply(loader, ctx, [name, acceptedAction, false]);
 }
 

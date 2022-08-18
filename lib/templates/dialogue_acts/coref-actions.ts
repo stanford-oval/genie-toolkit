@@ -74,30 +74,51 @@ function contextualAction(ctx : ContextInfo, action : Ast.Invocation) {
     }
 
     // semi-shallow clone
-    const clone = new Ast.Invocation(null, ctxInvocation.selector, ctxInvocation.channel,
-        ctxInvocation.in_params.map((ip) => new Ast.InputParam(null, ip.name, ip.value)),
-        ctxInvocation.schema);
-    for (const newParam of action.in_params) {
-        if (newParam.value.isUndefined)
-            continue;
+    // const clone = new Ast.Invocation(null, ctxInvocation.selector, ctxInvocation.channel,
+    //     ctxInvocation.in_params.map((ip) => new Ast.InputParam(null, ip.name, ip.value)),
+    //     ctxInvocation.schema);
+    // for (const newParam of action.in_params) {
+    //     if (newParam.value.isUndefined)
+    //         continue;
 
-        let found = false;
-        for (const oldParam of clone.in_params) {
-            if (newParam.name === oldParam.name) {
-                if (oldParam.value.isUndefined)
-                    oldParam.value = newParam.value;
-                found = true;
-                break;
-            }
-        }
+    //     let found = false;
+    //     for (const oldParam of clone.in_params) {
+    //         if (newParam.name === oldParam.name) {
+    //             if (oldParam.value.isUndefined)
+    //                 oldParam.value = newParam.value;
+    //             found = true;
+    //             break;
+    //         }
+    //     }
 
-        if (!found)
-            clone.in_params.push(newParam);
-    }
+    //     if (!found)
+    //         clone.in_params.push(newParam);
+    // }
 
-    return clone;
+    return action;
 }
 
+// function computeLevenshteinContextualAction(ctx : ContextInfo, finalAction : Ast.Invocation) : Ast.Levenshtein {
+//     const ctxInvocation = C.GetInvocationExpression(ctx.next!.stmt);
+//     assert(ctxInvocation instanceof Ast.Invocation);
+//     assert(C.isSameFunction(ctxInvocation.schema!, finalAction.schema!));
+//     const res : Ast.Levenshtein = new Ast.Levenshtein(null, new Ast.InvocationExpression(null, ctxInvocation, ctxInvocation.schema), "$continue");
+//     (res.expression.expressions[0] as Ast.InvocationExpression).invocation.in_params = [];
+//     for (const paramFinalAction of finalAction.in_params) {
+//         let found = false;
+//         for (const paramCtxInvocation of ctxInvocation.in_params) {
+//             if (paramFinalAction.equals(paramCtxInvocation)) {
+//                 found = true;
+//                 break;
+//             }
+//         }
+//         if (!found)
+//             (res.expression.expressions[0] as Ast.InvocationExpression).invocation.in_params.push(paramFinalAction);
+//     }
+//     return res;
+// }
+
 export {
-    contextualAction
+    contextualAction,
+    // computeLevenshteinContextualAction
 };

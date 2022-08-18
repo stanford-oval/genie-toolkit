@@ -223,7 +223,7 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
         const invocation    = new Ast.InvocationExpression(null, answerAction.clone(), answerAction.schema);
 
         // the invocation part of delta, no need to test
-        let deltaInvocation = new Ast.Levenshtein(null, invocation, "$contiue");
+        let deltaInvocation = new Ast.Levenshtein(null, invocation, "$continue");
         deltaInvocation     = propagateDeviceIDsLevenshtein(ctx, deltaInvocation) as Ast.Levenshtein;
         
         // the filte part of filter

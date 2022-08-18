@@ -30,7 +30,7 @@ import {
     ContextInfo,
     makeAgentReply,
     makeSimpleState,
-    mergeParameters,
+    // mergeParameters,
     addNewItem,
 } from '../state_manip';
 
@@ -133,8 +133,7 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
     const clone = fastSemiShallowClone(ctx.next);
     const newInvocation = C.getInvocation(clone.stmt);
 
-    // Levenshtein testing
-    // GEORGE: Levenshtein takes care of API parameter issues
+    // Levenshtein is only the new input parameters
     let oldInvocation : Ast.InvocationExpression | Ast.FunctionCallExpression;
     if (newInvocation instanceof Ast.Invocation)
         oldInvocation = new Ast.InvocationExpression(newInvocation.location, newInvocation.clone(), newInvocation.schema);
@@ -144,16 +143,17 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
     assert(newInvocation instanceof Ast.Invocation);
     assert(C.isSameFunction(newInvocation.schema!, answer.schema!));
     // modify in place
-    mergeParameters(newInvocation, answer);
+    // mergeParameters(newInvocation, answer);
 
     // Levenshtein testing
     // answer is never changed, so dont need to clone.
     // it's the `clone` and `newInvocation` that is changed
-    const delta = new Ast.Levenshtein(oldInvocation.location, new Ast.InvocationExpression(answer.location, answer, answer.schema), "$continue");
+    const delta = new Ast.Levenshtein(null, new Ast.InvocationExpression(null, answer, answer.schema), "$continue");
     const applyres = Ast.applyMultipleLevenshtein(C.toChainExpression(oldInvocation), [delta]);
     const newTable = new Ast.InvocationExpression(newInvocation.location, newInvocation, newInvocation.schema);
     C.levenshteinDebugOutput(applyres, C.toChainExpression(newTable), "preciseSlotFillAnswer_multiwoz.txt");
     clone.levenshtein = delta;
+    clone.stmt.expression = applyres;
 
     return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }
@@ -208,6 +208,8 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
 
     // modify in place
     const clone = ctx.next.clone();
+    const oldInvocation = C.getInvocation(clone.stmt).clone();
+    assert(oldInvocation instanceof Ast.Invocation);
     for (const slot of clone.iterateSlots2()) {
         if (slot instanceof Ast.DeviceSelector)
             continue;
@@ -221,18 +223,14 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
 
         slot.set(ipslot.ast.value);
     }
-    // GEORGE: The levenshtein, if added, will be the statement in clone (clone.stmt.expression), and so is the applied result
-    // arguably, for this case, it does not make sense to use Levenshtein b/c it will only
-    // complicate the situation. But, I think we should use it for consistency anyways.
-    // We may also need to re-design this ctx.next interface.
-    // for now, testing uses it as long-turn expression
-    // the expected applyRes is simply clone.stmt.expression
 
-    // Levenshtein testing
-    const delta = new Ast.Levenshtein(null, clone.stmt.expression, "$continue");
+    // Levenshtein is the invocation with one input param
+    oldInvocation.in_params = [ipslot.ast.clone()];
+    const delta = new Ast.Levenshtein(null, new Ast.InvocationExpression(null, oldInvocation, oldInvocation.schema), "$continue");
     const applyres = Ast.applyMultipleLevenshtein(ctx.next.stmt.expression, [delta]);
     C.levenshteinDebugOutput(applyres, clone.stmt.expression, "impreciseSlotFillAnswer_multiwoz.txt");
     clone.levenshtein = delta;
+    clone.stmt.expression = applyres;
 
     return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }

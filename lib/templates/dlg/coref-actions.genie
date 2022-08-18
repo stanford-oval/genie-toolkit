@@ -90,7 +90,8 @@ coref_action_command : Ast.Invocation = {
 
     ( action:coref_action_command param:preposition_input_param with { functionName = action.functionName }
     | action:coref_action_command ('with' | 'having') param:npp_input_param with { functionName = action.functionName }
-    ) => C.addInvocationInputParam($loader, action, param);
+    // ) => C.addInvocationInputParam($loader, action, param);
+    ) => C.prepareInvocationAsDelta($loader, action, param);
 }
 
 action_by_name_command : Ast.Invocation = {
@@ -100,7 +101,8 @@ action_by_name_command : Ast.Invocation = {
 
     ( action:action_by_name_command param:preposition_input_param with { functionName = action.functionName }
     | action:action_by_name_command ('with' | 'having') param:npp_input_param with { functionName = action.functionName }
-    ) => C.addInvocationInputParam($loader, action, param);
+    // ) => C.addInvocationInputParam($loader, action, param);
+    ) => C.prepareInvocationAsDelta($loader, action, param);
 }
 
 // an action command that continues an existing action command (used for slot-filling)
@@ -111,7 +113,8 @@ action_continuation_command : Ast.Invocation = {
 
     ( action:action_continuation_command param:preposition_input_param with { functionName = action.functionName }
     | action:action_continuation_command ('with' | 'having') param:npp_input_param with { functionName = action.functionName }
-    ) => C.addInvocationInputParam($loader, action, param);
+    // ) => C.addInvocationInputParam($loader, action, param);
+    ) => C.prepareInvocationAsDelta($loader, action, param);
 }
 
 continuation_query : Ast.Invocation = {
@@ -134,4 +137,5 @@ action_description_phrase : Ast.Invocation = {
     ( action:action_description_phrase param:preposition_input_param with { functionName = action.functionName }
     | action:action_description_phrase ('with' | 'having') param:npp_input_param with { functionName = action.functionName }
     ) => C.addInvocationInputParam($loader, action, param);
+    // ) => C.prepareInvocationAsDelta($loader, action, param);
 }

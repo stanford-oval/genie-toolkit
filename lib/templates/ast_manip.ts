@@ -1758,6 +1758,24 @@ function addInvocationInputParam(loader : ThingpediaLoader,
     return clone;
 }
 
+export function prepareInvocationAsDelta(loader : ThingpediaLoader,
+                                         invocation : Ast.Invocation,
+                                         param : InputParamSlot,
+                                         options ?: AddInputParamsOptions) : Ast.Invocation|null {
+    if (!checkInvocationInputParam(loader, invocation, param, options))
+        return null;
+                            
+    const clone = invocation.clone();
+    for (const existing of clone.in_params) {
+        if (existing.name === param.ast.name) {
+            if (!existing.value.isUndefined) 
+                return null;
+        }
+    }
+    clone.in_params = [param.ast];
+    return clone;
+}
+
 function addActionInputParam(loader : ThingpediaLoader,
                              action : Ast.Expression,
                              param : InputParamSlot,
