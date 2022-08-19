@@ -102,7 +102,6 @@ export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, ne
 
     const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
     // console.log(`changeOfMindSimple: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
-    console.log(`changeOfMindSimple`);
     return res;
 }
 
@@ -149,7 +148,6 @@ export function handleNotThatError(ctx : ContextInfo, rejectFilter : FilterSlot)
 
     const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
     // console.log(`handleNotThatError: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
-    console.log(`handleNotThatError`);
     return res;
 }
 
@@ -186,6 +184,5 @@ export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : Para
 
     const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
     // console.log(`handleDidntAskAboutError: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
-    console.log(`handleDidntAskAboutError`);
     return res;
 }
