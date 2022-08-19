@@ -64,7 +64,7 @@ export {
 export * from './keyfns';
 
 import type ThingpediaLoader from './load-thingpedia';
-import { appendFileSync } from 'fs';
+// import { appendFileSync } from 'fs';
 
 export type ArgMinMax = [ParamSlot, 'asc'|'desc'];
 
