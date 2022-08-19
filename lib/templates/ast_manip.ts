@@ -2117,13 +2117,13 @@ export function levenshteinDebugOutput(applyres : Ast.ChainExpression,
                                        logPrefix : string,
                                        deltas  ?: Ast.Levenshtein[],
                                        oldExpr ?: Ast.ChainExpression,) {
-    if (!Ast.determineSameExpressionLevenshtein(applyres, expected, deltas, oldExpr)) {
-        const print2 = `last-turn expression   : ${oldExpr?.prettyprint()}\n`;
-        const print3 = `levenshtein expressions: ${deltas?.map((i) => i.prettyprint())}\n`;
-        const print4 = `applied result         : ${applyres.prettyprint()}\n`;
-        const print5 = `expected expression    : ${expected.prettyprint()}\n`;
-        appendFileSync("/Users/shichengliu/Desktop/Monica_research/workdir/levenshtein_debug/" + logPrefix, print2 + print3 + print4 + print5);
-    }
+    // if (!Ast.determineSameExpressionLevenshtein(applyres, expected, deltas, oldExpr)) {
+    //     const print2 = `last-turn expression   : ${oldExpr?.prettyprint()}\n`;
+    //     const print3 = `levenshtein expressions: ${deltas?.map((i) => i.prettyprint())}\n`;
+    //     const print4 = `applied result         : ${applyres.prettyprint()}\n`;
+    //     const print5 = `expected expression    : ${expected.prettyprint()}\n`;
+    //     appendFileSync("levenshteinDebugOutputPlaceholder" + logPrefix, print2 + print3 + print4 + print5);
+    // }
                                         
 }
 
