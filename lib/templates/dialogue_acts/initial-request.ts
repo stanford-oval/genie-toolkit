@@ -22,7 +22,6 @@
 import assert from 'assert';
 
 import { Ast, Type } from 'thingtalk';
-import { Levenshtein } from 'thingtalk/dist/ast';
 
 import * as ThingTalkUtils from '../../utils/thingtalk';
 
@@ -199,14 +198,6 @@ export function startNewRequest(loader : ThingpediaLoader, ctx : ContextInfo, ex
 
     const newItems = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted', new Ast.Levenshtein(stmt.location, stmt.expression, "$continue")));
     const res = addNewItem(ctx, 'execute', null, 'accepted', ...newItems);
-    
-    // for now, only deal with one:
-    // TODO: add more
-    if (newItems.length === 1) {
-        const delta = new Levenshtein(null, newStatements[0].expression, "$continue");
-        res.historyLevenshtein.push(delta);
-        res.historyAppliedLevenshtein.push(newStatements[0]);
-    }
     return res;
 }
 

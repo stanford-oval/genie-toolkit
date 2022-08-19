@@ -484,7 +484,7 @@ function proposalReply(ctx : ContextInfo,
         return null;
     
     // Levenshtein: adding a filter
-    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), request.filter, null);
+    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), request.filter, currentStmt.expression.schema);
     const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
     const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
     C.levenshteinDebugOutput(applyres, newTable, outFileName, [delta], currentStmt.expression);

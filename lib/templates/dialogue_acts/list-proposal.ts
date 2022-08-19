@@ -295,7 +295,7 @@ function positiveListProposalReply(loader : ThingpediaLoader,
             return null;
         
         // Levenshtein: adding a filter
-        const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), namefilter, null);
+        const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), namefilter, currentStmt.expression.schema);
         const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
         const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
         C.levenshteinDebugOutput(applyres, newTable, "positiveListProposalReply_multiwoz.txt");
@@ -419,7 +419,7 @@ function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.Value) {
         return null;
 
     // Levenshtein: adding a filter
-    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), namefilter, null);
+    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), namefilter, currentStmt.expression.schema);
     const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
     const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
     C.levenshteinDebugOutput(applyres, newTable, "listProposalLearnMoreReply_multiwoz.txt");

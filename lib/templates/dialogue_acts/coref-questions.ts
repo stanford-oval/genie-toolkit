@@ -114,8 +114,8 @@ function recommendationSearchQuestionReply(ctx : ContextInfo, questions : C.Para
         return null;
 
     // Levenshtein: one projection and one filter
-    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, null);
-    const deltaProjectionStatement = new Ast.ProjectionExpression(null, deltaFilterStatement, questions.map((q) => q.name), [], [], null);
+    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, currentStmt.expression.schema);
+    const deltaProjectionStatement = new Ast.ProjectionExpression(null, deltaFilterStatement, questions.map((q) => q.name), [], [], deltaFilterStatement.schema);
     const delta = new Ast.Levenshtein(null, deltaProjectionStatement, "$continue");
     const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
     C.levenshteinDebugOutput(applyres, newTable, "recommendationSearchQuestionReply_multiwoz.txt");
@@ -139,8 +139,8 @@ function learnMoreSearchQuestionReply(ctx : ContextInfo, questions : C.ParamSlot
         return null;
 
     // Levenshtein: one projection and one filter
-    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, null);
-    const deltaProjectionStatement = new Ast.ProjectionExpression(null, deltaFilterStatement, questions.map((q) => q.name), [], [], null);
+    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, currentStmt.expression.schema);
+    const deltaProjectionStatement = new Ast.ProjectionExpression(null, deltaFilterStatement, questions.map((q) => q.name), [], [], deltaFilterStatement.schema);
     const delta = new Ast.Levenshtein(null, deltaProjectionStatement, "$continue");
     const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
     C.levenshteinDebugOutput(applyres, newTable, "learnMoreSearchQuestionReply_multiwoz.txt");
@@ -160,7 +160,7 @@ function displayResultSearchQuestionReply(ctx : ContextInfo, questions : C.Param
         return null;
 
     // Levenshtein: one projection
-    const deltaProjectionStatement = new Ast.ProjectionExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), questions.map((q) => q.name), [], [], null);
+    const deltaProjectionStatement = new Ast.ProjectionExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), questions.map((q) => q.name), [], [], currentStmt.expression.schema);
     const delta = new Ast.Levenshtein(null, deltaProjectionStatement, "$continue");
     const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
     C.levenshteinDebugOutput(applyres, newTable, "displayResultSearchQuestionReply_multiwoz.txt", [delta]);
@@ -204,13 +204,13 @@ function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : 
         const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
         newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
             questions.map((q) => q.name));
-        const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, null);
-        const deltaProjectionStatement = new Ast.ProjectionExpression(null, deltaFilterStatement, questions.map((q) => q.name), [], [], null);
+        const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, currentStmt.expression.schema);
+        const deltaProjectionStatement = new Ast.ProjectionExpression(null, deltaFilterStatement, questions.map((q) => q.name), [], [], deltaFilterStatement.schema);
         delta = new Ast.Levenshtein(null, deltaProjectionStatement, "$continue");
     } else {
         newTable = queryRefinement(currentTable, null, null,
             questions.map((q) => q.name));
-        const deltaProjectionStatement = new Ast.ProjectionExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), questions.map((q) => q.name), [], [], null);
+        const deltaProjectionStatement = new Ast.ProjectionExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), questions.map((q) => q.name), [], [], currentStmt.expression.schema);
         delta = new Ast.Levenshtein(null, deltaProjectionStatement, "$continue");
     }
     if (newTable === null)

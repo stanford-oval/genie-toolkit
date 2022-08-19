@@ -100,7 +100,7 @@ function emptySearchChangePhraseCommon(ctx : ContextInfo,
     // XXX: do we want to remove any sort/index?
     
     // Levenshtein: adding a filter
-    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, null);
+    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, currentStmt.expression.schema);
     const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
     const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
     C.levenshteinDebugOutput(applyres, newExpression, "emptySearchChangePhraseCommon_multiwoz.txt", [delta], currentStmt.expression);

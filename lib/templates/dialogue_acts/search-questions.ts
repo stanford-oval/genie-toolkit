@@ -213,7 +213,7 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
     const newTable = queryRefinement(currentTable, answerTable.filter, refineFilterToAnswerQuestion, null);
     if (newTable === null)
         return null;
-    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), answerTable.filter, null);
+    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), answerTable.filter, currentStmt.expression.schema);
     
     // Levenshtein is adding a filter and possibly an action
     
@@ -308,7 +308,7 @@ function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : C.FilterSlot|
         return null;
 
     // Levenshtein: adding a filter
-    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), answerFilter.ast, null);
+    const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), answerFilter.ast, currentStmt.expression.schema);
     const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
     const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
     C.levenshteinDebugOutput(applyres, newTable, "impreciseSearchQuestionAnswer_multiwoz.txt", [delta], currentStmt.expression);

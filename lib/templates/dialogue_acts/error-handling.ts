@@ -62,7 +62,9 @@ export function handleGenericError(ctx : ContextInfo) {
 
 export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, newFilter : FilterSlot) : DialogueState | null {
     // check if this has Levenshtein history, only proceed if it does
-    if (ctx.state.historyLevenshtein.length <= 0)
+    if (!ctx.current)
+        return null;
+    if (!ctx.current.levenshtein)
         return null;
 
     // if the old and new filter are not of the same name, discard
@@ -70,7 +72,7 @@ export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, ne
     if (oldFilter.toString() !== newFilter.toString())
         return null;
     
-    const lastLevenshtein = ctx.state.historyLevenshtein[ctx.state.historyLevenshtein.length -1];
+    const lastLevenshtein = ctx.current.levenshtein;
 
     // for now, we only proceed if:
     // 1. last levenshtein contains only only element (a chain with only one element)
@@ -100,8 +102,7 @@ export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, ne
 
     const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
     // console.log(`changeOfMindSimple: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
-    res.historyAppliedLevenshtein.push(delta);
-    res.historyLevenshtein.push(delta);
+    console.log(`changeOfMindSimple`);
     return res;
 }
 
@@ -113,10 +114,12 @@ export function handleThisNotThatError(ctx : ContextInfo, filters : FilterSlot[]
 
 export function handleNotThatError(ctx : ContextInfo, rejectFilter : FilterSlot) : DialogueState | null {    
     // check if this has Levenshtein history, only proceed if it does
-    if (ctx.state.historyLevenshtein.length <= 0)
+    if (!ctx.current)
         return null;
-
-    const lastLevenshtein = ctx.state.historyLevenshtein[ctx.state.historyLevenshtein.length -1];
+    if (!ctx.current.levenshtein)
+        return null;
+    
+    const lastLevenshtein = ctx.current.levenshtein;
 
     // for now, we only proceed if:
     // 1. last levenshtein contains only only element (a chain with only one element)
@@ -144,18 +147,20 @@ export function handleNotThatError(ctx : ContextInfo, rejectFilter : FilterSlot)
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
 
-    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted"));
-    res.historyAppliedLevenshtein.push(delta);
-    res.historyLevenshtein.push(delta);
+    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
+    // console.log(`handleNotThatError: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
+    console.log(`handleNotThatError`);
     return res;
 }
 
 export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : ParamSlot) : DialogueState | null {
     // check if this has Levenshtein history, only proceed if it does
-    if (ctx.state.historyLevenshtein.length <= 0)
-        return null;    
-
-    const lastLevenshtein = ctx.state.historyLevenshtein[ctx.state.historyLevenshtein.length -1];
+    if (!ctx.current)
+        return null;
+    if (!ctx.current.levenshtein)
+        return null;
+    
+    const lastLevenshtein = ctx.current.levenshtein;
 
     // for now, we only proceed if:
     // 1. last levenshtein contains only only element (a chain with only one element)
@@ -179,8 +184,8 @@ export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : Para
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
 
-    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted"));
-    res.historyAppliedLevenshtein.push(delta);
-    res.historyLevenshtein.push(delta);
+    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
+    // console.log(`handleDidntAskAboutError: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
+    console.log(`handleDidntAskAboutError`);
     return res;
 }
