@@ -727,6 +727,7 @@ export default class ThingpediaLoader {
         }
 
         const projectionforms = this._collectByPOS(canonical.projection);
+        /*
         const valueTypeCounter : Record<string, number> = {};
         const valueTypeInfo : Record<string, TypeInfo> = {};
         if (vtype instanceof Type.Entity) {
@@ -742,6 +743,8 @@ export default class ThingpediaLoader {
         }
         const topValueTypes = Object.entries(valueTypeCounter).sort((a, b) => a[1] - b[1]).slice(3).map((a) => a[0]);
         const types = topValueTypes.map((type) => valueTypeInfo[type]);
+        */
+        const types : TypeInfo[] = [];
 
         for (const pos in projectionforms) {
             const forms = projectionforms[pos];
