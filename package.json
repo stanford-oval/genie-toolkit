@@ -44,7 +44,7 @@
     "sqlite3": "5.0.2",
     "stemmer": "^1.0.5",
     "string-interp": "^0.3.1",
-    "thingpedia": "stanford-oval/thingpedia-api#wip/levenshtein",
+    "thingpedia": "^2.10.0",
     "thingtalk": "stanford-oval/thingtalk#wip/levenshtein-geniescript",
     "thingtalk-units": "^0.2.0",
     "twilio": "^3.72.0",
