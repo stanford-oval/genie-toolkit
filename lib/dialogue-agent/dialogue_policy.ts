@@ -25,12 +25,15 @@ import { Ast, Type, SchemaRetriever, Syntax } from 'thingtalk';
 
 import * as I18n from '../i18n';
 import SentenceGenerator, { SentenceGeneratorOptions } from '../sentence-generator/generator';
-import { AgentReplyRecord, PolicyModule } from '../sentence-generator/types';
+import { AgentReplyRecord, PolicyModule, SemanticAction, ContextPhrase, ContextTable } from '../sentence-generator/types';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { EntityMap } from '../utils/entity-utils';
-import { Derivation } from '../sentence-generator/runtime';
+import { Derivation, NonTerminal, Replaceable } from '../sentence-generator/runtime';
 
 import * as TransactionPolicy from '../templates/transactions';
+import ThingpediaLoader from '../templates/load-thingpedia';
+
+import{ ReplacedConcatenation, ReplacedResult } from '../utils/template-string';
 
 const MAX_DEPTH = 8;
 const TARGET_PRUNING_SIZES = [15, 50, 100, 200];
@@ -86,6 +89,8 @@ export default class DialoguePolicy {
     private _policyModuleName : string|undefined;
     private _policyModule ! : PolicyModule;
 
+    private _inferenceTimeSentenceGenerator : SentenceGenerator|null;
+
     constructor(options : DialoguePolicyOptions) {
         this._thingpedia = options.thingpedia;
         this._schemas = options.schemas;
@@ -104,6 +109,8 @@ export default class DialoguePolicy {
         this._sentenceGenerator = null;
         this._generatorDevices = null;
         this._generatorOptions = undefined;
+
+        this._inferenceTimeSentenceGenerator = null;
     }
 
     async initialize() {
@@ -247,5 +254,164 @@ export default class DialoguePolicy {
         if (!this._policyModule.initialState)
             return null;
         return this._policyModule.initialState(this._sentenceGenerator!.tpLoader);
+    }
+
+    resetInferenceTimeGenerator(hard ?: boolean) {
+        if (!this._inferenceTimeSentenceGenerator)
+            return;
+        this._inferenceTimeSentenceGenerator.reset(hard);
+    }
+
+    addDynamicRule<ArgTypes extends unknown[], ResultType>(expansion : NonTerminal[],
+                                                           sentence : Replaceable,
+                                                           semanticAction : SemanticAction<ArgTypes, ResultType>) : void {
+        this._inferenceTimeSentenceGenerator!.addDynamicRule(expansion, sentence, semanticAction);
+    }
+
+    
+
+    async chooseInferenceTimeAction(state : Ast.DialogueState|null) : Promise<PolicyResult|undefined>{
+        const utterances : ReplacedResult[] = [];
+        await this._ensureInferenceTimeGeneratorForState(state);
+        const contextPhrases = Array.from(this._getContextPhrases(state!, this._inferenceTimeSentenceGenerator!.tpLoader,
+            this._inferenceTimeSentenceGenerator!.contextTable));
+        if (contextPhrases === null)
+            return undefined;
+        let derivation : AgentReplyRecord|undefined;
+        if (reply.type === 'text') {
+            derivation = this._expandTemplate([reply.text, reply.args, reply.meaning ?? emptyMeaning], contextPhrases);
+            if (!derivation)
+                return undefined;
+            if (messages.length > 0) {
+                let utterance = derivation.sentence.chooseBest();
+                utterance = utterance.replace(/ +/g, ' ');
+                // note: we don't call postprocessSynthetic for secondary messages here
+                utterance = this._langPack.postprocessNLG(utterance, this._agentGenerator.entities, this._executor);
+                if (utterance) {
+                    messages.push({
+                        type: 'text',
+                        text: utterance
+                    });
+                }
+            } else {
+                utterances.push(derivation.sentence);
+            }
+        } else {
+            for (const key in reply) {
+                if (key === 'title' || key === 'alt' || key === 'displayTitle' || key === 'displayText') {
+                    const derivation = this._expandTemplate([(reply as any)[key], reply.args, emptyMeaning], contextPhrases);
+                    if (!derivation)
+                        return undefined;
+
+                    let utterance = derivation.sentence.chooseBest();
+                    utterance = utterance.replace(/ +/g, ' ');
+                    // note: we don't call postprocessSynthetic for secondary messages here
+                    utterance = this._langPack.postprocessNLG(utterance, this._inferenceTimeSentenceGenerator!.entities, this._executor);
+                    msg[key] = utterance;
+                } else {
+                    msg[key] = (reply as any)[key];
+                }
+            }
+        }
+        let utterance = new ReplacedConcatenation(utterances, {}, {}).chooseBest();
+        utterance = this._langPack.postprocessSynthetic(utterance, derivation.value.state, this._rng, 'agent');
+
+        return {
+            state: derivation.value.state,
+            end: derivation.value.end,
+            expect: derivation.value.expect,
+            raw: derivation.value.raw,
+            utterance,
+            entities: this._entityAllocator.entities,
+            numResults: derivation.value.numResults
+        };
+    }
+
+    private _expandTemplate(reply : Template<any[], AgentReplyRecord|EmptyAgentReplyRecord>, contextPhrases : ContextPhrase[]) {
+        this._agentGenerator.reset();
+        const [tmpl, placeholders, semantics] = reply;
+        addTemplate(this._agentGenerator, [], tmpl, placeholders, semantics);
+
+        return this._agentGenerator.generateOne<AgentReplyRecord|EmptyAgentReplyRecord>(contextPhrases, '$dynamic');
+    }
+
+    private *_getContextPhrases(state : Ast.DialogueState, 
+                                tpLoader : ThingpediaLoader, 
+                                contextTable : ContextTable) : IterableIterator<ContextPhrase> {
+        const phrases = this._policyModule.getContextPhrasesForState(state, tpLoader, contextTable);
+        if (phrases !== null) {
+            yield this._getMainAgentContextPhrase(state, contextTable);
+
+            for (const phrase of phrases) {
+                // override the context because we need the context in _generateAgent
+                phrase.context = this;
+                yield phrase;
+            }
+        }
+    }
+
+    private _getMainAgentContextPhrase(state : Ast.DialogueState, contextTable : ContextTable) : ContextPhrase {
+        return {
+            symbol: contextTable.ctx_dynamic_any,
+            utterance: ReplacedResult.EMPTY,
+            value: state,
+            context: this,
+            key: {}
+        };
+    }
+
+    private async _ensureInferenceTimeGeneratorForState(state : Ast.DialogueState|Ast.Program|null) {
+        const devices = this._extractDevices(state);
+        if (this._generatorDevices && arrayEqual(this._generatorDevices, devices)) {
+            this._inferenceTimeSentenceGenerator!.reset(true);
+            this._extractConstants(state);
+            return;
+        }
+        await this._initializeInferenceTimeSentenceGenerator(devices);
+    }
+
+    private _extractConstants(state : Ast.DialogueState|Ast.Program|null) {
+        this._entityAllocator.reset();
+        if (state !== null) {
+            const constants = ThingTalkUtils.extractConstants(state, this._entityAllocator);
+            this._inferenceTimeSentenceGenerator!.addConstantsFromContext(constants);
+        }
+    }
+
+    private async _initializeInferenceTimeSentenceGenerator(forDevices : string[]) {
+        console.log('Initializing (inference time) dialogue policy for devices: ' + forDevices.join(', '));
+
+        this._generatorOptions = {
+            contextual: true,
+            rootSymbol: '$agent',
+            forSide: 'agent',
+            flags: {
+                dialogues: true,
+                inference: true,
+                anonymous: this._anonymous,
+                ...this._extraFlags
+            },
+            rng: this._rng,
+            locale: this._locale,
+            timezone: this._timezone,
+            thingpediaClient: this._thingpedia,
+            schemaRetriever: this._schemas,
+            entityAllocator: this._entityAllocator,
+            onlyDevices: forDevices,
+            maxDepth: MAX_DEPTH,
+            maxConstants: 5,
+            targetPruningSize: TARGET_PRUNING_SIZES[1],
+            debug: this._debug,
+        };
+        const sentenceGenerator = new SentenceGenerator(this._generatorOptions);
+        this._inferenceTimeSentenceGenerator = sentenceGenerator;
+        this._generatorDevices = forDevices;
+        await this._inferenceTimeSentenceGenerator.initialize();
+        await this._policyModule.initializeTemplates(this._generatorOptions, this._langPack, 
+            this._inferenceTimeSentenceGenerator, this._inferenceTimeSentenceGenerator.tpLoader);
+    }
+
+    _generateInferenceTimeDerivation<T>(contextPhrases : ContextPhrase[], nonTerm : string) : Derivation<T>|undefined {
+        return this._inferenceTimeSentenceGenerator!.generateOne(contextPhrases, nonTerm);
     }
 }

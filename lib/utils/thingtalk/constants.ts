@@ -43,12 +43,22 @@ function makeJSDate(timezone : string, year : number, month : number, day : numb
     return new Date(datetz.epochMilliseconds);
 }
 
-function extractConstants(ast : Ast.Node, describer : Describer) : ConstantMap {
+function extractConstants(ast : Ast.Node, describer : Describer|Syntax.SequentialEntityAllocator) : ConstantMap {
     const constants : ConstantMap = {};
     function addConstant(tokenPrefix : string, value : Ast.Value) : void {
-        const token = describer.describeArg(value);
-        if (!token)
-            return;
+        let token : any;
+        if (describer instanceof Describer) {
+            token = describer.describeArg(value);
+            if (!token)
+                return;
+        } else {
+            token = describer.findEntity(tokenPrefix, value.toEntity()).flatten().join(' ');
+            if (value instanceof Ast.EntityValue && value.display) {
+                const entity = describer.entities[token] as Syntax.GenericEntity;
+                if (!entity.display)
+                    entity.display = value.display;
+            }
+        }
 
         if (constants[tokenPrefix])
             constants[tokenPrefix].push({ token, value });

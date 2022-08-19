@@ -595,6 +595,9 @@ export default class SentenceGenerator extends events.EventEmitter {
     get langPack() {
         return this._langPack;
     }
+    get entities() {
+        return this._entityAllocator.entities;
+    }
 
     /**
      * Log a debug message.
@@ -720,6 +723,29 @@ export default class SentenceGenerator extends events.EventEmitter {
             sentence = sentenceTemplate;
         }
         this._addRuleInternal(this._lookupNonTerminal(symbol), expansion, sentence, semanticAction, keyFunction, attributes);
+    }
+
+    /**
+     * Add a dynamically generate template.
+     */
+    addDynamicRule<ArgTypes extends unknown[], ResultType>(expansion : NonTerminal[],
+                                                           sentence : Replaceable,
+                                                           semanticAction : SemanticAction<ArgTypes, ResultType>,
+                                                           attributes : RuleAttributes = {}) : void {
+        const rule = this._addRuleInternal(this._dynamicNonTerm, expansion, sentence, semanticAction, undefined, attributes);
+        if (rule)
+            this._typecheckRule(rule, '$dynamic');
+    }
+
+    private _typecheckRule(rule : Rule<any[], any>, nonTerm : string) {
+        for (const expansion of rule.expansion) {
+            if (expansion instanceof NonTerminal) {
+                const index = this._nonTermTable.get(expansion.symbol);
+                if (index === undefined)
+                    throw new Error(`Non-terminal ${expansion.symbol} undefined, in ${nonTerm} = ${rule}`);
+                expansion.index = index;
+            }
+        }
     }
 
     private _typecheck() {

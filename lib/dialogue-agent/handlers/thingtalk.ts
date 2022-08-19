@@ -54,6 +54,8 @@ import { Replaceable } from '../../utils/template-string';
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
 const TERMINAL_STATES = ['sys_end'];
 
+import PolicyResult from '../dialogue_policy';
+
 // Confidence thresholds:
 //
 // The API returns a global "intent" score associated with
@@ -462,8 +464,16 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         return this._prefs.get('experimental-use-neural-nlg') as boolean;
     }
 
+    private async _emit() : Promise<PolicyResult|undefined> {
+        return undefined;
+    }
+
     private async _doAgentReply(newResults : Array<[string, Record<string, unknown>]>) : Promise<ReplyResult> {
         const oldState = this._dialogueState;
+        if (oldState?.dialogueAct === 'error') {
+            // TODO:
+
+        }
         const policyResult = await this._policy.chooseAction(this._dialogueState);
         assert(policyResult, `Failed to compute a reply`);
         this._dialogueState = policyResult.state;
