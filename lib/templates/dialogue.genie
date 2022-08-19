@@ -64,6 +64,7 @@ import './dlg/action-results.genie';
 import './dlg/aggregation-results.genie';
 import './dlg/coref-questions.genie';
 import './dlg/empty-search.genie';
+import './dlg/error-handling.genie';
 import './dlg/initial-request.genie';
 import './dlg/list-proposal.genie';
 import './dlg/recommendation.genie';
@@ -327,8 +328,12 @@ $user : Ast.DialogueState = {
     }
 
     // error correction
-	// ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
+	ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
     // ctx:ctx_sys_recommend_one 'i do not want' wrong_filter:with_filter ', but I want' right_filter:with_filter  => D.changeOfMindSimple(ctx, wrong_filter, right_filter);
+    // TODO: could context also be ctx_sys_confirm_action? or ctx_sys_display_result?
+    ctx:ctx_sys_recommend_one rejection:not_that_error_phrase => D.handleNotThatError(ctx, rejection);
+    ctx:ctx_sys_recommend_one that_this:this_not_that_error_phrase => D.handleThisNotThatError(ctx, that_this);
+    ctx:ctx_sys_recommend_one attribute:didnt_ask_about_error_phrase => D.handleDidntAskAboutError(ctx, attribute);
 
     // cancelling
 

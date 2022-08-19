@@ -1,0 +1,64 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2022 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Nathan Marks <nsmarks@stanford.edu>
+
+// import { Ast, } from 'thingtalk';
+
+import * as C from '../ast_manip';
+// import * as D from '../dialogue_acts';
+// import * as S from '../state_manip';
+import ThingpediaLoader from '../load-thingpedia';
+
+
+// "Not that value but this value" errors
+// e.g. "Not Chinese food, Japanese food."
+this_not_that_error_phrase : C.FilterSlot[] = {
+    ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for' ) rejection:with_filter (',' | '.') 'i' ( 'want' | 'asked for' | 'am looking for' | 'was looking for') selection:with_filter ('instead' | '') '.'
+    | 'i' ('want' | 'asked for' | 'am looking for' | 'was looking for') selection:with_filter (',' | '') ('not' | 'instead of') rejection:with_filter '.'
+    | selection:with_filter 'is what i' ('asked for' | 'asked about' | 'want' | 'am looking for' | 'was looking for') (',' | '') ('not' | 'instead of') rejection:with_filter '.'
+    | 'not' rejection:with_filter ',' selection:with_filter '.'
+    | selection:with_filter (',' | '') ('not' | 'instead of') rejection:with_filter
+    ) => {
+        return [rejection, selection];
+    };
+}
+
+
+// "Not that value" errors
+// e.g. "I did not ask for Chinese food."
+not_that_error_phrase : C.FilterSlot = {
+    ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for') rejection:with_filter '.'
+    | rejection:with_filter 'is not what i' ('want' | 'asked for' | 'asked about' | 'am looking for') '.'
+    ) => {
+        return rejection;
+    };
+}
+
+
+// "I didn't talk about that attribute/field" errors
+// e.g. "I did not say anything about the location."
+didnt_ask_about_error_phrase : C.ParamSlot = {
+    ( 'i did not' ('mention' | 'mention anything about' | 'say anything about' | 'ask about' | 'talk about') ('the' | '') attribute:out_param_Any '.'
+    | 'i do not care about' ('the' | '') attribute:out_param_Any '.'
+    | ('the' | '') attribute:out_param_Any 'is not what I' ('said' | 'care about' | 'mentioned') '.'
+    | ('the' | '') attribute:out_param_Any ('can be anything' | 'can be whatever' | 'does not matter' | 'does not matter to me' | 'is not important' | 'is not important to me') '.'
+    ) => {
+        return attribute;
+    };
+}
