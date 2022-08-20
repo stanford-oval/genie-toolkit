@@ -54,7 +54,8 @@ import {
     DerivationKeyValue,
     DerivationKey,
     SemanticAction,
-    KeyFunction
+    KeyFunction,
+    NonTerminalKeyConstraint
 } from './types';
 
 const LogLevel = {
@@ -216,13 +217,16 @@ type RelativeKeyConstraint = [string, number, string];
  */
 type ConstantKeyConstraint = [string, DerivationKeyValue];
 
-class NonTerminal {
+class NonTerminal<ValueType = any> {
     symbol : string;
     name : string|undefined;
     index : number;
 
     relativeKeyConstraint : RelativeKeyConstraint|undefined = undefined;
     constantKeyConstraint : ConstantKeyConstraint|undefined = undefined;
+
+    // @ts-expect-error unused value
+    private _unused : ValueType;
 
     constructor(symbol : string, name ?: string, constraint ?: RelativeKeyConstraint|ConstantKeyConstraint) {
         this.symbol = symbol;
@@ -235,6 +239,14 @@ class NonTerminal {
             else
                 this.constantKeyConstraint = constraint;
         }
+    }
+
+    withName(name : string) : NonTerminal<ValueType> {
+        return new NonTerminal(this.symbol, name, this.constantKeyConstraint ?? this.relativeKeyConstraint);
+    }
+
+    withConstraint(constraint : NonTerminalKeyConstraint) {
+        return new NonTerminal(this.symbol, this.name, constraint);
     }
 
     toString() : string {

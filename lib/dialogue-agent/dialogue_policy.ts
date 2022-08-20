@@ -25,7 +25,7 @@ import { Ast, Type, SchemaRetriever, Syntax } from 'thingtalk';
 
 import * as I18n from '../i18n';
 import SentenceGenerator, { SentenceGeneratorOptions } from '../sentence-generator/generator';
-import { AgentReplyRecord, PolicyModule, SemanticAction, ContextPhrase, ContextTable } from '../sentence-generator/types';
+import { AgentReplyRecord, PolicyModule, SemanticAction, ContextPhrase, ContextTable, EmptyAgentReplyRecord, Template } from '../sentence-generator/types';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { EntityMap } from '../utils/entity-utils';
 import { Derivation, NonTerminal, Replaceable } from '../sentence-generator/runtime';
@@ -34,6 +34,7 @@ import * as TransactionPolicy from '../templates/transactions';
 import ThingpediaLoader from '../templates/load-thingpedia';
 
 import{ ReplacedConcatenation, ReplacedResult } from '../utils/template-string';
+import { addTemplate } from './template-utils';
 
 const MAX_DEPTH = 8;
 const TARGET_PRUNING_SIZES = [15, 50, 100, 200];
@@ -181,7 +182,7 @@ export default class DialoguePolicy {
             return null;
         if (!this._policyModule.interpretAnswer)
             return null;
-        await this._ensureGeneratorForState(state);
+        await this._ensureGeneratorForState(state);``
         return this._policyModule.interpretAnswer(state, value, this._sentenceGenerator!.tpLoader, this._sentenceGenerator!.contextTable);
     }
 
@@ -268,8 +269,17 @@ export default class DialoguePolicy {
         this._inferenceTimeSentenceGenerator!.addDynamicRule(expansion, sentence, semanticAction);
     }
 
+    wrapAgentReplySemantics<T extends unknown[]>(semantics : SemanticAction<T, AgentReplyRecord|Ast.DialogueState>) : SemanticAction<T, AgentReplyRecord> {
+        return function(...args) {
+            const result = semantics(...args);
+            if (result === null)
+                return null;
+            if (result instanceof Ast.DialogueState)
+                return { meaning: result, numResults: 0 };
+            return result;
+        };
+    }
     
-
     async chooseInferenceTimeAction(state : Ast.DialogueState|null) : Promise<PolicyResult|undefined>{
         const utterances : ReplacedResult[] = [];
         await this._ensureInferenceTimeGeneratorForState(state);
@@ -286,7 +296,7 @@ export default class DialoguePolicy {
                 let utterance = derivation.sentence.chooseBest();
                 utterance = utterance.replace(/ +/g, ' ');
                 // note: we don't call postprocessSynthetic for secondary messages here
-                utterance = this._langPack.postprocessNLG(utterance, this._agentGenerator.entities, this._executor);
+                utterance = this._langPack.postprocessNLG(utterance, this._inferenceTimeSentenceGenerator!.entities, this._executor);
                 if (utterance) {
                     messages.push({
                         type: 'text',
@@ -328,11 +338,11 @@ export default class DialoguePolicy {
     }
 
     private _expandTemplate(reply : Template<any[], AgentReplyRecord|EmptyAgentReplyRecord>, contextPhrases : ContextPhrase[]) {
-        this._agentGenerator.reset();
+        this._inferenceTimeSentenceGenerator!.reset();
         const [tmpl, placeholders, semantics] = reply;
-        addTemplate(this._agentGenerator, [], tmpl, placeholders, semantics);
+        addTemplate(this._inferenceTimeSentenceGenerator!, [], tmpl, placeholders, semantics);
 
-        return this._agentGenerator.generateOne<AgentReplyRecord|EmptyAgentReplyRecord>(contextPhrases, '$dynamic');
+        return this._inferenceTimeSentenceGenerator!.generateOne(contextPhrases, '$dynamic');
     }
 
     private *_getContextPhrases(state : Ast.DialogueState, 

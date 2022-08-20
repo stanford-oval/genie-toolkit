@@ -468,11 +468,58 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         return undefined;
     }
 
+    private _say(arg1 : string|NonTerminal<any>, 
+                 arg2 ?: TemplatePlaceholderMap|Ast.DialogueState|SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>, 
+                 arg3 ?: SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) {
+        let tmpl : string;
+        let args : TemplatePlaceholderMap;
+        let semantics : SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>|undefined;
+        if (arg1 instanceof NonTerminal) {
+            const name = arg1.name ?? arg1.symbol;
+            tmpl = '${' + name + '}';
+            args = { [name]: arg1 };
+            if (typeof arg2 === 'function')
+                semantics = arg2;
+        } else {
+            tmpl = arg1;
+            let state : Ast.DialogueState|undefined;
+            if (typeof arg2 === 'function') {
+                state = undefined;
+                args = {};
+                semantics = arg2;
+            } else if (arg2 instanceof Ast.DialogueState) {
+                state = arg2;
+                args = {};
+            } else if (arg2) {
+                state = undefined;
+                assert(typeof arg2 === 'object');
+                args = arg2;
+            } else {
+                state = undefined;
+                args = {};
+            }
+
+            if (state) {
+                // assign to a local variable to remove "|undefined" from the type
+                const s2 = state;
+                semantics = () => s2;
+            } else if (arg3) {
+                semantics = arg3;
+            }
+        }
+        return {
+            type: 'text',
+            text: tmpl,
+            args,
+            meaning: semantics !== undefined ? this._wrapAgentReplySemantics(semantics) : undefined
+        }
+    }
+
     private async _doAgentReply(newResults : Array<[string, Record<string, unknown>]>) : Promise<ReplyResult> {
         const oldState = this._dialogueState;
         if (oldState?.dialogueAct === 'error') {
             // TODO:
-
+            
         }
         const policyResult = await this._policy.chooseAction(this._dialogueState);
         assert(policyResult, `Failed to compute a reply`);
