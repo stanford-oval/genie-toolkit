@@ -18,23 +18,10 @@
 //
 // Authors: Shicheng Liu <shicheng@cs.stanford.edu> and Nathan Marks <nsmarks@stanford.edu>
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, DontCareBooleanExpression, Expression, FilterExpression , FunctionCallExpression, InvocationExpression, NotBooleanExpression } from "thingtalk/dist/ast";
 import { GetInvocationExpression, FilterSlot } from "../ast_manip";
 import { ContextInfo, addNewStatement, addNewItem } from "../state_manip";
-=======
-import { Ast } from "thingtalk";
-import { Expression, FunctionCallExpression, InvocationExpression } from "thingtalk/dist/ast";
-import { GetInvocationExpression } from "../ast_manip";
-import { ContextInfo, addNewStatement } from "../state_manip";
->>>>>>> templates & semantic functions setup
 import { ParamSlot } from "../utils";
-=======
-import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, Expression, FilterExpression, FunctionCallExpression, InvocationExpression, NotBooleanExpression } from "thingtalk/dist/ast";
-import { GetInvocationExpression, FilterSlot } from "../ast_manip";
-import { ContextInfo, addNewStatement, addNewItem } from "../state_manip";
->>>>>>> Not this but that errors
 
 export function handleGenericError(ctx : ContextInfo) {
     // NOTE: This is a temporary, naive solution. More coming after Levenshtein apply is done
@@ -117,7 +104,6 @@ export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, ne
     // console.log(`changeOfMindSimple: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
     return res;
 }
-<<<<<<< HEAD
 
 export function handleThisNotThatError(ctx : ContextInfo, filters : FilterSlot[]) : DialogueState | null {
     if (filters.length === 2)
@@ -160,7 +146,7 @@ export function handleNotThatError(ctx : ContextInfo, rejectFilter : FilterSlot)
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
 
-    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
+    const res = addNewItem(ctx, "not_that", rejectFilter.ast.name, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
     // console.log(`handleNotThatError: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
     return res;
 }
@@ -173,62 +159,6 @@ export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : Para
         return null;
     
     const lastLevenshtein = ctx.current.levenshtein;
-=======
-
-export function handleThisNotThatError(ctx : ContextInfo, filters : FilterSlot[]) : DialogueState | null {
-    if (filters.length === 2)
-        return changeOfMindSimple(ctx, filters[0], filters[1]);
-    return null;
-}
-
-export function handleNotThatError(ctx : ContextInfo, rejectFilter : FilterSlot) : DialogueState | null {    
-    // check if this has Levenshtein history, only proceed if it does
-    if (ctx.state.historyLevenshtein.length <= 0)
-        return null;
-
-    const lastLevenshtein = ctx.state.historyLevenshtein[ctx.state.historyLevenshtein.length -1];
-
-    // for now, we only proceed if:
-    // 1. last levenshtein contains only only element (a chain with only one element)
-    if (lastLevenshtein.expression.expressions.length !== 1)
-        return null;
-    
-    const expr = lastLevenshtein.expression.expressions[0];
-
-    // 2. the last levenshtein is a filter with predicate being an AtomBooleanExpression
-    if (!(expr instanceof FilterExpression) || !(expr.filter instanceof AtomBooleanExpression))
-        return null;
-
-    // 3. the rejectFilter is an AtomBooleanExpression
-    if (!(rejectFilter.ast instanceof AtomBooleanExpression))
-        return null;
-
-    // 4. the filter predicate from the previous turn has the same name as the rejectFilter
-    if (!rejectFilter.ast.equals(expr.filter))
-        return null;
-
-    // setting delta as "not rejectFilter"
-    const delta = lastLevenshtein.clone();
-    (delta.expression.expressions[0] as FilterExpression).filter = new NotBooleanExpression(null, rejectFilter.ast);
-
-    // getting applied result
-    const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
-
-    // const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted"));
-    // TODO: determine correct values for dialogueActParm (rejectFilter.ast.name?) and confirm (proposed-query?) (in both places)
-    const res = addNewItem(ctx, "not_that", rejectFilter.ast.name, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted"));
-
-    res.historyAppliedLevenshtein.push(delta);
-    res.historyLevenshtein.push(delta);
-    return res;
-}
-
-export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : ParamSlot) : DialogueState | null {
-    // check if this has Levenshtein history, only proceed if it does
-    if (ctx.state.historyLevenshtein.length <= 0)
-        return null;    
-
-    const lastLevenshtein = ctx.state.historyLevenshtein[ctx.state.historyLevenshtein.length -1];
 
     // for now, we only proceed if:
     // 1. last levenshtein contains only only element (a chain with only one element)
@@ -252,8 +182,7 @@ export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : Para
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
 
-    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted"));
-    res.historyAppliedLevenshtein.push(delta);
-    res.historyLevenshtein.push(delta);
+    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
+    // console.log(`handleDidntAskAboutError: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
     return res;
 }

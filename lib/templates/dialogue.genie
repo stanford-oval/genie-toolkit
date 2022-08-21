@@ -271,22 +271,24 @@ $agent : S.AgentReplyRecord = {
     // not that value error
     ctx:ctx_not_that question:not_that_slot_fill_question
         => {
+            return null;
+
             // return D.makeSpecificSlotFillQuestion(ctx, question);
             // return D.makeSlotFillQuestion(ctx, [question]);
 
             // assert(ctx.state.dialogueActParam && typeof(ctx.state.dialogueActParam[0]) === 'string');
 
-            const slot_to_fill = ctx.state.dialogueActParam![0];
+            // const slot_to_fill = ctx.state.dialogueActParam![0];
             // console.log("slot_to_fill: " + slot_to_fill);
             // console.log("question.name: " + question.name);
 
             // ensure the consistency between the context and the question
-            if (question.name !== slot_to_fill) {
-                //console.log("Slot inconsistent");
-                return null;
-            }
+            // if (question.name !== slot_to_fill) {
+            //     //console.log("Slot inconsistent");
+            //     return null;
+            // }
             // return D.makeSearchQuestion(ctx, [question]);
-            return D.makeNotThatSearchQuestion(ctx, question);
+            // return D.makeNotThatSearchQuestion(ctx, question);
            };
 }
 
@@ -350,14 +352,6 @@ $user : Ast.DialogueState = {
     }
 
     // error correction
-<<<<<<< HEAD
-	// ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
-    // ctx:ctx_sys_recommend_one 'i do not want' wrong_filter:with_filter ', but I want' right_filter:with_filter  => D.changeOfMindSimple(ctx, wrong_filter, right_filter);
-    // TODO: could context also be ctx_sys_confirm_action? or ctx_sys_display_result?
-    // ctx:ctx_sys_recommend_one rejection:not_that_error_phrase => D.handleNotThatError(ctx, rejection);
-    // ctx:ctx_sys_recommend_one that_this:this_not_that_error_phrase => D.handleThisNotThatError(ctx, that_this);
-    // ctx:ctx_sys_recommend_one attribute:didnt_ask_about_error_phrase => D.handleDidntAskAboutError(ctx, attribute);
-=======
 	ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
     // ctx:ctx_sys_recommend_one 'i do not want' wrong_filter:with_filter ', but I want' right_filter:with_filter  => D.changeOfMindSimple(ctx, wrong_filter, right_filter);
     // TODO: could context also be ctx_sys_confirm_action? or ctx_sys_display_result?
