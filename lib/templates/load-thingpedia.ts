@@ -634,7 +634,7 @@ export default class ThingpediaLoader {
                 vtypes = vtypes.map((vtype) => vtype instanceof Type.Compound ? vtype.fields.value.type : vtype );
         }
 
-        if (!this._options.flags.turking && op === 'contains')
+        if (!this._options.flags.turking && !this._options.flags.no_both && op === 'contains')
             canUseBothForm = true;
 
         for (const type of vtypes)

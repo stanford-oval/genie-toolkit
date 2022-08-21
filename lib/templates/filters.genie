@@ -229,9 +229,11 @@ with_filter : C.FilterSlot = {
     ?schema_org x:constant_String_ContextRef ('as' | 'in the' ) p:out_param_Any with { type = (Type.String) } => C.makeFilter($loader, p, '=~', x);
 
     // substring and
-    !turking 'the' p:out_param_Any with { type = (Type.String) } 'containing both' x:constant_String 'and' y:constant_String => C.makeAndFilter($loader, p, '=~', [x, y]);
-    !turking 'the' p:out_param_Any with { type = (Type.String) } 'containing neither' x:constant_String 'nor' y:constant_String => C.makeAndFilter($loader, p, '=~', [x, y], true);
-    !turking 'both' x:constant_String 'and' y:constant_String 'in' p:the_out_param_Any with { type = (Type.String) } => C.makeAndFilter($loader, p, '=~', [x, y]);
+    !turking {
+        !no_both 'the' p:out_param_Any with { type = (Type.String) } 'containing both' x:constant_String 'and' y:constant_String => C.makeAndFilter($loader, p, '=~', [x, y]);
+        !no_both 'the' p:out_param_Any with { type = (Type.String) } 'containing neither' x:constant_String 'nor' y:constant_String => C.makeAndFilter($loader, p, '=~', [x, y], true);
+        !no_both 'both' x:constant_String 'and' y:constant_String 'in' p:the_out_param_Any with { type = (Type.String) } => C.makeAndFilter($loader, p, '=~', [x, y]);
+    }
 
     // substring or
     !turking 'the' p:out_param_Any with { type = (Type.String) } 'containing either' x:constant_String 'or' y:constant_String => C.makeOrFilter($loader, p, '=~', [x, y]);
@@ -338,8 +340,10 @@ with_filter : C.FilterSlot = {
     x:constant_Any 'in' 'the' p:out_param_Array__Any => C.makeFilter($loader, p, 'contains', x);
 
     // array contain and
-    !turking p:out_param_Array__Any 'containing' both_prefix pair:constant_pairs with { type = p.elem } => C.makeAndFilter($loader, p, 'contains', pair);
-    !turking both_prefix pair:constant_pairs 'in' 'the' p:out_param_Array__Any with { elem = pair.type } => C.makeAndFilter($loader, p, 'contains', pair);
+    !turking {
+        !no_both p:out_param_Array__Any 'containing' both_prefix pair:constant_pairs with { type = p.elem } => C.makeAndFilter($loader, p, 'contains', pair);
+        !no_both both_prefix pair:constant_pairs 'in' 'the' p:out_param_Array__Any with { elem = pair.type } => C.makeAndFilter($loader, p, 'contains', pair);
+    }
 
     // array contain or
     p:out_param_Array__Any 'containing either' pair:constant_or_pairs with { type = p.elem } => C.makeOrFilter($loader, p, 'contains', pair);
