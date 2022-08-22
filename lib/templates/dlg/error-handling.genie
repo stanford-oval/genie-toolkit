@@ -21,6 +21,7 @@
 // import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
+import {Ast, } from 'thingtalk';
 // import * as D from '../dialogue_acts';
 // import * as S from '../state_manip';
 import ThingpediaLoader from '../load-thingpedia';
@@ -28,12 +29,12 @@ import ThingpediaLoader from '../load-thingpedia';
 
 // "Not that value but this value" errors
 // e.g. "Not Chinese food, Japanese food."
-this_not_that_error_phrase : C.FilterSlot[] = {
-    ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for' ) rejection:with_filter (',' | '.') 'i' ( 'want' | 'asked for' | 'am looking for' | 'was looking for') selection:with_filter ('instead' | '') '.'
-    | 'i' ('want' | 'asked for' | 'am looking for' | 'was looking for') selection:with_filter (',' | '') ('not' | 'instead of') rejection:with_filter '.'
-    | selection:with_filter 'is what i' ('asked for' | 'asked about' | 'want' | 'am looking for' | 'was looking for') (',' | '') ('not' | 'instead of') rejection:with_filter '.'
-    | 'not' rejection:with_filter ',' selection:with_filter '.'
-    | selection:with_filter (',' | '') ('not' | 'instead of') rejection:with_filter
+this_not_that_error_phrase : Ast.Expression[] = {
+    ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for' ) rejection:anything_phrase (',' | '.') 'i' ( 'want' | 'asked for' | 'am looking for' | 'was looking for') selection:anything_phrase ('instead' | '') '.'
+    | 'i' ('want' | 'asked for' | 'am looking for' | 'was looking for') selection:anything_phrase (',' | '') ('not' | 'instead of') rejection:anything_phrase '.'
+    | selection:anything_phrase 'is what i' ('asked for' | 'asked about' | 'want' | 'am looking for' | 'was looking for') (',' | '') ('not' | 'instead of') rejection:anything_phrase '.'
+    | 'not' rejection:anything_phrase ',' selection:anything_phrase '.'
+    | selection:anything_phrase (',' | '') ('not' | 'instead of') rejection:anything_phrase
     ) => {
         return [rejection, selection];
     };
@@ -42,9 +43,9 @@ this_not_that_error_phrase : C.FilterSlot[] = {
 
 // "Not that value" errors
 // e.g. "I did not ask for Chinese food."
-not_that_error_phrase : C.FilterSlot = {
-    ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for') rejection:with_filter '.'
-    | rejection:with_filter 'is not what i' ('want' | 'asked for' | 'asked about' | 'am looking for') '.'
+not_that_error_phrase : Ast.Expression = {
+    ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for') rejection:anything_phrase '.'
+    | rejection:anything_phrase 'is not what i' ('want' | 'asked for' | 'asked about' | 'am looking for') '.'
     ) => {
         return rejection;
     };

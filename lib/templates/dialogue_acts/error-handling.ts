@@ -18,8 +18,10 @@
 //
 // Authors: Shicheng Liu <shicheng@cs.stanford.edu> and Nathan Marks <nsmarks@stanford.edu>
 
+import assert from "assert";
+import { Ast, } from "thingtalk";
 import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, DontCareBooleanExpression, Expression, FilterExpression , FunctionCallExpression, InvocationExpression, NotBooleanExpression } from "thingtalk/dist/ast";
-import { GetInvocationExpression, FilterSlot } from "../ast_manip";
+import { GetInvocationExpression } from "../ast_manip";
 import { ContextInfo, addNewStatement, addNewItem } from "../state_manip";
 import { ParamSlot } from "../utils";
 
@@ -60,16 +62,19 @@ export function handleGenericError(ctx : ContextInfo) {
     return addNewStatement(newCtx, 'sys_slot_fill', 'query', 'accepted', invocation);
 }
 
-export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, newFilter : FilterSlot) : DialogueState | null {
+export function changeOfMindSimple(ctx : ContextInfo, oldFilter : Ast.Expression, newFilter : Ast.Expression) : DialogueState | null {
     // check if this has Levenshtein history, only proceed if it does
     if (!ctx.current)
         return null;
     if (!ctx.current.levenshtein)
         return null;
 
+    assert(oldFilter instanceof FilterExpression);
+    assert(newFilter instanceof FilterExpression);
+
     // if the old and new filter are not of the same name, discard
     // TODO: investigate if this is the best approach
-    if (oldFilter.toString() !== newFilter.toString())
+    if (oldFilter.expression !== newFilter.expression)
         return null;
     
     const lastLevenshtein = ctx.current.levenshtein;
@@ -86,37 +91,43 @@ export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, ne
     
     // 3. the oldFilter is an AtomBooleanExpression
     // 4. the newFilter is an AtomBooleanExpression
-    if (!(oldFilter.ast instanceof AtomBooleanExpression) || !(newFilter.ast instanceof AtomBooleanExpression))
+    if (!(oldFilter.filter instanceof AtomBooleanExpression) || !(newFilter.filter instanceof AtomBooleanExpression))
         return null;
 
     // 5. the filter predicate has the same name as the oldFilter
-    if (!oldFilter.ast.equals(expr.filter))
+    if (!oldFilter.filter.equals(expr.filter))
         return null;
     
     // setting delta
     const delta = lastLevenshtein.clone();
-    (delta.expression.expressions[0] as FilterExpression).filter = new AndBooleanExpression(null, [new NotBooleanExpression(null, oldFilter.ast), newFilter.ast]);
+    (delta.expression.expressions[0] as FilterExpression).filter = new AndBooleanExpression(null, [new NotBooleanExpression(null, oldFilter.filter), newFilter.filter]);
     
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
 
     const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
     // console.log(`changeOfMindSimple: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
+    // if (appliedResult.expression.schema === null || appliedResult.expression.first.schema === null) {
+    //     console.log(delta.expression.schema);
+    //     console.log(lastLevenshtein.expression.schema);
+    // }
     return res;
 }
 
-export function handleThisNotThatError(ctx : ContextInfo, filters : FilterSlot[]) : DialogueState | null {
+export function handleThisNotThatError(ctx : ContextInfo, filters : Ast.Expression[]) : DialogueState | null {
     if (filters.length === 2)
         return changeOfMindSimple(ctx, filters[0], filters[1]);
     return null;
 }
 
-export function handleNotThatError(ctx : ContextInfo, rejectFilter : FilterSlot) : DialogueState | null {    
+export function handleNotThatError(ctx : ContextInfo, rejectFilter : Ast.Expression) : DialogueState | null {    
     // check if this has Levenshtein history, only proceed if it does
     if (!ctx.current)
         return null;
     if (!ctx.current.levenshtein)
         return null;
+
+    assert(rejectFilter instanceof Ast.FilterExpression);
     
     const lastLevenshtein = ctx.current.levenshtein;
 
@@ -132,16 +143,16 @@ export function handleNotThatError(ctx : ContextInfo, rejectFilter : FilterSlot)
         return null;
 
     // 3. the rejectFilter is an AtomBooleanExpression
-    if (!(rejectFilter.ast instanceof AtomBooleanExpression))
+    if (!(rejectFilter.filter instanceof AtomBooleanExpression))
         return null;
 
     // 4. the filter predicate from the previous turn has the same name as the rejectFilter
-    if (!rejectFilter.ast.equals(expr.filter))
+    if (!rejectFilter.filter.equals(expr.filter))
         return null;
 
     // setting delta as "not rejectFilter"
     const delta = lastLevenshtein.clone();
-    (delta.expression.expressions[0] as FilterExpression).filter = new NotBooleanExpression(null, rejectFilter.ast);
+    (delta.expression.expressions[0] as FilterExpression).filter = new NotBooleanExpression(null, rejectFilter.filter);
 
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
