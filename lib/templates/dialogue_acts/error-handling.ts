@@ -18,7 +18,7 @@
 //
 // Authors: Shicheng Liu <shicheng@cs.stanford.edu> and Nathan Marks <nsmarks@stanford.edu>
 
-import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, DontCareBooleanExpression, Expression, FilterExpression , FunctionCallExpression, InvocationExpression, NotBooleanExpression } from "thingtalk/dist/ast";
+import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, DontCareBooleanExpression, Expression, FilterExpression , FunctionCallExpression, InvocationExpression, NotBooleanExpression, ProjectionExpression } from "thingtalk/dist/ast";
 import { GetInvocationExpression, FilterSlot } from "../ast_manip";
 import { ContextInfo, addNewStatement, addNewItem } from "../state_manip";
 import { ParamSlot } from "../utils";
@@ -186,3 +186,83 @@ export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : Para
     // console.log(`handleDidntAskAboutError: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
     return res;
 }
+
+export function handleNotThatProjError(ctx : ContextInfo, rejection : ParamSlot) : DialogueState | null {
+    console.log("Entering handleNotThatProjError");
+
+    // check if this has Levenshtein history, only proceed if it does
+    if (!ctx.current)
+        return null;
+    if (!ctx.current.levenshtein)
+        return null;
+
+    const lastLevenshtein = ctx.current.levenshtein;
+
+    // for now, we only proceed if:
+    // 1. last levenshtein contains only only element (a chain with only one element)
+    if (lastLevenshtein.expression.expressions.length !== 1)
+        return null;
+
+    const expr = lastLevenshtein.expression.expressions[0];
+
+    // 2. the last levenshtein is a projection with a rejection mentioned in it
+    if (!(expr instanceof ProjectionExpression && !expr.args.includes(rejection.name)))
+        return null;
+
+    // TODO: what to do with state?
+
+    // setting delta as the new replacement
+    const delta = lastLevenshtein.clone();
+    expr.args = ['undefined'];
+
+    // getting applied result
+    const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
+
+    const res = addNewItem(ctx, "not_that", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
+
+    console.log("handleNotThatProjError Success");
+
+    return res;
+}
+
+export function handleThisNotThatProjError(ctx : ContextInfo, that_this : ParamSlot[]) : DialogueState | null {
+    // TODO
+    return null;
+}
+
+/*
+export function handleProjectionChange(ctx : ContextInfo, rejection : ParamSlot[], replacement : ParamSlot[]) : DialogueState | null {
+    // check if this has Levenshtein history, only proceed if it does
+    if (!(ctx.state.next && ctx.state.next.levenshtein))
+        return null;
+    
+    // check if both rejection and replacement only contain one item
+    if (!(rejection.length === 1 && replacement.length === 1))
+        return null;
+
+    const lastLevenshtein = ctx.state.next.levenshtein;
+
+    // for now, we only proceed if:
+    // 1. last levenshtein contains only only element (a chain with only one element)
+    if (lastLevenshtein.expression.expressions.length !== 1)
+        return null;
+
+    const expr = lastLevenshtein.expression.expressions[0];
+
+    // 2. the last levenshtein is a projection with a rejection mentioned in it
+    if (!(expr instanceof ProjectionExpression && !expr.args.includes(rejection[0].name)))
+        return null;
+
+    // setting delta as the new replacement
+    const delta = lastLevenshtein.clone();
+    expr.args = [replacement[0].name];
+
+    // getting applied result
+    const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
+
+    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted"));
+    res.historyAppliedLevenshtein.push(delta);
+    res.historyLevenshtein.push(delta);
+    return res;
+}
+*/

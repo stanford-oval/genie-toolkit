@@ -272,6 +272,11 @@ $agent : S.AgentReplyRecord = {
     ctx:ctx_not_that question:not_that_slot_fill_question
         => {
             return null;
+            //unsynthesized state
+
+            // synthesis: return null
+            // inference: make a special purpose reply in the dialogue handler
+
 
             // return D.makeSpecificSlotFillQuestion(ctx, question);
             // return D.makeSlotFillQuestion(ctx, [question]);
@@ -355,9 +360,14 @@ $user : Ast.DialogueState = {
 	ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
     // ctx:ctx_sys_recommend_one 'i do not want' wrong_filter:with_filter ', but I want' right_filter:with_filter  => D.changeOfMindSimple(ctx, wrong_filter, right_filter);
     // TODO: could context also be ctx_sys_confirm_action? or ctx_sys_display_result?
+    // filters:
     ctx:ctx_sys_recommend_one rejection:not_that_error_phrase => D.handleNotThatError(ctx, rejection);
     ctx:ctx_sys_recommend_one that_this:this_not_that_error_phrase => D.handleThisNotThatError(ctx, that_this);
     ctx:ctx_sys_recommend_one attribute:didnt_ask_about_error_phrase => D.handleDidntAskAboutError(ctx, attribute);
+    // projections:
+    ctx:ctx_sys_action_success rejection:not_that_projection_error_phrase => D.handleNotThatProjError(ctx, rejection);
+    // ctx:ctx_sys_display_result that_this:this_not_that_projection_error_phrase => D.handleNotThatProjError(ctx, that_this);
+
 
     // cancelling
 

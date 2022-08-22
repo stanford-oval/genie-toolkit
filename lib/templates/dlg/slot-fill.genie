@@ -58,7 +58,7 @@ slot_fill_question : C.ParamSlot[] = {
 }
 
 not_that_slot_fill_question : C.ParamSlot = {
-    'what' p:input_param prefer_question_phrase '?' => p;
+    'what' p:out_param_Any prefer_question_phrase '?' => p;
 }
 
 imprecise_slot_fill_answer_phrase : Ast.Value|C.InputParamSlot = {

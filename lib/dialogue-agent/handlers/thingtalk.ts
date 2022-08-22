@@ -464,6 +464,36 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
     private async _doAgentReply(newResults : Array<[string, Record<string, unknown>]>) : Promise<ReplyResult> {
         const oldState = this._dialogueState;
+
+        if (oldState?.dialogueAct === "greet") {
+            // let expecting = null;
+            console.log("In if statement");
+            return {
+                messages: ["Goodbye."],
+                context: oldState ? oldState!.prettyprint() : '',
+                agent_target: "$dialogue @org.thingpedia.dialogue.transaction.sys_end;",
+                expecting: null,
+            };
+        } else if (oldState?.dialogueAct === "not_that") {
+            console.log("Agent in not_that policy.");
+            // currently setting up for filters. Modify as needed for others
+            const response = "What " + oldState?.dialogueActParam + " would you like?";
+
+            // TODO: check if correct target
+            const agent_target  = "$dialogue @org.thingpedia.dialogue.transaction.sys_search_question;";
+
+            // TODO: figure out expecting
+            const expecting = ValueCategory.Generic;
+
+            return {
+                messages: [response],
+                context: oldState ? oldState!.prettyprint() : '', // from below
+                agent_target: agent_target,
+                expecting: expecting,
+            };
+        }
+
+
         const policyResult = await this._policy.chooseAction(this._dialogueState);
         assert(policyResult, `Failed to compute a reply`);
         this._dialogueState = policyResult.state;

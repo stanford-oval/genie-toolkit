@@ -71,8 +71,10 @@ function useRawModeForSlotFill(arg : Ast.ArgumentDef) {
 
 
 function makeSlotFillQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
-    if (!areGoodSlotFillQuestions(ctx, questions))
+    if (!areGoodSlotFillQuestions(ctx, questions)) {
+        console.log("not areGoodSlotFillQuestions");
         return null;
+    }
 
     assert(questions.length > 0);
     if (questions.length === 1) {
@@ -82,6 +84,45 @@ function makeSlotFillQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
         return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', [questions[0].name]), null, slot.type, { raw });
     }
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', questions.map((q) => q.name)));
+}
+
+/**
+ * For "not that" errors
+ * @param ctx 
+ * @param questions 
+ */
+function makeSpecificSlotFillQuestion(ctx : ContextInfo, question : C.ParamSlot) {
+    // console.log("Entering makeSpecificSlotFillQuestion");
+    // only looking for one slot
+    // if (questions.length !== 1)
+    //     return null;
+
+    // const question : C.ParamSlot = questions[0];
+
+    // ensure the slot to be filled exists
+    assert(ctx.state.dialogueActParam && typeof(ctx.state.dialogueActParam[0]) === 'string');
+
+    const slot_to_fill : string = ctx.state.dialogueActParam[0];
+    // console.log("slot_to_fill: " + slot_to_fill);
+    // console.log("question.name: " + question.name);
+
+    // ensure the consistency between the context and the question
+    if (question.name !== slot_to_fill) {
+        console.log("Slot inconsistent");
+        return null;
+    }
+    // console.log("SUCCESS! Slot consistent.");
+
+    // copied from makeSlotFillQuestion:
+    // const slot = ctx.nextInfo!.missingSlots.find((slot) => slot.tag === `in_param.${question.name}`);
+    // assert(slot);
+    // const raw = !!slot.arg && useRawModeForSlotFill(slot.arg);
+    // return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', [question.name]), null, slot.type, { raw });
+
+    // return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', [slot_to_fill]));
+    console.log("Entering makeAgentReply from makeSpecificSlotFillQuestion");
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_search_question', [slot_to_fill]));
+
 }
 
 /**
@@ -164,6 +205,9 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
     if (questions.length !== 1)
         return null;
 
+    // console.log("ctx.next: " + ctx.next);
+    // console.log("ctx.nextInfo: " + ctx.nextInfo);
+
     assert(ctx.next && ctx.nextInfo);
 
     // GEORGE: This is resolving which slot we need to modify, we probably still have to keep these
@@ -237,6 +281,7 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
 
 export {
     makeSlotFillQuestion,
+    makeSpecificSlotFillQuestion,
 
     preciseSlotFillAnswer,
     impreciseSlotFillAnswer
