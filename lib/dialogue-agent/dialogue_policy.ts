@@ -32,6 +32,11 @@ import { Derivation } from '../sentence-generator/runtime';
 
 import * as TransactionPolicy from '../templates/transactions';
 
+import * as C from '../templates/ast_manip';
+import * as S from '../templates/state_manip';
+import * as D from '../templates/dialogue_acts';
+import { ParamSlot } from '../../dist/lib/templates/utils';
+
 const MAX_DEPTH = 8;
 const TARGET_PRUNING_SIZES = [15, 50, 100, 200];
 
@@ -247,5 +252,11 @@ export default class DialoguePolicy {
         if (!this._policyModule.initialState)
             return null;
         return this._policyModule.initialState(this._sentenceGenerator!.tpLoader);
+    }
+
+    async test(state : Ast.DialogueState) : Promise<Ast.DialogueState|null> {
+        await this._ensureGeneratorForState(state);
+        const ctx = S.getContextInfo(this._sentenceGenerator!.tpLoader, state, this._sentenceGenerator!.contextTable);
+        return S.makeSimpleState(ctx, state.dialogueAct, ctx.state.dialogueActParam as string[]);
     }
 }

@@ -464,7 +464,11 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
     private async _doAgentReply(newResults : Array<[string, Record<string, unknown>]>) : Promise<ReplyResult> {
         const oldState = this._dialogueState;
-        const policyResult = await this._policy.chooseAction(this._dialogueState);
+        assert(oldState?.dialogueAct);
+        
+        const state = await this._policy.test(this._dialogueState!);
+        
+        const policyResult = await this._policy.chooseAction(state);
         assert(policyResult, `Failed to compute a reply`);
         this._dialogueState = policyResult.state;
         let utterance = policyResult.utterance;

@@ -48,7 +48,7 @@ function areGoodSlotFillQuestions(ctx : ContextInfo, questions : C.ParamSlot[]) 
     return questions.every((q) => isGoodSlotFillQuestion(ctx, q));
 }
 
-function useRawModeForSlotFill(arg : Ast.ArgumentDef) {
+export function useRawModeForSlotFill(arg : Ast.ArgumentDef) {
     // raw mode bypasses _all_ natural language understanding
     // it is used to take in free-form inputs like messages or titles
 
