@@ -335,7 +335,10 @@ $user : Ast.DialogueState = {
     | ctx:ctx_sys_display_result thanks_phrase ('goodbye !' | '')
     ) => S.makeSimpleState(ctx, 'cancel', null);
     ctx:ctx_sys_action_success questions:simple_user_search_question
-        => D.actionSuccessQuestion(ctx, questions);
+        => {
+            // console.log("ctx:ctx_sys_action_success questions:simple_user_search_question");
+            return D.actionSuccessQuestion(ctx, questions);
+            };
 
     ( ctx:ctx_sys_display_result repeat_command_phrase
     | ctx:ctx_sys_action_error repeat_command_on_error_phrase
@@ -357,16 +360,22 @@ $user : Ast.DialogueState = {
     }
 
     // error correction
-	ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
+	// ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
     // ctx:ctx_sys_recommend_one 'i do not want' wrong_filter:with_filter ', but I want' right_filter:with_filter  => D.changeOfMindSimple(ctx, wrong_filter, right_filter);
     // TODO: could context also be ctx_sys_confirm_action? or ctx_sys_display_result?
     // filters:
+    /*
+    Commented while working on projections
     ctx:ctx_sys_recommend_one rejection:not_that_error_phrase => D.handleNotThatError(ctx, rejection);
     ctx:ctx_sys_recommend_one that_this:this_not_that_error_phrase => D.handleThisNotThatError(ctx, that_this);
     ctx:ctx_sys_recommend_one attribute:didnt_ask_about_error_phrase => D.handleDidntAskAboutError(ctx, attribute);
+    */
     // projections:
-    ctx:ctx_sys_action_success rejection:not_that_projection_error_phrase => D.handleNotThatProjError(ctx, rejection);
+    //ctx:ctx_sys_recommend_one rejection:not_that_projection_error_phrase => D.handleNotThatProjError(ctx, rejection);
+    // ctx:ctx_sys_recommend_one rejection:not_that_proj_exp_error_phrase => D.handleNotThatProjExpError(ctx, rejection);
     // ctx:ctx_sys_display_result that_this:this_not_that_projection_error_phrase => D.handleNotThatProjError(ctx, that_this);
+
+    ctx:ctx_sys_recommend_one rejection_selection:this_not_that_projection_error_phrase => D.handleProjectionChange(ctx, rejection_selection);
 
 
     // cancelling
@@ -452,11 +461,20 @@ $user : Ast.DialogueState = {
     // a "user search question" is one that uses the same Thingpedia primitive, and adds
     // a filter on ID
     ctx:ctx_sys_recommend_one questions:user_search_question with { functionName = ctx.currentFunction }
-        => D.recommendationSearchQuestionReply(ctx, questions);
+        => {
+            // console.log("ctx:ctx_sys_recommend_one questions:user_search_question");
+            return D.recommendationSearchQuestionReply(ctx, questions);
+            };
     ctx:ctx_sys_learn_more_what questions:user_search_question with { functionName = ctx.currentFunction }
-        => D.learnMoreSearchQuestionReply(ctx, questions);
+            => {
+            // console.log("ctx:ctx_sys_learn_more_what questions:user_search_question");
+            return D.learnMoreSearchQuestionReply(ctx, questions);
+            };
     ctx:ctx_sys_display_result questions:user_search_question with { functionName = ctx.currentFunction }
-        => D.displayResultSearchQuestionReply(ctx, questions);
+        => {
+            // console.log("ctx:ctx_sys_display_result questions:user_search_question");
+            return D.displayResultSearchQuestionReply(ctx, questions);
+            };
 
     // accepting list proposals
     ctx:ctx_sys_recommend_many reply:positive_list_proposal_reply [weight=10 * 0.7]
@@ -475,7 +493,10 @@ $user : Ast.DialogueState = {
     // continuing with a question
     ctx:ctx_sys_recommend_many question:related_question => question;
     ctx:ctx_sys_recommend_many questions:user_search_question_for_list with { functionName = ctx.currentFunction }
-        => D.listProposalSearchQuestionReply(ctx, questions);
+        => {
+            // console.log("ctx:ctx_sys_recommend_many questions:user_search_question_for_list");
+            return D.listProposalSearchQuestionReply(ctx, questions);
+        };
 
     // streams
     !nostream {
