@@ -21,7 +21,6 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
-import {Ast, } from 'thingtalk';
 // import * as D from '../dialogue_acts';
 // import * as S from '../state_manip';
 import ThingpediaLoader from '../load-thingpedia';

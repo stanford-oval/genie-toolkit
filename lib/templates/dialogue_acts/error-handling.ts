@@ -21,7 +21,7 @@
 // import { Ast } from "thingtalk";
 import assert from "assert";
 import { Ast, } from "thingtalk";
-import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, DontCareBooleanExpression, Expression, FilterExpression , FunctionCallExpression, InvocationExpression, NotBooleanExpression, ProjectionExpression } from "thingtalk/dist/ast";
+import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, DontCareBooleanExpression, Expression, FilterExpression , FunctionCallExpression, InvocationExpression, Levenshtein, levenshteinFindSchema, NotBooleanExpression, ProjectionExpression } from "thingtalk/dist/ast";
 import { GetInvocationExpression } from "../ast_manip";
 import { ContextInfo, addNewStatement, addNewItem } from "../state_manip";
 import { ParamSlot } from "../utils";
@@ -99,19 +99,15 @@ export function changeOfMindSimple(ctx : ContextInfo, oldFilter : Ast.Expression
     if (!oldFilter.filter.equals(expr.filter))
         return null;
     
-    // setting delta
-    const delta = lastLevenshtein.clone();
-    (delta.expression.expressions[0] as FilterExpression).filter = new AndBooleanExpression(null, [new NotBooleanExpression(null, oldFilter.filter), newFilter.filter]);
+    // setting delta as "not oldFilter && newFilter"
+    const invocation : Expression = levenshteinFindSchema(ctx.current!.stmt.expression);
+    const delta : Levenshtein = new Levenshtein(null, new FilterExpression(null, invocation, new AndBooleanExpression(null, [new NotBooleanExpression(null, oldFilter.filter), newFilter.filter]), invocation.schema), "$continue");
     
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
 
     const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
     // console.log(`changeOfMindSimple: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
-    // if (appliedResult.expression.schema === null || appliedResult.expression.first.schema === null) {
-    //     console.log(delta.expression.schema);
-    //     console.log(lastLevenshtein.expression.schema);
-    // }
     return res;
 }
 
@@ -152,8 +148,8 @@ export function handleNotThatError(ctx : ContextInfo, rejectFilter : Ast.Express
         return null;
 
     // setting delta as "not rejectFilter"
-    const delta = lastLevenshtein.clone();
-    (delta.expression.expressions[0] as FilterExpression).filter = new NotBooleanExpression(null, rejectFilter.filter);
+    const invocation : Expression = levenshteinFindSchema(ctx.current!.stmt.expression);
+    const delta : Levenshtein = new Levenshtein(null, new FilterExpression(null, invocation, new NotBooleanExpression(null, rejectFilter.filter), invocation.schema), "$continue");
 
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
@@ -266,28 +262,9 @@ export function handleNotThatProjExpError(ctx : ContextInfo, that : Expression) 
 }
 */
 
-export function handleThisNotThatProjError(ctx : ContextInfo, that_this : ParamSlot[]) : DialogueState | null {
-    // check if this has Levenshtein history, only proceed if it does
-    if (!ctx.current)
-        return null;
-    if (!ctx.current.levenshtein)
-        return null;
-
-    const lastLevenshtein = ctx.current.levenshtein;
-
-    // for now, we only proceed if:
-    // 1. last levenshtein contains only only element (a chain with only one element)
-    if (lastLevenshtein.expression.expressions.length !== 1)
-        return null;
-    
-    // TODO
-    return null;
-}
-
 
 
 export function handleProjectionChange(ctx : ContextInfo, rejection_replacement : Array<Expression|null>) : DialogueState | null {
-    console.log('Entering handleProjectionChange');
     // check if this has Levenshtein history, only proceed if it does
     if (!ctx.current)
         return null;
@@ -305,8 +282,6 @@ export function handleProjectionChange(ctx : ContextInfo, rejection_replacement 
     if (!(replacement instanceof ProjectionExpression))
         return null;
 
-    // assert(rejection instanceof ProjectionExpression);
-    // assert(replacement instanceof ProjectionExpression);
     assert(rejection.args.length === 1 && replacement.args.length === 1);
 
     const lastLevenshtein = ctx.current.levenshtein;
@@ -319,23 +294,22 @@ export function handleProjectionChange(ctx : ContextInfo, rejection_replacement 
     const expr = lastLevenshtein.expression.expressions[0];
 
     // 2. the last levenshtein is a projection with a rejection mentioned in it
-    if (!(expr instanceof ProjectionExpression && !expr.args.includes(rejection.args[0]))) {
-        console.log('Failed step 2');
+    if (!(expr instanceof ProjectionExpression && !expr.args.includes(rejection.args[0])))
         return null;
-    }
+
+    // 3. the two projection statements we are adding are not the same
+    if (rejection.args[0] === replacement.args[0])
+        return null;
 
     // setting delta as the new replacement
-    const delta = lastLevenshtein.clone();
-    expr.args = [replacement.args[0]];
+    const invocation : Expression = levenshteinFindSchema(ctx.current!.stmt.expression);
+    const delta : Levenshtein = new Levenshtein(null, new ProjectionExpression(null, invocation, [replacement.args[0]], [], [], invocation.schema!), "$continue");
 
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
 
     const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
-    res.historyAppliedLevenshtein.push(delta);
-    res.historyLevenshtein.push(delta);
-    console.log(`Success: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
+    // console.log(`Success: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
 
     return res;
 }
-
