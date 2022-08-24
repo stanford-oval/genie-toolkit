@@ -127,6 +127,7 @@ context : S.ContextInfo = {
     ctx_list_notification,
     ctx_nonlist_notification,
     ctx_notification_error,
+    ctx_not_that,
 
     // agent states (used to continue the conversation with more user utterances)
     // these more or less map to the agent dialogue acts, except we don't distinguish
@@ -266,6 +267,11 @@ $agent : S.AgentReplyRecord = {
         => D.makeDisplayResultReply(ctx, proposal);
     action_notification_phrase;
     ctx:ctx_notification_error notification_error_preamble phrase:action_error_phrase => phrase;
+
+    ctx:ctx_not_that question:not_that_slot_fill_question
+        => {
+            return null;
+        };
 }
 
 /**
@@ -328,12 +334,17 @@ $user : Ast.DialogueState = {
     }
 
     // error correction
+    /* the following semantic function is for demonstration purporse only and will not be used */
 	// ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
-    // ctx:ctx_sys_recommend_one 'i do not want' wrong_filter:with_filter ', but I want' right_filter:with_filter  => D.changeOfMindSimple(ctx, wrong_filter, right_filter);
-    // TODO: could context also be ctx_sys_confirm_action? or ctx_sys_display_result?
-    // ctx:ctx_sys_recommend_one rejection:not_that_error_phrase => D.handleNotThatError(ctx, rejection);
-    // ctx:ctx_sys_recommend_one that_this:this_not_that_error_phrase => D.handleThisNotThatError(ctx, that_this);
-    // ctx:ctx_sys_recommend_one attribute:didnt_ask_about_error_phrase => D.handleDidntAskAboutError(ctx, attribute);
+    
+    // filters:
+    ctx:ctx_sys_recommend_one rejection:not_that_error_phrase => D.handleNotThatError(ctx, rejection);
+    ctx:ctx_sys_recommend_one that_this:this_not_that_error_phrase => D.handleThisNotThatError(ctx, that_this);
+    ctx:ctx_sys_recommend_one attribute:didnt_ask_about_error_phrase => D.handleDidntAskAboutError(ctx, attribute);
+    
+    // projections:
+    ctx:ctx_sys_recommend_one rejection_selection:this_not_that_projection_error_phrase => D.handleProjectionChange(ctx, rejection_selection);
+
 
     // cancelling
 

@@ -90,6 +90,9 @@ const USER_DIALOGUE_ACTS = new Set([
     // user asks to see an output parameter from the previous result
     'action_question',
 
+    //user says a filter value is incorrect
+    'not_that',
+
     // user says closes the dialogue mid-way (in the middle of a search)
     'cancel',
 
@@ -100,6 +103,7 @@ const USER_DIALOGUE_ACTS = new Set([
 ]);
 
 const USER_STATE_MUST_HAVE_PARAM = new Set([
+    'not_that',
     'action_question'
 ]);
 

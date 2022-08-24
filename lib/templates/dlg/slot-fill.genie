@@ -57,6 +57,10 @@ slot_fill_question : C.ParamSlot[] = {
     !inference two_param_slot_fill_question;
 }
 
+not_that_slot_fill_question : C.ParamSlot = {
+    'what' p:out_param_Any prefer_question_phrase '?' => p;
+}
+
 imprecise_slot_fill_answer_phrase : Ast.Value|C.InputParamSlot = {
     ( slot:constant_Any
     | slot:npp_input_param

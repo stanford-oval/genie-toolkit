@@ -40,7 +40,7 @@ import {
 import {
     isValidSearchQuestion,
     isSimpleFilterExpression,
-    addParametersFromContext
+    // addParametersFromContext
 } from './common';
 
 export type PreciseSearchQuestionAnswer = [Ast.Expression, Ast.Invocation|null, boolean];
@@ -206,7 +206,13 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
 
             const contextInvocation = C.getInvocation(ctx.next!.stmt);
             assert(contextInvocation instanceof Ast.Invocation);
-            answerAction = addParametersFromContext(answerAction, contextInvocation);
+            // answerAction = addParametersFromContext(answerAction, contextInvocation);
+            
+            // setting to undefined so not to crash in compiler
+            for (const arg of answerAction.schema!.iterateArguments()) {
+                if (arg.is_input && arg.required && !answerAction.in_params.map((i) => i.name).includes(arg.name))
+                    answerAction.in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
+            }
         }
     }
 
