@@ -208,11 +208,6 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
             assert(contextInvocation instanceof Ast.Invocation);
             // answerAction = addParametersFromContext(answerAction, contextInvocation);
             
-            // setting to undefined so not to crash in compiler
-            for (const arg of answerAction.schema!.iterateArguments()) {
-                if (arg.is_input && arg.required && !answerAction.in_params.map((i) => i.name).includes(arg.name))
-                    answerAction.in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
-            }
         }
     }
 
@@ -224,6 +219,11 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
     // Levenshtein is adding a filter and possibly an action
     
     if (answerAction !== null) {
+        // setting to undefined so not to crash in compiler
+        for (const arg of answerAction.schema!.iterateArguments()) {
+            if (arg.is_input && arg.required && !answerAction.in_params.map((i) => i.name).includes(arg.name))
+                answerAction.in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
+        }
         // TODO: currently, addQueryAndAction constructs two dialogue history items. I add levenshtein for each of them.
         //       however, I think ideally we should only add one
         const invocation    = new Ast.InvocationExpression(null, answerAction.clone(), answerAction.schema);
