@@ -31,12 +31,12 @@ opt_the : string = {
 
 // "Not that filter value but this filter value" errors
 // e.g. "Not Chinese food, Japanese food."
-this_not_that_error_phrase : Ast.Expression[] = {
-    ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for' ) rejection:anything_phrase (',' | '.') 'i' ( 'want' | 'asked for' | 'am looking for' | 'was looking for') selection:anything_phrase ('instead' | '') '.'
-    | 'i' ('want' | 'asked for' | 'am looking for' | 'was looking for') selection:anything_phrase (',' | '') ('not' | 'instead of') rejection:anything_phrase '.'
-    | selection:anything_phrase 'is what i' ('asked for' | 'asked about' | 'want' | 'am looking for' | 'was looking for') (',' | '') ('not' | 'instead of') rejection:anything_phrase '.'
-    | 'not' rejection:anything_phrase ',' selection:anything_phrase '.'
-    | selection:anything_phrase (',' | '') ('not' | 'instead of') rejection:anything_phrase
+this_not_that_error_phrase : C.FilterSlot[] = {
+    ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for' ) rejection:with_filter (',' | '.') 'i' ( 'want' | 'asked for' | 'am looking for' | 'was looking for') selection:with_filter ('instead' | '') '.'
+    | 'i' ('want' | 'asked for' | 'am looking for' | 'was looking for') selection:with_filter (',' | '') ('not' | 'instead of') rejection:with_filter '.'
+    | selection:with_filter 'is what i' ('asked for' | 'asked about' | 'want' | 'am looking for' | 'was looking for') (',' | '') ('not' | 'instead of') rejection:with_filter '.'
+    | 'not' rejection:with_filter ',' selection:with_filter '.'
+    | selection:with_filter (',' | '') ('not' | 'instead of') rejection:with_filter
     ) => {
         return [rejection, selection];
     };
@@ -44,9 +44,9 @@ this_not_that_error_phrase : Ast.Expression[] = {
 
 // "Not that filter value" errors
 // e.g. "I did not ask for Chinese food."
-not_that_error_phrase : Ast.Expression = {
-    ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for') rejection:anything_phrase '.'
-    | rejection:anything_phrase 'is not what i' ('want' | 'asked for' | 'asked about' | 'am looking for') '.'
+not_that_error_phrase : C.FilterSlot = {
+    ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for') rejection:with_filter '.'
+    | rejection:with_filter 'is not what i' ('want' | 'asked for' | 'asked about' | 'am looking for') '.'
     ) => {
         return rejection;
     };
@@ -79,29 +79,19 @@ not_that_projection_error_phrase : C.ParamSlot = {
 }
 
 not_that_proj_exp_error_phrase : Ast.Expression = {
-    'i do not want' rejection:projection_Any => rejection;
+    'i do not want' rejection:out_param_Any => rejection;
 }
 
 // "This not that projection" errors
 // e.g. "I did not ask about the address. I want the phone number."
-// this_not_that_projection_error_phrase : C.ParamSlot[] = {
-//     ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for' | 'did not ask for') opt_the rejection:out_param_Any (',' | '.') 'i' ( 'want' | 'asked for' | 'am looking for' | 'was looking for') opt_the selection:out_param_Any ('instead' | '') '.'
-//     | 'i' ('want' | 'asked for' | 'am looking for' | 'was looking for') selection:out_param_Any (',' | '') ('not' | 'instead of') rejection:out_param_Any '.'
-//     | opt_the selection:out_param_Any 'is what i' ('asked for' | 'asked about' | 'want' | 'am looking for' | 'was looking for') (',' | '') ('not' | 'instead of') opt_the rejection:out_param_Any '.'
-//     | 'not' opt_the rejection:out_param_Any ',' opt_the selection:out_param_Any '.'
-//     | opt_the selection:out_param_Any (',' | '') ('not' | 'instead of') opt_the rejection:out_param_Any
-//     ) => {
-//         return [rejection, selection];
-//     };
-// }
-
-this_not_that_projection_error_phrase : Array<Ast.Expression|null> = {
-    ( 'i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for' | 'did not ask for') rejection:projection_Any (',' | '.') 'i' ( 'want' | 'asked for' | 'am looking for' | 'was looking for') selection:projection_Any ('instead' | '') '.'
-    | 'i' ('want' | 'asked for' | 'am looking for' | 'was looking for') selection:projection_Any (',' | '') ('not' | 'instead of') rejection:projection_Any '.'
-    | selection:projection_Any 'is what i' ('asked for' | 'asked about' | 'want' | 'am looking for' | 'was looking for') (',' | '') ('not' | 'instead of') rejection:projection_Any '.'
-    | 'not' rejection:projection_Any ',' selection:projection_Any '.'
-    | selection:projection_Any (',' | '') ('not' | 'instead of') rejection:projection_Any
-    ) => {
-        return [C.sayProjection($loader, rejection), C.sayProjection($loader, selection)];
-    };
+this_not_that_projection_error_phrase : C.ParamSlot[] = {
+    ('i' ( 'do not want' | 'did not want' | 'did not ask for' | 'am not looking for' | 'was not looking for' | 'did not ask for') opt_the rejection:out_param_Any (',' | '.') 'i' ( 'want' | 'asked for' | 'am looking for' | 'was looking for') opt_the selection:out_param_Any ('instead' | '') '.'
+    | 'i' ('want' | 'asked for' | 'am looking for' | 'was looking for') selection:out_param_Any (',' | '') ('not' | 'instead of') rejection:out_param_Any '.'
+    | selection:out_param_Any 'is what i' ('asked for' | 'asked about' | 'want' | 'am looking for' | 'was looking for') (',' | '') ('not' | 'instead of') rejection:out_param_Any '.'
+    | 'not' rejection:out_param_Any ',' selection:out_param_Any '.'
+    | selection:out_param_Any (',' | '') ('not' | 'instead of') rejection:out_param_Any
+    )
+        => {
+            return [rejection, selection];
+        };
 }
