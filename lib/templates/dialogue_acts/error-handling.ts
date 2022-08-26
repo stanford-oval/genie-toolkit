@@ -18,7 +18,6 @@
 //
 // Authors: Shicheng Liu <shicheng@cs.stanford.edu> and Nathan Marks <nsmarks@stanford.edu>
 
-// import { Ast } from "thingtalk";
 import assert from "assert";
 import { Ast, } from "thingtalk";
 import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, DontCareBooleanExpression, Expression, FilterExpression , FunctionCallExpression, InvocationExpression, NotBooleanExpression, ProjectionExpression } from "thingtalk/dist/ast";
@@ -199,79 +198,20 @@ export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : Para
     return res;
 }
 
-// export function handleNotThatProjError(ctx : ContextInfo, rejection : ParamSlot) : DialogueState | null {
-//     // console.log("Entering handleNotThatProjError");
-
-//     // check if this has Levenshtein history, only proceed if it does
-//     if (!ctx.current)
-//         return null;
-//     if (!ctx.current.levenshtein)
-//         return null;
-
-//     const lastLevenshtein = ctx.current.levenshtein;
-
-//     // for now, we only proceed if:
-//     // 1. last levenshtein contains only only element (a chain with only one element)
-//     if (lastLevenshtein.expression.expressions.length !== 1)
-//         return null;
-
-//     // const expr = lastLevenshtein.expression.expressions[0];
-
-//     // 2. the last levenshtein is a projection with a rejection mentioned in it
-//     // if (!(expr instanceof ProjectionExpression && !expr.args.includes(rejection.name)))
-//     //     return null;
-
-//     // TODO: what to do with state?
-
-//     // setting delta as the new replacement
-//     const delta = lastLevenshtein.clone();
-//     cont newExpression = new Expression
-//     const newProjection = new ProjectionExpression(null, /*expression*/, ['undefined_proj'])
-//     // expr.args = ['undefined'];
-
-//     // getting applied result
-//     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
-
-//     const res = addNewItem(ctx, "not_that", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
-
-//     console.log("handleNotThatProjError Success");
-
-//     return res;
-// }
-
-// function to try out doing projections with an expression nonterminal
 /*
-export function handleNotThatProjExpError(ctx : ContextInfo, that : Expression) : DialogueState | null {
-        // check if this has Levenshtein history, only proceed if it does
-    // if (!ctx.current)
-    //     return null;
-    // if (!ctx.current.levenshtein)
-    //     return null;
-
-    // const lastLevenshtein = ctx.current.levenshtein;
-
-    // setting delta as the new replacement
-    const newProjection = new ProjectionExpression(null, that, ['undefined_proj'], [], [], null);
-
-    const newProjection = makeProjection(that, 'undefined_proj');
-
-    const delta = new Levenshtein(null, newProjection, '');
-    // getting applied result
-    const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
-
-    const res = addNewItem(ctx, "not_that", 'undefined_proj', "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
-
-    return res;
-
-}
-*/
-
-export function handleThisNotThatProjError(ctx : ContextInfo, that_this : ParamSlot[]) : DialogueState | null {
+export function handleNotThatProjError(ctx : ContextInfo, rejection : Expression|null) : DialogueState | null {
     // check if this has Levenshtein history, only proceed if it does
     if (!ctx.current)
         return null;
     if (!ctx.current.levenshtein)
         return null;
+
+    if (!rejection)
+        return null;
+    if (!(rejection instanceof ProjectionExpression))
+        return null;
+
+    assert(rejection.args.length === 1);
 
     const lastLevenshtein = ctx.current.levenshtein;
 
@@ -279,12 +219,27 @@ export function handleThisNotThatProjError(ctx : ContextInfo, that_this : ParamS
     // 1. last levenshtein contains only only element (a chain with only one element)
     if (lastLevenshtein.expression.expressions.length !== 1)
         return null;
-    
-    // TODO
-    return null;
+
+    const expr = lastLevenshtein.expression.expressions[0];
+
+    // 2. the last levenshtein is a projection with rejection mentioned in it
+    if (!(expr instanceof ProjectionExpression && !expr.args.includes(rejection.args[0])))
+        return null;
+
+    // setting delta as the new replacement
+    const delta = lastLevenshtein.clone();
+    expr.args = []; // TODO: will this work?
+
+    // getting applied result
+    const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
+
+    const res = addNewItem(ctx, "not_that", "PROJECTION", "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
+    res.historyAppliedLevenshtein.push(delta);
+    res.historyLevenshtein.push(delta);
+
+    return res;
 }
-
-
+*/
 
 export function handleProjectionChange(ctx : ContextInfo, rejection_replacement : Array<Expression|null>) : DialogueState | null {
     console.log('Entering handleProjectionChange');
@@ -299,14 +254,11 @@ export function handleProjectionChange(ctx : ContextInfo, rejection_replacement 
 
     if (!rejection || !replacement)
         return null;
-
     if (!(rejection instanceof ProjectionExpression))
         return null;
     if (!(replacement instanceof ProjectionExpression))
         return null;
 
-    // assert(rejection instanceof ProjectionExpression);
-    // assert(replacement instanceof ProjectionExpression);
     assert(rejection.args.length === 1 && replacement.args.length === 1);
 
     const lastLevenshtein = ctx.current.levenshtein;
@@ -318,7 +270,7 @@ export function handleProjectionChange(ctx : ContextInfo, rejection_replacement 
 
     const expr = lastLevenshtein.expression.expressions[0];
 
-    // 2. the last levenshtein is a projection with a rejection mentioned in it
+    // 2. the last levenshtein is a projection with rejection mentioned in it
     if (!(expr instanceof ProjectionExpression && !expr.args.includes(rejection.args[0]))) {
         console.log('Failed step 2');
         return null;

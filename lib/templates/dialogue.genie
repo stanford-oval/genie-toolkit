@@ -268,32 +268,13 @@ $agent : S.AgentReplyRecord = {
     action_notification_phrase;
     ctx:ctx_notification_error notification_error_preamble phrase:action_error_phrase => phrase;
 
+    // TODO: does this need to exist if we just return null?
     // not that value error
-    ctx:ctx_not_that question:not_that_slot_fill_question
+    ctx:ctx_not_that
         => {
+            // responses to a "not that" error are covered elsewhere
+            // in synthesis, so we do not need to synthesize the agent
             return null;
-            //unsynthesized state
-
-            // synthesis: return null
-            // inference: make a special purpose reply in the dialogue handler
-
-
-            // return D.makeSpecificSlotFillQuestion(ctx, question);
-            // return D.makeSlotFillQuestion(ctx, [question]);
-
-            // assert(ctx.state.dialogueActParam && typeof(ctx.state.dialogueActParam[0]) === 'string');
-
-            // const slot_to_fill = ctx.state.dialogueActParam![0];
-            // console.log("slot_to_fill: " + slot_to_fill);
-            // console.log("question.name: " + question.name);
-
-            // ensure the consistency between the context and the question
-            // if (question.name !== slot_to_fill) {
-            //     //console.log("Slot inconsistent");
-            //     return null;
-            // }
-            // return D.makeSearchQuestion(ctx, [question]);
-            // return D.makeNotThatSearchQuestion(ctx, question);
            };
 }
 
@@ -363,18 +344,14 @@ $user : Ast.DialogueState = {
 	// ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
     // ctx:ctx_sys_recommend_one 'i do not want' wrong_filter:with_filter ', but I want' right_filter:with_filter  => D.changeOfMindSimple(ctx, wrong_filter, right_filter);
     // TODO: could context also be ctx_sys_confirm_action? or ctx_sys_display_result?
-    // filters:
     /*
-    Commented while working on projections
+    // filters:
     ctx:ctx_sys_recommend_one rejection:not_that_error_phrase => D.handleNotThatError(ctx, rejection);
     ctx:ctx_sys_recommend_one that_this:this_not_that_error_phrase => D.handleThisNotThatError(ctx, that_this);
     ctx:ctx_sys_recommend_one attribute:didnt_ask_about_error_phrase => D.handleDidntAskAboutError(ctx, attribute);
-    */
     // projections:
-    //ctx:ctx_sys_recommend_one rejection:not_that_projection_error_phrase => D.handleNotThatProjError(ctx, rejection);
+    // ctx:ctx_sys_recommend_one rejection:not_that_projection_error_phrase => D.handleNotThatProjError(ctx, rejection);
     // ctx:ctx_sys_recommend_one rejection:not_that_proj_exp_error_phrase => D.handleNotThatProjExpError(ctx, rejection);
-    // ctx:ctx_sys_display_result that_this:this_not_that_projection_error_phrase => D.handleNotThatProjError(ctx, that_this);
-
     ctx:ctx_sys_recommend_one rejection_selection:this_not_that_projection_error_phrase => D.handleProjectionChange(ctx, rejection_selection);
 
 

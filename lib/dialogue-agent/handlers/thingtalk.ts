@@ -465,29 +465,34 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     private async _doAgentReply(newResults : Array<[string, Record<string, unknown>]>) : Promise<ReplyResult> {
         const oldState = this._dialogueState;
 
-        if (oldState?.dialogueAct === "greet") {
-            // let expecting = null;
-            console.log("In if statement");
-            return {
-                messages: ["Goodbye."],
-                context: oldState ? oldState!.prettyprint() : '',
-                agent_target: "$dialogue @org.thingpedia.dialogue.transaction.sys_end;",
-                expecting: null,
-            };
-        } else if (oldState?.dialogueAct === "not_that") {
-            console.log("Agent in not_that policy.");
-            // currently setting up for filters. Modify as needed for others
+        if (oldState?.dialogueAct === "not_that") {
+            assert(oldState.dialogueActParam);
+            assert(typeof oldState.dialogueActParam[0] === 'string');
+            if (oldState.dialogueActParam[0] === "PROJECTION") {
+                const response = "Ok, what would you like to know?";
+                const agent_target = "$dialogue @org.thingpedia.dialogue.transaction.sys_learn_more_what";
+                const expecting = ValueCategory.Generic;
+                return {
+                    messages: [response],
+                    context: oldState?.prettyprint(),
+                    agent_target: agent_target,
+                    expecting: expecting,
+                };  
+            }
+            // else "not_that" refers to a filter
             const response = "What " + oldState?.dialogueActParam + " would you like?";
-
-            // TODO: check if correct target
             const agent_target  = "$dialogue @org.thingpedia.dialogue.transaction.sys_search_question;";
 
             // TODO: figure out expecting
             const expecting = ValueCategory.Generic;
 
+            // create new dialogueState that removes the last two history items so change of mind is not appended onto old result
+            const newState : Ast.DialogueState = new Ast.DialogueState(null, oldState.policy, oldState.dialogueAct, oldState.dialogueActParam, oldState.history.slice(0, -2), undefined, oldState.historyLevenshtein, oldState.historyAppliedLevenshtein);
+            this._dialogueState = newState;
+            
             return {
                 messages: [response],
-                context: oldState ? oldState!.prettyprint() : '', // from below
+                context: newState.prettyprint(),
                 agent_target: agent_target,
                 expecting: expecting,
             };
