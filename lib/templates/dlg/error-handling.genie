@@ -17,8 +17,8 @@
 // limitations under the License.
 //
 // Author: Nathan Marks <nsmarks@stanford.edu>
+//         Shicheng Liu <shicheng@cs.stanford.edu>
 
-import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
 // import * as D from '../dialogue_acts';
@@ -78,7 +78,7 @@ not_that_projection_error_phrase : C.ParamSlot = {
     };
 }
 
-not_that_proj_exp_error_phrase : Ast.Expression = {
+not_that_proj_exp_error_phrase : C.ParamSlot = {
     'i do not want' rejection:out_param_Any => rejection;
 }
 
