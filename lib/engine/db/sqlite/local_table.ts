@@ -48,15 +48,15 @@ export default class LocalTable<RowType> {
 
     getBy(field : keyof RowType, value : string) : Promise<RowType[]> {
         return this._db.withClient((client) => {
-            return sql.selectAll(client, `select * from ${this.name} where ${field} = ?`, [value]);
+            return sql.selectAll(client, `select * from ${this.name} where ${String(field)} = ?`, [value]);
         });
     }
 
     search(search : SearchParams<RowType>) {
         return this._db.withClient((client) => {
             const values = search.filter.map((f) => f.v);
-            const filter = search.filter.map((f) => `${f.k} ${f.o} ?`).join(' and ');
-            return sql.selectAll(client, `select * from ${this.name} where ${filter || 'true'} order by ${search.sort[0]} ${search.sort[1]} limit ${search.limit}`, values);
+            const filter = search.filter.map((f) => `${String(f.k)} ${f.o} ?`).join(' and ');
+            return sql.selectAll(client, `select * from ${this.name} where ${filter || 'true'} order by ${String(search.sort[0])} ${search.sort[1]} limit ${search.limit}`, values);
         });
     }
 

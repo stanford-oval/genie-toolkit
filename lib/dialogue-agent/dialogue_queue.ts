@@ -20,7 +20,8 @@
 
 import AppExecutor from '../engine/apps/app_executor';
 
-import type { UserInput as Command } from './user-input';
+import type { UserInput as userCommand } from './user-input';
+import type { AgentInput as agentCommand } from './agent-input';
 
 class QueueItem {
 }
@@ -29,12 +30,22 @@ type JSError = Error;
 
 namespace QueueItem {
     export class UserInput extends QueueItem {
-        constructor(public command : Command) {
+        constructor(public command : userCommand) {
             super();
         }
 
         toString() {
             return `UserInput(${this.command})`;
+        }
+    }
+
+    export class AgentInput extends QueueItem {
+        constructor(public command : agentCommand) {
+            super();
+        }
+
+        toString() {
+            return `AgentInput(${this.command})`;
         }
     }
 

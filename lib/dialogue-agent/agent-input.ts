@@ -16,32 +16,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+// Author: Jake Wu <jmhw0123@gmail.com>
 
-/**
- * The public APIs of the dialogue agent components of Genie.
- *
- * Exported for convenience of TypeScript users.
- */
+import * as ThingTalk from 'thingtalk';
 
-export {
-    NotificationDelegate,
-    NotificationConfig,
-} from './notifications';
-export {
-    default as AssistantDispatcher,
-    ThingTalkInput,
-    ParsedInput,
-    CommandInput,
-    ConverseInput
-} from './assistant_dispatcher';
-export {
-    ConversationState,
-    ConversationDelegate,
-    ConversationOptions,
-    default as Conversation
-} from './conversation';
-export * as Geniescript from "./geniescript";
-export * as Protocol from './protocol';
-export * from './errors';
-export { default as AudioController } from './audio/controller';
+import { PlatformData } from './protocol';
+
+export type AgentInput = {
+    type : 'agentThingtalk';
+    parsed : ThingTalk.Ast.Input;
+    platformData : PlatformData;
+    device ?: any;
+    caller ?: any;
+};

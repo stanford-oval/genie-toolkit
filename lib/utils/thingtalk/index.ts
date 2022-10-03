@@ -29,10 +29,10 @@ export * from './syntax';
 export * from './dialogue_state_utils';
 import { computePrediction } from './dialogue_state_utils';
 // reexport clean, tokenizeExample from misc-utils
-import { clean, tokenizeExample } from '../misc-utils';
+import { clean, tokenizeExample, isOutputType } from '../misc-utils';
 import { PolicyModule } from '../../sentence-generator/types';
 import { expressionUsesIDFilter } from './ast-utils';
-export { clean, tokenizeExample };
+export { clean, tokenizeExample, isOutputType };
 
 export type Input = Ast.Input;
 export type DialogueState = Ast.DialogueState;

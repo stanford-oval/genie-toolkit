@@ -65,7 +65,7 @@ export interface ListProposal {
     hasLearnMore : boolean;
 }
 
-export function listProposalKeyFn({ results, info, action, hasLearnMore } : ListProposal) {
+export function listProposalKeyFn({ results, info, action, hasLearnMore } : ListProposal) : any {
     return {
         idType: results[0].value.id ? results[0].value.id.getType() : null,
         queryName: info ? info.schema!.qualifiedName : null,

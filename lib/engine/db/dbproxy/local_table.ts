@@ -48,7 +48,7 @@ export default class LocalTable<RowType> {
     }
 
     async getBy(field : keyof RowType, value : string) : Promise<RowType[]> {
-        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/localtable/user_${this.name}/by-${field}/${encodeURIComponent(value)}`, { auth: this._auth });
+        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/localtable/user_${this.name}/by-${String(field)}/${encodeURIComponent(value)}`, { auth: this._auth });
         return JSON.parse(resp)['data'];
     }
 

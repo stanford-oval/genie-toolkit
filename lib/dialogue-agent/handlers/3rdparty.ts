@@ -28,6 +28,7 @@ import {
 } from '../dialogue-loop';
 import { UserInput } from '../user-input';
 import ValueCategory from '../value-category';
+import { GeniescriptAgent } from "../geniescript";
 
 interface AnalysisTypeAdapter<InnerAnalysisType extends Tp.DialogueHandler.CommandAnalysisResult> extends CommandAnalysisResult {
     inner : InnerAnalysisType|null;
@@ -41,7 +42,7 @@ interface AnalysisTypeAdapter<InnerAnalysisType extends Tp.DialogueHandler.Comma
  */
 export default class ThingpediaDialogueHandler<AnalysisType extends Tp.DialogueHandler.CommandAnalysisResult, StateType>
 implements DialogueHandler<AnalysisTypeAdapter<AnalysisType>, StateType> {
-    private _iface : Tp.DialogueHandler<AnalysisType, StateType>;
+    _iface : Tp.DialogueHandler<AnalysisType, StateType>;
     uniqueId : string;
 
     constructor(device : Tp.BaseDevice) {
@@ -62,7 +63,8 @@ implements DialogueHandler<AnalysisTypeAdapter<AnalysisType>, StateType> {
             expecting: result.expecting ? ValueCategory.fromType(result.expecting) : null,
             messages: result.messages,
             context: result.context,
-            agent_target: result.agent_target
+            agent_target: result.agent_target,
+            program: result.program
         };
     }
     private _mapConfidence(confidence : Tp.DialogueHandler.Confidence) : CommandAnalysisType {
@@ -139,5 +141,14 @@ implements DialogueHandler<AnalysisTypeAdapter<AnalysisType>, StateType> {
 
     async getFollowUp() : Promise<ReplyResult | null> {
         return null;
+    }
+
+    async getAgentInputFollowUp(return_value : ReplyResult) : Promise<ReplyResult> {
+        const geniescript_iface = this._iface as unknown as GeniescriptAgent;
+        return this._mapReplyResult(await geniescript_iface.getAgentInputFollowUp(return_value));
+    }
+
+    isGeniescript() {
+        return this._iface instanceof GeniescriptAgent;
     }
 }

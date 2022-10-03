@@ -55,6 +55,8 @@ import * as CommonTemplates from './templates/common.genie.out';
 import * as TransactionPolicy from './templates/transactions';
 import ThingpediaLoader from './templates/load-thingpedia';
 
+import ThingtalkComposer from './utils/compose-thingtalk';
+
 export {
     // sentence generation
     BasicSentenceGenerator,
@@ -93,4 +95,7 @@ export {
     ThingTalkUtils,
     StreamUtils,
     BTrie,
+
+    // thingtalk composer interface for thingpedia
+    ThingtalkComposer
 };

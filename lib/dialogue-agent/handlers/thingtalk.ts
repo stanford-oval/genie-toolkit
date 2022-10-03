@@ -34,6 +34,7 @@ import * as I18n from '../../i18n';
 
 import ValueCategory from '../value-category';
 import { UserInput, } from '../user-input';
+import { AgentInput, } from '../agent-input';
 import { CancellationError } from '../errors';
 
 import DialoguePolicy from '../dialogue_policy';
@@ -79,7 +80,7 @@ const TERMINAL_STATES = ['sys_end'];
 //   for additional confirmation before executing.
 const CONFIDENCE_CONFIRM_THRESHOLD = 0.5;
 
-interface ThingTalkCommandAnalysisType {
+export interface ThingTalkCommandAnalysisType {
     type : CommandAnalysisType;
     utterance : string;
     user_target : string;
@@ -108,7 +109,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
     private _agent : ExecutionDialogueAgent;
     private _policy : DialoguePolicy;
-    private _dialogueState : ThingTalk.Ast.DialogueState|null;
+    _dialogueState : ThingTalk.Ast.DialogueState|null;
     private _executorState : undefined;
 
     private _debug : boolean;
@@ -148,6 +149,10 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         });
         this._dialogueState = null; // thingtalk dialogue state
         this._executorState = undefined; // private object managed by DialogueExecutor
+    }
+
+    isGeniescript() : boolean {
+        return false;
     }
 
     getState() : string {
@@ -216,7 +221,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         return null;
     }
 
-    async analyzeCommand(command : UserInput) : Promise<ThingTalkCommandAnalysisType> {
+    async analyzeCommand(command : UserInput|AgentInput) : Promise<ThingTalkCommandAnalysisType> {
         const analysis = await this._parseCommand(command);
 
         if (analysis.type === CommandAnalysisType.DEBUG || analysis.type === CommandAnalysisType.STOP)
@@ -241,16 +246,26 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         };
     }
 
-    async _parseCommand(command : UserInput) : Promise<ThingTalkCommandAnalysisType> {
-        if (command.type === 'thingtalk') {
+    async _parseCommand(command : UserInput|AgentInput) : Promise<ThingTalkCommandAnalysisType> {
+        if (command.type === 'userThingtalk' || command.type === 'agentThingtalk') {
             const type = this._getSpecialThingTalkType(command.parsed);
-            return {
-                type,
-                utterance: `\\t ${command.parsed.prettyprint()}`,
-                user_target: command.parsed.prettyprint(),
-                answer: this._maybeGetThingTalkAnswer(command.parsed),
-                parsed: command.parsed,
-            };
+            if (command.type === 'userThingtalk') {
+                return {
+                    type,
+                    utterance: `\\t ${command.parsed.prettyprint()}`,
+                    user_target: command.parsed.prettyprint(),
+                    answer: this._maybeGetThingTalkAnswer(command.parsed),
+                    parsed: command.parsed,
+                };
+            } else {
+                return {
+                    type,
+                    utterance: `\\t ${command.parsed.prettyprint()}`,
+                    user_target: `agent_init ${command.parsed.prettyprint()}`,
+                    answer: this._maybeGetThingTalkAnswer(command.parsed),
+                    parsed: command.parsed,
+                };
+            }
         }
 
         // ok so this was a natural language
@@ -578,7 +593,12 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         const before : Array<string|Tp.FormatObjects.FormattedObject> = [];
         const messages : Array<string|Tp.FormatObjects.FormattedObject> = [utterance];
 
+        let result_type : string|null = "";
+        const result_values : Array<Record<string, unknown>> = [];
         for (const [outputType, outputValue] of newResults.slice(0, policyResult.numResults)) {
+            if (result_type === "")
+                result_type = outputType;
+            result_values.push(outputValue);
             const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
 
             for (const msg of formatted) {
@@ -615,6 +635,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             context: oldState ? oldState!.prettyprint() : '',
             agent_target: agentTarget,
             expecting,
+            result_type: result_type,
+            result_values: result_values
         };
     }
 

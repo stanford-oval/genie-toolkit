@@ -37,7 +37,7 @@ import type { ListProposal } from './list-proposal';
 
 export type UserSearchQuestionForList = [Ast.EntityValue|Ast.NumberValue|null, C.ParamSlot[]];
 
-export function userSearchQuestionForListKeyFn([name, questions] : UserSearchQuestionForList) {
+export function userSearchQuestionForListKeyFn([name, questions] : UserSearchQuestionForList) : any {
     if (questions.length === 0)
         return { idType: null, functionName: null };
 

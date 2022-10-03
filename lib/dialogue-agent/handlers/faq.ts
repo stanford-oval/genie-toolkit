@@ -120,4 +120,8 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
     async getFollowUp() : Promise<ReplyResult | null> {
         return null;
     }
+
+    isGeniescript() : boolean {
+        return false;
+    }
 }
