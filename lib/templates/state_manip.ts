@@ -409,7 +409,7 @@ export function getContextInfo(loader : ThingpediaLoader,
         nextFunction = null, currentDevice = null, currentResultInfo = null,
         previousDomainItemIdx = null, currentItemIdx = null;
     let proposedSkip = 0;
-    for (let idx = 0; idx < state.history.length; idx ++) {
+    for (let idx = state.history.length - 1; idx >= 0; idx --) {
         const item = state.history[idx];
         const itemschema = item.stmt.expression.schema!;
         const device = itemschema.class ? itemschema.class.name : null;
@@ -444,8 +444,8 @@ export function getContextInfo(loader : ThingpediaLoader,
     }
     if (nextItemIdx !== null)
         assert(nextInfo);
-    if (nextItemIdx !== null && currentItemIdx !== null)
-        assert(nextItemIdx === currentItemIdx + 1 + proposedSkip);
+    // if (nextItemIdx !== null && currentItemIdx !== null)
+    //     assert(nextItemIdx === currentItemIdx + 1 + proposedSkip);
     if (previousDomainItemIdx !== null)
         assert(currentItemIdx !== null && previousDomainItemIdx <= currentItemIdx);
 

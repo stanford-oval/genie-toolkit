@@ -71,10 +71,8 @@ function useRawModeForSlotFill(arg : Ast.ArgumentDef) {
 
 
 function makeSlotFillQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
-    if (!areGoodSlotFillQuestions(ctx, questions)) {
-        console.log("not areGoodSlotFillQuestions");
+    if (!areGoodSlotFillQuestions(ctx, questions))
         return null;
-    }
 
     assert(questions.length > 0);
     if (questions.length === 1) {

@@ -225,6 +225,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         // convert to dialogue state, if not already
 
         const prediction = await ThingTalkUtils.inputToDialogueState(this._policy, this._dialogueState, analysis.parsed);
+        // GEORGE: do levenshtein apply here
         if (prediction === null) {
             analysis.type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
             return analysis;
@@ -259,11 +260,59 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             // in "raw mode", all natural language becomes an answer
 
             // we still ship it to the parser so it gets recorded
-            await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
+            const nluResult = await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
                 expect: this._loop.expecting ? ValueCategory[this._loop.expecting] : undefined,
                 choices: this._loop.choices,
-                store: this._prefs.get('sabrina-store-log') as string || 'no'
+                store: this._prefs.get('sabrina-store-log') as string || 'no',
+                skip_typechecking: true
             });
+
+            // parse all code sequences into an Intent
+            // this will correctly filter out anything that does not parse
+            const candidates = await Promise.all(nluResult.candidates.map(async (candidate, beamposition) => {
+                let parsed;
+                try {
+                    parsed = await ThingTalkUtils.parsePrediction(candidate.code, nluResult.entities, {
+                        timezone: this._engine.platform.timezone,
+                        thingpediaClient: this._engine.thingpedia,
+                        schemaRetriever: this._engine.schemas,
+                        loadMetadata: true,
+                    }, true);
+                } catch(e : any) {
+                    // Likely, a type error in the ThingTalk code; not a big deal, but we still log it
+                    console.log(`Failed to parse beam ${beamposition}: ${e.message}`);
+                    parsed = new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'failed'));
+                }
+                return { parsed, score: candidate.score };
+            }));
+            // ensure that we always have at least one candidate by pushing $failed at the end
+            candidates.push({ parsed: new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'failed')), score: 0 });
+
+            // ignore all candidates with score==Infinity that we failed to parse
+            // (these are exact matches that correspond to skills not available for
+            // this user)
+            let i = 0;
+            let choice = candidates[i];
+            let type = this._getSpecialThingTalkType(choice.parsed);
+            while (i < candidates.length-1 && type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND && choice.score === 'Infinity') {
+                i++;
+                choice = candidates[i];
+                type = this._getSpecialThingTalkType(choice.parsed);
+            }
+
+            if (type !== CommandAnalysisType.OUT_OF_DOMAIN_COMMAND && !(this._useConfidence && choice.score < CONFIDENCE_CONFIRM_THRESHOLD)) {
+                this._loop.debug('Confidently analyzed message (while in raw mode) into ' + choice.parsed.prettyprint());
+                this._loop.debug(`this._useConfidence: ${this._useConfidence}; choice.score: ${choice.score}`);
+                this._loop.conversation.stats.hit('sabrina-command-good');
+                return {
+                    type,
+                    utterance: command.utterance,
+                    user_target: choice.parsed.prettyprint(),
+                    answer: this._maybeGetThingTalkAnswer(choice.parsed),
+                    parsed: choice.parsed,
+                };
+            }
+    
 
             let value;
             if (this._loop.expecting === ValueCategory.Location)
@@ -466,34 +515,40 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         const oldState = this._dialogueState;
 
         if (oldState?.dialogueAct === "not_that") {
-            assert(oldState.dialogueActParam);
-            assert(typeof oldState.dialogueActParam[0] === 'string');
-            if (oldState.dialogueActParam[0] === "PROJECTION") {
-                const response = "Ok, what would you like to know?";
-                const agent_target = "$dialogue @org.thingpedia.dialogue.transaction.sys_learn_more_what";
-                const expecting = ValueCategory.Generic;
-                return {
-                    messages: [response],
-                    context: oldState?.prettyprint(),
-                    agent_target: agent_target,
-                    expecting: expecting,
-                };  
+            const newState : Ast.DialogueState = new Ast.DialogueState(null, oldState.policy, "execute", null, oldState.history, undefined);
+            if (oldState.history[oldState.history.length - 1].levenshtein === null) {
+                console.log("_doAgentReply: not_that, last-turn does not have delta, set to the statement itself");
+                oldState.history[oldState.history.length - 1].levenshtein = new Ast.Levenshtein(null, oldState.history[oldState.history.length - 1].stmt.expression, "$continue");
             }
-            // else "not_that" refers to a filter
-            const response = "What " + oldState?.dialogueActParam + " would you like?";
-            const agent_target  = "$dialogue @org.thingpedia.dialogue.transaction.sys_search_question;";
+            
+            const delta = oldState.history[oldState.history.length - 1].levenshtein;
+            let newStateItem : Ast.DialogueHistoryItem;
+            let response : string;
+            let agentTarget : string;
+            // for now, take an ad-hoc look at the last turn delta and take out the outmost AST node
+            if (delta!.expression.first instanceof Ast.ProjectionExpression) {
+                newStateItem = new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, delta!.expression.first.expression), null, "accepted", null, undefined);
+                response = "Ok, what would you like to know?";
+                agentTarget = "$dialogue @org.thingpedia.dialogue.transaction.sys_learn_more_what";
+            } else if (delta!.expression.first instanceof Ast.FilterExpression && delta!.expression.first.filter instanceof Ast.AtomBooleanExpression) {
+                newStateItem = new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, delta!.expression.first.expression), null, "accepted", null, undefined);
+                response = `Ok, what ${delta!.expression.first.filter.name} would like?`;
+                agentTarget = `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(${delta!.expression.first.filter.name})`;
+            } else {
+                throw Error("_doAgentReply: not_that delta expression currently not supported: " + delta!.prettyprint());
+            }
+
+            newState.history.push(newStateItem);
+            this._dialogueState = newState;
 
             // TODO: figure out expecting
-            const expecting = ValueCategory.Generic;
+            console.log(this._dialogueState);
 
-            // create new dialogueState that removes the last two history items so change of mind is not appended onto old result
-            const newState : Ast.DialogueState = new Ast.DialogueState(null, oldState.policy, oldState.dialogueAct, oldState.dialogueActParam, oldState.history.slice(0, -2), undefined, oldState.historyLevenshtein, oldState.historyAppliedLevenshtein);
-            this._dialogueState = newState;
-            
+            const expecting = ValueCategory.Generic;
             return {
                 messages: [response],
                 context: newState.prettyprint(),
-                agent_target: agent_target,
+                agent_target: agentTarget,
                 expecting: expecting,
             };
         }

@@ -128,7 +128,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         const newResults : RawExecutionResult = [];
         const newPrograms : NewProgramRecord[] = [];
         const hints = this._collectDisambiguationHintsForState(state);
-        for (let i = 0; i < clone.history.length; i++) {
+        for (let i = clone.history.length - 1; i >= 0 ; i--) {
             if (clone.history[i].results !== null)
                 continue;
             if (clone.history[i].confirm === 'proposed')
@@ -144,16 +144,18 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             await this._prepareForExecution(item.stmt, hints);
 
             // if we did not execute the previous item we're not executing this one either
-            if (i > 0 && clone.history[i-1].results === null)
-                continue;
+            // if (i > 0 && clone.history[i-1].results === null)
+            //     continue;
             if (item.confirm === 'accepted' &&
                 item.isExecutable() &&
                 shouldAutoConfirmStatement(item.stmt))
                 item.confirm = 'confirmed';
-            if (item.confirm !== 'confirmed')
-                continue;
+            if (item.confirm === 'accepted')
+                break;
+            // if (item.confirm !== 'confirmed')
+            //     continue;
             anyChange = true;
-            assert(item.isExecutable());
+            // assert(item.isExecutable());
 
             // if we have a stream, we'll trigger notifications
             // configure them if necessary
