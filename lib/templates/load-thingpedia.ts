@@ -1242,6 +1242,11 @@ export default class ThingpediaLoader {
         //
         // that way, we don't have confusion with the superfunction
         // FIXME this probably doesn't work with whitelist
+
+        // TODO: this should only work if there is only one table has such property
+        // disable for wikidata for now. 
+        if (this._options.flags.wikidata)
+            return;
         for (const argname of q.args) {
             const arg = q.getArgument(argname)!;
 
