@@ -239,7 +239,7 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
         deltaInvocation     = propagateDeviceIDsLevenshtein(ctx, deltaInvocation) as Ast.Levenshtein;
         
         // the filte part of filter
-        const delta         = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
+        const delta         = (new Ast.Levenshtein(null, deltaFilterStatement, "$continue")).optimize();
         const applyres      = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
         C.levenshteinDebugOutput(applyres, newTable, "preciseSearchQuestionAnswer_action_multiwoz.txt", [delta], currentStmt.expression);
 
@@ -249,7 +249,7 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
 
         return addQueryAndAction(ctx, 'execute', newTable, delta, answerAction, deltaInvocation, 'accepted');
     } else {
-        const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
+        const delta = (new Ast.Levenshtein(null, deltaFilterStatement, "$continue")).optimize();
         const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
         C.levenshteinDebugOutput(applyres, newTable, "preciseSearchQuestionAnswer_multiwoz.txt", [delta], currentStmt.expression);
         return addQuery(ctx, 'execute', newTable, 'accepted', delta);
@@ -321,7 +321,7 @@ function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : C.FilterSlot|
 
     // Levenshtein: adding a filter
     const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), answerFilter.ast, currentStmt.expression.schema);
-    const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
+    const delta = (new Ast.Levenshtein(null, deltaFilterStatement, "$continue")).optimize();
     const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
     C.levenshteinDebugOutput(applyres, newTable, "impreciseSearchQuestionAnswer_multiwoz.txt", [delta], currentStmt.expression);
 

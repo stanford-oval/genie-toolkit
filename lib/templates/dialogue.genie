@@ -345,9 +345,10 @@ $user : Ast.DialogueState = {
 	// ctx:ctx_sys_display_result generic_error_phrase => D.handleGenericError(ctx);
     
     // filters:
-    ctx:ctx_sys_recommend_one rejection:not_that_error_phrase => D.handleNotThatError(ctx, rejection);
-    ctx:ctx_sys_recommend_one that_this:this_not_that_error_phrase => D.handleThisNotThatError(ctx, that_this);
-    ctx:ctx_sys_recommend_one attribute:didnt_ask_about_error_phrase => D.handleDidntAskAboutError(ctx, attribute);
+    ctx:ctx_sys_recommend_one rejection:not_that_error_phrase [weight=0.3] => D.handleNotThatError(ctx, rejection);
+    ctx:ctx_sys_recommend_one that_this:this_not_that_error_phrase [weight=0.3] => D.handleThisNotThatError(ctx, that_this);
+    ctx:ctx_sys_recommend_one attribute:didnt_ask_about_error_phrase [weight=0.3] => D.handleDidntAskAboutError(ctx, attribute);
+    
     // projections:
     // ctx:ctx_sys_recommend_one rejection:not_that_projection_error_phrase => D.handleNotThatProjError(ctx, rejection);
     // ctx:ctx_sys_recommend_one rejection:not_that_proj_exp_error_phrase => D.handleNotThatProjExpError(ctx, rejection);

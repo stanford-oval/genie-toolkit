@@ -399,7 +399,7 @@ function positiveRecommendationReply(loader : ThingpediaLoader,
 
     let applyres : Ast.ChainExpression;
     let oldExpr  : Ast.ChainExpression | undefined;
-    const delta  : Ast.Levenshtein = new Ast.Levenshtein(invocation.location, new Ast.InvocationExpression(invocation.location, invocation, invocation.schema), "$continue");
+    const delta  : Ast.Levenshtein = (new Ast.Levenshtein(invocation.location, new Ast.InvocationExpression(invocation.location, invocation, invocation.schema), "$continue")).optimize();
     if (ctx.nextInfo) {
         oldExpr = ctx.next!.stmt.expression;
         applyres = Ast.applyMultipleLevenshtein(oldExpr, [delta]);

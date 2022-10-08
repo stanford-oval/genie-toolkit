@@ -101,7 +101,7 @@ export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, ne
         return null;
     
     // setting delta as "not oldFilter && newFilter"
-    const delta = new Levenshtein(null, new FilterExpression(null, invocation, new AndBooleanExpression(null, [new NotBooleanExpression(null, oldFilter.ast), newFilter.ast]), invocation.schema), "$continue");
+    const delta = (new Levenshtein(null, new FilterExpression(null, invocation, new AndBooleanExpression(null, [new NotBooleanExpression(null, oldFilter.ast), newFilter.ast]), invocation.schema), "$continue")).optimize();
     
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
@@ -151,7 +151,7 @@ export function handleNotThatError(ctx : ContextInfo, rejectFilter : FilterSlot)
         return null;
 
     // setting delta as "not rejectFilter"
-    const delta = new Levenshtein(null, new FilterExpression(null, invocation, new NotBooleanExpression(null, rejectFilter.ast), invocation.schema), "$continue");
+    const delta = (new Levenshtein(null, new FilterExpression(null, invocation, new NotBooleanExpression(null, rejectFilter.ast), invocation.schema), "$continue")).optimize();
 
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
@@ -192,7 +192,7 @@ export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : Para
         return null;
 
     // setting delta as "dont care"
-    const delta = new Levenshtein(null, new FilterExpression(null, invocation, new DontCareBooleanExpression(null, dontCareField.name), invocation.schema), "$continue");
+    const delta = (new Levenshtein(null, new FilterExpression(null, invocation, new DontCareBooleanExpression(null, dontCareField.name), invocation.schema), "$continue")).optimize();
 
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
@@ -303,7 +303,7 @@ export function handleProjectionChange(ctx : ContextInfo, rejection_replacement 
         return null;
 
     // setting delta as the new replacement
-    const delta : Levenshtein = new Levenshtein(null, new ProjectionExpression(null, invocation, [replacement.name], [], [], resolveProjection(invocation.schema!, [replacement.name])), "$continue");
+    const delta : Levenshtein = (new Levenshtein(null, new ProjectionExpression(null, invocation, [replacement.name], [], [], resolveProjection(invocation.schema!, [replacement.name])), "$continue")).optimize();
 
     // getting applied result
     const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);

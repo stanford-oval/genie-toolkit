@@ -116,7 +116,7 @@ function recommendationSearchQuestionReply(ctx : ContextInfo, questions : C.Para
     // Levenshtein: one projection and one filter
     const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, currentStmt.expression.schema);
     const deltaProjectionStatement = new Ast.ProjectionExpression(null, deltaFilterStatement, questions.map((q) => q.name), [], [], deltaFilterStatement.schema);
-    const delta = new Ast.Levenshtein(null, deltaProjectionStatement, "$continue");
+    const delta = (new Ast.Levenshtein(null, deltaProjectionStatement, "$continue")).optimize();
     const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
     C.levenshteinDebugOutput(applyres, newTable, "recommendationSearchQuestionReply_multiwoz.txt");
 
@@ -141,7 +141,7 @@ function learnMoreSearchQuestionReply(ctx : ContextInfo, questions : C.ParamSlot
     // Levenshtein: one projection and one filter
     const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, currentStmt.expression.schema);
     const deltaProjectionStatement = new Ast.ProjectionExpression(null, deltaFilterStatement, questions.map((q) => q.name), [], [], deltaFilterStatement.schema);
-    const delta = new Ast.Levenshtein(null, deltaProjectionStatement, "$continue");
+    const delta = (new Ast.Levenshtein(null, deltaProjectionStatement, "$continue")).optimize();
     const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
     C.levenshteinDebugOutput(applyres, newTable, "learnMoreSearchQuestionReply_multiwoz.txt");
     
@@ -161,7 +161,7 @@ function displayResultSearchQuestionReply(ctx : ContextInfo, questions : C.Param
 
     // Levenshtein: one projection
     const deltaProjectionStatement = new Ast.ProjectionExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), questions.map((q) => q.name), [], [], currentStmt.expression.schema);
-    const delta = new Ast.Levenshtein(null, deltaProjectionStatement, "$continue");
+    const delta = (new Ast.Levenshtein(null, deltaProjectionStatement, "$continue")).optimize();
     const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
     C.levenshteinDebugOutput(applyres, newTable, "displayResultSearchQuestionReply_multiwoz.txt", [delta]);
 
@@ -206,12 +206,12 @@ function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : 
             questions.map((q) => q.name));
         const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, currentStmt.expression.schema);
         const deltaProjectionStatement = new Ast.ProjectionExpression(null, deltaFilterStatement, questions.map((q) => q.name), [], [], deltaFilterStatement.schema);
-        delta = new Ast.Levenshtein(null, deltaProjectionStatement, "$continue");
+        delta = (new Ast.Levenshtein(null, deltaProjectionStatement, "$continue")).optimize();
     } else {
         newTable = queryRefinement(currentTable, null, null,
             questions.map((q) => q.name));
         const deltaProjectionStatement = new Ast.ProjectionExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), questions.map((q) => q.name), [], [], currentStmt.expression.schema);
-        delta = new Ast.Levenshtein(null, deltaProjectionStatement, "$continue");
+        delta = (new Ast.Levenshtein(null, deltaProjectionStatement, "$continue")).optimize();
     }
     if (newTable === null)
         return null;

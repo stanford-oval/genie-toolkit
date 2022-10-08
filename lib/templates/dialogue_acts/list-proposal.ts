@@ -296,7 +296,7 @@ function positiveListProposalReply(loader : ThingpediaLoader,
         
         // Levenshtein: adding a filter
         const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), namefilter, currentStmt.expression.schema);
-        const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
+        const delta = (new Ast.Levenshtein(null, deltaFilterStatement, "$continue")).optimize();
         const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
         C.levenshteinDebugOutput(applyres, newTable, "positiveListProposalReply_multiwoz.txt");
 
@@ -327,7 +327,7 @@ function positiveListProposalReply(loader : ThingpediaLoader,
 
         let applyres : Ast.ChainExpression;
         let oldExpr  : Ast.ChainExpression | undefined;
-        const delta  : Ast.Levenshtein = new Ast.Levenshtein(null, new Ast.InvocationExpression(null, invocation, invocation.schema), "$continue");
+        const delta  : Ast.Levenshtein = (new Ast.Levenshtein(null, new Ast.InvocationExpression(null, invocation, invocation.schema), "$continue")).optimize();
         if (ctx.nextInfo) {
             oldExpr = ctx.next!.stmt.expression;
             applyres = Ast.applyMultipleLevenshtein(oldExpr, [delta]);
@@ -420,9 +420,9 @@ function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.Value) {
 
     // Levenshtein: adding a filter
     const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), namefilter, currentStmt.expression.schema);
-    const delta = new Ast.Levenshtein(null, deltaFilterStatement, "$continue");
-    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
-    C.levenshteinDebugOutput(applyres, newTable, "listProposalLearnMoreReply_multiwoz.txt");
+    const delta = (new Ast.Levenshtein(null, deltaFilterStatement, "$continue")).optimize();
+    // const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
+    // C.levenshteinDebugOutput(applyres, newTable, "listProposalLearnMoreReply_multiwoz.txt");
 
     return addQuery(ctx, 'execute', newTable, 'accepted', delta);
 }
