@@ -441,6 +441,9 @@ export function getContextInfo(loader : ThingpediaLoader,
             currentTableFunction = lastQuery.schema;
         currentItemIdx = idx;
         currentResultInfo = new ResultInfo(state, item);
+
+        if (item.results !== null)
+            break;
     }
     if (nextItemIdx !== null)
         assert(nextInfo);

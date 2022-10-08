@@ -227,10 +227,19 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         if (analysis.type === CommandAnalysisType.DEBUG || analysis.type === CommandAnalysisType.STOP)
             return analysis;
 
+        // do levenshtein apply, if semantic parser returns a dialogue state that contains delta
+        if (analysis.parsed instanceof Ast.DialogueState && this._dialogueState && this._dialogueState.history.length >= 1) {
+            const delta    = analysis.parsed.history[analysis.parsed.history.length - 1].levenshtein;
+            // if semantic parser outputs delta
+            // defensive programming: legacy semantic parsers do not return delta
+            // `analysis.parsed` will be modified in-place
+            if (delta)
+                handleIncomingDelta(delta, this._dialogueState, analysis.parsed);
+        }
+
         // convert to dialogue state, if not already
 
         const prediction = await ThingTalkUtils.inputToDialogueState(this._policy, this._dialogueState, analysis.parsed);
-        // GEORGE: do levenshtein apply here
         if (prediction === null) {
             analysis.type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
             return analysis;
@@ -273,6 +282,24 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         const [contextCode, contextEntities] = this._prepareContextForPrediction(this._dialogueState, 'user');
         if (this._loop.raw) {
             // in "raw mode", all natural language becomes an answer
+            // special case current location operator for now
+            if (this._loop.expecting === ValueCategory.Location) {
+                // we still ship it to the parser so it gets recorded
+                await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
+                    expect: this._loop.expecting ? ValueCategory[this._loop.expecting] : undefined,
+                    choices: this._loop.choices,
+                    store: this._prefs.get('sabrina-store-log') as string || 'no'
+                });
+                const value = new Ast.LocationValue(new Ast.UnresolvedLocation(command.utterance));
+                const parsed = new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, value));
+                return {
+                    type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP,
+                    utterance: command.utterance,
+                    user_target: parsed.prettyprint(),
+                    answer: value,
+                    parsed: parsed,
+                };
+            }
 
             // we still ship it to the parser so it gets recorded
             const nluResult = await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
@@ -327,22 +354,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                     parsed: choice.parsed,
                 };
             }
-    
-
-            let value;
-            if (this._loop.expecting === ValueCategory.Location)
-                value = new Ast.LocationValue(new Ast.UnresolvedLocation(command.utterance));
-            else
-                value = new Ast.Value.String(command.utterance);
-
-            const parsed = new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, value));
-            return {
-                type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP,
-                utterance: command.utterance,
-                user_target: parsed.prettyprint(),
-                answer: value,
-                parsed: parsed,
-            };
         }
 
         // alright, let's ask parser first then
@@ -723,4 +734,41 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         this._dialogueState = await this._policy.getAsyncErrorState(app.name, app.program, mappedError);
         return this._doAgentReply([]);
     }
+}
+
+/**
+ * Given an incoming delta expression and the old dialogue state, compute the new dialogue state.
+ * This function modifies @param analysis in-place, which will be the new dialogueHistoryItem
+ * corresponding to this user target.
+ * 
+ * The algorithm works in the following way:
+ * When a new request comes in as a delta, take a look at all items on the stack.
+ * Use the top related item - regardless of its status - to do apply.
+ * Then, put the applied result on the top. 
+ * 
+ * The reason behind is that the semantic parser should have already picked up the
+ * correct item in generating @param delta
+ * 
+ * @param delta incoming delta
+ * @param dialogueState old dialogue state
+ * @param analysis dialogue state returned by semantic parser
+ */
+
+function handleIncomingDelta(delta : Ast.Levenshtein, dialogueState : Ast.DialogueState, analysis : Ast.DialogueState) {
+    const deltaInv = Ast.getAllInvocationExpression(delta);
+
+    // if we can not find an overlapping item, directly use delta as the new expression
+    // if an overlapping item is found, `applied` will be updated in the loop
+    let applied = new Ast.ExpressionStatement(null, delta.expression);
+
+    for (let i = dialogueState.history.length - 1; i >= 0; i --) {
+        const currInv = Ast.getAllInvocationExpression(dialogueState.history[i].stmt.expression.last);
+        if (Ast.ifOverlap(deltaInv, currInv)) {
+            const lastTurn = dialogueState.history[i].stmt;
+            applied = Ast.applyLevenshteinExpressionStatement(lastTurn, delta);
+            break;
+        }
+    }
+    analysis.history[analysis.history.length - 1].stmt = applied;
+    console.log(`Delta conversion finished, computed statement: ${applied}`);
 }

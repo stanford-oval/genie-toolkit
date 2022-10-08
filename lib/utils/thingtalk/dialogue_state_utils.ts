@@ -22,6 +22,7 @@
 import assert from 'assert';
 
 import { Ast } from 'thingtalk';
+import { APICall, getAllInvocationExpression, ifOverlap } from 'thingtalk/dist/ast';
 
 /**
  * Normalize the #[confirm] annotation.
@@ -167,14 +168,41 @@ export function computeNewState(state : Ast.DialogueState|null, prediction : Ast
         impl: state?.impl_annotations,
     });
 
-    // append all history elements that were confirmed
+    // append items that are accepted (user-initiated commands that need to be slot filled)
+    //                       proposed (agent-initiated commmands)
+    //                   and confirmed (ready-to-execute commands)
+    // for proposed and accepted ones, we keep at most one outstanding item per domain
+    // domain currently defined as the last part of the ChainExpression
+    // the algorithm works in the following way:
+    // we iterate through the history of the old state (begin from the top of the stack)
+    // for anything confirmed, we retain them
+    // for accepted or proposed, we check if they have appeared in `existingDomains`
+    // if not, add to it.
+    // if yes, skip
     if (state !== null) {
-        for (const oldItem of state.history) {
-            if (oldItem.confirm !== 'confirmed' && oldItem.confirm !== 'accepted')
-                break;
-            clone.history.push(oldItem);
+        const existingDomains : APICall[][] = [];
+        // .slice() is to create a copy so not to modify in-place
+        // .reverse() is to iterate from top of stack to bottom, and the result will also be reversed
+        for (const oldItem of state.history.slice().reverse()) {
+            if (oldItem.confirm === 'confirmed') {
+                clone.history.push(oldItem);
+            } else if (oldItem.confirm === 'accepted' || oldItem.confirm === 'proposed') {
+                const oldItemInv = getAllInvocationExpression(oldItem.stmt.expression.last);
+                let found = false;
+                for (const i of existingDomains) {
+                    if (ifOverlap(i, oldItemInv)) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found)
+                    continue;
+                existingDomains.push(oldItemInv);
+                clone.history.push(oldItem);
+            }
         }
     }
+    clone.history.reverse();
 
     // slice to the last MAX_CONTEXT_ITEMS items
     if (clone.history.length > MAX_CONTEXT_ITEMS)
