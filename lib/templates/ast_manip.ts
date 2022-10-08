@@ -1883,7 +1883,7 @@ class GetInvocationExpressionVisitor extends Ast.NodeVisitor {
     }
 }
 
-function GetInvocationExpression(historyItem : Ast.Node) : Ast.InvocationExpression|Ast.FunctionCallExpression {
+function getInvocationExpression(historyItem : Ast.Node) : Ast.InvocationExpression|Ast.FunctionCallExpression {
     assert(historyItem instanceof Ast.Node);
 
     const visitor = new GetInvocationExpressionVisitor();
@@ -2137,7 +2137,7 @@ export {
     getFunctionNames,
     getFunctions,
     getInvocation,
-    GetInvocationExpression,
+    getInvocationExpression,
     adjustDefaultParameters,
     hasConflictParam,
 

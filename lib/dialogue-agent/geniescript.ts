@@ -356,7 +356,7 @@ export class AgentDialog {
         const queryExpressionStatement = queryProgram.statements[0] as Ast.ExpressionStatement;
 
         // construct the new dialogue state
-        const newHistoryItem = new Ast.DialogueHistoryItem(null, queryExpressionStatement, null, "proposed");
+        const newHistoryItem = new Ast.DialogueHistoryItem(null, queryExpressionStatement, null, "proposed", null);
         const newState = this.dialogueHandler!._dialogueState!.clone();
         newState.history.push(newHistoryItem);
         const reply = makeAgentReply(newState);
@@ -413,7 +413,7 @@ function addActionParam(dialogueState : Ast.DialogueState,
     );
     const newStmt = new Ast.ExpressionStatement(null,
         new Ast.InvocationExpression(null, newInvocation, schema));
-    const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+    const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm, null);
 
     const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, null, dialogueState.history);
     newState.history.push(newHistoryItem);

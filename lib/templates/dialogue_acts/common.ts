@@ -32,52 +32,58 @@ import { SlotBag } from '../slot_bag';
 
 
 function isFilterCompatibleWithInfo(info : SlotBag, filter : Ast.BooleanExpression) : boolean {
-    assert(filter instanceof Ast.BooleanExpression);
-    if (filter.isTrue || filter.isDontCare)
-        return true;
-    if (filter.isFalse)
-        return false;
-    if (filter instanceof Ast.OrBooleanExpression)
-        return filter.operands.some((op) => isFilterCompatibleWithInfo(info, op));
-    if (filter instanceof Ast.AndBooleanExpression)
-        return filter.operands.every((op) => isFilterCompatibleWithInfo(info, op));
-    if (filter instanceof Ast.NotBooleanExpression)
-        return !isFilterCompatibleWithInfo(info, filter.expr);
-
-    // approximate
-    if (filter.isExternal || filter.isCompute)
-        return true;
-
-    assert(filter instanceof Ast.AtomBooleanExpression);
-    const pname = filter.name;
-    if (!info.has(pname))
-        return false;
-
-    if (!filter.value.isConstant())
-        return true;
-
-    switch (filter.operator) {
-    case '==':
-    case '=~':
-        return filter.value.equals(info.get(pname)!);
-
-    case 'contains':
-    case 'contains~':
-        return (info.get(pname) as Ast.ArrayValue).value.some((v) => v.equals(filter.value));
-
-    case 'in_array':
-    case 'in_array~':
-        return (filter.value as Ast.ArrayValue).value.some((v) => v.equals(info.get(pname)!));
-
-    case '>=':
-        return (info.get(pname)!.toJS() as number) >= (filter.value.toJS() as number);
-    case '<=':
-        return (info.get(pname)!.toJS() as number) <= (filter.value.toJS() as number);
-
-    default:
+    // TODO: resolve why this is giving problems
+    try {
+        assert(filter instanceof Ast.BooleanExpression);
+        if (filter.isTrue || filter.isDontCare)
+            return true;
+        if (filter.isFalse)
+            return false;
+        if (filter instanceof Ast.OrBooleanExpression)
+            return filter.operands.some((op) => isFilterCompatibleWithInfo(info, op));
+        if (filter instanceof Ast.AndBooleanExpression)
+            return filter.operands.every((op) => isFilterCompatibleWithInfo(info, op));
+        if (filter instanceof Ast.NotBooleanExpression)
+            return !isFilterCompatibleWithInfo(info, filter.expr);
+    
         // approximate
-        return true;
+        if (filter.isExternal || filter.isCompute)
+            return true;
+    
+        assert(filter instanceof Ast.AtomBooleanExpression);
+        const pname = filter.name;
+        if (!info.has(pname))
+            return false;
+    
+        if (!filter.value.isConstant())
+            return true;
+    
+        switch (filter.operator) {
+        case '==':
+        case '=~':
+            return filter.value.equals(info.get(pname)!);
+    
+        case 'contains':
+        case 'contains~':
+            return (info.get(pname) as Ast.ArrayValue).value.some((v) => v.equals(filter.value));
+    
+        case 'in_array':
+        case 'in_array~':
+            return (filter.value as Ast.ArrayValue).value.some((v) => v.equals(info.get(pname)!));
+    
+        case '>=':
+            return (info.get(pname)!.toJS() as number) >= (filter.value.toJS() as number);
+        case '<=':
+            return (info.get(pname)!.toJS() as number) <= (filter.value.toJS() as number);
+    
+        default:
+            // approximate
+            return true;
+        }
+    } catch(error) {
+        return false;
     }
+
 }
 
 function isFilterCompatibleWithResult(topResult : Ast.DialogueHistoryResultItem,

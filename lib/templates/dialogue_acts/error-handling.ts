@@ -21,7 +21,7 @@
 // import { Ast } from "thingtalk";
 // import assert from "assert";
 import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, DontCareBooleanExpression, Expression, FilterExpression,  FunctionCallExpression, InvocationExpression, Levenshtein, levenshteinFindSchema, NotBooleanExpression, ProjectionExpression } from "thingtalk/dist/ast";
-import { GetInvocationExpression, resolveProjection, FilterSlot } from "../ast_manip";
+import { getInvocationExpression, resolveProjection, FilterSlot } from "../ast_manip";
 import { ContextInfo, addNewStatement, addNewItem } from "../state_manip";
 import { isSameFunction, ParamSlot } from "../utils";
 
@@ -39,7 +39,7 @@ export function handleGenericError(ctx : ContextInfo) {
     const lastExpression : Expression =  ctx.current!.stmt.expression.expressions[0];
 
     // the invocation call hidden in this expression
-    const invocation : InvocationExpression|FunctionCallExpression = GetInvocationExpression(lastExpression);
+    const invocation : InvocationExpression|FunctionCallExpression = getInvocationExpression(lastExpression);
 
     if (!invocation)
         return null;
