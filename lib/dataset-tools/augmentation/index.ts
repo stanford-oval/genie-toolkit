@@ -33,6 +33,7 @@ interface DatasetAugmenterOptions {
     paramLocale : string;
     rng : () => number;
     debug : boolean;
+    skipErrors : boolean;
 
     singleDeviceExpandFactor : number;
     quotedProbability : number;
@@ -131,7 +132,10 @@ export default class DatasetAugmenter extends Stream.Transform {
                 this.push(ex);
             callback();
         }, (err) => {
-            callback(err);
+            if (this._options.skipErrors)
+                callback();
+            else 
+                callback(err);
         });
     }
 }

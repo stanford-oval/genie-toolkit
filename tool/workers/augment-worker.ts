@@ -52,6 +52,7 @@ export default async function worker(args : any, shard : string) {
         excludeEntityDisplay: args.exclude_entity_display,
         samplingType: args.sampling_type,
         subsetParamSet: args.subset_param_set.split('-'),
-        numAttempts: args.num_attempts
+        numAttempts: args.num_attempts,
+        skipErrors: args.skip_errors
     });
 }

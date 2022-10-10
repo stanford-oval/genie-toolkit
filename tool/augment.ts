@@ -189,6 +189,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: '',
         help: 'Override input sentence flags with the provided flag(s)'
     });
+    parser.add_argument('--skip-errors', {
+        action: 'store_true',
+        help: 'Skip examples that we are unable to augment',
+        default: false
+    });
 }
 
 export async function execute(args : any) {
