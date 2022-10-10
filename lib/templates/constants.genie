@@ -175,11 +175,11 @@ constant_Date : Ast.Value = {
         constant_day_of_week;
 
         !turking {
-            ["${duration} ago"]: (duration:constant_Measure_ms) => C.makeDate(null, '-', duration);
-            ["${duration} before ${pt}"]: (duration:constant_Measure_ms, pt:constant_date_point) => C.makeDate(pt, '-', duration);
+            ["${duration} ago", weight=0.1]: (duration:constant_Measure_ms) => C.makeDate(null, '-', duration);
+            ["${duration} before ${pt}", weight=0.01]: (duration:constant_Measure_ms, pt:constant_date_point) => C.makeDate(pt, '-', duration);
 
-            ["{${duration} from now|in ${duration}}"]: (duration:constant_Measure_ms) => C.makeDate(null, '+', duration);
-            ["${duration} after ${pt}"]: (duration:constant_Measure_ms, pt:constant_date_point) => C.makeDate(pt, '+', duration);
+            ["{${duration} from now|in ${duration}}", weight=0.1]: (duration:constant_Measure_ms) => C.makeDate(null, '+', duration);
+            ["${duration} after ${pt}", weight=0.01]: (duration:constant_Measure_ms, pt:constant_date_point) => C.makeDate(pt, '+', duration);
 
             ["${time} on ${date}"]: (time:constant_Time, date:constant_date_point) => C.makeDateWithDateTime(date, time);
             ["${date} ${time}"]: (time:at_time, date:constant_date_point) => C.makeDateWithDateTime(date, time);
