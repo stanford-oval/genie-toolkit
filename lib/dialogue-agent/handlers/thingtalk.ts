@@ -769,6 +769,10 @@ function handleIncomingDelta(delta : Ast.Levenshtein, dialogueState : Ast.Dialog
             break;
         }
     }
+    // TODO: resolve this. This is here to solve a schema not-found issue
+    if (!applied.expression.schema && applied.expression.first instanceof Ast.InvocationExpression && applied.expression.first.schema)
+        applied.expression.schema = applied.expression.first.schema;
+
     analysis.history[analysis.history.length - 1].stmt = applied;
-    console.log(`Delta conversion finished, computed statement: ${applied}`);
+    console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
 }
