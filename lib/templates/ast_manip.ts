@@ -2127,6 +2127,28 @@ export function levenshteinDebugOutput(applyres : Ast.ChainExpression,
                                         
 }
 
+export function determineSameExceptSlotFill(lastItem : Ast.ExpressionStatement, otherItem : Ast.ExpressionStatement) {
+    const lastInvs = Ast.getAllInvocationExpression(lastItem);
+    const otherInvs = Ast.getAllInvocationExpression(otherItem);
+
+    // NOTE: here, we check if the invocations appear in order for the two expressions
+    //       this is justified because if not, then the ThingTalk expressions are not of the same structure
+    if (lastInvs.length !== otherInvs.length)
+        return false;
+    for (let i = 0; i < lastInvs.length; i ++) {
+        // skip these FunctionCallExpression for now
+        if (lastInvs[i] instanceof Ast.FunctionCallExpression || otherInvs[i] instanceof Ast.FunctionCallExpression)
+            return false;
+
+        const first  = (lastInvs[i] as Ast.InvocationExpression).invocation;
+        const second = (otherInvs[i] as Ast.InvocationExpression).invocation;
+        if (!first.selector.equals(second.selector) || first.channel !== second.channel)
+            return false;
+    }
+    // NOTE: we do not compare other input parameter for now
+    return true;
+}
+
 export {
     // helpers
     typeToStringSafe,

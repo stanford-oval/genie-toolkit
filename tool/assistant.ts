@@ -56,7 +56,7 @@ class CommandLineDelegate {
     async addMessage(msg : Message) {
         switch (msg.type) {
         case 'text':
-            console.log('>> ' + msg.text);
+            console.log("\x1b[32m" + '>> ' + msg.text + '\x1b[0m');
             break;
 
         case 'picture':

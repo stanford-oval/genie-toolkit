@@ -23,6 +23,7 @@ import * as Tp from 'thingpedia';
 import { Ast, SchemaRetriever, Builtin } from 'thingtalk';
 
 import * as I18n from '../i18n';
+import { determineSameExceptSlotFill } from '../templates/ast_manip';
 import { cleanKind } from '../utils/misc-utils';
 import { shouldAutoConfirmStatement, addIndexToIDQuery } from '../utils/thingtalk';
 import { contactSearch, Contact } from './entity-linking/contact_search';
@@ -174,6 +175,22 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 newPrograms.push(newProgram);
             privateState = newPrivateState;
         }
+        // here, after executing the current stack, scan back to see if
+        // any item, compared with the latest item on the stack, has
+        // the same ThingTalk except a more complete set of invocation parameters
+
+        // this signifys that slot-filling has been completed / progressed
+        // in such cases, remove the older one (lower in stack) from dialogue state
+        const newHistoryListTmp = [];
+        const latestItem = clone.history[clone.history.length - 1];
+        for (let i = clone.history.length - 2; i >= 0 ; i--) {
+            if (!determineSameExceptSlotFill(latestItem.stmt, clone.history[i].stmt))
+                newHistoryListTmp.push(clone.history[i]);
+        }
+        newHistoryListTmp.reverse();
+        newHistoryListTmp.push(latestItem);
+        
+        clone.history = newHistoryListTmp;
 
         return { newDialogueState: clone, newExecutorState: privateState, newResults, newPrograms, anyChange };
     }

@@ -239,6 +239,23 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         // convert to dialogue state, if not already
 
+        // circumevent the function below in the special yes case
+        // in this case, we just need to set expect to null and hand over control to geniescript,
+        // or to anything on the dialogue state that needs to be executed
+        // this determination is done below - in `getReply`
+        if (analysis.parsed instanceof Ast.ControlCommand &&
+            analysis.parsed.intent instanceof Ast.SpecialControlIntent &&
+            analysis.parsed.intent.type === 'yes' &&
+            this._loop.expecting === ValueCategory.Generic) {
+            return {
+                type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
+                utterance: analysis.utterance,
+                user_target: analysis.parsed.prettyprint(),
+                answer: analysis.answer,
+                parsed: analysis.parsed,
+            };
+        }
+
         const prediction = await ThingTalkUtils.inputToDialogueState(this._policy, this._dialogueState, analysis.parsed);
         if (prediction === null) {
             analysis.type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
@@ -438,7 +455,71 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         };
     }
 
+    private ifExecutable() : boolean {
+        if (!this._dialogueState) {
+            this._loop.debug("ThingTalk dialogue state ifExecutable returning false because there is no dialogue state");
+            return false;
+        }
+        
+        for (let i = this._dialogueState!.history.length - 1; i >= 0 ; i--) {
+            if (this._dialogueState.history[i].confirm === 'proposed' || this._dialogueState.history[i].confirm === 'accepted') {
+                this._loop.debug(`ThingTalk dialogue state ifExecutable returning true due to item ${this._dialogueState.history[i].prettyprint()}`);
+                return true;
+            }
+        }
+
+        this._loop.debug("ThingTalk dialogue state ifExecutable returning false after evaluation of dialogue state");
+        return false;
+    }
+
     async getReply(analyzed : ThingTalkCommandAnalysisType) : Promise<ReplyResult> {
+        // if user utterance is $yes and the last expecting was generic
+        // NOTE: this._loop.expecting retrieves the information from the dialogue loop
+        //       which was set in last turn
+        if (analyzed.parsed instanceof Ast.ControlCommand &&
+            analyzed.parsed.intent instanceof Ast.SpecialControlIntent &&
+            analyzed.parsed.intent.type === 'yes' &&
+            this._loop.expecting === ValueCategory.Generic) {
+
+            // scan the dialogue state to understand whether there is anything that can be executed
+            // if so, move the accepted item to the front and execute it
+            // if not, hand back to dialogue looop
+            if (this.ifExecutable()) {
+                // if the newest one is now completed, and there is
+                // more accepted/proposed ones further in the back, move those to the front
+                const newHistoryList = [];
+                const newHistoryListTop = []; // this stores all the accepted/proposed ones
+                const latestItem = this._dialogueState!.history[this._dialogueState!.history.length - 1];
+                if (latestItem.confirm === 'confirmed') {
+                    for (let i = 0; i < this._dialogueState!.history.length; i ++) {
+                        if (this._dialogueState!.history[i].confirm !== 'confirmed')
+                            newHistoryListTop.push(this._dialogueState!.history[i]);
+                        else
+                            newHistoryList.push(this._dialogueState!.history[i]);
+                    }
+                    this._dialogueState!.history = newHistoryList.concat(newHistoryListTop);
+
+                    // retrieved from that dialogue act
+                    // const newDialogueAct = this._dialogueState!.history[this._dialogueState!.history.length - 1].dialogueAct;
+                    // assert(newDialogueAct);
+                    // this._dialogueState!.dialogueAct = newDialogueAct;
+                    this._dialogueState!.dialogueAct = "execute";
+                } else {
+                    console.log("WARNING: user says okay, decided that there is still accepted ones on the dialogue state. Yet, the last item is confirmed");
+                }
+                        
+                return this._executeCurrentState();
+            } else {
+                console.log("ThingTalk dialogue handler getReply: triggered special $yes procedure, set expecting to null");
+                return {
+                    messages: [],
+                    context: this._dialogueState ? this._dialogueState.prettyprint() : 'null',
+                    agent_target: '$dialogue @org.thingpedia.dialogue.transaction.special_yes',
+                    expecting: null,
+                };
+            }
+        }
+
         switch (analyzed.type) {
         case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_FOLLOWUP:
         case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND: {
@@ -770,8 +851,8 @@ function handleIncomingDelta(delta : Ast.Levenshtein, dialogueState : Ast.Dialog
         }
     }
     // TODO: resolve this. This is here to solve a schema not-found issue
-    if (!applied.expression.schema && applied.expression.first instanceof Ast.InvocationExpression && applied.expression.first.schema)
-        applied.expression.schema = applied.expression.first.schema;
+    // if (!applied.expression.schema && delta.expression.expressions.)
+    //     applied.expression.schema = applied.expression.last.schema;
 
     analysis.history[analysis.history.length - 1].stmt = applied;
     console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
