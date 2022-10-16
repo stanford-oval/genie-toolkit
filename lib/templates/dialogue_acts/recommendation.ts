@@ -399,14 +399,15 @@ function positiveRecommendationReply(loader : ThingpediaLoader,
 
     let applyres : Ast.ChainExpression;
     let oldExpr  : Ast.ChainExpression | undefined;
-    const delta  : Ast.Levenshtein = (new Ast.Levenshtein(invocation.location, new Ast.InvocationExpression(invocation.location, invocation, invocation.schema), "$continue")).optimize();
+    const delta  : Ast.Levenshtein = (new Ast.Levenshtein(null, new Ast.InvocationExpression(null, invocation, invocation.schema), "$continue")).optimize();
     if (ctx.nextInfo) {
         oldExpr = ctx.next!.stmt.expression;
         applyres = Ast.applyMultipleLevenshtein(oldExpr, [delta]);
     } else {
         setOrAddInvocationParam(invocation, chainParam, topResult.value.id);
-        applyres = C.toChainExpression(new Ast.InvocationExpression(invocation.location, invocation, invocation.schema));
+        applyres = C.toChainExpression(new Ast.InvocationExpression(null, invocation, invocation.schema));
         applyres = propagateDeviceIDsLevenshtein(ctx, applyres) as Ast.ChainExpression;
+        (delta.expression.first as Ast.InvocationExpression).invocation = invocation;
     }
     // const res = addActionParam(ctx, 'execute', acceptedAction!, chainParam, topResult.value.id, 'accepted', delta);
     // C.levenshteinDebugOutput(applyres, res.history[res.history.length - 1].stmt.expression, "positiveRecommendationReply_action_multiwoz.txt", [delta], oldExpr);

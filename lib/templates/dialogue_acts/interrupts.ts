@@ -53,7 +53,12 @@ function projectionDuringSlotFill(ctx : ContextInfo, questions : C.ParamSlot[]) 
             C.levenshteinDebugOutput(applyres, newTable, "recommendationSearchQuestionReply_multiwoz.txt");
             // console.log("projectionDuringSlotFill succeeded");
         
-            return addQuery(ctx, 'execute', newTable, 'accepted', delta);
+            const res = addQuery(ctx, 'execute', newTable, 'accepted', delta);
+            // we remove the old (accepted) action so that it never goes back to the original action
+            // to prevent producing two deltas in one turn
+            // during run-time, this is gracefully handled by the new dialogue state design
+            res.history.pop();
+            return res;
         }
     }
     // console.log("returning null due to lastTurn not containing an id field ");

@@ -335,6 +335,7 @@ function positiveListProposalReply(loader : ThingpediaLoader,
             setOrAddInvocationParam(invocation, chainParam, name);
             applyres = C.toChainExpression(new Ast.InvocationExpression(null, invocation, invocation.schema));
             applyres = propagateDeviceIDsLevenshtein(ctx, applyres) as Ast.ChainExpression;
+            (delta.expression.first as Ast.InvocationExpression).invocation = invocation;
         }
 
         // const res = addActionParam(ctx, 'execute', acceptedAction, chainParam, name, 'accepted', delta);
