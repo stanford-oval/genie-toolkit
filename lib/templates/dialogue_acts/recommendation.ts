@@ -21,7 +21,7 @@
 
 import assert from 'assert';
 
-import { Ast, } from 'thingtalk';
+import { Ast, Type, } from 'thingtalk';
 
 import * as ThingTalkUtils from '../../utils/thingtalk';
 
@@ -301,13 +301,13 @@ function makeRecommendationReply(ctx : ContextInfo, proposal : Recommendation) {
     if (action || hasLearnMore)
         options.end = false;
     if (action === null) {
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_recommend_one', null), proposal, null, options);
+        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_recommend_one', null), proposal, Type.Any, options);
     } else {
         const chainParam = findChainParam(topResult, action);
         if (!chainParam)
             return null;
         return makeAgentReply(ctx, addActionParam(ctx, 'sys_recommend_one', action, chainParam, topResult.value.id, 'proposed', null),
-            proposal, null, options);
+            proposal, Type.Any, options);
     }
 }
 
