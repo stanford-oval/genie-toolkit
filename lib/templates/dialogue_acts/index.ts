@@ -25,6 +25,7 @@ export * from './coref-actions';
 export * from './coref-questions';
 export * from './empty-search';
 export * from './initial-request';
+export * from './interrupts';
 export * from './list-proposal';
 export * from './recommendation';
 export * from './refinement';

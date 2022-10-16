@@ -372,6 +372,10 @@ $user : Ast.DialogueState = {
     ctx:ctx_sys_search_question answer:imprecise_search_question_answer [weight=0.2]
         => D.impreciseSearchQuestionAnswer(ctx, answer);
 
+    // interrupts during slot-fill
+    ctx:ctx_sys_slot_fill questions:user_search_question [weight=0.2]
+        => D.projectionDuringSlotFill(ctx, questions);
+
     // slot fill questions
     ctx:ctx_sys_slot_fill answer:precise_slot_fill_answer with { functionName = ctx.nextFunction }
         => D.preciseSlotFillAnswer(ctx, answer);

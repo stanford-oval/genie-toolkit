@@ -283,5 +283,6 @@ export {
     learnMoreSearchQuestionReply,
     listProposalSearchQuestionReply,
     corefConstant,
-    booleanQuestion
+    booleanQuestion,
+    areQuestionsValidForContext
 };
