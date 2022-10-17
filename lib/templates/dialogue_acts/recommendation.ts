@@ -34,7 +34,6 @@ import {
     ContextInfo,
     makeAgentReply,
     makeSimpleState,
-    addActionParam,
     addNewItem,
     propagateDeviceIDsLevenshtein,
     setOrAddInvocationParam,
@@ -294,21 +293,12 @@ function checkDisplayResult(proposal : Recommendation|null) {
 }
 
 function makeRecommendationReply(ctx : ContextInfo, proposal : Recommendation) {
-    const { topResult, action, hasLearnMore } = proposal;
     const options : AgentReplyOptions = {
         numResults: 1
     };
-    if (action || hasLearnMore)
-        options.end = false;
-    if (action === null) {
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_recommend_one', null), proposal, Type.Any, options);
-    } else {
-        const chainParam = findChainParam(topResult, action);
-        if (!chainParam)
-            return null;
-        return makeAgentReply(ctx, addActionParam(ctx, 'sys_recommend_one', action, chainParam, topResult.value.id, 'proposed', null),
-            proposal, Type.Any, options);
-    }
+    // we neglect all the recommend actions for now. This is giving us strange results
+    // TODO: clean this up
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_recommend_one', null), proposal, Type.Any, options);
 }
 
 function makeDisplayResultReply(ctx : ContextInfo, proposal : Recommendation) {

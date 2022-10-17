@@ -70,7 +70,7 @@ actionable_system_recommendation_short : D.Recommendation = {
 
 proposal_info_action_pair : [D.ResultPhrase, Ast.Invocation|null] = {
     // NOTE: action_coref_recommendation already includes the ?
-    ["is a ${res[plural=one]}. ${action}", weight=0.8]: (res:result_info_phrase, action:action_coref_recommendation) => {
+    ["is a ${res[plural=one]}.", weight=0.8]: (res:result_info_phrase, action:action_coref_recommendation) => {
         const resultType = res.info.schema!.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))

@@ -244,7 +244,7 @@ $agent : S.AgentReplyRecord = {
 
     // action recommendation (through one or a list)
 
-    ctx:ctx_complete_search_command proposal:system_recommendation
+    ctx:ctx_complete_search_command proposal:system_recommendation [priority=10]
         => D.makeRecommendationReply(ctx, proposal);
 
     ctx:ctx_complete_search_command proposal:system_list_proposal [weight=10]

@@ -408,17 +408,12 @@ export function getContextInfo(loader : ThingpediaLoader,
     let nextItemIdx = null, nextInfo = null, currentFunction = null, currentTableFunction = null,
         nextFunction = null, currentDevice = null, currentResultInfo = null,
         previousDomainItemIdx = null, currentItemIdx = null;
-    let proposedSkip = 0;
     for (let idx = state.history.length - 1; idx >= 0; idx --) {
         const item = state.history[idx];
         const itemschema = item.stmt.expression.schema!;
         const device = itemschema.class ? itemschema.class.name : null;
         if (currentDevice && device && device !== currentDevice)
             previousDomainItemIdx = currentItemIdx;
-        if (item.confirm === 'proposed') {
-            proposedSkip ++;
-            continue;
-        }
         if (item.results === null) {
             nextItemIdx = idx;
             nextFunction = itemschema;
@@ -430,8 +425,6 @@ export function getContextInfo(loader : ThingpediaLoader,
 
         // proposed items must come after the current item
         // (but they can come before or after the next item, depending on what we're proposing)
-        assert(proposedSkip === 0);
-
         currentDevice = device;
         currentFunction = itemschema;
 
@@ -662,11 +655,10 @@ function makeSimpleState(ctx : ContextInfo,
                          dialogueActParam : string[]|null) : Ast.DialogueState {
     // a "simple state" carries the current executed/confirmed/accepted items, but not the
     // proposed ones
+    // UPDATE in delta: it now also contains the proposed ones
 
     const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
     for (let i = 0; i < ctx.state.history.length; i++) {
-        if (ctx.state.history[i].confirm === 'proposed')
-            break;
         newState.history.push(ctx.state.history[i]);
     }
     // newState.historyLevenshtein = ctx.state.historyLevenshtein;

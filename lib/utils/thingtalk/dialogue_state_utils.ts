@@ -111,16 +111,17 @@ export function computePrediction(oldState : Ast.DialogueState|null, newState : 
                 break;
 
             if (!oldItem.equals(newItem)) {
-                console.log('----');
-                console.log(oldState.prettyprint());
-                console.log(newState.prettyprint());
-                console.log('----');
-                console.log(oldItem.prettyprint());
-                console.log(newItem.prettyprint());
-                console.log('----');
-                console.log(oldItem);
-                console.log(newItem);
-                throw new Error(`Items unexpectedly different in computing prediction`);
+                // console.log('----');
+                // console.log(oldState.prettyprint());
+                // console.log(newState.prettyprint());
+                // console.log('----');
+                // console.log(oldItem.prettyprint());
+                // console.log(newItem.prettyprint());
+                // console.log('----');
+                // console.log(oldItem);
+                // console.log(newItem);
+                // throw new Error(`Items unexpectedly different in computing prediction`);
+                break;
             }
         }
     }
@@ -132,7 +133,7 @@ export function computePrediction(oldState : Ast.DialogueState|null, newState : 
         // note: we explicitly do not clone annotations here
         // annotations are never exposed to the neural model and are not part of the prediction
         // REVIEW: levenshtein needed??
-        return new Ast.DialogueHistoryItem(null, item.stmt, item.results, item.confirm, item.levenshtein);
+        return new Ast.DialogueHistoryItem(null, item.stmt, item.results, item.confirm, null);
     });
 
     // check that the results is null for everything in the prediction

@@ -228,7 +228,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             return analysis;
 
         // do levenshtein apply, if semantic parser returns a dialogue state that contains delta
-        if (analysis.parsed instanceof Ast.DialogueState && this._dialogueState && this._dialogueState.history.length >= 1) {
+        if (analysis.parsed instanceof Ast.DialogueState && this._dialogueState && this._dialogueState.history.length >= 1 && analysis.parsed.history.length >= 1) {
             const delta    = analysis.parsed.history[analysis.parsed.history.length - 1].levenshtein;
             // if semantic parser outputs delta
             // defensive programming: legacy semantic parsers do not return delta
@@ -846,7 +846,7 @@ function handleIncomingDelta(delta : Ast.Levenshtein, dialogueState : Ast.Dialog
         const currInv = Ast.getAllInvocationExpression(dialogueState.history[i].stmt.expression.last);
         if (Ast.ifOverlap(deltaInv, currInv)) {
             const lastTurn = dialogueState.history[i].stmt;
-            applied = Ast.applyLevenshteinExpressionStatement(lastTurn, delta);
+            applied = Ast.applyLevenshteinExpressionStatement(lastTurn, delta, dialogueState);
             break;
         }
     }
@@ -855,5 +855,8 @@ function handleIncomingDelta(delta : Ast.Levenshtein, dialogueState : Ast.Dialog
     //     applied.expression.schema = applied.expression.last.schema;
 
     analysis.history[analysis.history.length - 1].stmt = applied;
+    if (!analysis.history[analysis.history.length - 1].stmt.expression.schema)
+        analysis.history[analysis.history.length - 1].stmt.expression.schema = analysis.history[analysis.history.length - 1].stmt.expression.last.schema;
+        // console.log("NO SCHEMA!!!");
     console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
 }

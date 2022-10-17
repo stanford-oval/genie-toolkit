@@ -2142,7 +2142,7 @@ export function determineSameExceptSlotFill(lastItem : Ast.ExpressionStatement, 
 
         const first  = (lastInvs[i] as Ast.InvocationExpression).invocation;
         const second = (otherInvs[i] as Ast.InvocationExpression).invocation;
-        if (!first.selector.equals(second.selector) || first.channel !== second.channel)
+        if (first.selector.kind !== second.selector.kind || first.channel !== second.channel)
             return false;
     }
     // NOTE: we do not compare other input parameter for now

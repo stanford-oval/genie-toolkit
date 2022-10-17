@@ -184,7 +184,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         const newHistoryListTmp = [];
         const latestItem = clone.history[clone.history.length - 1];
         for (let i = clone.history.length - 2; i >= 0 ; i--) {
-            if (!determineSameExceptSlotFill(latestItem.stmt, clone.history[i].stmt))
+            if (!determineSameExceptSlotFill(latestItem.stmt, clone.history[i].stmt) || clone.history[i].confirm === 'confirmed')
                 newHistoryListTmp.push(clone.history[i]);
         }
         newHistoryListTmp.reverse();

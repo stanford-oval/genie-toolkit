@@ -6,8 +6,8 @@ import { Ast, Type } from "thingtalk";
 import { AgentReplyOptions, AgentReplyRecord } from '../templates/state_manip';
 import { ReplyResult } from './dialogue-loop';
 import ThingTalkDialogueHandler from './handlers/thingtalk';
-import { parse, SyntaxType } from 'thingtalk/dist/syntax_api';
-import { ThingTalkUtils } from '..';
+import { NaturalLanguageUserInput } from './user-input';
+import { determineSameExceptSlotFill } from '../templates/ast_manip';
 
 type GeniescriptReplyResult = Tp.DialogueHandler.ReplyResult;
 
@@ -19,6 +19,18 @@ interface GenieQuery {
     type : GenieQueryType;
     content : string | GeniescriptAnalysisResult | Tp.DialogueHandler.CommandAnalysisResult | ReplyResult;
 }
+
+// TODO: implement FAILED
+export enum DLGResultStatus {
+    SUCCESS,
+    INTERRUPTED
+}
+
+// interface DLGResult {
+//     status : DLGResultStatus;
+//     dialogueState : DialogueState;
+//     result ?: unknown;
+// }
 
 enum GenieQueryType {
     ANALYZE_COMMAND = "AnalyzeCommand",
@@ -310,11 +322,14 @@ export class AgentDialog {
      *          - declined    : the user did not accept the proposal
      *          - interrupted : the user asks another question and the dialogue flow was re-directed
      */
-    async *proposeAndExecuteAction(actionString : string, actionDescription : string) {
-        // extract actions from user-inputed ThingTalk command
-        const actionProgram = parse(actionString, SyntaxType.Normal, { timezone: undefined }) as Ast.Program;
-        const actionExpression = (actionProgram.statements[0] as Ast.ExpressionStatement).expression.first as Ast.InvocationExpression;
-        const action = actionExpression.invocation;
+    async *initiateAction(actionString : string, actionDescription : string) {
+        this.say([actionDescription]);
+        // consult the contextual semantic parser for the developer-inputted user utterances
+        const sendToNLU : NaturalLanguageUserInput = {type : 'command', utterance : actionString, platformData : {}};
+        const analyzed = await this.dialogueHandler!._parseCommand(sendToNLU);
+        assert(analyzed.parsed instanceof Ast.DialogueState);
+        assert(analyzed.parsed.history.length === 1);
+        const action = (analyzed.parsed.history[0].stmt.expression.first as Ast.InvocationExpression).invocation;
 
         // TODO: very likely, all other things except state will not be used in `options`
         //       figure that out
@@ -329,12 +344,11 @@ export class AgentDialog {
         
         // wrap and return
         // TODO: when user declines, what to do?
-        this.say([actionDescription]);
         const blob = yield *this.expect(
             new Map([]),
             null,
             null,
-            actionDescription
+            null
         );
         return blob;
     }
@@ -348,13 +362,17 @@ export class AgentDialog {
      * @param expectedType expected return type from this query
      * @returns 
      */
-    async *proposeQuery(queryString : string,
-                        queryDescription : string,
-                        expectedType : [string, string]) {
-        // extract query from user-inputed ThingTalk command
-        const queryProgram = parse(queryString, SyntaxType.Normal, { timezone: undefined }) as Ast.Program;
-        const queryExpressionStatement = queryProgram.statements[0] as Ast.ExpressionStatement;
-
+    async *initiateQuery(queryString : string,
+                         queryDescription : string) {
+                        // expectedType : [string, string]) {
+        // consult the contextual semantic parser for the developer-inputted user utterances
+        this.say([queryDescription]);
+        const sendToNLU : NaturalLanguageUserInput = {type : 'command', utterance : queryString, platformData : {}};
+        const analyzed = await this.dialogueHandler!._parseCommand(sendToNLU);
+        assert(analyzed.parsed instanceof Ast.DialogueState);
+        assert(analyzed.parsed.history.length === 1);
+        const queryExpressionStatement = analyzed.parsed.history[0].stmt;
+        
         // construct the new dialogue state
         const newHistoryItem = new Ast.DialogueHistoryItem(null, queryExpressionStatement, null, "proposed", null);
         const newState = this.dialogueHandler!._dialogueState!.clone();
@@ -365,17 +383,27 @@ export class AgentDialog {
         this.dialogueHandler!._dialogueState = reply.state;
         
         // wrap and return
-        this.say([queryDescription]);
-        const blob = yield *this.expect(
+        yield *this.expect(
             new Map([]),
-            (reply) => ThingTalkUtils.isOutputType(expectedType[0], expectedType[1])(reply),
+            (reply) => true,
             null,
-            queryDescription
+            null,
         );
-        if (!ThingTalkUtils.isOutputType(expectedType[0], expectedType[1])(blob))
-            throw Error("GS proposeQuery experienced unexpected type returned from expect");
         
-        return blob;
+        const newDialogueState = this.dialogueHandler!._dialogueState;
+        const latestItem = newDialogueState.history[newDialogueState.history.length - 1];
+        if (determineSameExceptSlotFill(queryExpressionStatement, latestItem.stmt) && latestItem.confirm === 'confirmed') {
+            return {
+                status : DLGResultStatus.SUCCESS,
+                dialogueState : newDialogueState,
+                result : latestItem.results!.results[0]
+            }
+        }
+        
+        return {
+            status : DLGResultStatus.INTERRUPTED,
+            dialogueState : newDialogueState
+        };
     }
 }
 
