@@ -78,7 +78,7 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
                         yield* self.logic();
                     })]
                 ]));
-            } catch (e) {
+            } catch(e) {
                 this.dlg.say(["geniescript has an error:" + e]);
             } finally {
                 const error_prompt = "Geniescript had an error or exited. Please restart genie.";
@@ -325,7 +325,7 @@ export class AgentDialog {
     async *initiateAction(actionString : string, actionDescription : string) {
         this.say([actionDescription]);
         // consult the contextual semantic parser for the developer-inputted user utterances
-        const sendToNLU : NaturalLanguageUserInput = {type : 'command', utterance : actionString, platformData : {}};
+        const sendToNLU : NaturalLanguageUserInput = { type : 'command', utterance : actionString, platformData : {} };
         const analyzed = await this.dialogueHandler!._parseCommand(sendToNLU);
         assert(analyzed.parsed instanceof Ast.DialogueState);
         assert(analyzed.parsed.history.length === 1);
@@ -367,7 +367,7 @@ export class AgentDialog {
                         // expectedType : [string, string]) {
         // consult the contextual semantic parser for the developer-inputted user utterances
         this.say([queryDescription]);
-        const sendToNLU : NaturalLanguageUserInput = {type : 'command', utterance : queryString, platformData : {}};
+        const sendToNLU : NaturalLanguageUserInput = { type : 'command', utterance : queryString, platformData : {} };
         const analyzed = await this.dialogueHandler!._parseCommand(sendToNLU);
         assert(analyzed.parsed instanceof Ast.DialogueState);
         assert(analyzed.parsed.history.length === 1);
@@ -397,7 +397,7 @@ export class AgentDialog {
                 status : DLGResultStatus.SUCCESS,
                 dialogueState : newDialogueState,
                 result : latestItem.results!.results[0]
-            }
+            };
         }
         
         return {
