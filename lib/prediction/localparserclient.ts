@@ -63,6 +63,8 @@ export interface LocalParserOptions {
     minibatchSize ?: number;
     maxLatency ?: number;
     cacheInterface ?: CacheInterface;
+    includeEntityValue ?: boolean;
+    excludeEntityDisplay ?: boolean;
 }
 
 function compareScore(a : PredictionCandidate, b : PredictionCandidate) : number {
@@ -84,6 +86,8 @@ export default class LocalParserClient {
     private _exactmatcher : ExactMatcher|undefined;
     private _tpClient : Tp.BaseClient|null;
     private _cacheInterface ?: CacheInterface;
+    private _includeEntityValue : boolean;
+    private _excludeEntityDisplay : boolean;
 
     constructor(modeldir : string,
                 locale : string,
@@ -100,6 +104,8 @@ export default class LocalParserClient {
         this._exactmatcher = exactmatcher;
         this._tpClient = tpClient;
         this._cacheInterface = options.cacheInterface;
+        this._includeEntityValue = !!options.includeEntityValue;
+        this._excludeEntityDisplay = !!options.excludeEntityDisplay;
     }
 
     async start() : Promise<void> {
@@ -261,7 +267,9 @@ export default class LocalParserClient {
                             locale: this._locale,
                             timezone: this._platform?.timezone,
                             compatibility: options.thingtalk_version,
-                            ignoreSentence: true
+                            ignoreSentence: true,
+                            includeEntityValue: this._includeEntityValue,
+                            excludeEntityDisplay: this._excludeEntityDisplay,
                         }),
                         score: c.score
                     };

@@ -202,6 +202,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
         dest: 'debug',
         help: 'Disable debugging.',
     });
+    parser.add_argument('--include-entity-value', {
+        action: 'store_true',
+        help: "Include entity value in thingtalk",
+        default: false
+    });
+    parser.add_argument('--exclude-entity-display', {
+        action: 'store_true',
+        help: "Exclude entity display in thingtalk",
+        default: false
+    });
 }
 
 export async function execute(args : any) {
@@ -214,7 +224,10 @@ export async function execute(args : any) {
         schemas,
         i18n,
         tokenizer: i18n.getTokenizer(),
-        nlu: new LocalParserClient(args.nlu_model, args.locale, undefined, undefined, tpClient)
+        nlu: new LocalParserClient(args.nlu_model, args.locale, undefined, undefined, tpClient, {
+            includeEntityValue: args.include_entity_value,
+            excludeEntityDisplay: args.exclude_entity_display
+        })
     };
     app.backend.nlu.start();
     if (args.nlg_model && args.nlg_model !== args.nlu_model) {
