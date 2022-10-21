@@ -5,7 +5,7 @@ import {
     ContextInfo,
     addQuery,
 } from '../state_manip';
-import { areQuestionsValidForContext } from './coref-questions';
+// import { areQuestionsValidForContext } from './coref-questions';
 import {
     queryRefinement,
     refineFilterToAnswerQuestion,
@@ -17,12 +17,24 @@ function projectionDuringSlotFill(ctx : ContextInfo, questions : C.ParamSlot[]) 
     const lastTurnExp = ctx.state.history[ctx.state.history.length - 1].stmt.expression;
     const lastTurnSchema = lastTurnExp.schema!;
     // const lastTurnSchema = ctx.currentFunction!;
-    const thisTurnSchema = ctx.currentFunction!;
+    const thisTurnSchema = ctx.currentFunction;
+    if (!thisTurnSchema)
+        return null;
     // console.log(`lastTurnExp : ${lastTurnExp.prettyprint()}`);
     // console.log(`thisTurnSchema : ${thisTurnSchema.prettyprint()}`);
+    // console.log(ctx);
 
-    if (!areQuestionsValidForContext(ctx, questions))
+    // if the function only contains one parameter, do not generate projection for it
+    if (C.countInputOutputParams(thisTurnSchema).output === 1)
         return null;
+
+    for (const q of questions) {
+        if (!C.isSameFunction(thisTurnSchema, q.schema))
+            return null;
+        const arg = thisTurnSchema.getArgument(q.name);
+        if (!arg || arg.is_input)
+            return null;
+    }
 
     if (C.isSameFunction(lastTurnSchema, thisTurnSchema)) {
         // console.log("returning null due to last turn and this turn being the same function");
