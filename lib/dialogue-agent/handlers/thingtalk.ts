@@ -612,3 +612,47 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         return this._doAgentReply([]);
     }
 }
+
+/**
+ * Given an incoming delta expression and the old dialogue state, compute the new dialogue state.
+ * This function modifies @param analysis in-place, which will be the new dialogueHistoryItem
+ * corresponding to this user target.
+ * 
+ * The algorithm works in the following way:
+ * When a new request comes in as a delta, take a look at all items on the stack.
+ * Use the top related item - regardless of its status - to do apply.
+ * Then, put the applied result on the top. 
+ * 
+ * The reason behind is that the semantic parser should have already picked up the
+ * correct item in generating @param delta
+ * 
+ * @param delta incoming delta
+ * @param dialogueState old dialogue state
+ * @param analysis dialogue state returned by semantic parser
+ */
+
+export function handleIncomingDelta(delta : Ast.Levenshtein, dialogueState : Ast.DialogueState, analysis : Ast.DialogueState) {
+    const deltaInv = Ast.getAllInvocationExpression(delta);
+
+    // if we can not find an overlapping item, directly use delta as the new expression
+    // if an overlapping item is found, `applied` will be updated in the loop
+    let applied = new Ast.ExpressionStatement(null, delta.expression);
+
+    for (let i = dialogueState.history.length - 1; i >= 0; i --) {
+        const currInv = Ast.getAllInvocationExpression(dialogueState.history[i].stmt.expression.last);
+        if (Ast.ifOverlap(deltaInv, currInv)) {
+            const lastTurn = dialogueState.history[i].stmt;
+            applied = Ast.applyLevenshteinExpressionStatement(lastTurn, delta, dialogueState);
+            break;
+        }
+    }
+    // TODO: resolve this. This is here to solve a schema not-found issue
+    // if (!applied.expression.schema && delta.expression.expressions.)
+    //     applied.expression.schema = applied.expression.last.schema;
+
+    analysis.history[analysis.history.length - 1].stmt = applied;
+    if (!analysis.history[analysis.history.length - 1].stmt.expression.schema)
+        analysis.history[analysis.history.length - 1].stmt.expression.schema = analysis.history[analysis.history.length - 1].stmt.expression.last.schema;
+        // console.log("NO SCHEMA!!!");
+    console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
+}
