@@ -143,6 +143,12 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 0,
         help: 'Start evaluation from this line of input data',
     });
+    parser.add_argument('--annotate-errors-directory', {
+        required: false,
+        type: String,
+        default: '',
+        help: 'Whether to generate output in need of hand-annotation',
+    });
 }
 
 export async function execute(args : any) {
@@ -182,7 +188,8 @@ export async function execute(args : any) {
             tokenized: args.tokenized,
             debug: args.debug,
             complexityMetric: args.complexity_metric,
-            oracle: args.oracle
+            oracle: args.oracle,
+            annotateErrorsDirectory: args.annotate_errors
         }))
         .pipe(new CollectSentenceStatistics({
             minComplexity: args.min_complexity,
