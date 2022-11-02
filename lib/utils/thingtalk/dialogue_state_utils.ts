@@ -161,7 +161,30 @@ export function computePrediction(oldState : Ast.DialogueState|null, newState : 
  */
 const MAX_CONTEXT_ITEMS = 5;
 
-export function computeNewState(state : Ast.DialogueState|null, prediction : Ast.DialogueState, forTarget : 'user'|'agent') {
+export function computeNewState(state : Ast.DialogueState|null, prediction : Ast.DialogueState, forTarget : 'user'|'agent', evaluateDialog ?: boolean) {
+    if (evaluateDialog) {
+        const clone = new Ast.DialogueState(null, prediction.policy, prediction.dialogueAct, prediction.dialogueActParam, []);
+
+        // append all history elements that were confirmed
+        if (state !== null) {
+            for (const oldItem of state.history) {
+                if (oldItem.confirm !== 'confirmed')
+                    break;
+                const new_oldItem = oldItem.clone();
+                new_oldItem.levenshtein = null;
+                clone.history.push(new_oldItem);
+            }
+        }
+    
+        // append the prediction items
+        // when evaluating slots, get rid of all levenshteins
+        for (const i of prediction.history) {
+            const new_i = i.clone();
+            new_i.levenshtein = null;
+            clone.history.push(new_i);
+        }
+        return clone;
+    }
     const clone = new Ast.DialogueState(null, prediction.policy, prediction.dialogueAct, prediction.dialogueActParam, [], {
         nl: state?.nl_annotations,
         impl: state?.impl_annotations,
@@ -192,7 +215,7 @@ export function computeNewState(state : Ast.DialogueState|null, prediction : Ast
  * This controls how much information is carried from the context
  * and also the maximum length of the sequence.
  */
-const MAX_NEURAL_CONTEXT_ITEMS = 2;
+const MAX_NEURAL_CONTEXT_ITEMS = 5;
 
 export function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget : 'user'|'agent') : Ast.DialogueState|null {
     if (context === null)

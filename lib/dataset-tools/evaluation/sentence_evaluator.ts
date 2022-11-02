@@ -329,7 +329,7 @@ class SentenceEvaluator {
                 // stay cumulative along the beam
                 if (this._annotateErrorsDirectory) {
                     writeToFile = `${this._id}\t${this._context}\t${this._preprocessed}\t${target}\t${beam.join(' ')}\n`
-                    writeFileSync(`${this._annotateErrorsDirectory}/syntaxerrors_predictions_2.tsv`, writeToFile as string, {
+                    writeFileSync(`${this._annotateErrorsDirectory}/syntaxerrors_predictions.tsv`, writeToFile as string, {
                     flag: 'a',
                   });
                 }
@@ -354,7 +354,7 @@ class SentenceEvaluator {
                 if (parsed instanceof Ast.DialogueState && dialogueState instanceof Ast.DialogueState && dialogueState.history.length >= 1 && parsed.history.length >= 1) {
                     const delta    = parsed.history[parsed.history.length - 1].levenshtein;
                     if (delta)
-                        handleIncomingDelta(delta, dialogueState, parsed);
+                        handleIncomingDelta(dialogueState, parsed);
                 }
             }
 
@@ -442,13 +442,12 @@ class SentenceEvaluator {
                         locale: this._locale,
                         timezone: this._options.timezone,
                         ignoreSentence: true,
-                        includeEntityValue: this._includeEntityValue,
-                        toSourceArgument: 'no-statement',
+                        includeEntityValue: this._includeEntityValue
                      });
                     const normalizedCode = normalized.join(' ');
                     writeToFile = `${this._id}\t${this._context}\t${this._preprocessed}\t${normalizedTargetCode[referenceId]}\t${normalizedCode}\n`;
                     console.log(writeToFile);
-                    writeFileSync(`${this._annotateErrorsDirectory}/worng_predictions.tsv`, writeToFile as string, {
+                    writeFileSync(`${this._annotateErrorsDirectory}/wrong_predictions.tsv`, writeToFile as string, {
                     flag: 'a',
                   });
                 }

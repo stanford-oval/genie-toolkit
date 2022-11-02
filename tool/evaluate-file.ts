@@ -189,7 +189,7 @@ export async function execute(args : any) {
             debug: args.debug,
             complexityMetric: args.complexity_metric,
             oracle: args.oracle,
-            annotateErrorsDirectory: args.annotate_errors
+            annotateErrorsDirectory: args.annotate_errors_directory
         }))
         .pipe(new CollectSentenceStatistics({
             minComplexity: args.min_complexity,

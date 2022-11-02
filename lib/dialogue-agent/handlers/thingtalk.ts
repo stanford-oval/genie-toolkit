@@ -624,35 +624,39 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
  * Then, put the applied result on the top. 
  * 
  * The reason behind is that the semantic parser should have already picked up the
- * correct item in generating @param delta
+ * correct item in generating delta
  * 
- * @param delta incoming delta
  * @param dialogueState old dialogue state
  * @param analysis dialogue state returned by semantic parser
  */
 
-export function handleIncomingDelta(delta : Ast.Levenshtein, dialogueState : Ast.DialogueState, analysis : Ast.DialogueState) {
-    const deltaInv = Ast.getAllInvocationExpression(delta);
+export function handleIncomingDelta(dialogueState : Ast.DialogueState | null, analysis : Ast.DialogueState) {
+    if (!dialogueState)
+        return;
+    
+    for (const item of analysis.history) {
+        if (!item.levenshtein)
+            continue;
+        
+        const deltaInv = Ast.getAllInvocationExpression(item.levenshtein);
 
-    // if we can not find an overlapping item, directly use delta as the new expression
-    // if an overlapping item is found, `applied` will be updated in the loop
-    let applied = new Ast.ExpressionStatement(null, delta.expression);
+        // if we can not find an overlapping item, directly use delta as the new expression
+        // if an overlapping item is found, `applied` will be updated in the loop
+        let applied = new Ast.ExpressionStatement(null, item.levenshtein.expression);
 
-    for (let i = dialogueState.history.length - 1; i >= 0; i --) {
-        const currInv = Ast.getAllInvocationExpression(dialogueState.history[i].stmt.expression.last);
-        if (Ast.ifOverlap(deltaInv, currInv)) {
-            const lastTurn = dialogueState.history[i].stmt;
-            applied = Ast.applyLevenshteinExpressionStatement(lastTurn, delta, dialogueState);
-            break;
+        for (let i = dialogueState.history.length - 1; i >= 0; i --) {
+            const currInv = Ast.getAllInvocationExpression(dialogueState.history[i].stmt.expression.last);
+            if (Ast.ifOverlap(deltaInv, currInv)) {
+                const lastTurn = dialogueState.history[i].stmt;
+                applied = Ast.applyLevenshteinExpressionStatement(lastTurn, item.levenshtein, dialogueState);
+                break;
+            }
         }
-    }
-    // TODO: resolve this. This is here to solve a schema not-found issue
-    // if (!applied.expression.schema && delta.expression.expressions.)
-    //     applied.expression.schema = applied.expression.last.schema;
 
-    analysis.history[analysis.history.length - 1].stmt = applied;
-    if (!analysis.history[analysis.history.length - 1].stmt.expression.schema)
-        analysis.history[analysis.history.length - 1].stmt.expression.schema = analysis.history[analysis.history.length - 1].stmt.expression.last.schema;
-        // console.log("NO SCHEMA!!!");
-    console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
+        item.stmt = applied;
+        if (!item.stmt.expression.schema)
+            item.stmt.expression.schema = item.stmt.expression.last.schema;
+
+            // console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
+    }
 }
