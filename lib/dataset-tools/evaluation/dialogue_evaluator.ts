@@ -34,6 +34,8 @@ import { ParsedDialogue, DialogueTurn } from '../parsers';
 import * as ThingTalkUtils from '../../utils/thingtalk';
 import { SimulationDatabase } from '../../dialogue-agent/simulator/types';
 import SlotExtractor from './slot_extractor';
+import { handleIncomingDelta } from '../../dialogue-agent/handlers/thingtalk';
+import { writeFileSync } from 'fs';
 
 interface DialogueEvaluatorOptions {
     thingpediaClient : Tp.BaseClient;
@@ -46,6 +48,7 @@ interface DialogueEvaluatorOptions {
     oracle ?: boolean;
 
     debug ?: boolean;
+    annotateErrorsDirectory ?: string;
 }
 
 export interface ExampleEvaluationResult {
@@ -79,6 +82,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
     private _tokenized : boolean;
     private _slotExtractor : SlotExtractor;
     private _oracle : boolean;
+    private _annotateErrorsDirectory : string | undefined;
 
     private _minibatch : Array<Promise<ExampleEvaluationResult>>;
 
@@ -88,6 +92,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
 
         this._parser = parser;
         this._tokenizer = I18n.get(options.locale).getTokenizer();
+        this._annotateErrorsDirectory = options.annotateErrorsDirectory ? options.annotateErrorsDirectory : undefined;
 
         this._options = options;
         this._locale = options.locale;
@@ -128,7 +133,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
                 // the user speaks
                 const agentPrediction = await ThingTalkUtils.parse(turn.agent_target!, this._options);
                 assert(agentPrediction instanceof Ast.DialogueState);
-                context = ThingTalkUtils.computeNewState(context, agentPrediction, 'agent');
+                context = ThingTalkUtils.computeNewState(context, agentPrediction, 'agent', true);
             }
 
             const userContext = ThingTalkUtils.prepareContextForPrediction(context, 'user');
@@ -142,13 +147,16 @@ class DialogueEvaluatorStream extends Stream.Transform {
         const { tokens, entities } = await this._preprocess(turn.user, contextEntities);
         const goldUserTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
         assert(goldUserTarget instanceof Ast.DialogueState);
-        const goldUserState = ThingTalkUtils.computeNewState(context, goldUserTarget, 'user');
-        const goldSlots = await this._slotExtractor.extractSlots(goldUserState);
-
+        
         const targetCode = ThingTalkUtils.serializePrediction(goldUserTarget, tokens, entities, {
-           locale: this._locale,
-           timezone: this._timezone,
+            locale: this._locale,
+            timezone: this._timezone,
         }).join(' ');
+        
+        const goldUserTarget_slots = await ThingTalkUtils.parsePrediction(targetCode, entities, this._options, true);
+        assert(goldUserTarget_slots instanceof Ast.DialogueState);
+        const goldUserStateSlots = ThingTalkUtils.computeNewState(context, goldUserTarget_slots, 'user', true);
+        const goldSlots = await this._slotExtractor.extractSlots(goldUserStateSlots);
 
         let answer = undefined;
         if (this._oracle)
@@ -164,13 +172,19 @@ class DialogueEvaluatorStream extends Stream.Transform {
             .filter((beam) => beam.score !== 'Infinity') // ignore exact matches
             .map((beam) => beam.code);
 
+        let writeToFile;
         if (predictions.length === 0) {
             if (this._debug)
                 console.log(`${id}:${turnIndex}\twrong_syntax\t${contextCode.join(' ')}\t${turn.user}\tfailed\t${targetCode}`);
+            if (this._annotateErrorsDirectory) {
+                writeToFile = `${id}:${turnIndex}\t${contextCode.join(' ')}\t${turn.user}\t${targetCode}\t${predictions}\n`
+                writeFileSync(`${this._annotateErrorsDirectory}/syntaxerrors_predictions_evaluate_dialog.tsv`, writeToFile as string, {flag: 'a'});
+            }
             return 'wrong_syntax';
         }
 
         const choice : string[] = predictions[0];
+
 
         // first check if the program parses and typechecks (no hope otherwise)
         let predictedUserTarget : Ast.Input;
@@ -180,10 +194,19 @@ class DialogueEvaluatorStream extends Stream.Transform {
         } catch(e) {
             if (this._debug)
                 console.log(`${id}:${turnIndex}\twrong_syntax\t${contextCode.join(' ')}\t${turn.user}\t${choice.join(' ')}\t${targetCode}`);
+            if (this._annotateErrorsDirectory) {
+                writeToFile = `${id}:${turnIndex}\t${contextCode.join(' ')}\t${turn.user}\t${targetCode}\t${choice.join(' ')}\n`
+                writeFileSync(`${this._annotateErrorsDirectory}/syntaxerrors_predictions_evaluate_dialog.tsv`, writeToFile as string, {flag: 'a'});
+            }
             return 'wrong_syntax';
         }
 
-        const predictedUserState = ThingTalkUtils.computeNewState(context, predictedUserTarget, 'user');
+        // do levenshtein apply
+        handleIncomingDelta(context, predictedUserTarget);
+
+        // let us get rid of all proposed ones when comparing slots
+        const predictedUserState = ThingTalkUtils.computeNewState(context, predictedUserTarget, 'user', true);
+
         let predictedSlots;
         try {
             predictedSlots = await this._slotExtractor.extractSlots(predictedUserState);
@@ -202,7 +225,8 @@ class DialogueEvaluatorStream extends Stream.Transform {
         const normalized = ThingTalkUtils.serializePrediction(predictedUserTarget, tokens, entities, {
            locale: this._locale,
            timezone: this._timezone,
-           ignoreSentence: true
+           ignoreSentence: true,
+           toSourceArgument: 'no-levenshtein'
         }).join(' ');
 
         // check that by normalizing we did not accidentally mark wrong a program that
@@ -222,16 +246,46 @@ class DialogueEvaluatorStream extends Stream.Transform {
                 console.log(`${id}:${turnIndex}\tok\t${contextCode.join(' ')}\t${turn.user}\t${normalized}\t${targetCode}`);
             if (!deepEqual(goldSlots, predictedSlots, { strict: true })) {
                 console.error(goldSlots, predictedSlots);
-                throw new Error(`Program matches but slots do not`);
+                // throw new Error(`Program matches but slots do not`);
+            }
+            if (this._annotateErrorsDirectory) {
+                const normalized_ = ThingTalkUtils.serializePrediction(predictedUserTarget, tokens, entities, {
+                    locale: this._locale,
+                    timezone: this._options.timezone,
+                    ignoreSentence: true,
+                    toSourceArgument: 'no-statement'
+                    }).join(' ');
+                writeToFile = `${id}:${turnIndex}\t${contextCode.join(' ')}\t${turn.user}\t${targetCode}\t${normalized_}\n`;
+                writeFileSync(`${this._annotateErrorsDirectory}/correct_predictions_evaluate_dialog.tsv`, writeToFile as string, {flag: 'a'});
             }
             return 'ok';
         } else if (deepEqual(goldSlots, predictedSlots, { strict: true })) {
             if (this._debug)
                 console.log(`${id}:${turnIndex}\tok_slot\t${contextCode.join(' ')}\t${turn.user}\t${normalized}\t${targetCode}`);
+
+            if (this._annotateErrorsDirectory) {
+                const normalized_ = ThingTalkUtils.serializePrediction(predictedUserTarget, tokens, entities, {
+                    locale: this._locale,
+                    timezone: this._options.timezone,
+                    ignoreSentence: true,
+                    }).join(' ');
+                writeToFile = `${id}:${turnIndex}\t${contextCode.join(' ')}\t${turn.user}\t${targetCode}\t${normalized_}\n`;
+                writeFileSync(`${this._annotateErrorsDirectory}/wrong_predictions_evaluate_dialog.tsv`, writeToFile as string, {flag: 'a'});
+            }
             return 'ok_slot';
         } else {
             if (this._debug)
                 console.log(`${id}:${turnIndex}\tok_syntax\t${contextCode.join(' ')}\t${turn.user}\t${normalized}\t${targetCode}`);
+            
+            if (this._annotateErrorsDirectory) {
+                const normalized_ = ThingTalkUtils.serializePrediction(predictedUserTarget, tokens, entities, {
+                    locale: this._locale,
+                    timezone: this._options.timezone,
+                    ignoreSentence: true,
+                    }).join(' ');
+                writeToFile = `${id}:${turnIndex}\t${contextCode.join(' ')}\t${turn.user}\t${targetCode}\t${normalized_}\n`;
+                writeFileSync(`${this._annotateErrorsDirectory}/wrong_predictions_evaluate_dialog.tsv`, writeToFile as string, {flag: 'a'});
+            }
             return 'ok_syntax';
         }
     }

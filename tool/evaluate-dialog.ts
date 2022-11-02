@@ -112,6 +112,12 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'Indicates evaluation of an oracle model where ThingTalk code should be passed to the genienlp server',
         default: false
     });
+    parser.add_argument('--annotate-errors-directory', {
+        required: false,
+        type: String,
+        default: '',
+        help: 'Whether to generate output in need of hand-annotation',
+    });
 }
 
 export async function execute(args : any) {
@@ -135,7 +141,8 @@ export async function execute(args : any) {
             tokenized: args.tokenized,
             debug: args.debug,
             database: database,
-            oracle: args.oracle
+            oracle: args.oracle,
+            annotateErrorsDirectory: args.annotate_errors_directory
         }))
         .pipe(new CollectDialogueStatistics());
 

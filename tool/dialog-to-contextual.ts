@@ -177,8 +177,8 @@ class DialogueToTurnStream extends Stream.Transform {
         const code = await ThingTalkUtils.serializePrediction(userTarget, tokens, entities, {
             locale: this._locale,
             timezone: this._timezone,
-            includeEntityValue : this._includeEntityValue,
-            toSourceArgument: "no-statement",   // this gets rid of complete statement in context
+            includeEntityValue : this._includeEntityValue
+            // toSourceArgument: "no-statement",   // this gets rid of complete statement in context
         });
 
         if (this._dedupe) {

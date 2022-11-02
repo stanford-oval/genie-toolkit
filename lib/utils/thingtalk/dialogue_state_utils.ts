@@ -163,23 +163,46 @@ export function computePrediction(oldState : Ast.DialogueState|null, newState : 
  */
 const MAX_CONTEXT_ITEMS = 5;
 
-export function computeNewState(state : Ast.DialogueState|null, prediction : Ast.DialogueState, forTarget : 'user'|'agent') {
+export function computeNewState(state : Ast.DialogueState|null, prediction : Ast.DialogueState, forTarget : 'user'|'agent', evaluateDialog ?: boolean) {
+    if (evaluateDialog) {
+        const clone = new Ast.DialogueState(null, prediction.policy, prediction.dialogueAct, prediction.dialogueActParam, []);
+
+        // append all history elements that were confirmed
+        if (state !== null) {
+            for (const oldItem of state.history) {
+                if (oldItem.confirm !== 'confirmed')
+                    break;
+                const new_oldItem = oldItem.clone();
+                new_oldItem.levenshtein = null;
+                clone.history.push(new_oldItem);
+            }
+        }
+    
+        // append the prediction items
+        // when evaluating slots, get rid of all levenshteins
+        for (const i of prediction.history) {
+            const new_i = i.clone();
+            new_i.levenshtein = null;
+            clone.history.push(new_i);
+        }
+        return clone;
+    }
     const clone = new Ast.DialogueState(null, prediction.policy, prediction.dialogueAct, prediction.dialogueActParam, [], {
         nl: state?.nl_annotations,
         impl: state?.impl_annotations,
     });
 
     // append items that are accepted (user-initiated commands that need to be slot filled)
-    //                       proposed (agent-initiated commmands)
     //                   and confirmed (ready-to-execute commands)
-    // for proposed and accepted ones, we keep at most one outstanding item per domain
+    // for accepted ones, we keep at most one outstanding item per domain
     // domain currently defined as the last part of the ChainExpression
     // the algorithm works in the following way:
     // we iterate through the history of the old state (begin from the top of the stack)
     // for anything confirmed, we retain them
-    // for accepted or proposed, we check if they have appeared in `existingDomains`
+    // for accepted, we check if they have appeared in `existingDomains`
     // if not, add to it.
     // if yes, skip
+    // NOTE: we discard all proposed in this function. If they have not been accepted, they are discarded.
     if (state !== null) {
         const existingDomains : APICall[][] = [];
         // .slice() is to create a copy so not to modify in-place
@@ -187,7 +210,7 @@ export function computeNewState(state : Ast.DialogueState|null, prediction : Ast
         for (const oldItem of state.history.slice().reverse()) {
             if (oldItem.confirm === 'confirmed') {
                 clone.history.push(oldItem);
-            } else if (oldItem.confirm === 'accepted' || oldItem.confirm === 'proposed') {
+            } else if (oldItem.confirm === 'accepted') {
                 const oldItemInv = getAllInvocationExpression(oldItem.stmt.expression.last);
                 let found = false;
                 for (const i of existingDomains) {
@@ -221,7 +244,7 @@ export function computeNewState(state : Ast.DialogueState|null, prediction : Ast
  * This controls how much information is carried from the context
  * and also the maximum length of the sequence.
  */
-const MAX_NEURAL_CONTEXT_ITEMS = 2;
+const MAX_NEURAL_CONTEXT_ITEMS = 5;
 
 export function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget : 'user'|'agent') : Ast.DialogueState|null {
     if (context === null)
