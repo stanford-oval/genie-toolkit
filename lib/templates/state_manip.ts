@@ -414,6 +414,8 @@ export function getContextInfo(loader : ThingpediaLoader,
         const device = itemschema.class ? itemschema.class.name : null;
         if (currentDevice && device && device !== currentDevice)
             previousDomainItemIdx = currentItemIdx;
+        if (item.confirm === 'proposed')
+            continue;
         if (item.results === null) {
             nextItemIdx = idx;
             nextFunction = itemschema;

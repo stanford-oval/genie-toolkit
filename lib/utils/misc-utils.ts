@@ -78,7 +78,7 @@ export function cleanKind(kind : string) : string {
     return clean(kind);
 }
 
-function isOutputType(appName : string, funcName : string) : ((reply : ReplyResult) => boolean) {
+function isOutputType(appName : string | null, funcName : string | null) : ((reply : ReplyResult) => boolean) {
     return (reply : ReplyResult) => {
         if (reply.result_type) {
             const [_appName, _funcName] = cleanKind(reply.result_type).split(':');

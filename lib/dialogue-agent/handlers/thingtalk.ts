@@ -100,7 +100,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     icon : string|null = null;
     private _ : (x : string) => string;
     private _engine : Engine;
-    private _loop : DialogueLoop;
+    _loop : DialogueLoop;
     private _prefs : Tp.Preferences;
     private _langPack : I18n.LanguagePack;
     private _nlu : ParserClient.ParserClient;
@@ -240,13 +240,14 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         // convert to dialogue state, if not already
 
         // circumevent the function below in the special yes case
-        // in this case, we just need to set expect to null and hand over control to geniescript,
-        // or to anything on the dialogue state that needs to be executed
+        // in this case, we put a special state $yes on the dialogue state
+        // GenieScript programs have a choice of whether they are expecting this
+        // Meanwhile, if anything on the dialogue state that needs to be executed, they get executed first
         // this determination is done below - in `getReply`
         if (analysis.parsed instanceof Ast.ControlCommand &&
             analysis.parsed.intent instanceof Ast.SpecialControlIntent &&
             analysis.parsed.intent.type === 'yes' &&
-            this._loop.expecting === ValueCategory.Generic) {
+            this._loop.expecting != ValueCategory.YesNo) {
             return {
                 type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
                 utterance: analysis.utterance,
@@ -462,7 +463,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         }
         
         for (let i = this._dialogueState!.history.length - 1; i >= 0 ; i--) {
-            if (this._dialogueState.history[i].confirm === 'proposed' || this._dialogueState.history[i].confirm === 'accepted') {
+            if (this._dialogueState.history[i].confirm === 'accepted') {
                 this._loop.debug(`ThingTalk dialogue state ifExecutable returning true due to item ${this._dialogueState.history[i].prettyprint()}`);
                 return true;
             }
@@ -479,20 +480,21 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         if (analyzed.parsed instanceof Ast.ControlCommand &&
             analyzed.parsed.intent instanceof Ast.SpecialControlIntent &&
             analyzed.parsed.intent.type === 'yes' &&
-            this._loop.expecting === ValueCategory.Generic) {
+            this._loop.expecting != ValueCategory.YesNo) {
 
             // scan the dialogue state to understand whether there is anything that can be executed
             // if so, move the accepted item to the front and execute it
             // if not, hand back to dialogue looop
             if (this.ifExecutable()) {
                 // if the newest one is now completed, and there is
-                // more accepted/proposed ones further in the back, move those to the front
+                // more accepted ones further in the back, move those to the front
+                // NOTE: we do not move proposed ones
                 const newHistoryList = [];
-                const newHistoryListTop = []; // this stores all the accepted/proposed ones
+                const newHistoryListTop = []; // this stores all the accepted ones
                 const latestItem = this._dialogueState!.history[this._dialogueState!.history.length - 1];
                 if (latestItem.confirm === 'confirmed') {
                     for (let i = 0; i < this._dialogueState!.history.length; i ++) {
-                        if (this._dialogueState!.history[i].confirm !== 'confirmed')
+                        if (this._dialogueState!.history[i].confirm === 'accepted')
                             newHistoryListTop.push(this._dialogueState!.history[i]);
                         else
                             newHistoryList.push(this._dialogueState!.history[i]);
@@ -510,7 +512,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                         
                 return this._executeCurrentState();
             } else {
-                console.log("ThingTalk dialogue handler getReply: triggered special $yes procedure, set expecting to null");
+                console.log("ThingTalk dialogue handler getReply: triggered special $yes procedure, set user is Done on the dialogue state");
+                this._dialogueState!.userIsDone = true;
                 return {
                     messages: [],
                     context: this._dialogueState ? this._dialogueState.prettyprint() : 'null',
@@ -649,8 +652,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             this._dialogueState = newState;
 
             // TODO: figure out expecting
-            console.log(this._dialogueState);
-
             const expecting = ValueCategory.Generic;
             return {
                 messages: [response],
@@ -835,7 +836,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
  * @param analysis dialogue state returned by semantic parser
  */
 
-function handleIncomingDelta(delta : Ast.Levenshtein, dialogueState : Ast.DialogueState, analysis : Ast.DialogueState) {
+export function handleIncomingDelta(delta : Ast.Levenshtein, dialogueState : Ast.DialogueState, analysis : Ast.DialogueState) {
     const deltaInv = Ast.getAllInvocationExpression(delta);
 
     // if we can not find an overlapping item, directly use delta as the new expression
@@ -858,5 +859,5 @@ function handleIncomingDelta(delta : Ast.Levenshtein, dialogueState : Ast.Dialog
     if (!analysis.history[analysis.history.length - 1].stmt.expression.schema)
         analysis.history[analysis.history.length - 1].stmt.expression.schema = analysis.history[analysis.history.length - 1].stmt.expression.last.schema;
         // console.log("NO SCHEMA!!!");
-    console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
+    // console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
 }
