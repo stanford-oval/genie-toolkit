@@ -657,14 +657,16 @@ function makeSimpleState(ctx : ContextInfo,
                          dialogueActParam : string[]|null) : Ast.DialogueState {
     // a "simple state" carries the current executed/confirmed/accepted items, but not the
     // proposed ones
-    // UPDATE in delta: it now also contains the proposed ones
 
     const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
     for (let i = 0; i < ctx.state.history.length; i++) {
+        // NOTE: this is added back to the GenieScript dialogue state
+        //       this should not make a difference, because before this is called,
+        //       the proposed items should have been cleaned by other functions
+        if (ctx.state.history[i].confirm === 'proposed')
+            break;
         newState.history.push(ctx.state.history[i]);
     }
-    // newState.historyLevenshtein = ctx.state.historyLevenshtein;
-    // newState.historyAppliedLevenshtein = ctx.state.historyAppliedLevenshtein;
 
     return newState;
 }
