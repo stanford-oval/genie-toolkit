@@ -526,6 +526,7 @@ export class AgentDialog {
         // determine if this proposal has been accepted by the user
         // if no, re-ask the proposal, making this an explicit slot-fill
         // TODO
+        console.log(result)
     }
 }
 
