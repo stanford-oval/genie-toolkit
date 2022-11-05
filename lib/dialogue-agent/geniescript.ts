@@ -4,10 +4,11 @@ import assert from 'assert';
 import { Ast, Type } from "thingtalk";
 import { AgentReplyOptions } from '../templates/state_manip';
 import { ReplyResult } from './dialogue-loop';
-import ThingTalkDialogueHandler from './handlers/thingtalk';
+import ThingTalkDialogueHandler, { handleIncomingDelta } from './handlers/thingtalk';
 import { NaturalLanguageUserInput } from './user-input';
 import { ThingTalkUtils } from '..';
 import { parse, SyntaxType } from 'thingtalk/dist/syntax_api';
+import { isOutputType } from '../utils/thingtalk';
 
 type GeniescriptReplyResult = Tp.DialogueHandler.ReplyResult;
 
@@ -400,6 +401,8 @@ export class AgentDialog {
             const analyzed = await this.dialogueHandler!._parseCommand(sendToNLU);
             assert(analyzed.parsed instanceof Ast.DialogueState);
             assert(analyzed.parsed.history.length === 1);
+            
+            handleIncomingDelta(this.dialogueHandler!._dialogueState, analyzed.parsed);
             queryExpressionStatement = analyzed.parsed.history[0].stmt;
         }
         
@@ -450,7 +453,7 @@ export class AgentDialog {
             return {
                 status : DlgStatus.SUCCESS,
                 dialogueState : newDialogueState,
-                result : result.result_values![0]
+                result : result
             };
         } else if (determineQuerySuccess(newDialogueState, queryExpressionStatement)) {
             return {
@@ -527,7 +530,68 @@ export class AgentDialog {
         // if no, re-ask the proposal, making this an explicit slot-fill
         // TODO
         console.log(result)
+        const newDialogueState = this.dialogueHandler!._dialogueState;
+        return {
+            status : DlgStatus.SUCCESS,
+            dialogueState : newDialogueState,
+            result : result
+        };
     }
+
+    isOutputType(first : string | null, second : string | null) {
+        return isOutputType(first, second);
+    }
+
+    getLastCommand() : Ast.ChainExpression {
+        return this.dialogueHandler!._dialogueState!.history[this.dialogueHandler!._dialogueState!.history.length - 1].stmt.expression;
+    }
+
+    getLastResult() : Ast.DialogueHistoryResultList | null {
+        return this.dialogueHandler!._dialogueState!.history[this.dialogueHandler!._dialogueState!.history.length - 1].results;
+    }
+    
+    getLastResultSize() : number | null {
+        const res = this.dialogueHandler!._dialogueState!.history[this.dialogueHandler!._dialogueState!.history.length - 1].results;
+        if (!res)
+            return null
+        assert(res.count.isNumber && res.count instanceof Ast.NumberValue)
+        return res.count.value;
+    }
+
+    ifSimpleProjectionQuery(deviceName : string, functionName : string) {
+        const lastCommand = this.getLastCommand();
+        if (lastCommand.expressions.length !== 1)
+            return [false, null, null];
+        const expression = lastCommand.expressions[0];
+        if (!(expression instanceof Ast.ProjectionExpression))
+            return [false, null, null]
+        const invocations = Ast.getAllInvocationExpression(expression);
+        if (invocations.length === 1 &&
+            invocations[0] instanceof Ast.InvocationExpression &&
+            invocations[0].invocation.channel == functionName &&
+            invocations[0].invocation.selector.kind == deviceName) {
+                return [true, expression.args, expression];
+        }
+    }
+
+    ifExpressionContains(desiredName : string) {
+        const lastCommand = this.getLastCommand();
+        if (Ast.getAllFilterNames(lastCommand).indexOf(desiredName) >= 0)
+            return true;
+        return false;
+    }
+
+    ifExpressionNotContains(desiredName : string) {
+        const lastCommand = this.getLastCommand();
+        if (Ast.getAllFilterNames(lastCommand).indexOf(desiredName) == -1)
+            return true;
+        return false;
+    }
+
+
+    // sync_execute(node : Ast.ExpressionStatement | string) {
+    //     execute
+    // }
 }
 
 function determineQuerySuccess(state : Ast.DialogueState,
