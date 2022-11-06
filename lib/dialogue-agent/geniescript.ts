@@ -10,14 +10,29 @@ import { NaturalLanguageUserInput } from './user-input';
 import { determineSameExceptSlotFill } from '../templates/ast_manip';
 
 type GeniescriptReplyResult = Tp.DialogueHandler.ReplyResult;
+type GenieScriptTypeChecker = (reply : ReplyResult) => boolean;
 
 interface GeniescriptAnalysisResult extends Tp.DialogueHandler.CommandAnalysisResult {
     branch : string;
 }
 
+interface GeniescriptExecptionHandler {
+    layer : number;
+    handlers : Map<GenieScriptTypeChecker, GeniescriptLogic<ReplyResult, any>>;
+}
+
 interface GenieQuery {
     type : GenieQueryType;
     content : string | GeniescriptAnalysisResult | Tp.DialogueHandler.CommandAnalysisResult | ReplyResult;
+}
+
+class GeniescriptException extends Error {
+    public layer : number;
+
+    constructor(layer : number) {
+        super();
+        this.layer = layer;
+    }
 }
 
 // TODO: implement FAILED
@@ -145,6 +160,9 @@ export class AgentDialog {
     private _last_expecting : Type | null;
     private _last_target : string | null;
     private _last_content : string | null;
+    private _excpetion_handlers : GeniescriptExecptionHandler[] = [];
+    private _exception_layer  = 0;
+    private _break  = false;
     // this design would allow ThingTalk dialogue handler to share information
     // with other dialogue handlers. In particular, we would like it to share with the
     // Geniescript dialogue handler in order for it to access and modify the dialogue state, when necessary.
@@ -163,9 +181,48 @@ export class AgentDialog {
         this._last_content = null;
     }
 
+    /* Exception handler for geniescript
+     * @param policy: code to "try"
+     * @param exception_map: what to "catch", and what to do with it
+     *
+     * Essentially, this is a try-catch block:
+     * try {
+     *   policy();
+     * } catch (exception.key1) {
+     *   exception_map[exception.key1](exception);
+     *   back = false; // default behavior
+     * } catch (exception.key2) {
+     *   exception_map[exception.key2](exception);
+     *   back = true;
+     * }
+     *
+     * Implementation wise
+     */
+    async *handler(
+        policy : GeniescriptLogic<any, any>,
+        exception_map : Map<GenieScriptTypeChecker, GeniescriptLogic<ReplyResult, any>>,
+    ) : GeniescriptState<any> {
+        const current_exception_layer = this._exception_layer;
+        this._exception_layer += 1;
+        this._excpetion_handlers.push({ layer: current_exception_layer, handlers : exception_map });
+        try {
+            yield* policy(null);
+        } catch(e) {
+            if (e instanceof GeniescriptException) {
+                if (e.layer === current_exception_layer)
+                    return null;
+                else
+                    throw e;
+            } else {
+                throw e;
+            }
+        }
+        return null;
+    }
+
     async *expect(
         action_map : Map<string, GeniescriptLogic<string, any>> = new Map([]),
-        obj_predicate : ((reply : ReplyResult) => boolean) | null = null,
+        obj_predicate : (GenieScriptTypeChecker) | null = null,
         yes_action : GeniescriptLogic<ReplyResult, any> | null = null,
         no_prompt : string | null = null
     ) : GeniescriptState<any> {
@@ -250,6 +307,26 @@ export class AgentDialog {
                     else
                         throw Error("current_func is not a Function or GeneratorFunction");
                 } else {
+                    for (let i = 0; i < this._excpetion_handlers.length; i++) {
+                        self._break = true;
+                        const handler = this._excpetion_handlers[i];
+                        for (const key of handler.handlers.keys()) {
+                            if (key(reply)) {
+                                const current_func = handler.handlers.get(key)!;
+                                if (current_func.constructor.name === "GeneratorFunction" || current_func.constructor.name === "AsyncGeneratorFunction") {
+                                    yield* current_func(reply);
+                                    if (self._break)
+                                        throw new GeniescriptException(handler.layer);
+                                } else if (current_func.constructor.name === "AsyncFunction" || current_func.constructor.name === "Function" ) {
+                                    current_func(reply);
+                                    if (self._break)
+                                        throw new GeniescriptException(handler.layer);
+                                } else {
+                                    throw Error("current_func is not a Function or GeneratorFunction");
+                                }
+                            }
+                        }
+                    }
                     if (no_prompt !== null)
                         self.say([no_prompt]);
                 }
@@ -271,7 +348,7 @@ export class AgentDialog {
         this._last_expecting = expecting;
     }
 
-    async *execute(program : string, type_check : ((reply : ReplyResult) => boolean) | null = null) : GeniescriptState<any> {
+    async *execute(program : string, type_check : (GenieScriptTypeChecker) | null = null) : GeniescriptState<any> {
         if (this._last_analyzed !== null) {
             this._last_result = {
                 messages: this._last_messages,
