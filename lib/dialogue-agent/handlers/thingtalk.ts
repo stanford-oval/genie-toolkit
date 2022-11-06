@@ -100,7 +100,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     icon : string|null = null;
     private _ : (x : string) => string;
     private _engine : Engine;
-    private _loop : DialogueLoop;
+    _loop : DialogueLoop;
     private _prefs : Tp.Preferences;
     private _langPack : I18n.LanguagePack;
     private _nlu : ParserClient.ParserClient;
@@ -228,25 +228,21 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             return analysis;
 
         // do levenshtein apply, if semantic parser returns a dialogue state that contains delta
-        if (analysis.parsed instanceof Ast.DialogueState && this._dialogueState && this._dialogueState.history.length >= 1 && analysis.parsed.history.length >= 1) {
-            const delta    = analysis.parsed.history[analysis.parsed.history.length - 1].levenshtein;
-            // if semantic parser outputs delta
-            // defensive programming: legacy semantic parsers do not return delta
-            // `analysis.parsed` will be modified in-place
-            if (delta)
-                handleIncomingDelta(delta, this._dialogueState, analysis.parsed);
-        }
+        if (analysis.parsed instanceof Ast.DialogueState)
+            handleIncomingDelta(this._dialogueState, analysis.parsed);
+
 
         // convert to dialogue state, if not already
 
         // circumevent the function below in the special yes case
-        // in this case, we just need to set expect to null and hand over control to geniescript,
-        // or to anything on the dialogue state that needs to be executed
+        // in this case, we put a special state $yes on the dialogue state
+        // GenieScript programs have a choice of whether they are expecting this
+        // Meanwhile, if anything on the dialogue state that needs to be executed, they get executed first
         // this determination is done below - in `getReply`
         if (analysis.parsed instanceof Ast.ControlCommand &&
             analysis.parsed.intent instanceof Ast.SpecialControlIntent &&
             analysis.parsed.intent.type === 'yes' &&
-            this._loop.expecting === ValueCategory.Generic) {
+            this._loop.expecting != ValueCategory.YesNo) {
             return {
                 type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
                 utterance: analysis.utterance,
@@ -462,7 +458,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         }
         
         for (let i = this._dialogueState!.history.length - 1; i >= 0 ; i--) {
-            if (this._dialogueState.history[i].confirm === 'proposed' || this._dialogueState.history[i].confirm === 'accepted') {
+            if (this._dialogueState.history[i].confirm === 'accepted') {
                 this._loop.debug(`ThingTalk dialogue state ifExecutable returning true due to item ${this._dialogueState.history[i].prettyprint()}`);
                 return true;
             }
@@ -473,26 +469,29 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     }
 
     async getReply(analyzed : ThingTalkCommandAnalysisType) : Promise<ReplyResult> {
-        // if user utterance is $yes and the last expecting was generic
+        // if user utterance is $yes and there is no proposed items on the stack
+        // because if there was a proposed item, it means that this could be right
+        // after a initiateQuery or initiateAction, and we'd like the semantic parser deal with it
         // NOTE: this._loop.expecting retrieves the information from the dialogue loop
         //       which was set in last turn
         if (analyzed.parsed instanceof Ast.ControlCommand &&
             analyzed.parsed.intent instanceof Ast.SpecialControlIntent &&
             analyzed.parsed.intent.type === 'yes' &&
-            this._loop.expecting === ValueCategory.Generic) {
+            this._loop.expecting != ValueCategory.YesNo) {
 
             // scan the dialogue state to understand whether there is anything that can be executed
             // if so, move the accepted item to the front and execute it
             // if not, hand back to dialogue looop
             if (this.ifExecutable()) {
                 // if the newest one is now completed, and there is
-                // more accepted/proposed ones further in the back, move those to the front
+                // more accepted ones further in the back, move those to the front
+                // NOTE: we do not move proposed ones
                 const newHistoryList = [];
-                const newHistoryListTop = []; // this stores all the accepted/proposed ones
+                const newHistoryListTop = []; // this stores all the accepted ones
                 const latestItem = this._dialogueState!.history[this._dialogueState!.history.length - 1];
                 if (latestItem.confirm === 'confirmed') {
                     for (let i = 0; i < this._dialogueState!.history.length; i ++) {
-                        if (this._dialogueState!.history[i].confirm !== 'confirmed')
+                        if (this._dialogueState!.history[i].confirm === 'accepted')
                             newHistoryListTop.push(this._dialogueState!.history[i]);
                         else
                             newHistoryList.push(this._dialogueState!.history[i]);
@@ -510,7 +509,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                         
                 return this._executeCurrentState();
             } else {
-                console.log("ThingTalk dialogue handler getReply: triggered special $yes procedure, set expecting to null");
+                console.log("ThingTalk dialogue handler getReply: triggered special $yes procedure, set user is Done on the dialogue state");
+                this._dialogueState!.userIsDone = true;
                 return {
                     messages: [],
                     context: this._dialogueState ? this._dialogueState.prettyprint() : 'null',
@@ -649,8 +649,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             this._dialogueState = newState;
 
             // TODO: figure out expecting
-            console.log(this._dialogueState);
-
             const expecting = ValueCategory.Generic;
             return {
                 messages: [response],
@@ -828,35 +826,39 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
  * Then, put the applied result on the top. 
  * 
  * The reason behind is that the semantic parser should have already picked up the
- * correct item in generating @param delta
+ * correct item in generating delta
  * 
- * @param delta incoming delta
  * @param dialogueState old dialogue state
  * @param analysis dialogue state returned by semantic parser
  */
 
-function handleIncomingDelta(delta : Ast.Levenshtein, dialogueState : Ast.DialogueState, analysis : Ast.DialogueState) {
-    const deltaInv = Ast.getAllInvocationExpression(delta);
+export function handleIncomingDelta(dialogueState : Ast.DialogueState | null, analysis : Ast.DialogueState) {
+    if (!dialogueState)
+        return;
+    
+    for (const item of analysis.history) {
+        if (!item.levenshtein)
+            continue;
+        
+        const deltaInv = Ast.getAllInvocationExpression(item.levenshtein);
 
-    // if we can not find an overlapping item, directly use delta as the new expression
-    // if an overlapping item is found, `applied` will be updated in the loop
-    let applied = new Ast.ExpressionStatement(null, delta.expression);
+        // if we can not find an overlapping item, directly use delta as the new expression
+        // if an overlapping item is found, `applied` will be updated in the loop
+        let applied = new Ast.ExpressionStatement(null, item.levenshtein.expression);
 
-    for (let i = dialogueState.history.length - 1; i >= 0; i --) {
-        const currInv = Ast.getAllInvocationExpression(dialogueState.history[i].stmt.expression.last);
-        if (Ast.ifOverlap(deltaInv, currInv)) {
-            const lastTurn = dialogueState.history[i].stmt;
-            applied = Ast.applyLevenshteinExpressionStatement(lastTurn, delta, dialogueState);
-            break;
+        for (let i = dialogueState.history.length - 1; i >= 0; i --) {
+            const currInv = Ast.getAllInvocationExpression(dialogueState.history[i].stmt.expression.last);
+            if (Ast.ifOverlap(deltaInv, currInv)) {
+                const lastTurn = dialogueState.history[i].stmt;
+                applied = Ast.applyLevenshteinExpressionStatement(lastTurn, item.levenshtein, dialogueState);
+                break;
+            }
         }
-    }
-    // TODO: resolve this. This is here to solve a schema not-found issue
-    // if (!applied.expression.schema && delta.expression.expressions.)
-    //     applied.expression.schema = applied.expression.last.schema;
 
-    analysis.history[analysis.history.length - 1].stmt = applied;
-    if (!analysis.history[analysis.history.length - 1].stmt.expression.schema)
-        analysis.history[analysis.history.length - 1].stmt.expression.schema = analysis.history[analysis.history.length - 1].stmt.expression.last.schema;
-        // console.log("NO SCHEMA!!!");
-    console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
+        item.stmt = applied;
+        if (!item.stmt.expression.schema)
+            item.stmt.expression.schema = item.stmt.expression.last.schema;
+
+            // console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
+    }
 }

@@ -380,11 +380,20 @@ export class DialogueLoop {
             if (isCurrentGeniescript)
                 this._prevGeniescriptAgent = handler as ThingpediaDialogueHandler<any, any>;
 
+            // here, we ask if GS wants the reply when expecting equals to null or expecting equals to a special-cased "$yes".
+            // notice that this.expecting is different from `reply`.
+            // `reply` is what appears in the input parameter of dlg.expect
+            // if GS wants the reply (depending on whether it wants to be eager or not), we turn it over to GS
+            // if GS does not want it, we proceed again with GenieScript
             while (this.expecting === null) {
                 if (isCurrentGeniescript)
                     break;
                 if (this._prevGeniescriptAgent !== null) {
                     const gsReply = await this._prevGeniescriptAgent.getAgentInputFollowUp(reply);
+                    // at any point after Geniescript handler comes back, we set userIsDone to false again
+                    // because if it was true before, GS must have done something
+                    if (this._thingtalkHandler._dialogueState)
+                        this._thingtalkHandler._dialogueState.userIsDone = false;
                     if (gsReply.messages.length) {
                         this.icon = this._prevGeniescriptAgent.icon;
                         await this._sendAgentReply(gsReply);

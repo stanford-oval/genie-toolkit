@@ -21,7 +21,7 @@
 
 import assert from 'assert';
 
-import { Ast, Type, } from 'thingtalk';
+import { Ast } from 'thingtalk';
 
 import * as ThingTalkUtils from '../../utils/thingtalk';
 
@@ -246,9 +246,9 @@ function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
         dialogueAct = 'sys_recommend_many';
     }
     if (action === null)
-        return makeAgentReply(ctx, makeSimpleState(ctx, dialogueAct, null), proposal, Type.Any, options);
+        return makeAgentReply(ctx, makeSimpleState(ctx, dialogueAct, null), proposal, null, options);
     else
-        return makeAgentReply(ctx, addAction(ctx, dialogueAct, action, 'proposed'), proposal, Type.Any, options);
+        return makeAgentReply(ctx, addAction(ctx, dialogueAct, action, 'proposed'), proposal, null, options);
 }
 
 function positiveListProposalReply(loader : ThingpediaLoader,

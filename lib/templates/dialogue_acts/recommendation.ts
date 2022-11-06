@@ -21,7 +21,7 @@
 
 import assert from 'assert';
 
-import { Ast, Type, } from 'thingtalk';
+import { Ast } from 'thingtalk';
 
 import * as ThingTalkUtils from '../../utils/thingtalk';
 
@@ -298,7 +298,7 @@ function makeRecommendationReply(ctx : ContextInfo, proposal : Recommendation) {
     };
     // we neglect all the recommend actions for now. This is giving us strange results
     // TODO: clean this up
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_recommend_one', null), proposal, Type.Any, options);
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_recommend_one', null), proposal, null, options);
 }
 
 function makeDisplayResultReply(ctx : ContextInfo, proposal : Recommendation) {

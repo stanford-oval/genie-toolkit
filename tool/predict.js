@@ -37,6 +37,7 @@ class PredictStream extends Stream.Transform {
     }
 
     async _process(ex) {
+        ex.context = ex.context.split();
         const parsed = await this._parser.sendUtterance(ex.preprocessed, ex.context, {}, {
             tokenized: this._tokenized,
             skip_typechecking: true

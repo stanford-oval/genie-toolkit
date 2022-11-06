@@ -309,6 +309,10 @@ export default class SlotExtractor {
                 // (unless they are an "or" of one operand)
                 return expr.operands.length === 1;
             }
+
+            visitLevenshtein(node: Ast.Levenshtein): boolean {
+                throw Error('I still have levenshtein? No way');
+            }
         });
 
         // remove slots that are not in multiwoz
