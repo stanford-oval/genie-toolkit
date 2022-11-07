@@ -39,7 +39,7 @@ class GeniescriptException extends Error {
 }
 
 // TODO: implement FAILED
-export enum DLGResultStatus {
+export enum DlgStatus {
     SUCCESS,
     INTRRUPTED,
     QUERY_FAIL
