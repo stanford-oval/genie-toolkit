@@ -639,19 +639,19 @@ export class AgentDialog {
     }
 
     ifSimpleProjectionQuery(deviceName : string, functionName : string) {
-        const lastCommand = this.getLastCommand();
+        const lastCommand = this.dialogueHandler!._dialogueState!.history[this.dialogueHandler!._dialogueState!.history.length - 1].levenshtein!.expression;
         if (lastCommand.expressions.length !== 1)
             return [false, null, null];
         const expression = lastCommand.expressions[0];
         if (!(expression instanceof Ast.ProjectionExpression))
-            return [false, null, null]
+            return [false, null, null];
         const invocations = Ast.getAllInvocationExpression(expression);
         if (invocations.length === 1 &&
             invocations[0] instanceof Ast.InvocationExpression &&
-            invocations[0].invocation.channel == functionName &&
-            invocations[0].invocation.selector.kind == deviceName) {
-                return [true, expression.args, expression];
-        }
+            invocations[0].invocation.channel === functionName &&
+            invocations[0].invocation.selector.kind === deviceName)
+            return [true, expression.args, expression];
+        return [false, null, null];
     }
 
     ifExpressionContains(desiredName : string) {
