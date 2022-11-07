@@ -32,7 +32,7 @@ import type {
 } from './abstract_dialogue_agent';
 
 // above MORE_SIZE, we set the "more" bit
-const MORE_SIZE = 50;
+const MORE_SIZE = 10000;
 // above PAGE_SIZE, we set the count but don't actually show the full list of results
 const PAGE_SIZE = 10;
 
