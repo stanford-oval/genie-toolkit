@@ -252,6 +252,28 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             };
         }
 
+        if (analysis.parsed instanceof Ast.DialogueState && analysis.parsed.dialogueAct.includes('cancel')) {
+            // speical processing floor
+            const lastItem = this._dialogueState!.history[this._dialogueState!.history.length - 1].stmt;
+            const table = Ast.getAllInvocationExpression(lastItem)[0] as Ast.InvocationExpression;
+            const expression = lastItem.clone();
+            expression.expression.expressions[0] = table;
+            for (const item of Ast.getAllAtomBooleanExpressions(lastItem)) {
+                if (item.name === 'floor') {
+                    expression.expression.expressions[0] = new Ast.FilterExpression(null, table, item, expression.expression.expressions[0].schema);
+                    break;
+                }
+            }
+            this._dialogueState!.history = [new Ast.DialogueHistoryItem(null, expression, null, 'confirmed', new Ast.Levenshtein(null, expression.expression, '$continue'))];
+            return {
+                type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
+                utterance: analysis.utterance,
+                user_target: analysis.parsed.prettyprint(),
+                answer: analysis.answer,
+                parsed: analysis.parsed,
+            };
+        }
+
         const prediction = await ThingTalkUtils.inputToDialogueState(this._policy, this._dialogueState, analysis.parsed);
         if (prediction === null) {
             analysis.type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
@@ -289,6 +311,20 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 };
             }
         }
+
+        // special case out some cancel keywords
+        if (command.utterance.includes('start over') ||
+            command.utterance.includes('restart') || 
+            command.utterance.includes('cancel')) {
+            return {
+                type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP,
+                utterance: command.utterance,
+                user_target: new Ast.DialogueState(null, "org.thingpedia.dialogue.transaction", "cancel", null, []).prettyprint(),
+                answer: null,
+                parsed: new Ast.DialogueState(null, "org.thingpedia.dialogue.transaction", "cancel", null, []),
+            };
+        }
+
 
         // ok so this was a natural language
 

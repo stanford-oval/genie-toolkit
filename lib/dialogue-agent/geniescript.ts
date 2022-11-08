@@ -461,8 +461,9 @@ export class AgentDialog {
      */
     async *initiateQuery(queryString : string,
                          agentUtterance : string,
-                         waitForAck : boolean = true,
-                         expected : [string | null, string | null]){
+                         waitForAck = true,
+                         expected : [string | null, string | null],
+                         additional : any = null) {
 
         let queryExpressionStatement;
 
@@ -484,6 +485,8 @@ export class AgentDialog {
             
             handleIncomingDelta(this.dialogueHandler!._dialogueState, analyzed.parsed);
             queryExpressionStatement = analyzed.parsed.history[0].stmt;
+            if (additional !== null)
+                queryExpressionStatement = additional(queryExpressionStatement);
         }
         
         // construct the new dialogue state and update in dialogue loop
@@ -638,8 +641,16 @@ export class AgentDialog {
         return res.count.value;
     }
 
-    ifSimpleProjectionQuery(deviceName : string, functionName : string) {
-        const lastCommand = this.dialogueHandler!._dialogueState!.history[this.dialogueHandler!._dialogueState!.history.length - 1].levenshtein!.expression;
+    ifSimpleProjectionQuery(deviceName : string, functionName : string, onlyLastTurn : boolean) {
+        let lastCommand;
+        if (onlyLastTurn) {
+            if (!this.dialogueHandler!._dialogueState!.history[this.dialogueHandler!._dialogueState!.history.length - 1].levenshtein)
+                return [false, null, null];
+            lastCommand = this.dialogueHandler!._dialogueState!.history[this.dialogueHandler!._dialogueState!.history.length - 1].levenshtein!.expression;
+        } else {
+            lastCommand = this.getLastCommand();
+
+        }
         if (lastCommand.expressions.length !== 1)
             return [false, null, null];
         const expression = lastCommand.expressions[0];
