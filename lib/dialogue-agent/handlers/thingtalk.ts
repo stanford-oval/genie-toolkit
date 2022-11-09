@@ -242,7 +242,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         if (analysis.parsed instanceof Ast.ControlCommand &&
             analysis.parsed.intent instanceof Ast.SpecialControlIntent &&
             analysis.parsed.intent.type === 'yes' &&
-            this._loop.expecting != ValueCategory.YesNo) {
+            this._loop.expecting !== ValueCategory.YesNo) {
             return {
                 type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
                 utterance: analysis.utterance,

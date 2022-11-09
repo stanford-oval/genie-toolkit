@@ -466,9 +466,9 @@ export class AgentDialog {
 
         let queryExpressionStatement;
 
-        if (queryString.startsWith("\\t")) {
+        if (queryString.startsWith("\\t ")) {
             // extract query from user-inputed ThingTalk command
-            queryString = queryString.split(' ', 1)[1];
+            queryString = queryString.substring(3);
             const queryProgram = parse(queryString, SyntaxType.Normal, { timezone: undefined }) as Ast.Program;
             queryExpressionStatement = queryProgram.statements[0]
             if (!(queryExpressionStatement instanceof Ast.ExpressionStatement))
