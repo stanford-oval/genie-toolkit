@@ -22,7 +22,7 @@ interface GeniescriptExecptionHandler {
     handlers : Map<GenieScriptTypeChecker, GeniescriptLogic<ReplyResult, any>>;
 }
 
-interface GenieQuery {
+export interface GenieQuery {
     type : GenieQueryType;
     content : string | GeniescriptAnalysisResult | Tp.DialogueHandler.CommandAnalysisResult | ReplyResult;
 }
