@@ -2,7 +2,6 @@
 import * as Tp from 'thingpedia';
 import assert from 'assert';
 import { Ast, Type } from "thingtalk";
-import { AgentReplyOptions } from '../templates/state_manip';
 import { ReplyResult } from './dialogue-loop';
 import ThingTalkDialogueHandler, { handleIncomingDelta } from './handlers/thingtalk';
 import { NaturalLanguageUserInput } from './user-input';
@@ -38,7 +37,7 @@ class GeniescriptException extends Error {
     }
 }
 
-// TODO: implement FAILED
+// TODO: investigate how to put this under AgentDialog
 export enum DlgStatus {
     SUCCESS,
     INTRRUPTED,
@@ -386,95 +385,56 @@ export class AgentDialog {
     }
 
     /**
-     * Propose an action to user. If user accepts the action, it will be automatically executed.
-     * This corresponds to agent semantic function `makeRecommendationReply`, used to propose actions
-     * 
-     * @param actionString 
-     * @param actionDescription
-     * TODO: figure out the return possibilities
-     * @returns GeniescriptResponse, which is a possibility of:
-     *          - succeeded   : the user accepts the proposal and the action is executed
-     *          - declined    : the user did not accept the proposal
-     *          - interrupted : the user asks another question and the dialogue flow was re-directed
-     */
-    async *initiateAction(actionString : string, actionDescription : string) {
-        this.say([actionDescription]);
-        // consult the contextual semantic parser for the developer-inputted user utterances
-        const sendToNLU : NaturalLanguageUserInput = { type : 'command', utterance : actionString, platformData : {} };
-        const analyzed = await this.dialogueHandler!._parseCommand(sendToNLU);
-        assert(analyzed.parsed instanceof Ast.DialogueState);
-        assert(analyzed.parsed.history.length === 1);
-        const action = (analyzed.parsed.history[0].stmt.expression.first as Ast.InvocationExpression).invocation;
-
-        // TODO: very likely, all other things except state will not be used in `options`
-        //       figure that out
-        const options : AgentReplyOptions = {
-            numResults: 1
-        };
-        options.end = false;
-
-        // construct the new dialogue state and update TT handler's dialogue state
-        const newState = addActionParam(this.dialogueHandler!._dialogueState!, 'sys_recommend_one', action, 'proposed');
-        this.dialogueHandler!._dialogueState = newState;
-        
-        // wrap and return
-        // TODO: when user declines, what to do?
-        const blob = yield *this.expect(
-            new Map([]),
-            null,
-            null,
-            null
-        );
-        return blob;
-    }
-
-    /**
-     * Propose a query to user, and if accepted, return the query result to user.
+     * Propose a query or action to user, and if accepted, return the query result to user.
      * 
      * The DlgStatus result can be either:
-     * (1) SUCCESS, which is when user accepted the query as is; Genie succesfully executed the query;
-     *     the result is returned to the user; and the LATEST result returned matches @param expected
+     * (1) SUCCESS, which is when the final returned result to user matches @param expectedType,
+     *     regardless of whether the original query is accepted as is
+     *     e.g. if an agent proposes "would you like to search for French restaurants?" and sets expected to be
+     *     ['com.yelp', 'restaurant'], if user actually issued query about Japense restaurants, SUCCESS is still returned
      * (2) QUERY_FAIL, which is when user accepted the query as is, but the above conditions do not match
-     * (3) INTERRUPTED, which is when user does not choose to accept the query as is.
-     *     The user could have executed a refined query, a different query, or just abandoned this proposal.
-     *     More information can be retrieved from the dialogue state returned
-     * 
-     * @remark it is possible that the user accepted the query as is; Genie successfully executed the query,
-     *         but the latest result returned to the user does not match @param expected, due to
-     *         the possibility of user executing more queries/actions in the middle
-     * 
-     * @remark in case where the DlgStatus is QUERY_FAIL and INTERRUPTED,
-     *         inspection of the dialogue state and reply result would help in understanding
+     * (3) INTERRUPTED, which is neither of the above conditions.
+     *     the user could have executed a refined query, a different query, or just abandoned this proposal,
+     *     and the returned result does not match @param expectedType
+     *      * 
+     * @remark in case where the DlgStatus is QUERY_FAIL and INTERRUPTED, it is recommended to 
+     *         inspect the dialogue state and reply result to understand
      *         what happened after this query was proposed
      * 
      * @param {string} queryString either the ThingTalk of the query to be executed, or the natural langauge expressing it
-     *                             if using explicit ThingTalk, the string must begin with `\t` and followed by a space
+     *                             if using explicit ThingTalk, the string must begin with `\\t` and followed by a space
      *                             if using natural language, this function will consult the contextual semantic parser
      *                             for the formal representation
-     * @param {string} agentUtterance - what the agent says in natural language to user when proposing this query
+     * @param {string} agentUtterance
+     *                             what the agent says in natural language to user when proposing this query
+     * @param {string} expectedType
+     *                             expected result returned. This plays a role in the returned status
+     *                             If set to both null, the all results are accepted as SUCCESS, as long as there are some results
      * @param {boolean} waitForAck  whether to intercept the query result as soon as the query is executed
      *                              if true, this function will return immediately if the user's query is executed
-     * @param {[string | null, string | null]} expected - expected result returned. This plays a role in the returned status
+     *                                                         
+     *                                                      
      *                                              
      * @returns {{DlgStatus, Ast.DialogueState, ReplyResult}} status returned, dialogue state at this point, and concrete results
      * 
      */
-    async *initiateQuery(queryString : string,
-                         agentUtterance : string,
-                         waitForAck : boolean = true,
-                         expected : [string | null, string | null]){
+    async *propose(queryString : string,
+                   agentUtterance : string,
+                   expectedType : string,
+                   waitForAck = true) {
 
         let queryExpressionStatement;
 
         if (queryString.startsWith("\\t")) {
             // extract query from user-inputed ThingTalk command
-            queryString = queryString.split(' ', 1)[1];
+            queryString = queryString.substring(3);
             const queryProgram = parse(queryString, SyntaxType.Normal, { timezone: undefined }) as Ast.Program;
-            queryExpressionStatement = queryProgram.statements[0]
-            if (!(queryExpressionStatement instanceof Ast.ExpressionStatement))
-                throw Error (`initiateQuery: developer-supplied queryString is not of type ExpressionStatement: ${queryString} \n
-                              parsed result: ${queryProgram} \n
-                              This suggests that the ThingTalk input is not correct. Consider changing it.`);
+            queryExpressionStatement = queryProgram.statements[0];
+            if (!(queryExpressionStatement instanceof Ast.ExpressionStatement)) {
+                throw Error(`initiateQuery: developer-supplied queryString is not of type ExpressionStatement: ${queryString} \n
+                            parsed result: ${queryProgram} \n
+                            This suggests that the ThingTalk input is not correct. Consider changing it.`);
+            }
         } else {
             // consult the contextual semantic parser for the developer-inputted user utterances
             const sendToNLU : NaturalLanguageUserInput = { type : 'command', utterance : queryString, platformData : {} };
@@ -503,49 +463,50 @@ export class AgentDialog {
             result = yield *this.expect(
                 new Map([]),
                 (reply) => true,
-                result => result,
+                (result) => result,
                 null
             );
         } else {
             // if waiting for ack, everytime it comes back, we check if dialogue state has userIsDone equal to true
-            result = yield *this.expect(
+            let last_result_before_ack = yield *this.expect(
                 new Map([]),
                 (reply) => true,
-                result => result,
+                (result) => result,
                 null
             );
+            let new_result;
             while (!this.dialogueHandler!._dialogueState.userIsDone) {
+                new_result = last_result_before_ack;
                 console.log("initiateQuery: waitForAck set, user is still not done, hand back to ThingTalk handler");
-                result = yield *this.expect(
+                last_result_before_ack = yield *this.expect(
                     new Map([]),
                     (reply) => true,
-                    result => result,
+                    (result) => result,
                     null,
                 );
             }
+            result = new_result;
         }
 
         // check results and return
         const newDialogueState = this.dialogueHandler!._dialogueState;
-        if (result.result_type &&
-            ThingTalkUtils.isOutputType(expected[0], expected[1])(result) &&
-            determineQuerySuccess(newDialogueState, queryExpressionStatement)) {
+        if (result.result_type && result.result_type === expectedType) {
             return {
                 status : DlgStatus.SUCCESS,
                 dialogueState : newDialogueState,
-                result : result
+                results : result.result_values
             };
         } else if (determineQuerySuccess(newDialogueState, queryExpressionStatement)) {
             return {
                 status : DlgStatus.QUERY_FAIL,
                 dialogueState : newDialogueState,
-                result : result
+                results : result
             };
         } else {
             return {
                 status : DlgStatus.INTRRUPTED,
                 dialogueState : newDialogueState,
-                result : result
+                results : result
             };
         }
     }
@@ -571,7 +532,7 @@ export class AgentDialog {
 
     async *proposeQueryRefinement(proposeField : string[],
                                   agentUtterance : string,
-                                  waitForAck : boolean = true) {
+                                  waitForAck = true) {
         // set the dialogue act directly
         this.dialogueHandler!._dialogueState!.dialogueAct = 'sys_search_question';
         this.dialogueHandler!._dialogueState!.dialogueActParam = proposeField;
@@ -585,7 +546,7 @@ export class AgentDialog {
             result = yield *this.expect(
                 new Map([]),
                 (reply) => true,
-                result => result,
+                (result) => result,
                 null
             );
         } else {
@@ -593,14 +554,14 @@ export class AgentDialog {
             result = yield *this.expect(
                 new Map([]),
                 (reply) => true,
-                result => result,
+                (result) => result,
                 null
             );
             while (!this.dialogueHandler!._dialogueState!.userIsDone) {
                 result = yield *this.expect(
                     new Map([]),
                     (reply) => true,
-                    result => result,
+                    (result) => result,
                     null,
                 );
             }
@@ -609,7 +570,7 @@ export class AgentDialog {
         // determine if this proposal has been accepted by the user
         // if no, re-ask the proposal, making this an explicit slot-fill
         // TODO
-        console.log(result)
+        console.log(result);
         const newDialogueState = this.dialogueHandler!._dialogueState;
         return {
             status : DlgStatus.SUCCESS,
@@ -633,8 +594,8 @@ export class AgentDialog {
     getLastResultSize() : number | null {
         const res = this.dialogueHandler!._dialogueState!.history[this.dialogueHandler!._dialogueState!.history.length - 1].results;
         if (!res)
-            return null
-        assert(res.count.isNumber && res.count instanceof Ast.NumberValue)
+            return null;
+        assert(res.count.isNumber && res.count instanceof Ast.NumberValue);
         return res.count.value;
     }
 
@@ -644,14 +605,14 @@ export class AgentDialog {
             return [false, null, null];
         const expression = lastCommand.expressions[0];
         if (!(expression instanceof Ast.ProjectionExpression))
-            return [false, null, null]
+            return [false, null, null];
         const invocations = Ast.getAllInvocationExpression(expression);
         if (invocations.length === 1 &&
             invocations[0] instanceof Ast.InvocationExpression &&
-            invocations[0].invocation.channel == functionName &&
-            invocations[0].invocation.selector.kind == deviceName) {
-                return [true, expression.args, expression];
-        }
+            invocations[0].invocation.channel === functionName &&
+            invocations[0].invocation.selector.kind === deviceName)
+            return [true, expression.args, expression];
+        return [false, null, null];
     }
 
     ifExpressionContains(desiredName : string) {
@@ -663,70 +624,21 @@ export class AgentDialog {
 
     ifExpressionNotContains(desiredName : string) {
         const lastCommand = this.getLastCommand();
-        if (Ast.getAllFilterNames(lastCommand).indexOf(desiredName) == -1)
+        if (Ast.getAllFilterNames(lastCommand).indexOf(desiredName) === -1)
             return true;
         return false;
     }
 
-
-    // sync_execute(node : Ast.ExpressionStatement | string) {
-    //     execute
-    // }
 }
 
 function determineQuerySuccess(state : Ast.DialogueState,
                                initialQuery : Ast.ExpressionStatement) {
     for (const item of state.history) {
-        if (item.stmt.expression.equals(initialQuery.expression) &&
-            item.confirm != 'proposed') {
-                return true;
-        }
+        if (item.stmt.expression.equals(initialQuery.expression) && item.confirm !== 'proposed')
+            return true;
     }
     return false;
 
-}
-
-
-function addActionParam(dialogueState : Ast.DialogueState,
-                        dialogueAct : string,
-                        action : Ast.Invocation,
-                        confirm : 'accepted' | 'proposed') : Ast.DialogueState {
-    assert(action instanceof Ast.Invocation);
-    assert(['accepted', 'confirmed', 'proposed'].indexOf(confirm) >= 0);
-
-    const in_params = action.in_params;
-    const setparams = new Set;
-    for (const param of action.in_params) {
-        if (param.value.isUndefined)
-            continue;
-        setparams.add(param.name);
-    }
-    const schema = action.schema;
-
-    // TODO: need to make this back online
-    // // make sure we add all $undefined values, otherwise we'll fail
-    // // to recognize that the statement is not yet executable, and we'll
-    // // crash in the compiler
-    // for (const arg of schema.iterateArguments()) {
-    //     if (arg.is_input && arg.required && !setparams.has(arg.name))
-    //         in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
-    // }
-
-    const newInvocation = new Ast.Invocation(null,
-        action.selector,
-        action.channel,
-        in_params,
-        schema
-    );
-    const newStmt = new Ast.ExpressionStatement(null,
-        new Ast.InvocationExpression(null, newInvocation, schema));
-    const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm, null);
-
-    const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, null, dialogueState.history);
-    newState.history.push(newHistoryItem);
-
-    // TODO : figure out if we need to propagateDeviceIDs or adjustDefaultParameters
-    return newState;
 }
 
 export const POLICY_NAME = 'org.thingpedia.dialogue.transaction';

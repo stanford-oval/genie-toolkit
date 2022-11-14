@@ -242,7 +242,29 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         if (analysis.parsed instanceof Ast.ControlCommand &&
             analysis.parsed.intent instanceof Ast.SpecialControlIntent &&
             analysis.parsed.intent.type === 'yes' &&
-            this._loop.expecting != ValueCategory.YesNo) {
+            this._loop.expecting !== ValueCategory.YesNo) {
+            return {
+                type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
+                utterance: analysis.utterance,
+                user_target: analysis.parsed.prettyprint(),
+                answer: analysis.answer,
+                parsed: analysis.parsed,
+            };
+        }
+
+        if (analysis.parsed instanceof Ast.DialogueState && analysis.parsed.dialogueAct.includes('cancel')) {
+            // speical processing floor
+            const lastItem = this._dialogueState!.history[this._dialogueState!.history.length - 1].stmt;
+            const table = Ast.getAllInvocationExpression(lastItem)[0] as Ast.InvocationExpression;
+            const expression = lastItem.clone();
+            expression.expression.expressions[0] = table;
+            for (const item of Ast.getAllAtomBooleanExpressions(lastItem)) {
+                if (item.name === 'floor') {
+                    expression.expression.expressions[0] = new Ast.FilterExpression(null, table, item, expression.expression.expressions[0].schema);
+                    break;
+                }
+            }
+            this._dialogueState!.history = [new Ast.DialogueHistoryItem(null, expression, null, 'confirmed', new Ast.Levenshtein(null, expression.expression, '$continue'))];
             return {
                 type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
                 utterance: analysis.utterance,
@@ -477,7 +499,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         if (analyzed.parsed instanceof Ast.ControlCommand &&
             analyzed.parsed.intent instanceof Ast.SpecialControlIntent &&
             analyzed.parsed.intent.type === 'yes' &&
-            this._loop.expecting != ValueCategory.YesNo) {
+            this._loop.expecting !== ValueCategory.YesNo) {
 
             // scan the dialogue state to understand whether there is anything that can be executed
             // if so, move the accepted item to the front and execute it
