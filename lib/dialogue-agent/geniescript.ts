@@ -21,7 +21,7 @@ interface GeniescriptExecptionHandler {
     handlers : Map<GenieScriptTypeChecker, GeniescriptLogic<ReplyResult, any>>;
 }
 
-interface GenieQuery {
+export interface GenieQuery {
     type : GenieQueryType;
     content : string | GeniescriptAnalysisResult | Tp.DialogueHandler.CommandAnalysisResult | ReplyResult;
 }
@@ -425,7 +425,7 @@ export class AgentDialog {
 
         let queryExpressionStatement;
 
-        if (queryString.startsWith("\\t")) {
+        if (queryString.startsWith("\\t ")) {
             // extract query from user-inputed ThingTalk command
             queryString = queryString.substring(3);
             const queryProgram = parse(queryString, SyntaxType.Normal, { timezone: undefined }) as Ast.Program;

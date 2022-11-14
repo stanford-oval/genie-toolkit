@@ -258,12 +258,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             const table = Ast.getAllInvocationExpression(lastItem)[0] as Ast.InvocationExpression;
             const expression = lastItem.clone();
             expression.expression.expressions[0] = table;
-            for (const item of Ast.getAllAtomBooleanExpressions(lastItem)) {
-                if (item.name === 'floor') {
-                    expression.expression.expressions[0] = new Ast.FilterExpression(null, table, item, expression.expression.expressions[0].schema);
-                    break;
-                }
-            }
             this._dialogueState!.history = [new Ast.DialogueHistoryItem(null, expression, null, 'confirmed', new Ast.Levenshtein(null, expression.expression, '$continue'))];
             return {
                 type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
