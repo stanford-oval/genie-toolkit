@@ -1,0 +1,3 @@
+query-filters:
+  - exclude:
+      id: js/template-syntax-in-string-literal
