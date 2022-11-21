@@ -237,7 +237,7 @@ export class DialogueLoop {
 
     private _getDefaultDevice() : string {
         const pref = this.engine.platform.getSharedPreferences();
-        return pref.get('default-device') as string;
+        return pref.get('default-agent') as string;
     }
 
     private _formatError(error : Error|string) {

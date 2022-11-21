@@ -251,6 +251,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: false,
         help: 'NLP server URL to use for NLG; must be specified to use neural NLG.'
     });
+    parser.add_argument('--default-agent', {
+        required: false,
+        help: 'Defatult GenieScript assistant agent to be used.'
+    });
+    parser.add_argument('--mixed-initiative', {
+        required: false,
+        default: true,
+        action: 'store_true',
+        help: 'Enable GenieScript assistant agent.'
+    });
     parser.add_argument('--debug', {
         required: false,
         default: false,
@@ -269,6 +279,13 @@ export async function execute(args : any) {
     const prefs = platform.getSharedPreferences();
     if (args.thingpedia_dir && args.thingpedia_dir.length)
         prefs.set('developer-dir', args.thingpedia_dir);
+    if (args.mixed_initiative)
+        prefs.set('mixed-initiative', args.mixed_initiative);
+    if (args.default_agent)
+        prefs.set('default-agent', args.default_agent);
+    else
+        // reset to false if default agent is not set
+        prefs.set('mixed-initiative', false);
     prefs.set('experimental-use-neural-nlg', !!args.nlg_server_url);
     const engine = new Engine(platform);
 
