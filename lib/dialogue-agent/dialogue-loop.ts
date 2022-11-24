@@ -141,6 +141,7 @@ export class DialogueLoop {
     private _mgrPromise : Promise<void>|null;
 
     private _mixedInitiative : boolean;
+    private _cleanStart : boolean;
 
     constructor(conversation : Conversation,
                 engine : Engine,
@@ -154,7 +155,8 @@ export class DialogueLoop {
                         url : string;
                         highConfidence ?: number;
                         lowConfidence ?: number;
-                    }>
+                    }>;
+                    cleanStart : boolean
                 }) {
         this._commandInputQueue = new AsyncQueue();
         this._notifyQueue = new AsyncQueue();
@@ -185,6 +187,7 @@ export class DialogueLoop {
         this._mgrPromise = null;
         
         this._mixedInitiative = this._useMixedInitiative();
+        this._cleanStart = options.cleanStart;
     }
 
     get _() : (x : string) => string {
@@ -458,7 +461,7 @@ export class DialogueLoop {
     }
 
     private async _initializeDefaultDevice(deviceId : string) {
-        console.log(`Initialize default assistant: ${deviceId}`);
+        console.log(`Initialize default assistant agent: ${deviceId}`);
         const defaultInput : UserInput = {
             type: 'command',
             utterance: `${deviceId} init`,
@@ -470,11 +473,16 @@ export class DialogueLoop {
 
     private async _loop(showWelcome : boolean, initialState : Record<string, unknown>|null) {
         if (this._mixedInitiative) {
-            console.log(`Mixed-initiative mode activated`);
+            console.log(`Mixed-initiative mode: enabled`);
             const deviceId = this._getDefaultDevice();
             if (!initialState || initialState.deviceId === undefined)
                 await this._initializeDefaultDevice(deviceId);
+        } else {
+            console.log(`Mixed-initiative mode: disabled`);
         }
+        
+        if (this._cleanStart)
+            await this.clearDialogueState();
 
         await this._initialize(showWelcome, initialState);
 
@@ -513,6 +521,15 @@ export class DialogueLoop {
                 }
             }
         }
+    }
+
+    async clearDialogueState() {
+        for (const handler of this._iterateDialogueHandlers())
+            handler.reset();
+        this._currentHandler = null;
+        this.icon = null;
+        await this.setExpected(null);
+        console.log('Dialogue state cleared');
     }
 
     async nextQueueItem() : Promise<QueueItem> {

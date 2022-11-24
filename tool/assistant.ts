@@ -261,6 +261,12 @@ export function initArgparse(subparsers : argparse.SubParser) {
         action: 'store_true',
         help: 'Enable GenieScript assistant agent.'
     });
+    parser.add_argument('--clean-start', {
+        required: false,
+        default: false,
+        action: 'store_true',
+        help: 'Starts GenieScript with a clean dialogue state'
+    });
     parser.add_argument('--debug', {
         required: false,
         default: false,
@@ -297,6 +303,7 @@ export async function execute(args : any) {
         nluServerUrl: args.nlu_server_url,
         nlgServerUrl: args.nlg_server_url,
         debug: args.debug,
+        cleanStart: args.clean_start,
         showWelcome: true
     });
     await conversation.addOutput(new CommandLineDelegate(rl));
