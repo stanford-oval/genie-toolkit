@@ -345,6 +345,8 @@ export class DialogueLoop {
             this.conversation.updateLog('user_target', analysis.user_target);
             await this.conversation.turnFinished();
 
+            // console.log(this._thingtalkHandler.getState());
+
             if (!handler) {
                 await this.fail();
                 return;
@@ -770,6 +772,20 @@ export class DialogueLoop {
             this._notifyQueue.cancelWait(new CancellationError());
         else
             this._commandInputQueue.cancelWait(new CancellationError());
+    }
+
+    async partialStop() {
+        this._stopped = true;
+        this.reset();
+        this._dynamicHandlers.stop();
+    }
+
+    async partialStart(showWelcome : boolean, initialState : Record<string, unknown>|null) {
+        this._stopped = false;
+        this._dynamicHandlers.start();
+        const promise = this._waitNextCommand();
+        this._tryLoop(showWelcome, initialState);
+        return promise;
     }
 
     private _pushQueueItem(item : QueueItem) {

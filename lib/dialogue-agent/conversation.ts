@@ -235,6 +235,23 @@ export default class Conversation extends events.EventEmitter {
         return this._loop.stop();
     }
 
+    async restart(state ?: ConversationState, clearState ?: boolean) : Promise<void> {
+        await this._loop.partialStop();
+        await this._history.init();
+        this._resetInactivityTimeout();
+        if (state) {
+            this._lastMessageId = state.lastMessageId;
+            this._recording = state.recording;
+        }
+        this._started = true;
+        if (clearState) {
+            this._loop.clearDialogueState();
+            return this._loop.partialStart(!!this._options.showWelcome, null);
+        } else {
+            return this._loop.partialStart(!!this._options.showWelcome, state ? state.dialogueState : null);
+        }
+    }
+
     private _resetInactivityTimeout() {
         // after "options.contextResetTimeout", we reset the context, forgetting the state of the
         // conversation

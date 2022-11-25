@@ -175,6 +175,12 @@ class CommandLineHandler {
             await this._engine.createDevice(parsed);
         } else if (cmd === 'delete') {
             await this._engine.deleteDevice(param);
+        } else if (cmd === 'restart') {
+            const state = this._conversation.getState();
+            let clearState = false;
+            if (param === 'clean')
+                clearState = true;
+            await this._conversation.restart(state, clearState);
         }
     }
 
