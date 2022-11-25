@@ -123,6 +123,7 @@ class CommandLineHandler {
         console.log('\\d complete-oauth <url> : finish oauth');
         console.log('\\d update <kind> : update devices');
         console.log('\\d delete <uuid> : delete device');
+        console.log('\\d restart [clean] : reload dialogue loop (reset dialogue state)');
         console.log('\\= <pref> : show a preference value');
         console.log('\\= <pref> <value> : set a preference value');
         console.log('\\? or \\h : show this help');

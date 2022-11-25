@@ -245,7 +245,6 @@ export default class Conversation extends events.EventEmitter {
         }
         this._started = true;
         if (clearState) {
-            this._loop.clearDialogueState();
             return this._loop.partialStart(!!this._options.showWelcome, null);
         } else {
             return this._loop.partialStart(!!this._options.showWelcome, state ? state.dialogueState : null);
