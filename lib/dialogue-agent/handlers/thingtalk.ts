@@ -227,10 +227,17 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         if (analysis.type === CommandAnalysisType.DEBUG || analysis.type === CommandAnalysisType.STOP)
             return analysis;
 
-        // do levenshtein apply, if semantic parser returns a dialogue state that contains delta
-        if (analysis.parsed instanceof Ast.DialogueState)
+        // defensive programming
+        if (analysis.parsed instanceof Ast.DialogueState) {
+            // do levenshtein apply
             handleIncomingDelta(this._dialogueState, analysis.parsed);
 
+            // record the natural language utterance
+            if (command.type === 'command' && command.utterance) {
+                for (const i of analysis.parsed.history)
+                    i.utterance = command.utterance;
+            }
+        }
 
         // convert to dialogue state, if not already
 
@@ -514,10 +521,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                     }
                     this._dialogueState!.history = newHistoryList.concat(newHistoryListTop);
 
-                    // retrieved from that dialogue act
-                    // const newDialogueAct = this._dialogueState!.history[this._dialogueState!.history.length - 1].dialogueAct;
-                    // assert(newDialogueAct);
-                    // this._dialogueState!.dialogueAct = newDialogueAct;
+                    // set the stage for execution of statement on behalf of user
                     this._dialogueState!.dialogueAct = "execute";
                 } else {
                     console.log("WARNING: user says okay, decided that there is still accepted ones on the dialogue state. Yet, the last item is confirmed");
@@ -874,7 +878,5 @@ export function handleIncomingDelta(dialogueState : Ast.DialogueState | null, an
         item.stmt = applied;
         if (!item.stmt.expression.schema)
             item.stmt.expression.schema = item.stmt.expression.last.schema;
-
-            // console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
     }
 }
