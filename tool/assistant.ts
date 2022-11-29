@@ -286,7 +286,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 function purgeDB(platform : Platform) {
     console.log('Clean-start initiated');
     const dir = platform.getWritableDir();
-    const regex = /sqlite.db.*/ig;
+    const regex = /sqlite.db.*/i;
     fs.readdirSync(dir)
         .filter((f) => regex.test(f))
         .forEach((f) => {
