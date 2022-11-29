@@ -284,15 +284,15 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 function purgeDB(platform : Platform) {
-    console.log('Clean start initiated');
+    console.log('Clean-start initiated');
     const dir = platform.getWritableDir();
-    let regex = /sqlite.db.*/ig;
+    const regex = /sqlite.db.*/ig;
     fs.readdirSync(dir)
-    .filter((f) => regex.test(f))
-    .map((f) => {
-        fs.unlinkSync(dir + '/' + f);
-        console.log(`${dir + '/' + f} deleted`);
-    })
+        .filter((f) => regex.test(f))
+        .forEach((f) => {
+            fs.unlinkSync(dir + '/' + f);
+            console.log(`${dir + '/' + f} deleted`);
+        });
 }
 
 export async function execute(args : any) {
@@ -314,9 +314,8 @@ export async function execute(args : any) {
         prefs.set('mixed-initiative', false);
     prefs.set('experimental-use-neural-nlg', !!args.nlg_server_url);
 
-    if (args.clean_start) {
+    if (args.clean_start)
         purgeDB(platform);
-    }
 
     const engine = new Engine(platform);
 
