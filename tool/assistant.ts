@@ -21,6 +21,7 @@
 import * as argparse from 'argparse';
 import * as readline from 'readline';
 import * as Tp from 'thingpedia';
+import * as fs from 'fs';
 
 import Engine from '../lib/engine';
 import Platform from './lib/cmdline-platform';
@@ -282,6 +283,18 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
 }
 
+function purgeDB(platform : Platform) {
+    console.log('Clean start initiated');
+    const dir = platform.getWritableDir();
+    let regex = /sqlite.db.*/ig;
+    fs.readdirSync(dir)
+    .filter((f) => regex.test(f))
+    .map((f) => {
+        fs.unlinkSync(dir + '/' + f);
+        console.log(`${dir + '/' + f} deleted`);
+    })
+}
+
 export async function execute(args : any) {
     if (!args.thingpedia_url)
         args.thingpedia_url = await getConfig('thingpedia.url', process.env.THINGPEDIA_URL || DEFAULT_THINGPEDIA_URL);
@@ -300,6 +313,11 @@ export async function execute(args : any) {
         // reset to false if default agent is not set
         prefs.set('mixed-initiative', false);
     prefs.set('experimental-use-neural-nlg', !!args.nlg_server_url);
+
+    if (args.clean_start) {
+        purgeDB(platform);
+    }
+
     const engine = new Engine(platform);
 
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
