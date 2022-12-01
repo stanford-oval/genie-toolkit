@@ -180,8 +180,17 @@ class CommandLineHandler {
         } else if (cmd === 'restart') {
             const state = this._conversation.getState();
             let clearState = false;
-            if (param === 'clean')
+            if (param === 'clean') {
                 clearState = true;
+                const deviceIds = this._engine.getDeviceInfos().map((dev) => dev.uniqueId);
+                for (const id of deviceIds) {
+                    console.log(id);
+                    if (id.includes('builtin') || id.includes('thingengine'))
+                        continue;
+                    else
+                        await this._engine.upgradeDevice(id, true);
+                }
+            }
             await this._conversation.restart(state, clearState);
         }
     }
