@@ -447,7 +447,7 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
                 continue;
 
             this.schemas.removeFromCache(kind);
-            await this._factory.updateDeviceClass(kind);
+            await this._factory.updateDeviceClass(kind, false);
             const newClass = await this._factory.getDeviceClass(kind);
             if (newClass.metadata.version !== oldVersion)
                 await this._reloadAllDevices(kind);
