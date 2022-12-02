@@ -508,21 +508,24 @@ export class AgentDialog {
             );
         } else {
             // if waiting for ack, everytime it comes back, we check if dialogue state has userIsDone equal to true
-            result = yield *this.expect(
+            let last_result_before_ack = yield *this.expect(
                 new Map([]),
                 (reply) => true,
                 result => result,
                 null
             );
+            let new_result;
             while (!this.dialogueHandler!._dialogueState.userIsDone) {
+                new_result = last_result_before_ack;
                 console.log("initiateQuery: waitForAck set, user is still not done, hand back to ThingTalk handler");
-                result = yield *this.expect(
+                last_result_before_ack = yield *this.expect(
                     new Map([]),
                     (reply) => true,
                     result => result,
                     null,
                 );
             }
+            result = new_result;
         }
 
         // check results and return
@@ -617,6 +620,7 @@ export class AgentDialog {
             result : result
         };
     }
+
 
     isOutputType(first : string | null, second : string | null) {
         return isOutputType(first, second);
