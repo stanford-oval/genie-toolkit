@@ -21,6 +21,7 @@
 import * as argparse from 'argparse';
 import * as readline from 'readline';
 import * as Tp from 'thingpedia';
+import * as fs from 'fs';
 
 import Engine from '../lib/engine';
 import Platform from './lib/cmdline-platform';
@@ -123,6 +124,7 @@ class CommandLineHandler {
         console.log('\\d complete-oauth <url> : finish oauth');
         console.log('\\d update <kind> : update devices');
         console.log('\\d delete <uuid> : delete device');
+        console.log('\\d restart [clean] : reload dialogue loop (reset dialogue state)');
         console.log('\\= <pref> : show a preference value');
         console.log('\\= <pref> <value> : set a preference value');
         console.log('\\? or \\h : show this help');
@@ -175,6 +177,12 @@ class CommandLineHandler {
             await this._engine.createDevice(parsed);
         } else if (cmd === 'delete') {
             await this._engine.deleteDevice(param);
+        } else if (cmd === 'restart') {
+            const state = this._conversation.getState();
+            let clearState = false;
+            if (param === 'clean')
+                clearState = true;
+            await this._conversation.restart(state, clearState);
         }
     }
 
@@ -251,12 +259,40 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: false,
         help: 'NLP server URL to use for NLG; must be specified to use neural NLG.'
     });
+    parser.add_argument('--default-agent', {
+        required: false,
+        help: 'Defatult GenieScript assistant agent to be used.'
+    });
+    parser.add_argument('--mixed-initiative', {
+        required: false,
+        default: true,
+        action: 'store_true',
+        help: 'Enable GenieScript assistant agent.'
+    });
+    parser.add_argument('--clean-start', {
+        required: false,
+        default: false,
+        action: 'store_true',
+        help: 'Starts GenieScript with a clean dialogue state'
+    });
     parser.add_argument('--debug', {
         required: false,
         default: false,
         action: 'store_true',
         help: 'Enable additional debugging.'
     });
+}
+
+function purgeDB(platform : Platform) {
+    console.log('Clean-start initiated');
+    const dir = platform.getWritableDir();
+    const regex = /sqlite.db.*/ig;
+    fs.readdirSync(dir)
+        .filter((f) => regex.test(f))
+        .forEach((f) => {
+            fs.unlinkSync(dir + '/' + f);
+            console.log(`${dir + '/' + f} deleted`);
+        });
 }
 
 export async function execute(args : any) {
@@ -269,7 +305,18 @@ export async function execute(args : any) {
     const prefs = platform.getSharedPreferences();
     if (args.thingpedia_dir && args.thingpedia_dir.length)
         prefs.set('developer-dir', args.thingpedia_dir);
+    if (args.mixed_initiative)
+        prefs.set('mixed-initiative', args.mixed_initiative);
+    if (args.default_agent)
+        prefs.set('default-agent', args.default_agent);
+    else
+        // reset to false if default agent is not set
+        prefs.set('mixed-initiative', false);
     prefs.set('experimental-use-neural-nlg', !!args.nlg_server_url);
+
+    if (args.clean_start)
+        purgeDB(platform);
+
     const engine = new Engine(platform);
 
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -280,6 +327,7 @@ export async function execute(args : any) {
         nluServerUrl: args.nlu_server_url,
         nlgServerUrl: args.nlg_server_url,
         debug: args.debug,
+        cleanStart: args.clean_start,
         showWelcome: true
     });
     await conversation.addOutput(new CommandLineDelegate(rl));

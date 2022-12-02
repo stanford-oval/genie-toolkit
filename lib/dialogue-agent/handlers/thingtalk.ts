@@ -227,10 +227,17 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         if (analysis.type === CommandAnalysisType.DEBUG || analysis.type === CommandAnalysisType.STOP)
             return analysis;
 
-        // do levenshtein apply, if semantic parser returns a dialogue state that contains delta
-        if (analysis.parsed instanceof Ast.DialogueState)
+        // defensive programming
+        if (analysis.parsed instanceof Ast.DialogueState) {
+            // do levenshtein apply
             handleIncomingDelta(this._dialogueState, analysis.parsed);
 
+            // record the natural language utterance
+            if (command.type === 'command' && command.utterance) {
+                for (const i of analysis.parsed.history)
+                    i.utterance = command.utterance;
+            }
+        }
 
         // convert to dialogue state, if not already
 
@@ -243,6 +250,22 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             analysis.parsed.intent instanceof Ast.SpecialControlIntent &&
             analysis.parsed.intent.type === 'yes' &&
             this._loop.expecting !== ValueCategory.YesNo) {
+            return {
+                type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
+                utterance: analysis.utterance,
+                user_target: analysis.parsed.prettyprint(),
+                answer: analysis.answer,
+                parsed: analysis.parsed,
+            };
+        }
+
+        if (analysis.parsed instanceof Ast.DialogueState && analysis.parsed.dialogueAct.includes('cancel')) {
+            // speical processing floor
+            const lastItem = this._dialogueState!.history[this._dialogueState!.history.length - 1].stmt;
+            const table = Ast.getAllInvocationExpression(lastItem)[0] as Ast.InvocationExpression;
+            const expression = lastItem.clone();
+            expression.expression.expressions[0] = table;
+            this._dialogueState!.history = [new Ast.DialogueHistoryItem(null, expression, null, 'confirmed', new Ast.Levenshtein(null, expression.expression, '$continue'))];
             return {
                 type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
                 utterance: analysis.utterance,
@@ -477,7 +500,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         if (analyzed.parsed instanceof Ast.ControlCommand &&
             analyzed.parsed.intent instanceof Ast.SpecialControlIntent &&
             analyzed.parsed.intent.type === 'yes' &&
-            this._loop.expecting != ValueCategory.YesNo) {
+            this._loop.expecting !== ValueCategory.YesNo) {
 
             // scan the dialogue state to understand whether there is anything that can be executed
             // if so, move the accepted item to the front and execute it
@@ -498,10 +521,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                     }
                     this._dialogueState!.history = newHistoryList.concat(newHistoryListTop);
 
-                    // retrieved from that dialogue act
-                    // const newDialogueAct = this._dialogueState!.history[this._dialogueState!.history.length - 1].dialogueAct;
-                    // assert(newDialogueAct);
-                    // this._dialogueState!.dialogueAct = newDialogueAct;
+                    // set the stage for execution of statement on behalf of user
                     this._dialogueState!.dialogueAct = "execute";
                 } else {
                     console.log("WARNING: user says okay, decided that there is still accepted ones on the dialogue state. Yet, the last item is confirmed");
@@ -858,7 +878,5 @@ export function handleIncomingDelta(dialogueState : Ast.DialogueState | null, an
         item.stmt = applied;
         if (!item.stmt.expression.schema)
             item.stmt.expression.schema = item.stmt.expression.last.schema;
-
-            // console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
     }
 }

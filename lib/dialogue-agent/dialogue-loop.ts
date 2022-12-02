@@ -141,6 +141,7 @@ export class DialogueLoop {
     private _mgrPromise : Promise<void>|null;
 
     private _mixedInitiative : boolean;
+    private _cleanStart : boolean;
 
     constructor(conversation : Conversation,
                 engine : Engine,
@@ -154,7 +155,8 @@ export class DialogueLoop {
                         url : string;
                         highConfidence ?: number;
                         lowConfidence ?: number;
-                    }>
+                    }>;
+                    cleanStart : boolean
                 }) {
         this._commandInputQueue = new AsyncQueue();
         this._notifyQueue = new AsyncQueue();
@@ -185,6 +187,7 @@ export class DialogueLoop {
         this._mgrPromise = null;
         
         this._mixedInitiative = this._useMixedInitiative();
+        this._cleanStart = options.cleanStart;
     }
 
     get _() : (x : string) => string {
@@ -237,7 +240,7 @@ export class DialogueLoop {
 
     private _getDefaultDevice() : string {
         const pref = this.engine.platform.getSharedPreferences();
-        return pref.get('default-device') as string;
+        return pref.get('default-agent') as string;
     }
 
     private _formatError(error : Error|string) {
@@ -341,6 +344,8 @@ export class DialogueLoop {
             this.conversation.updateLog('user', analysis.utterance);
             this.conversation.updateLog('user_target', analysis.user_target);
             await this.conversation.turnFinished();
+
+            // console.log(this._thingtalkHandler.getState());
 
             if (!handler) {
                 await this.fail();
@@ -458,7 +463,7 @@ export class DialogueLoop {
     }
 
     private async _initializeDefaultDevice(deviceId : string) {
-        console.log(`Initialize default assistant: ${deviceId}`);
+        console.log(`Initialize default assistant agent: ${deviceId}`);
         const defaultInput : UserInput = {
             type: 'command',
             utterance: `${deviceId} init`,
@@ -470,11 +475,16 @@ export class DialogueLoop {
 
     private async _loop(showWelcome : boolean, initialState : Record<string, unknown>|null) {
         if (this._mixedInitiative) {
-            console.log(`Mixed-initiative mode activated`);
+            console.log(`Mixed-initiative mode: enabled`);
             const deviceId = this._getDefaultDevice();
             if (!initialState || initialState.deviceId === undefined)
                 await this._initializeDefaultDevice(deviceId);
+        } else {
+            console.log(`Mixed-initiative mode: disabled`);
         }
+        
+        if (this._cleanStart)
+            await this.clearDialogueState();
 
         await this._initialize(showWelcome, initialState);
 
@@ -513,6 +523,15 @@ export class DialogueLoop {
                 }
             }
         }
+    }
+
+    async clearDialogueState() {
+        for (const handler of this._iterateDialogueHandlers())
+            handler.reset();
+        this._currentHandler = null;
+        this.icon = null;
+        await this.setExpected(null);
+        console.log('Dialogue state cleared');
     }
 
     async nextQueueItem() : Promise<QueueItem> {
@@ -753,6 +772,20 @@ export class DialogueLoop {
             this._notifyQueue.cancelWait(new CancellationError());
         else
             this._commandInputQueue.cancelWait(new CancellationError());
+    }
+
+    async partialStop() {
+        this._stopped = true;
+        this.reset();
+        this._dynamicHandlers.stop();
+    }
+
+    async partialStart(showWelcome : boolean, initialState : Record<string, unknown>|null) {
+        this._stopped = false;
+        this._dynamicHandlers.start();
+        const promise = this._waitNextCommand();
+        this._tryLoop(showWelcome, initialState);
+        return promise;
     }
 
     private _pushQueueItem(item : QueueItem) {
