@@ -579,6 +579,7 @@ export class AgentDialog {
         };
     }
 
+
     isOutputType(first : string | null, second : string | null) {
         return isOutputType(first, second);
     }
