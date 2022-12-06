@@ -85,7 +85,7 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
 
         while (true) {
             try {
-                yield* this.dlg!.expect(new Map([
+                yield* this.dlg!._expect(new Map([
                     [prompt_str, (async function*() {
                         yield* self.logic();
                     })]
@@ -95,7 +95,7 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
             } finally {
                 const error_prompt = "Geniescript had an error or exited. Please restart genie.";
                 this.dlg.say([error_prompt]);
-                yield* this.dlg.expect(new Map([]), null, null, error_prompt);
+                yield* this.dlg._expect(new Map([]), null, null, error_prompt);
             }
         }
     }
@@ -217,7 +217,16 @@ export class AgentDialog {
         return null;
     }
 
-    async *expect(
+    /**
+     * Internal expect for all dlg functions
+     * 
+     * @param action_map 
+     * @param obj_predicate 
+     * @param yes_action 
+     * @param no_prompt 
+     * @returns 
+     */
+    async *_expect(
         action_map : Map<string, GeniescriptLogic<string, any>> = new Map([]),
         obj_predicate : (GenieScriptTypeChecker) | null = null,
         yes_action : GeniescriptLogic<ReplyResult, any> | null = null,
@@ -337,6 +346,35 @@ export class AgentDialog {
         }
     }
 
+    // wraps dlg._expect until Ack and expected result
+    async *_waitForAckExpect(
+        action_map : Map<string, GeniescriptLogic<string, any>> = new Map([]),
+        obj_predicate : (GenieScriptTypeChecker) | null = null,
+        yes_action : GeniescriptLogic<ReplyResult, any> | null = null,
+        no_prompt : string | null = null
+    ) {
+        // if waiting for ack, everytime it comes back, we check if dialogue state has userIsDone equal to true
+        let last_result_before_ack = yield *this._expect(
+            action_map,
+            obj_predicate,
+            yes_action,
+            no_prompt
+        );
+        let new_result;
+        while (!this.dialogueHandler!._dialogueState!.userIsDone) {
+            new_result = last_result_before_ack;
+            console.log("GS: _waitForAckExpect: waitForAck set, user is still not done, hand back to ThingTalk handler");
+            last_result_before_ack = yield *this._expect(
+                action_map,
+                obj_predicate,
+                yes_action,
+                no_prompt,
+            );
+        }
+        return new_result;
+
+    }
+
     // TODO: say something in the middle of the process
     say(messages : string[], target : string | null = null , expecting : Type | null = null) {
         if (target === null) target = this._skill_name + ".reply";
@@ -413,8 +451,6 @@ export class AgentDialog {
      * @param {boolean} waitForAck  whether to intercept the query result as soon as the query is executed
      *                              if true, this function will return immediately if the user's query is executed
      *                                                         
-     *                                                      
-     *                                              
      * @returns {{DlgStatus, Ast.DialogueState, ReplyResult}} status returned, dialogue state at this point, and concrete results
      * 
      */
@@ -460,32 +496,9 @@ export class AgentDialog {
         let result : ReplyResult;
         if (!waitForAck) {
             // if not waiting for ack, always intercept result as soon as receieved
-            result = yield *this.expect(
-                new Map([]),
-                (reply) => true,
-                (result) => result,
-                null
-            );
+            result = yield * this._expect(new Map([]), (reply) => true, (result) => result, null);
         } else {
-            // if waiting for ack, everytime it comes back, we check if dialogue state has userIsDone equal to true
-            let last_result_before_ack = yield *this.expect(
-                new Map([]),
-                (reply) => true,
-                (result) => result,
-                null
-            );
-            let new_result;
-            while (!this.dialogueHandler!._dialogueState.userIsDone) {
-                new_result = last_result_before_ack;
-                console.log("initiateQuery: waitForAck set, user is still not done, hand back to ThingTalk handler");
-                last_result_before_ack = yield *this.expect(
-                    new Map([]),
-                    (reply) => true,
-                    (result) => result,
-                    null,
-                );
-            }
-            result = new_result;
+            result = yield * this._waitForAckExpect(new Map([]), (reply) => true, (result) => result, null);
         }
 
         // check results and return
@@ -511,22 +524,41 @@ export class AgentDialog {
         }
     }
 
+
     /**
-     * A simple wrapper for dlg.expect
-     * This function will yield the floor to the user, and be called again only
-     * when an expected result is returned and reported to the user
+     * Yields the floor to user, and regains floor when @param `evaluator` evaluates to true, pending @param `waitForAck`.
      * 
-     * @param appName 
-     * @param funcName 
-     * @returns 
+     * e.g., `yield* expect(() => true, False)` will regain the floor after any user utterance
+     *       `yield* expect(() => true, True)` will regain the floor after any user utterance and an Ack from user
+     *       `yield* expect('com.yelp:restaurant', False)` will regain the floor after the user has found a restaurant
+     * 
+     * @param evaluator either a thingtalk entity type (e.g. 'com.yelp:restaurant') or a customized function to determine
+     *                  when to regain the floor. The customized function should take in @type ReplyResult as input
+     * @param waitForAck  whether to intercept the query result as soon as the query is executed
+     *                    if true, this function will return immediately if the user's query is executed
+     * 
+     * @returns {{DlgStatus, Ast.DialogueState, ReplyResult}} status returned, dialogue state at this point, and concrete results 
      */
-    async *expectType(appName : string | null, funcName : string | null) {
-        const res = yield* this.expect(
-            new Map([]),
-            (x) => ThingTalkUtils.isOutputType(appName, funcName)(x),
-            (x) => x,
-            null);
-        return res;
+    async *expect(evaluator : string | ((a : ReplyResult) => boolean), waitForAck : boolean) {
+        let expectPredicate;
+        if (typeof evaluator === 'string') {
+            const [appName, funcName] = evaluator.split(':');
+            expectPredicate = ThingTalkUtils.isOutputType(appName, funcName);
+        } else {
+            expectPredicate = evaluator;
+        }
+
+        let result;
+        if (!waitForAck)
+            result = yield * this._expect(new Map([]), expectPredicate, (result) => result, null);
+        else
+            result = yield * this._waitForAckExpect(new Map([]), expectPredicate, (result) => result, null);
+        
+        return {
+            status : DlgStatus.SUCCESS,
+            dialogueState : this.dialogueHandler!._dialogueState,
+            results : result
+        };
     }
 
 
@@ -541,36 +573,15 @@ export class AgentDialog {
         this.say([agentUtterance]);
 
         let result : ReplyResult;
-        if (!waitForAck) {
-            // if not waiting for ack, always intercept result as soon as receieved
-            result = yield *this.expect(
-                new Map([]),
-                (reply) => true,
-                (result) => result,
-                null
-            );
-        } else {
-            // if waiting for ack, everytime it comes back, we check if dialogue state has userIsDone equal to true
-            result = yield *this.expect(
-                new Map([]),
-                (reply) => true,
-                (result) => result,
-                null
-            );
-            while (!this.dialogueHandler!._dialogueState!.userIsDone) {
-                result = yield *this.expect(
-                    new Map([]),
-                    (reply) => true,
-                    (result) => result,
-                    null,
-                );
-            }
-        }
+
+        if (!waitForAck)
+            result = yield *this._expect(new Map([]), (reply) => true, (result) => result, null);
+        else
+            result = yield * this._waitForAckExpect(new Map([]), (reply) => true, (result) => result, null);
 
         // determine if this proposal has been accepted by the user
         // if no, re-ask the proposal, making this an explicit slot-fill
         // TODO
-        console.log(result);
         const newDialogueState = this.dialogueHandler!._dialogueState;
         return {
             status : DlgStatus.SUCCESS,

@@ -368,17 +368,29 @@ export class DialogueLoop {
                 if (!gsHandler.dlg.dialogueHandler)
                     gsHandler.dlg.dialogueHandler = this._thingtalkHandler;
             }
-            let reply = await handler.getReply(analysis);
+            this._currentHandler = handler;
+            this.icon = handler.icon;
+            
+            let reply : ReplyResult;
+            try {
+                reply = await handler.getReply(analysis);
+                await this._sendAgentReply(reply);                
+            } catch(error) {
+                console.log("Note: there was an error with one handler, dialogue continuing...");
+                reply = {
+                    messages: ["ERROR"],
+                    expecting: null,
+                    context: this._thingtalkHandler._dialogueState!.prettyprint(),
+                    agent_target: "agent_target: error",
+                };
+            }
 
             if (!this._mixedInitiative) {
                 // reset the state of the handler when we switch to a different one
                 if (this._currentHandler && handler !== this._currentHandler)
                     await this._currentHandler.reset();
             }
-            this._currentHandler = handler;
 
-            this.icon = handler.icon;
-            await this._sendAgentReply(reply);
 
             const isCurrentGeniescript = handler.isGeniescript();
             
