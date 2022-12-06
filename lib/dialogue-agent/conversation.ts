@@ -244,11 +244,10 @@ export default class Conversation extends events.EventEmitter {
             this._recording = state.recording;
         }
         this._started = true;
-        if (clearState) {
+        if (clearState)
             return this._loop.partialStart(!!this._options.showWelcome, null);
-        } else {
+        else
             return this._loop.partialStart(!!this._options.showWelcome, state ? state.dialogueState : null);
-        }
     }
 
     private _resetInactivityTimeout() {
