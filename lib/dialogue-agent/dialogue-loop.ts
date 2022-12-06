@@ -380,7 +380,11 @@ export class DialogueLoop {
                 reply = {
                     messages: ["ERROR"],
                     expecting: null,
-                    context: this._thingtalkHandler._dialogueState!.prettyprint(),
+                    // REVIEW: it seems to be very unsafe to print out, even if this._thingtalkHandler._dialogueState is not null
+                    //         because the first item in dialogue history could still be null
+                    //         even if it does not error here, it will error somewhere
+                    //         need to find out where it is attaching an undefined to the 1st dialogue state
+                    context: this._thingtalkHandler._dialogueState ? this._thingtalkHandler._dialogueState.prettyprint() : 'null',
                     agent_target: "agent_target: error",
                 };
             }
