@@ -259,7 +259,24 @@ class DialogueEvaluatorStream extends Stream.Transform {
                 writeFileSync(`${this._annotateErrorsDirectory}/correct_predictions_evaluate_dialog.tsv`, writeToFile as string, {flag: 'a'});
             }
             return 'ok';
-        } else if (deepEqual(goldSlots, predictedSlots, { strict: true })) {
+        } 
+
+        // attempt to do one additional normalization:
+        const visitor = new evaluateNodeVisitor();
+        goldUserTarget.visit(visitor);
+        predictedUserTarget.visit(visitor);
+        const deleteVisitor = new deleteLevenshtein();
+        predictedUserTarget.visit(deleteVisitor);
+        let goldUserPrintOut = goldUserTarget.prettyprint();
+        let predictedUserPrintOut = predictedUserTarget.prettyprint();
+        
+        if (goldUserPrintOut === predictedUserPrintOut) {
+            return 'ok';
+        }
+        console.log("difference:", goldUserPrintOut);
+        console.log("difference:", predictedUserPrintOut);
+        
+        if (deepEqual(goldSlots, predictedSlots, { strict: true })) {
             if (this._debug)
                 console.log(`${id}:${turnIndex}\tok_slot\t${contextCode.join(' ')}\t${turn.user}\t${normalized}\t${targetCode}`);
 
@@ -416,6 +433,40 @@ class CollectDialogueStatistics extends Stream.Writable {
         });
     }
 }
+
+class evaluateNodeVisitor extends Ast.NodeVisitor {
+    visitAtomBooleanExpression(node: Ast.AtomBooleanExpression): boolean {
+        if (node.value instanceof Ast.EntityValue && node.value.display) {
+            node.value = new Ast.StringValue(node.value.display);
+            node.operator = '==';
+
+        }
+        if (node.name === 'id')
+            node.operator = '==';
+        return true;
+    }
+    visitInvocation(node: Ast.Invocation): boolean {
+        node.in_params = node.in_params.filter(i => (!i.value.isUndefined));
+        return true;
+    }
+    visitAndBooleanExpression(node: Ast.AndBooleanExpression): boolean {
+        node.operands = node.operands.filter(i => (!i.isDontCare));
+        return true
+    }
+    visitOrBooleanExpression(node: Ast.OrBooleanExpression): boolean {
+        node.operands = node.operands.filter(i => (!i.isDontCare));
+        return true
+    }
+}
+
+class deleteLevenshtein extends Ast.NodeVisitor {
+    visitDialogueHistoryItem(node: Ast.DialogueHistoryItem): boolean {
+        if (node.levenshtein)
+            node.levenshtein = null;
+        return true;
+    }
+}
+
 
 export {
     KEYS,
