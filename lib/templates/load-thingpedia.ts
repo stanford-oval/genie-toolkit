@@ -1462,7 +1462,13 @@ export default class ThingpediaLoader {
     }
 
     private async _loadMetadata() {
-        const entityTypes : Tp.BaseClient.EntityTypeRecord[] = await this._tpClient.getAllEntityTypes();
+        let entityTypes : Tp.BaseClient.EntityTypeRecord[];
+        try {
+            entityTypes = await this._tpClient.getAllEntityTypes();
+        } catch(error) {
+            entityTypes = [];
+        }
+
 
         let devices;
         if (this._options.onlyDevices)

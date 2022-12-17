@@ -337,7 +337,7 @@ export async function execute(args : any) {
         nlgServerUrl: args.nlg_server_url,
         debug: args.debug,
         cleanStart: args.clean_start,
-        showWelcome: true
+        showWelcome: false
     });
     await conversation.addOutput(new CommandLineDelegate(rl));
 
