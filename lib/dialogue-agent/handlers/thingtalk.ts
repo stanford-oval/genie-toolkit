@@ -623,6 +623,9 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         //this.debug(this._dialogueState.prettyprint());
 
         const { newDialogueState, newExecutorState, newPrograms, newResults } = await this._agent.execute(this._dialogueState!, this._executorState);
+        for (const i of newPrograms) {
+            i.dialogueState = this._dialogueState!;
+        }
         this._dialogueState = newDialogueState;
         this._executorState = newExecutorState;
         this._loop.debug(`Execution state:`);

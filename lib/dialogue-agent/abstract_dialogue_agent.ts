@@ -21,6 +21,7 @@
 import assert from 'assert';
 import * as Tp from 'thingpedia';
 import { Ast, SchemaRetriever, Builtin } from 'thingtalk';
+import { DialogueState } from 'thingtalk/dist/ast';
 
 import * as I18n from '../i18n';
 import { determineSameExceptSlotFill } from '../templates/ast_manip';
@@ -45,6 +46,7 @@ export interface NewProgramRecord {
     results : Array<Record<string, unknown>>;
     errors : string[];
     icon : string|null;
+    dialogueState ?: DialogueState;
 }
 
 export interface NotificationConfig {

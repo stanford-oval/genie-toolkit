@@ -377,6 +377,7 @@ export class DialogueLoop {
                 await this._sendAgentReply(reply);                
             } catch(error) {
                 console.log("Note: there was an error with one handler, dialogue continuing...");
+                console.log(error);
                 reply = {
                     messages: ["ERROR"],
                     expecting: null,
