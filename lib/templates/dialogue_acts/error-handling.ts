@@ -20,7 +20,7 @@
 
 // import { Ast } from "thingtalk";
 // import assert from "assert";
-import { AndBooleanExpression, applyLevenshteinExpressionStatement, AtomBooleanExpression, DialogueHistoryItem, DialogueState, DontCareBooleanExpression, Expression, FilterExpression,  FunctionCallExpression, InvocationExpression, Levenshtein, levenshteinFindSchema, NotBooleanExpression, ProjectionExpression } from "thingtalk/dist/ast";
+import { AndBooleanExpression, applyLevenshteinSync, AtomBooleanExpression, DialogueHistoryItem, DialogueState, DontCareBooleanExpression, Expression, FilterExpression,  FunctionCallExpression, InvocationExpression, Levenshtein, levenshteinFindSchema, NotBooleanExpression, ProjectionExpression } from "thingtalk/dist/ast";
 import { getInvocationExpression, resolveProjection, FilterSlot } from "../ast_manip";
 import { ContextInfo, addNewStatement, addNewItem } from "../state_manip";
 import { isSameFunction, ParamSlot } from "../utils";
@@ -104,9 +104,11 @@ export function changeOfMindSimple(ctx : ContextInfo, oldFilter : FilterSlot, ne
     const delta = (new Levenshtein(null, new FilterExpression(null, invocation, new AndBooleanExpression(null, [new NotBooleanExpression(null, oldFilter.ast), newFilter.ast]), invocation.schema), "$continue")).optimize();
     
     // getting applied result
-    const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
+    const appliedResult = applyLevenshteinSync(ctx.current!.stmt.expression, delta);
+    const resExprStmt = ctx.current!.stmt.clone();
+    resExprStmt.expression = appliedResult;
 
-    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
+    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, resExprStmt, null, "accepted", delta));
     // console.log(`changeOfMindSimple: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
     return res;
 }
@@ -154,9 +156,11 @@ export function handleNotThatError(ctx : ContextInfo, rejectFilter : FilterSlot)
     const delta = (new Levenshtein(null, new FilterExpression(null, invocation, new NotBooleanExpression(null, rejectFilter.ast), invocation.schema), "$continue")).optimize();
 
     // getting applied result
-    const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
+    const appliedResult = applyLevenshteinSync(ctx.current!.stmt.expression, delta);
+    const resExprStmt = ctx.current!.stmt.clone();
+    resExprStmt.expression = appliedResult;
 
-    const res = addNewItem(ctx, "not_that", rejectFilter.ast.name, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
+    const res = addNewItem(ctx, "not_that", rejectFilter.ast.name, "accepted", new DialogueHistoryItem(null, resExprStmt, null, "accepted", delta));
     // console.log(`handleNotThatError: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
     return res;
 }
@@ -195,9 +199,11 @@ export function handleDidntAskAboutError(ctx : ContextInfo, dontCareField : Para
     const delta = (new Levenshtein(null, new FilterExpression(null, invocation, new DontCareBooleanExpression(null, dontCareField.name), invocation.schema), "$continue")).optimize();
 
     // getting applied result
-    const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
+    const appliedResult = applyLevenshteinSync(ctx.current!.stmt.expression, delta);
+    const resExprStmt = ctx.current!.stmt.clone();
+    resExprStmt.expression = appliedResult;
 
-    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
+    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, resExprStmt, null, "accepted", delta));
     // console.log(`handleDidntAskAboutError: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
     return res;
 }
@@ -306,9 +312,11 @@ export function handleProjectionChange(ctx : ContextInfo, rejection_replacement 
     const delta : Levenshtein = (new Levenshtein(null, new ProjectionExpression(null, invocation, [replacement.name], [], [], resolveProjection(invocation.schema!, [replacement.name])), "$continue")).optimize();
 
     // getting applied result
-    const appliedResult = applyLevenshteinExpressionStatement(ctx.current!.stmt, delta);
+    const appliedResult = applyLevenshteinSync(ctx.current!.stmt.expression, delta);
+    const resExprStmt = ctx.current!.stmt.clone();
+    resExprStmt.expression = appliedResult;
 
-    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, appliedResult, null, "accepted", delta));
+    const res = addNewItem(ctx, "execute", null, "accepted", new DialogueHistoryItem(null, resExprStmt, null, "accepted", delta));
     // console.log(`Success: pushing levenshtein ${delta.prettyprint()} and applied result ${appliedResult.prettyprint()} to context`);
 
     return res;

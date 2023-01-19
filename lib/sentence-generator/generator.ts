@@ -1160,8 +1160,8 @@ export default class SentenceGenerator extends events.EventEmitter {
             this.log(`marking ${this._nonTermList[nonTermIndex]} generated at depth ${depth}`);
         charts.markGenerated(nonTermIndex, depth);
         const nonTermSize = charts.getSizeAtDepth(nonTermIndex, depth);
-        if (this._options.debug >= LogLevel.GENERATION && nonTermSize > 0)
-            this.log(`stats: size(charts[${depth}][${this._nonTermList[nonTermIndex]}]) = ${nonTermSize}`);
+        // if (this._options.debug >= LogLevel.GENERATION && nonTermSize > 0)
+            // this.log(`stats: size(charts[${depth}][${this._nonTermList[nonTermIndex]}]) = ${nonTermSize}`);
 
         this._stackDepth --;
         return nonTermSize;

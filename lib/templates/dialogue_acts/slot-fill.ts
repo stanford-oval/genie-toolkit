@@ -149,9 +149,9 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
     // answer is never changed, so dont need to clone.
     // it's the `clone` and `newInvocation` that is changed
     const delta = (new Ast.Levenshtein(null, new Ast.InvocationExpression(null, answer, answer.schema), "$continue")).optimize();
-    const applyres = Ast.applyMultipleLevenshtein(C.toChainExpression(oldInvocation), [delta]);
+    const applyres = Ast.applyLevenshteinSync(C.toChainExpression(oldInvocation), delta);
     const newTable = new Ast.InvocationExpression(newInvocation.location, newInvocation, newInvocation.schema);
-    C.levenshteinDebugOutput(applyres, C.toChainExpression(newTable), "preciseSlotFillAnswer_multiwoz.txt");
+    C.levenshteinDebugOutput(applyres, C.toChainExpression(newTable), "preciseSlotFillAnswer.txt");
     clone.levenshtein = delta;
     clone.stmt.expression = applyres;
 
@@ -230,8 +230,8 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
     // Levenshtein is the invocation with one input param
     oldInvocation.in_params = [ipslot.ast.clone()];
     const delta = (new Ast.Levenshtein(null, new Ast.InvocationExpression(null, oldInvocation, oldInvocation.schema), "$continue")).optimize();
-    const applyres = Ast.applyMultipleLevenshtein(ctx.next.stmt.expression, [delta]);
-    C.levenshteinDebugOutput(applyres, clone.stmt.expression, "impreciseSlotFillAnswer_multiwoz.txt");
+    const applyres = Ast.applyLevenshteinSync(ctx.next.stmt.expression, delta);
+    C.levenshteinDebugOutput(applyres, clone.stmt.expression, "impreciseSlotFillAnswer.txt");
     clone.levenshtein = delta;
     clone.stmt.expression = applyres;
 

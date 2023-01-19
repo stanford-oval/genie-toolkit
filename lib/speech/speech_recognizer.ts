@@ -61,14 +61,14 @@ class SpeechRequest extends Stream.Writable {
         this._bufferedMessages = [];
 
         this.write(initialBuffer);
-        this._stream.pipe(this);
+        this._stream.pipe(this as any);
         this._piped = true;
 
         this.on('error', () => {
             if (!this._piped)
                 return;
             this._piped = false;
-            this._stream.unpipe(this);
+            this._stream.unpipe(this as any);
         });
     }
 
@@ -91,10 +91,10 @@ class SpeechRequest extends Stream.Writable {
         callback();
     }
 
-    end() {
+    end() : any {
         if (this._piped) {
             this._piped = false;
-            this._stream.unpipe(this);
+            this._stream.unpipe(this as any);
         }
 
         if (this._ended)
@@ -151,7 +151,7 @@ class SpeechRequest extends Stream.Writable {
             if (this.consecutiveSilence === this.silenceThreshold) {
                 this._endDetected = true;
                 console.log("VAD threshold reached", this.consecutiveSilence);
-                this._connection.send(undefined, {}, (err ?: Error) => callback(err));
+                this._connection.send(undefined as any, {}, (err ?: Error) => callback(err));
             } else {
                 this._connection.send(chunk, { binary: true }, (err ?: Error) => callback(err));
             }

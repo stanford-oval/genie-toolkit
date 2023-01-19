@@ -240,18 +240,18 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
         
         // the filte part of filter
         const delta         = (new Ast.Levenshtein(null, deltaFilterStatement, "$continue")).optimize();
-        const applyres      = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
-        C.levenshteinDebugOutput(applyres, newTable, "preciseSearchQuestionAnswer_action_multiwoz.txt", [delta], currentStmt.expression);
+        const applyres      = Ast.applyLevenshteinSync(currentStmt.expression, delta);
+        C.levenshteinDebugOutput(applyres, newTable, "preciseSearchQuestionAnswer_action.txt", [delta], currentStmt.expression);
 
         // this is to be used in delta apply
         // const deltaInner      = new Ast.FilterExpression(null, invocation, answerTable.filter, null);
         // const delta           = new Ast.Levenshtein(null, deltaInner, "$continue");
 
-        return addQueryAndAction(ctx, 'execute', newTable, delta, answerAction, deltaInvocation, 'accepted');
+        return addQueryAndAction(ctx, 'execute', applyres, delta, answerAction, deltaInvocation, 'accepted');
     } else {
         const delta = (new Ast.Levenshtein(null, deltaFilterStatement, "$continue")).optimize();
-        const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
-        C.levenshteinDebugOutput(applyres, newTable, "preciseSearchQuestionAnswer_multiwoz.txt", [delta], currentStmt.expression);
+        const applyres = Ast.applyLevenshteinSync(currentStmt.expression, delta);
+        C.levenshteinDebugOutput(applyres, newTable, "preciseSearchQuestionAnswer.txt", [delta], currentStmt.expression);
         return addQuery(ctx, 'execute', newTable, 'accepted', delta);
     }
 }
@@ -322,10 +322,10 @@ function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : C.FilterSlot|
     // Levenshtein: adding a filter
     const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), answerFilter.ast, currentStmt.expression.schema);
     const delta = (new Ast.Levenshtein(null, deltaFilterStatement, "$continue")).optimize();
-    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
+    const applyres = Ast.applyLevenshteinSync(currentStmt.expression, delta);
     C.levenshteinDebugOutput(applyres, newTable, "impreciseSearchQuestionAnswer_multiwoz.txt", [delta], currentStmt.expression);
 
-    return addQuery(ctx, 'execute', newTable, 'accepted', delta);
+    return addQuery(ctx, 'execute', applyres, 'accepted', delta);
 }
 
 export {

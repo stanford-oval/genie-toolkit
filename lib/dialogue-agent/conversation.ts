@@ -60,6 +60,7 @@ export interface ConversationOptions {
         lowConfidence ?: number;
     }>;
     cleanStart ?: boolean;
+    ifDynamic ?: boolean;
 }
 
 interface Statistics {
@@ -151,7 +152,8 @@ export default class Conversation extends events.EventEmitter {
             useConfidence: options.useConfidence ?? true,
             debug: this._debug,
             rng: this.rng,
-            cleanStart: options.cleanStart ?? false
+            cleanStart: options.cleanStart ?? false,
+            ifDynamic : options.ifDynamic ?? true,
         });
         this._expecting = null;
         this._context = { code: ['null'], entities: {} };

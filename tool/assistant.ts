@@ -284,6 +284,12 @@ export function initArgparse(subparsers : argparse.SubParser) {
         action: 'store_true',
         help: 'Starts GenieScript with a clean dialogue state'
     });
+    parser.add_argument('--use-dynamic', {
+        required: false,
+        default: true,
+        action: 'store_true',
+        help: 'Enables GenieScript to dynamically apply sentence state statements, default to true'
+    });
     parser.add_argument('--debug', {
         required: false,
         default: false,
@@ -337,6 +343,7 @@ export async function execute(args : any) {
         nlgServerUrl: args.nlg_server_url,
         debug: args.debug,
         cleanStart: args.clean_start,
+        ifDynamic: args.use_dynamic,
         showWelcome: false
     });
     await conversation.addOutput(new CommandLineDelegate(rl));

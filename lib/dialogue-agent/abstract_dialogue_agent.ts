@@ -129,6 +129,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         const newResults : RawExecutionResult = [];
         const newPrograms : NewProgramRecord[] = [];
         const hints = this._collectDisambiguationHintsForState(state);
+        const toRemove : number[] = [];
         for (let i = clone.history.length - 1; i >= 0 ; i--) {
             if (clone.history[i].results !== null)
                 continue;
@@ -142,7 +143,16 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             // prepare for execution now, even if we don't execute yet
             // so we slot-fill eagerly
             const item = clone.history[i];
-            await this._prepareForExecution(item.stmt, hints);
+            try {
+                await this._prepareForExecution(item.stmt, hints);
+            } catch(e) {
+                // FIXME: notify users that there is an error
+                console.log(`During execution preparation for ${item.prettyprint()}, an error occured.`);
+                console.log(e);
+                console.log(`This item will be removed from dialogue state`);
+                toRemove.push(i);
+                continue;
+            }
 
             // if we did not execute the previous item we're not executing this one either
             // if (i > 0 && clone.history[i-1].results === null)
@@ -175,6 +185,11 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 newPrograms.push(newProgram);
             privateState = newPrivateState;
         }
+
+        // remove items in `toRemove`, remove in reverse order to not mess up its order
+        for (let i = toRemove.length -1; i >= 0; i --)
+            clone.history.splice(toRemove[i], 1);
+
         // here, after executing the current stack, scan back to see if
         // any item, compared with the latest item on the stack, has
         // the same ThingTalk except a more complete set of invocation parameters
@@ -572,5 +587,40 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      */
     getPreferredUnit(type : string) : string|undefined {
         throw new TypeError('Abstract method');
+    }
+
+    /**
+     * 
+     * Executes a ChainExpression during dynamic resolution of delta apply
+     * 
+     * @param {Ast.Expression} expr - expression to determine whether results is null
+     * @param {Ast.DialogueState} state - current dialog state (exclusive of expr)
+     * @param {PrivateStateType|undefined} privateState - private state info needed for statement execution
+     * 
+     * @returns {boolean} whether @param expr results in a non-null query. True if result is non-null
+     */
+    async executeExpr(expr : Ast.Expression, state : Ast.DialogueState, privateState : PrivateStateType|undefined) : Promise<boolean> {
+        console.log(`Dynamic Resolution (DR) in place, executing expression : ${expr.prettyprint()}`);
+        const hints = this._collectDisambiguationHintsForState(state);
+
+        const invocations = Ast.getAllInvocationExpression(expr);
+        for (const invocation of invocations) {
+            if (invocation instanceof Ast.InvocationExpression && invocation.ifAction()) {
+                console.log(`DR determined result to be true due to action ${invocation.prettyprint()}`);
+                return true;
+            }
+        }
+
+        const stmt = new Ast.ExpressionStatement(null, expr);
+        await this._prepareForExecution(stmt, hints);
+        const [newResultList, _newRawResult, _newProgram, _newPrivateState, _annotations] = await this.executor.executeStatement(stmt, privateState, undefined);
+        let res;
+        if (newResultList.results.length > 0)
+            res = true;
+        else
+            res = false;
+
+        console.log(`DR determined result for above to be ${res}`);
+        return res;
     }
 }

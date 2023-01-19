@@ -45,6 +45,7 @@ import * as BTrie from './utils/btrie';
 
 import SpeechHandler from './speech/speech_handler';
 import AssistantEngine from './engine';
+import Platform from './../tool/lib/cmdline-platform';
 import * as EngineModules from './engine';
 import * as DialogueAgent from './dialogue-agent';
 
@@ -87,6 +88,7 @@ export {
     SpeechHandler,
     AssistantEngine,
     EngineModules,
+    Platform,
 
     // semi-unstable API
     parallelize,

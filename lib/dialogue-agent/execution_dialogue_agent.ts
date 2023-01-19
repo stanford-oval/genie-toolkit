@@ -377,21 +377,27 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         else if (currentLocation)
             around = { latitude: currentLocation.lat, longitude: currentLocation.lon };
 
-        const candidates = await this._tpClient.lookupLocation(searchKey, around);
+        try {
+            const candidates = await this._tpClient.lookupLocation(searchKey, around);
 
-        // ignore locations larger than a city
-        const mapped = candidates.filter((c) => c.rank >= 16).map((c) => {
-            return new Ast.Location.Absolute(c.latitude, c.longitude, c.display);
-        });
-
-        if (mapped.length === 0) {
-            await this._dlg.replyInterp(this._("Sorry, I cannot find any location matching “${location}”."), {
-                location: searchKey,
+            // ignore locations larger than a city
+            const mapped = candidates.filter((c) => c.rank >= 16).map((c) => {
+                return new Ast.Location.Absolute(c.latitude, c.longitude, c.display);
             });
-            throw new CancellationError();
-        }
 
-        return new Ast.Value.Location(mapped[0]);
+            if (mapped.length === 0) {
+                await this._dlg.replyInterp(this._("Sorry, I cannot find any location matching “${location}”."), {
+                    location: searchKey,
+                });
+                throw new CancellationError();
+            }
+
+            return new Ast.Value.Location(mapped[0]);
+        } catch(e) {
+            console.log("WARNING: location service is unreachable with error");
+            console.log(e);
+            return new Ast.Value.Location(new Ast.AbsoluteLocation(-1, -1, searchKey));
+        }
     }
 
     private _tryGetStoredVariable(type : Type, variable : string) : Ast.Value|null {

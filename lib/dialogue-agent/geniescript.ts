@@ -361,7 +361,7 @@ export class AgentDialog {
             no_prompt
         );
         let new_result;
-        while (!this.dialogueHandler!._dialogueState!.userIsDone) {
+        while (!(this.dialogueHandler!._dialogueState) || !this.dialogueHandler!._dialogueState!.userIsDone) {
             new_result = last_result_before_ack;
             console.log("GS: _waitForAckExpect: waitForAck set, user is still not done, hand back to ThingTalk handler");
             last_result_before_ack = yield *this._expect(
@@ -478,7 +478,7 @@ export class AgentDialog {
             assert(analyzed.parsed instanceof Ast.DialogueState);
             assert(analyzed.parsed.history.length === 1);
             
-            handleIncomingDelta(this.dialogueHandler!._dialogueState, analyzed.parsed);
+            await handleIncomingDelta(this.dialogueHandler!._dialogueState, analyzed.parsed, undefined);
             queryExpressionStatement = analyzed.parsed.history[0].stmt;
         }
         
@@ -590,6 +590,27 @@ export class AgentDialog {
         };
     }
 
+    determineQueryRefinement(functionName : string, proposeField : string[]) : string[] {
+        const command = this.getLastCommand();
+        const invocations = Ast.getAllInvocationExpression(command);
+        if (invocations.length > 1)
+            return [];
+        const invocation = invocations[0];
+        
+        if (!(invocation instanceof Ast.InvocationExpression))
+            return [];
+        
+        if (!invocation.prettyprint().includes(functionName))
+            return [];
+
+        const exsitingNames = Ast.getAllFilterNames(command);
+        const res = proposeField.filter((x) => !exsitingNames.includes(x));
+        
+        if (res.length === 0)
+            return [];
+        
+        return res;
+    }
 
     isOutputType(first : string | null, second : string | null) {
         return isOutputType(first, second);

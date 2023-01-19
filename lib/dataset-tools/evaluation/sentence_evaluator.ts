@@ -328,10 +328,10 @@ class SentenceEvaluator {
                 // push the previous result, so the stats
                 // stay cumulative along the beam
                 if (this._annotateErrorsDirectory) {
-                    writeToFile = `${this._id}\t${this._context}\t${this._preprocessed}\t${target}\t${beam.join(' ')}\n`
+                    writeToFile = `${this._id}\t${this._context}\t${this._preprocessed}\t${target}\t${beam.join(' ')}\n`;
                     writeFileSync(`${this._annotateErrorsDirectory}/syntaxerrors_predictions.tsv`, writeToFile as string, {
                     flag: 'a',
-                  });
+                    });
                 }
 
                 result.ok.push(ok);
@@ -354,7 +354,7 @@ class SentenceEvaluator {
                 if (parsed instanceof Ast.DialogueState && dialogueState instanceof Ast.DialogueState && dialogueState.history.length >= 1 && parsed.history.length >= 1) {
                     const delta    = parsed.history[parsed.history.length - 1].levenshtein;
                     if (delta)
-                        handleIncomingDelta(dialogueState, parsed);
+                        await handleIncomingDelta(dialogueState, parsed, undefined);
                 }
             }
 
@@ -389,7 +389,7 @@ class SentenceEvaluator {
                 beam_ok_device = false, beam_ok_num_function = false;
             let result_string = 'ok_syntax';
 
-            assert(this._targetPrograms.length == 1)
+            assert(this._targetPrograms.length === 1);
             for (let referenceId = 0; referenceId < this._targetPrograms.length; referenceId++) {
                 if (this._equals(normalizedCode, normalizedTargetCode[referenceId])) {
                     // we have a match!
@@ -406,12 +406,12 @@ class SentenceEvaluator {
                             timezone: this._options.timezone,
                             ignoreSentence: true,
                             includeEntityValue: this._includeEntityValue,
-                            });
+                        });
                         const normalizedCode = normalized.join(' ');
                         writeToFile = `${this._id}\t${this._context}\t${this._preprocessed}\t${normalizedTargetCode[referenceId]}\t${normalizedCode}\n`;
                         writeFileSync(`${this._annotateErrorsDirectory}/correct_predictions.tsv`, writeToFile as string, {
                             flag: 'a',
-                            });
+                        });
                     }
                     break;
                 }
@@ -443,13 +443,13 @@ class SentenceEvaluator {
                         timezone: this._options.timezone,
                         ignoreSentence: true,
                         includeEntityValue: this._includeEntityValue
-                     });
+                    });
                     const normalizedCode = normalized.join(' ');
                     writeToFile = `${this._id}\t${this._context}\t${this._preprocessed}\t${normalizedTargetCode[referenceId]}\t${normalizedCode}\n`;
                     console.log(writeToFile);
                     writeFileSync(`${this._annotateErrorsDirectory}/wrong_predictions.tsv`, writeToFile as string, {
                     flag: 'a',
-                  });
+                    });
                 }
             }
 

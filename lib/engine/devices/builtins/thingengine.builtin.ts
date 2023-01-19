@@ -119,7 +119,7 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
             }
         };
         gps.start();
-        gpsstream.destroy = () => gps.stop();
+        gpsstream.destroy = () => gps.stop() as any;
         return gpsstream;
     }
 

@@ -177,8 +177,10 @@ class DialogueEvaluatorStream extends Stream.Transform {
             if (this._debug)
                 console.log(`${id}:${turnIndex}\twrong_syntax\t${contextCode.join(' ')}\t${turn.user}\tfailed\t${targetCode}`);
             if (this._annotateErrorsDirectory) {
-                writeToFile = `${id}:${turnIndex}\t${contextCode.join(' ')}\t${turn.user}\t${targetCode}\t${predictions}\n`
-                writeFileSync(`${this._annotateErrorsDirectory}/syntaxerrors_predictions_evaluate_dialog.tsv`, writeToFile as string, {flag: 'a'});
+                writeToFile = `${id}:${turnIndex}\t${contextCode.join(' ')}\t${turn.user}\t${targetCode}\t${predictions}\n`;
+                writeFileSync(`${this._annotateErrorsDirectory}/syntaxerrors_predictions_evaluate_dialog.tsv`, writeToFile as string, {
+                    flag: 'a'
+                });
             }
             return 'wrong_syntax';
         }
@@ -195,14 +197,16 @@ class DialogueEvaluatorStream extends Stream.Transform {
             if (this._debug)
                 console.log(`${id}:${turnIndex}\twrong_syntax\t${contextCode.join(' ')}\t${turn.user}\t${choice.join(' ')}\t${targetCode}`);
             if (this._annotateErrorsDirectory) {
-                writeToFile = `${id}:${turnIndex}\t${contextCode.join(' ')}\t${turn.user}\t${targetCode}\t${choice.join(' ')}\n`
-                writeFileSync(`${this._annotateErrorsDirectory}/syntaxerrors_predictions_evaluate_dialog.tsv`, writeToFile as string, {flag: 'a'});
+                writeToFile = `${id}:${turnIndex}\t${contextCode.join(' ')}\t${turn.user}\t${targetCode}\t${choice.join(' ')}\n`;
+                writeFileSync(`${this._annotateErrorsDirectory}/syntaxerrors_predictions_evaluate_dialog.tsv`, writeToFile as string, {
+                    flag: 'a'
+                });
             }
             return 'wrong_syntax';
         }
 
         // do levenshtein apply
-        handleIncomingDelta(context, predictedUserTarget);
+        await handleIncomingDelta(context, predictedUserTarget, undefined);
 
         // let us get rid of all proposed ones when comparing slots
         const predictedUserState = ThingTalkUtils.computeNewState(context, predictedUserTarget, 'user', true);
@@ -254,9 +258,11 @@ class DialogueEvaluatorStream extends Stream.Transform {
                     timezone: this._options.timezone,
                     ignoreSentence: true,
                     toSourceArgument: 'no-statement'
-                    }).join(' ');
+                }).join(' ');
                 writeToFile = `${id}:${turnIndex}\t${contextCode.join(' ')}\t${turn.user}\t${targetCode}\t${normalized_}\n`;
-                writeFileSync(`${this._annotateErrorsDirectory}/correct_predictions_evaluate_dialog.tsv`, writeToFile as string, {flag: 'a'});
+                writeFileSync(`${this._annotateErrorsDirectory}/correct_predictions_evaluate_dialog.tsv`, writeToFile as string, {
+                    flag: 'a'
+                });
             }
             return 'ok';
         } 
@@ -267,12 +273,11 @@ class DialogueEvaluatorStream extends Stream.Transform {
         predictedUserTarget.visit(visitor);
         const deleteVisitor = new deleteLevenshtein();
         predictedUserTarget.visit(deleteVisitor);
-        let goldUserPrintOut = goldUserTarget.prettyprint();
-        let predictedUserPrintOut = predictedUserTarget.prettyprint();
+        const goldUserPrintOut = goldUserTarget.prettyprint();
+        const predictedUserPrintOut = predictedUserTarget.prettyprint();
         
-        if (goldUserPrintOut === predictedUserPrintOut) {
+        if (goldUserPrintOut === predictedUserPrintOut)
             return 'ok';
-        }
         console.log("difference:", goldUserPrintOut);
         console.log("difference:", predictedUserPrintOut);
         
@@ -285,9 +290,11 @@ class DialogueEvaluatorStream extends Stream.Transform {
                     locale: this._locale,
                     timezone: this._options.timezone,
                     ignoreSentence: true,
-                    }).join(' ');
+                }).join(' ');
                 writeToFile = `${id}:${turnIndex}\t${contextCode.join(' ')}\t${turn.user}\t${targetCode}\t${normalized_}\n`;
-                writeFileSync(`${this._annotateErrorsDirectory}/wrong_predictions_evaluate_dialog.tsv`, writeToFile as string, {flag: 'a'});
+                writeFileSync(`${this._annotateErrorsDirectory}/wrong_predictions_evaluate_dialog.tsv`, writeToFile as string, {
+                    flag: 'a'
+                });
             }
             return 'ok_slot';
         } else {
@@ -299,9 +306,11 @@ class DialogueEvaluatorStream extends Stream.Transform {
                     locale: this._locale,
                     timezone: this._options.timezone,
                     ignoreSentence: true,
-                    }).join(' ');
+                }).join(' ');
                 writeToFile = `${id}:${turnIndex}\t${contextCode.join(' ')}\t${turn.user}\t${targetCode}\t${normalized_}\n`;
-                writeFileSync(`${this._annotateErrorsDirectory}/wrong_predictions_evaluate_dialog.tsv`, writeToFile as string, {flag: 'a'});
+                writeFileSync(`${this._annotateErrorsDirectory}/wrong_predictions_evaluate_dialog.tsv`, writeToFile as string, {
+                    flag: 'a'
+                });
             }
             return 'ok_syntax';
         }
@@ -435,7 +444,7 @@ class CollectDialogueStatistics extends Stream.Writable {
 }
 
 class evaluateNodeVisitor extends Ast.NodeVisitor {
-    visitAtomBooleanExpression(node: Ast.AtomBooleanExpression): boolean {
+    visitAtomBooleanExpression(node : Ast.AtomBooleanExpression) : boolean {
         if (node.value instanceof Ast.EntityValue && node.value.display) {
             node.value = new Ast.StringValue(node.value.display);
             node.operator = '==';
@@ -445,22 +454,22 @@ class evaluateNodeVisitor extends Ast.NodeVisitor {
             node.operator = '==';
         return true;
     }
-    visitInvocation(node: Ast.Invocation): boolean {
-        node.in_params = node.in_params.filter(i => (!i.value.isUndefined));
+    visitInvocation(node : Ast.Invocation) : boolean {
+        node.in_params = node.in_params.filter((i) => (!i.value.isUndefined));
         return true;
     }
-    visitAndBooleanExpression(node: Ast.AndBooleanExpression): boolean {
-        node.operands = node.operands.filter(i => (!i.isDontCare));
-        return true
+    visitAndBooleanExpression(node : Ast.AndBooleanExpression) : boolean {
+        node.operands = node.operands.filter((i) => (!i.isDontCare));
+        return true;
     }
-    visitOrBooleanExpression(node: Ast.OrBooleanExpression): boolean {
-        node.operands = node.operands.filter(i => (!i.isDontCare));
-        return true
+    visitOrBooleanExpression(node : Ast.OrBooleanExpression) : boolean {
+        node.operands = node.operands.filter((i) => (!i.isDontCare));
+        return true;
     }
 }
 
 class deleteLevenshtein extends Ast.NodeVisitor {
-    visitDialogueHistoryItem(node: Ast.DialogueHistoryItem): boolean {
+    visitDialogueHistoryItem(node : Ast.DialogueHistoryItem) : boolean {
         if (node.levenshtein)
             node.levenshtein = null;
         return true;

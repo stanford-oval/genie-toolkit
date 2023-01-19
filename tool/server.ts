@@ -226,7 +226,7 @@ export async function execute(args : any) {
     app.post('/:locale/answer', qv.validatePOST(NLG_PARAMS, { accept: 'application/json' }), (req, res, next) => {
         queryNLG(req.params, req.body, res).catch(next);
     });
-
+    
     app.post('/:locale/tokenize', qv.validatePOST({ q: 'string', entities: '?object' }, { accept: 'application/json' }), (req, res, next) => {
         tokenize(req.params, req.body, res).catch(next);
     });

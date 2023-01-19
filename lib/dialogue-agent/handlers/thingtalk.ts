@@ -115,18 +115,26 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     private _debug : boolean;
     private _useConfidence : boolean;
     private _rng : () => number;
+    private _ifDynamic : boolean;
+    private _bypassAnswerControlIntent : boolean;
 
     constructor(engine : Engine,
                 loop : DialogueLoop,
                 agent : ExecutionDialogueAgent,
                 nlu : ParserClient.ParserClient,
                 nlg : ParserClient.ParserClient,
-                options : { debug : boolean, useConfidence : boolean, rng : () => number }) {
+                options : { debug : boolean,
+                            useConfidence : boolean,
+                            rng : () => number,
+                            ifDynamic : boolean}) {
         this._ = engine._;
 
         this._debug = options.debug;
         this._useConfidence = options.useConfidence;
         this._rng = options.rng;
+        this._ifDynamic = options.ifDynamic;
+        // FIXME: fix this
+        this._bypassAnswerControlIntent = true;
         this._engine = engine;
         this._loop = loop;
         this._prefs = engine.platform.getSharedPreferences();
@@ -229,8 +237,17 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         // defensive programming
         if (analysis.parsed instanceof Ast.DialogueState) {
-            // do levenshtein apply
-            handleIncomingDelta(this._dialogueState, analysis.parsed);
+            // do levenshtein apply, depending on whether to use dynamic resolution
+            if (this._ifDynamic) {
+                await handleIncomingDelta(this._dialogueState, analysis.parsed,
+                    async (x) => {
+                        const res = await this._agent.executeExpr(x, this._dialogueState!, this._executorState);
+                        return res;
+                    }
+                );
+            } else {
+                await handleIncomingDelta(this._dialogueState, analysis.parsed, undefined);
+            }
 
             // record the natural language utterance
             if (command.type === 'command' && command.utterance) {
@@ -317,7 +334,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         const [contextCode, contextEntities] = this._prepareContextForPrediction(this._dialogueState, 'user');
         if (this._loop.raw) {
-            // in "raw mode", all natural language becomes an answer
             // special case current location operator for now
             if (this._loop.expecting === ValueCategory.Location) {
                 // we still ship it to the parser so it gets recorded
@@ -334,60 +350,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                     user_target: parsed.prettyprint(),
                     answer: value,
                     parsed: parsed,
-                };
-            }
-
-            // we still ship it to the parser so it gets recorded
-            const nluResult = await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
-                expect: this._loop.expecting ? ValueCategory[this._loop.expecting] : undefined,
-                choices: this._loop.choices,
-                store: this._prefs.get('sabrina-store-log') as string || 'no',
-                skip_typechecking: true
-            });
-
-            // parse all code sequences into an Intent
-            // this will correctly filter out anything that does not parse
-            const candidates = await Promise.all(nluResult.candidates.map(async (candidate, beamposition) => {
-                let parsed;
-                try {
-                    parsed = await ThingTalkUtils.parsePrediction(candidate.code, nluResult.entities, {
-                        timezone: this._engine.platform.timezone,
-                        thingpediaClient: this._engine.thingpedia,
-                        schemaRetriever: this._engine.schemas,
-                        loadMetadata: true,
-                    }, true);
-                } catch(e : any) {
-                    // Likely, a type error in the ThingTalk code; not a big deal, but we still log it
-                    console.log(`Failed to parse beam ${beamposition}: ${e.message}`);
-                    parsed = new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'failed'));
-                }
-                return { parsed, score: candidate.score };
-            }));
-            // ensure that we always have at least one candidate by pushing $failed at the end
-            candidates.push({ parsed: new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'failed')), score: 0 });
-
-            // ignore all candidates with score==Infinity that we failed to parse
-            // (these are exact matches that correspond to skills not available for
-            // this user)
-            let i = 0;
-            let choice = candidates[i];
-            let type = this._getSpecialThingTalkType(choice.parsed);
-            while (i < candidates.length-1 && type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND && choice.score === 'Infinity') {
-                i++;
-                choice = candidates[i];
-                type = this._getSpecialThingTalkType(choice.parsed);
-            }
-
-            if (type !== CommandAnalysisType.OUT_OF_DOMAIN_COMMAND && !(this._useConfidence && choice.score < CONFIDENCE_CONFIRM_THRESHOLD)) {
-                this._loop.debug('Confidently analyzed message (while in raw mode) into ' + choice.parsed.prettyprint());
-                this._loop.debug(`this._useConfidence: ${this._useConfidence}; choice.score: ${choice.score}`);
-                this._loop.conversation.stats.hit('sabrina-command-good');
-                return {
-                    type,
-                    utterance: command.utterance,
-                    user_target: choice.parsed.prettyprint(),
-                    answer: this._maybeGetThingTalkAnswer(choice.parsed),
-                    parsed: choice.parsed,
                 };
             }
         }
@@ -416,7 +378,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         // parse all code sequences into an Intent
         // this will correctly filter out anything that does not parse
-        const candidates = await Promise.all(nluResult.candidates.map(async (candidate, beamposition) => {
+        let candidates = await Promise.all(nluResult.candidates.map(async (candidate, beamposition) => {
             let parsed;
             try {
                 parsed = await ThingTalkUtils.parsePrediction(candidate.code, nluResult.entities, {
@@ -432,6 +394,20 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             }
             return { parsed, score: candidate.score };
         }));
+
+        // if set to bypass all answer control intent ($answer ...)
+        // then filter out that answer
+        // such behavior is desired when direct answers may not typecheck with the current slot fill
+        if (this._bypassAnswerControlIntent && candidates.length > 1) {
+            const newCandidates = [];
+            for (const candidate of candidates) {
+                if (!(candidate.parsed instanceof Ast.ControlCommand && candidate.parsed.intent instanceof Ast.AnswerControlIntent))
+                    newCandidates.push(candidate);
+            }
+            candidates = newCandidates;
+        }
+
+
         // ensure that we always have at least one candidate by pushing $failed at the end
         candidates.push({ parsed: new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'failed')), score: 0 });
 
@@ -529,8 +505,11 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                         
                 return this._executeCurrentState();
             } else {
-                console.log("ThingTalk dialogue handler getReply: triggered special $yes procedure, set user is Done on the dialogue state");
-                this._dialogueState!.userIsDone = true;
+                // in certain edge cases, _dialogueState could yet be set
+                if (this._dialogueState) {
+                    console.log("ThingTalk dialogue handler getReply: triggered special $yes procedure, set user is Done on the dialogue state");
+                    this._dialogueState.userIsDone = true;
+                }
                 return {
                     messages: [],
                     context: this._dialogueState ? this._dialogueState.prettyprint() : 'null',
@@ -729,7 +708,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                     title: clean(entry),
                     json: JSON.stringify({ code: ['$answer', '(', 'enum', entry, ')', ';'], entities: {} })
                 });
-                messages.push(button);
+                messages.push(button as any);
             }
             expecting = ValueCategory.Generic;
         } else if (policyResult.expect) {
@@ -852,7 +831,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
  * @param analysis dialogue state returned by semantic parser
  */
 
-export function handleIncomingDelta(dialogueState : Ast.DialogueState | null, analysis : Ast.DialogueState) {
+export async function handleIncomingDelta(dialogueState : Ast.DialogueState | null, analysis : Ast.DialogueState, resolutor : undefined | ((args0 : Ast.Expression) => Promise<boolean>)) {
     if (!dialogueState)
         return;
     
@@ -864,13 +843,16 @@ export function handleIncomingDelta(dialogueState : Ast.DialogueState | null, an
 
         // if we can not find an overlapping item, directly use delta as the new expression
         // if an overlapping item is found, `applied` will be updated in the loop
-        let applied = new Ast.ExpressionStatement(null, item.levenshtein.expression);
+        const applied = new Ast.ExpressionStatement(null, item.levenshtein.expression);
 
         for (let i = dialogueState.history.length - 1; i >= 0; i --) {
             const currInv = Ast.getAllInvocationExpression(dialogueState.history[i].stmt.expression.last);
             if (Ast.ifOverlap(deltaInv, currInv)) {
                 const lastTurn = dialogueState.history[i].stmt;
-                applied = Ast.applyLevenshteinExpressionStatement(lastTurn, item.levenshtein, dialogueState);
+                if (resolutor)
+                    applied.expression = await Ast.applyLevenshtein(lastTurn.expression, item.levenshtein, dialogueState, resolutor);
+                else
+                    applied.expression = Ast.applyLevenshteinSync(lastTurn.expression, item.levenshtein, dialogueState);
                 break;
             }
         }

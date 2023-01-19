@@ -117,10 +117,10 @@ function recommendationSearchQuestionReply(ctx : ContextInfo, questions : C.Para
     const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, currentStmt.expression.schema);
     const deltaProjectionStatement = new Ast.ProjectionExpression(null, deltaFilterStatement, questions.map((q) => q.name), [], [], deltaFilterStatement.schema);
     const delta = (new Ast.Levenshtein(null, deltaProjectionStatement, "$continue")).optimize();
-    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
-    C.levenshteinDebugOutput(applyres, newTable, "recommendationSearchQuestionReply_multiwoz.txt");
+    const applyres = Ast.applyLevenshteinSync(currentStmt.expression, delta);
+    C.levenshteinDebugOutput(applyres, newTable, "recommendationSearchQuestionReply.txt");
 
-    return addQuery(ctx, 'execute', newTable, 'accepted', delta);
+    return addQuery(ctx, 'execute', applyres, 'accepted', delta);
 }
 
 function learnMoreSearchQuestionReply(ctx : ContextInfo, questions : C.ParamSlot[]) {
@@ -142,10 +142,10 @@ function learnMoreSearchQuestionReply(ctx : ContextInfo, questions : C.ParamSlot
     const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, currentStmt.expression.schema);
     const deltaProjectionStatement = new Ast.ProjectionExpression(null, deltaFilterStatement, questions.map((q) => q.name), [], [], deltaFilterStatement.schema);
     const delta = (new Ast.Levenshtein(null, deltaProjectionStatement, "$continue")).optimize();
-    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
-    C.levenshteinDebugOutput(applyres, newTable, "learnMoreSearchQuestionReply_multiwoz.txt");
+    const applyres = Ast.applyLevenshteinSync(currentStmt.expression, delta);
+    C.levenshteinDebugOutput(applyres, newTable, "learnMoreSearchQuestionReply.txt");
     
-    return addQuery(ctx, 'execute', newTable, 'accepted', delta);
+    return addQuery(ctx, 'execute', applyres, 'accepted', delta);
 }
 
 function displayResultSearchQuestionReply(ctx : ContextInfo, questions : C.ParamSlot[]) {
@@ -162,10 +162,10 @@ function displayResultSearchQuestionReply(ctx : ContextInfo, questions : C.Param
     // Levenshtein: one projection
     const deltaProjectionStatement = new Ast.ProjectionExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), questions.map((q) => q.name), [], [], currentStmt.expression.schema);
     const delta = (new Ast.Levenshtein(null, deltaProjectionStatement, "$continue")).optimize();
-    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
-    C.levenshteinDebugOutput(applyres, newTable, "displayResultSearchQuestionReply_multiwoz.txt", [delta]);
+    const applyres = Ast.applyLevenshteinSync(currentStmt.expression, delta);
+    C.levenshteinDebugOutput(applyres, newTable, "displayResultSearchQuestionReply.txt", [delta]);
 
-    return addQuery(ctx, 'execute', newTable, 'accepted', delta);
+    return addQuery(ctx, 'execute', applyres, 'accepted', delta);
 }
 
 function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : [Ast.Value|null, C.ParamSlot[]]) {
@@ -217,10 +217,10 @@ function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : 
         return null;
     
     // Levenshtein: either one projection or one projection and filter
-    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
-    C.levenshteinDebugOutput(applyres, newTable, "listProposalSearchQuestionReply_multiwoz.txt");
+    const applyres = Ast.applyLevenshteinSync(currentStmt.expression, delta);
+    C.levenshteinDebugOutput(applyres, newTable, "listProposalSearchQuestionReply.txt");
 
-    return addQuery(ctx, 'execute', newTable, 'accepted', delta);
+    return addQuery(ctx, 'execute', applyres, 'accepted', delta);
 }
 
 function corefConstant(ctx : ContextInfo, base : Ast.Expression, param : C.ParamSlot) {
