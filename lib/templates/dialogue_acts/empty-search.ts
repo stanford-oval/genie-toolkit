@@ -102,10 +102,10 @@ function emptySearchChangePhraseCommon(ctx : ContextInfo,
     // Levenshtein: adding a filter
     const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, currentStmt.expression.schema);
     const delta = (new Ast.Levenshtein(null, deltaFilterStatement, "$continue")).optimize();
-    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
-    C.levenshteinDebugOutput(applyres, newExpression, "emptySearchChangePhraseCommon_multiwoz.txt", [delta], currentStmt.expression);
+    const applyres = Ast.applyLevenshteinSync(currentStmt.expression, delta);
+    C.levenshteinDebugOutput(applyres, newExpression, "emptySearchChangePhraseCommon.txt", [delta], currentStmt.expression);
     
-    return addQuery(ctx, 'execute', newExpression, 'accepted', delta);
+    return addQuery(ctx, 'execute', applyres, 'accepted', delta);
 }
 
 /**

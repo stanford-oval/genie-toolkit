@@ -72,10 +72,10 @@ function relatedQuestion(ctx : ContextInfo, expr : Ast.Expression) {
 
     // Levenshtein: adding a filter
     const delta = (new Ast.Levenshtein(null, expr, "$continue")).optimize();
-    const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
-    C.levenshteinDebugOutput(applyres, newTable, "relatedQuestion_multiwoz.txt");
+    const applyres = Ast.applyLevenshteinSync(currentStmt.expression, delta);
+    C.levenshteinDebugOutput(applyres, newTable, "relatedQuestion.txt");
 
-    return addQuery(ctx, 'execute', newTable, 'accepted', delta);
+    return addQuery(ctx, 'execute', applyres, 'accepted', delta);
 }
 
 export {

@@ -297,10 +297,10 @@ function positiveListProposalReply(loader : ThingpediaLoader,
         // Levenshtein: adding a filter
         const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), namefilter, currentStmt.expression.schema);
         const delta = (new Ast.Levenshtein(null, deltaFilterStatement, "$continue")).optimize();
-        const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
-        C.levenshteinDebugOutput(applyres, newTable, "positiveListProposalReply_multiwoz.txt");
+        const applyres = Ast.applyLevenshteinSync(currentStmt.expression, delta);
+        C.levenshteinDebugOutput(applyres, newTable, "positiveListProposalReply.txt");
 
-        return addQuery(ctx, 'execute', newTable, 'accepted', delta);
+        return addQuery(ctx, 'execute', applyres, 'accepted', delta);
     } else {
         if (actionProposal !== null && !C.isSameFunction(actionProposal.schema!, acceptedAction.schema!))
             return null;
@@ -330,7 +330,7 @@ function positiveListProposalReply(loader : ThingpediaLoader,
         const delta  : Ast.Levenshtein = (new Ast.Levenshtein(null, new Ast.InvocationExpression(null, invocation, invocation.schema), "$continue")).optimize();
         if (ctx.nextInfo) {
             oldExpr = ctx.next!.stmt.expression;
-            applyres = Ast.applyMultipleLevenshtein(oldExpr, [delta]);
+            applyres = Ast.applyLevenshteinSync(oldExpr, delta);
         } else {
             setOrAddInvocationParam(invocation, chainParam, name);
             applyres = C.toChainExpression(new Ast.InvocationExpression(null, invocation, invocation.schema));

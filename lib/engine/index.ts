@@ -504,8 +504,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
      *
      * @param {string} kind - the Thingpedia class ID of the devices to update
      */
-    async upgradeDevice(kind : string) : Promise<void> {
-        await this._devices.updateDevicesOfKind(kind);
+    async upgradeDevice(kind : string, force = false) : Promise<void> {
+        await this._devices.updateDevicesOfKind(kind, force);
     }
     /**
      * Returns the list of all device classes that have been previously cached.

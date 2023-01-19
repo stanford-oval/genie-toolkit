@@ -642,13 +642,13 @@ export function handleIncomingDelta(dialogueState : Ast.DialogueState | null, an
 
         // if we can not find an overlapping item, directly use delta as the new expression
         // if an overlapping item is found, `applied` will be updated in the loop
-        let applied = new Ast.ExpressionStatement(null, item.levenshtein.expression);
+        const applied = new Ast.ExpressionStatement(null, item.levenshtein.expression);
 
         for (let i = dialogueState.history.length - 1; i >= 0; i --) {
             const currInv = Ast.getAllInvocationExpression(dialogueState.history[i].stmt.expression.last);
             if (Ast.ifOverlap(deltaInv, currInv)) {
                 const lastTurn = dialogueState.history[i].stmt;
-                applied = Ast.applyLevenshteinExpressionStatement(lastTurn, item.levenshtein, dialogueState);
+                applied.expression = Ast.applyLevenshteinSync(lastTurn.expression, item.levenshtein, dialogueState);
                 break;
             }
         }
@@ -656,7 +656,5 @@ export function handleIncomingDelta(dialogueState : Ast.DialogueState | null, an
         item.stmt = applied;
         if (!item.stmt.expression.schema)
             item.stmt.expression.schema = item.stmt.expression.last.schema;
-
-            // console.log(`Delta conversion finished, computed statement: ${applied.prettyprint()}`);
     }
 }

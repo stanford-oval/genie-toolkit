@@ -402,7 +402,7 @@ function positiveRecommendationReply(loader : ThingpediaLoader,
     const delta  : Ast.Levenshtein = (new Ast.Levenshtein(null, new Ast.InvocationExpression(null, invocation, invocation.schema), "$continue")).optimize();
     if (ctx.nextInfo) {
         oldExpr = ctx.next!.stmt.expression;
-        applyres = Ast.applyMultipleLevenshtein(oldExpr, [delta]);
+        applyres = Ast.applyLevenshteinSync(oldExpr, delta);
     } else {
         setOrAddInvocationParam(invocation, chainParam, topResult.value.id);
         applyres = C.toChainExpression(new Ast.InvocationExpression(null, invocation, invocation.schema));

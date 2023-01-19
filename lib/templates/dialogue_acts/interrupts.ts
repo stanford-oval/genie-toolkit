@@ -61,7 +61,7 @@ function projectionDuringSlotFill(ctx : ContextInfo, questions : C.ParamSlot[]) 
             const deltaFilterStatement = new Ast.FilterExpression(null, Ast.levenshteinFindSchema(currentStmt.expression), newFilter, currentStmt.expression.schema);
             const deltaProjectionStatement = new Ast.ProjectionExpression(null, deltaFilterStatement, questions.map((q) => q.name), [], [], deltaFilterStatement.schema);
             const delta = (new Ast.Levenshtein(null, deltaProjectionStatement, "$continue")).optimize();
-            const applyres = Ast.applyMultipleLevenshtein(currentStmt.expression, [delta]);
+            const applyres = Ast.applyLevenshteinSync(currentStmt.expression, delta);
             C.levenshteinDebugOutput(applyres, newTable, "recommendationSearchQuestionReply_multiwoz.txt");
             // console.log("projectionDuringSlotFill succeeded");
         

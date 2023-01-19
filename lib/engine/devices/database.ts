@@ -421,10 +421,10 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
         return this._factory.getCachedDeviceClasses();
     }
 
-    async updateDevicesOfKind(kind : string) {
+    async updateDevicesOfKind(kind : string, force : boolean) {
         this.schemas.removeFromCache(kind);
 
-        await this._factory.updateDeviceClass(kind);
+        await this._factory.updateDeviceClass(kind, force);
         await this._reloadAllDevices(kind);
     }
 
@@ -447,7 +447,7 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
                 continue;
 
             this.schemas.removeFromCache(kind);
-            await this._factory.updateDeviceClass(kind);
+            await this._factory.updateDeviceClass(kind, false);
             const newClass = await this._factory.getDeviceClass(kind);
             if (newClass.metadata.version !== oldVersion)
                 await this._reloadAllDevices(kind);
