@@ -69,6 +69,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'evaluate-dialog': require('./evaluate-dialog'),
     'server': require('./server'),
     'assistant': require('./assistant'),
+    'lightweight': require('./lightweight'),
 
     'subsample-thingpedia': require('./subsample-thingpedia'),
     'preprocess-string-dataset': require('./preprocess-string-dataset'),
