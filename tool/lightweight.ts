@@ -191,15 +191,22 @@ export async function execute(args : any) {
         // every time we first get rid of all previous msgs
         exposurer.message = [];
 
+        await conversation.handleCommand(req.body.q);
+        
+        let reviews : string[] = [];
+        if (exposurer.message.length <= 1)
+            reviews = [];
+        else
+            reviews = exposurer.message.slice(1);
+            
+        res.send({
+           "genie_response": exposurer.message[0],
+           "reviews": reviews,
+        });
+        
         // we also get rid of all contexts
         const state = conversation.getState();
         await conversation.restart(state, true);
-
-        await conversation.handleCommand(req.body.q);
-        res.send({
-           "genie_response": exposurer.message,
-           "reviews": [],
-        });
     });
 
     app.listen(8405, () => {
