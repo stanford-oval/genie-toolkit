@@ -149,8 +149,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 // FIXME: notify users that there is an error
                 console.log(`During execution preparation for ${item.prettyprint()}, an error occured.`);
                 console.log(e);
-                console.log(`This item will be removed from dialogue state`);
-                toRemove.push(i);
                 continue;
             }
 
