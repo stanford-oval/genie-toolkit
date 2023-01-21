@@ -91,11 +91,11 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
                     })]
                 ]));
             } catch(e) {
-                this.dlg.say(["geniescript has an error:" + e]);
+                console.log("geniescript has an error:" + e);
             } finally {
                 const error_prompt = "Geniescript had an error or exited. Please restart genie.";
-                this.dlg.say([error_prompt]);
-                yield* this.dlg._expect(new Map([]), null, null, error_prompt);
+                console.log(error_prompt);
+                yield* this.dlg._expect(new Map([]), null, null, null);
             }
         }
     }
@@ -621,7 +621,12 @@ export class AgentDialog {
     }
 
     getLastResult() : Ast.DialogueHistoryResultList | null {
-        return this.dialogueHandler!._dialogueState!.history[this.dialogueHandler!._dialogueState!.history.length - 1].results;
+        try {
+            const res = this.dialogueHandler!._dialogueState!.history[this.dialogueHandler!._dialogueState!.history.length - 1].results;
+            return res;
+        } catch(e) {
+            return null;
+        }
     }
     
     getLastResultSize() : number | null {
