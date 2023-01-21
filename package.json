@@ -14,6 +14,7 @@
     "@js-temporal/polyfill": "^0.3.0",
     "adt": "^0.7.2",
     "argparse": "^2.0.0",
+    "async-mutex": "^0.4.0",
     "body-parser": "^1.19.1",
     "byline": "^5.0.0",
     "consumer-queue": "^1.0.0",

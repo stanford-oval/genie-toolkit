@@ -23,6 +23,7 @@ import * as argparse from 'argparse';
 import * as Tp from 'thingpedia';
 import * as fs from 'fs';
 import express from 'express';
+import { Mutex } from 'async-mutex';
 
 import Engine from '../lib/engine';
 import Platform from './lib/cmdline-platform';
@@ -187,26 +188,34 @@ export async function execute(args : any) {
     const exposurer = new LightWeightExposurer();
     await conversation.addOutput(exposurer);
 
-    app.post('/query', qv.validatePOST(QUERY_PARAMS, { accept: 'application/json' }), async (req, res) => {
-        // every time we first get rid of all previous msgs
-        exposurer.message = [];
+    const mutex = new Mutex();
 
-        await conversation.handleCommand(req.body.q);
-        
-        let reviews : string[] = [];
-        if (exposurer.message.length <= 1)
-            reviews = [];
-        else
-            reviews = exposurer.message.slice(1);
+    app.post('/query', qv.validatePOST(QUERY_PARAMS, { accept: 'application/json' }), async (req, res) => {
+        const release = await mutex.acquire();   // acquires access to the critical path
+
+        try {
+            // every time we first get rid of all previous msgs
+            exposurer.message = [];
+
+            await conversation.handleCommand(req.body.q);
             
-        res.send({
-           "genie_response": exposurer.message[0],
-           "reviews": reviews,
-        });
-        
-        // we also get rid of all contexts
-        const state = conversation.getState();
-        await conversation.restart(state, true);
+            let reviews : string[] = [];
+            if (exposurer.message.length <= 1)
+                reviews = [];
+            else
+                reviews = exposurer.message.slice(1);
+                
+            res.send({
+            "genie_response": exposurer.message[0],
+            "reviews": reviews,
+            });
+
+            // we also get rid of all contexts
+            const state = conversation.getState();
+            await conversation.restart(state, true);
+        } finally {
+            release(); // completes the work on the critical path
+        }
     });
 
     app.listen(8405, () => {
