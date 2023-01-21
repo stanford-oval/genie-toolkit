@@ -196,8 +196,7 @@ export async function execute(args : any) {
         try {
             // every time we first get rid of all previous msgs
             exposurer.message = [];
-            const genieResponse = exposurer.message[0] ? exposurer.message[0] : "Sorry, there are no restaurants matching your request.";
-
+            
             await conversation.handleCommand(req.body.q);
             
             let reviews : string[] = [];
@@ -205,7 +204,8 @@ export async function execute(args : any) {
                 reviews = [];
             else
                 reviews = exposurer.message.slice(1);
-                
+            const genieResponse = exposurer.message.length >= 1 ? exposurer.message[0] : "Sorry, there are no restaurants matching your request.";
+            
             res.send({
             "genie_response": genieResponse,
             "reviews": reviews,
