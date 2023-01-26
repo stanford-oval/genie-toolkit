@@ -205,6 +205,9 @@ $agent : S.AgentReplyRecord = {
     !anything_else {
         ctx:ctx_cancel 'alright, let me know if I can help you with anything else!'
             => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
+    
+        ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
     }
 
     // action results

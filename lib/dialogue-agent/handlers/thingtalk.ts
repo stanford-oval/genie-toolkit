@@ -604,8 +604,12 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         const { newDialogueState, newExecutorState, newPrograms, newResults } = await this._agent.execute(this._dialogueState!, this._executorState);
         this._dialogueState = newDialogueState;
         this._executorState = newExecutorState;
+        // in some TBD edge cases, there will be some history items
+        // that somehow becomes undefined
+        // filter them out before they cause further problems
+        this._dialogueState.history = this._dialogueState.history.filter((x) => !!x);
         this._loop.debug(`Execution state:`);
-        this._loop.debug(this._dialogueState!.prettyprint());
+        this._loop.debug(this._dialogueState.prettyprint());
 
         for (const newProgram of newPrograms)
             await this._loop.conversation.sendNewProgram(newProgram);
