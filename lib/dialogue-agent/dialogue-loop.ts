@@ -327,7 +327,7 @@ export class DialogueLoop {
             await this._sendAgentReply(await this._thingtalkHandler.showAsyncError(call.app, call.error));
     }
 
-    private async _sendAgentReply(reply : ReplyResult) {
+    async _sendAgentReply(reply : ReplyResult) {
         this.conversation.updateLog('context', reply.context);
         this.conversation.updateLog('agent_target', reply.agent_target);
 
@@ -375,20 +375,18 @@ export class DialogueLoop {
             let reply : ReplyResult;
             try {
                 reply = await handler.getReply(analysis);
-                await this._sendAgentReply(reply);                
+                await this._sendAgentReply(reply);              
             } catch(error) {
-                console.log("Note: there was an error with one handler, dialogue continuing...");
+                const handlerNickName = handler.isGeniescript() ? "GenieScript" : "ThingTalk";
+                console.log(`Note: there was an error with ${handlerNickName} handler.`);
                 console.log(error);
                 reply = {
-                    messages: ["ERROR"],
+                    messages: ["I am sorry. I had trouble processing your commands. Please try again."],
                     expecting: null,
-                    // REVIEW: it seems to be very unsafe to print out, even if this._thingtalkHandler._dialogueState is not null
-                    //         because the first item in dialogue history could still be null
-                    //         even if it does not error here, it will error somewhere
-                    //         need to find out where it is attaching an undefined to the 1st dialogue state
                     context: this._thingtalkHandler._dialogueState ? this._thingtalkHandler._dialogueState.prettyprint() : 'null',
                     agent_target: "agent_target: error",
                 };
+                await this._sendAgentReply(reply);
             }
 
             if (!this._mixedInitiative) {
@@ -397,17 +395,14 @@ export class DialogueLoop {
                     await this._currentHandler.reset();
             }
 
-
             const isCurrentGeniescript = handler.isGeniescript();
             
             if (isCurrentGeniescript)
                 this._prevGeniescriptAgent = handler as ThingpediaDialogueHandler<any, any>;
 
-            // here, we ask if GS wants the reply when expecting equals to null or expecting equals to a special-cased "$yes".
-            // notice that this.expecting is different from `reply`.
-            // `reply` is what appears in the input parameter of dlg.expect
+            // here, we ask if GS wants the reply when expecting equals to null
             // if GS wants the reply (depending on whether it wants to be eager or not), we turn it over to GS
-            // if GS does not want it, we proceed again with GenieScript
+            // if GS does not want it, we proceed again with ThingTalk
             while (this.expecting === null) {
                 if (isCurrentGeniescript)
                     break;

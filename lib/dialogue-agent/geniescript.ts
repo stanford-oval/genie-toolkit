@@ -4,7 +4,7 @@ import assert from 'assert';
 import { Ast, Type } from "thingtalk";
 import { ReplyResult } from './dialogue-loop';
 import ThingTalkDialogueHandler, { handleIncomingDelta } from './handlers/thingtalk';
-import { NaturalLanguageUserInput } from './user-input';
+import { NaturalLanguageUserInput, UserInput } from './user-input';
 import { ThingTalkUtils } from '..';
 import { parse, SyntaxType } from 'thingtalk/dist/syntax_api';
 import { isOutputType } from '../utils/thingtalk';
@@ -423,6 +423,59 @@ export class AgentDialog {
     }
 
     /**
+     * Process a developer initiated query to a ThingTalk expression:
+     * (1) if developer supplied ThingTalk, directly uses it;
+     * (2) if developer supplied Natural Language, use contextual semantic parser to process it
+     * 
+     * @param {string} queryString either the ThingTalk of the query to be executed, or the natural langauge expressing it
+     * @returns {Ast.ExpressionStatement} processed ThingTalk expression
+     */
+    async processNLCommand(queryString : string) : Promise<Ast.ExpressionStatement> {
+        let queryExpressionStatement;
+
+        if (queryString.startsWith("\\t ")) {
+            // extract query from user-inputed ThingTalk command
+            queryString = queryString.substring(3);
+            const queryProgram = parse(queryString, SyntaxType.Normal, { timezone: undefined }) as Ast.Program;
+            queryExpressionStatement = queryProgram.statements[0];
+            if (!(queryExpressionStatement instanceof Ast.ExpressionStatement)) {
+                throw Error(`processNLCommand: developer-supplied queryString is not of type ExpressionStatement: ${queryString} \n
+                            parsed result: ${queryProgram} \n
+                            This suggests that the ThingTalk input is not correct. Consider changing it.`);
+            }
+        } else {
+            // consult the contextual semantic parser for the developer-inputted user utterances
+            const sendToNLU : NaturalLanguageUserInput = { type : 'command', utterance : queryString, platformData : {} };
+            const analyzed = await this.dialogueHandler!._parseCommand(sendToNLU);
+            assert(analyzed.parsed instanceof Ast.DialogueState);
+            assert(analyzed.parsed.history.length === 1);
+            
+            await handleIncomingDelta(this.dialogueHandler!._dialogueState, analyzed.parsed, undefined);
+            queryExpressionStatement = analyzed.parsed.history[0].stmt;
+        }
+
+        return queryExpressionStatement;
+    }
+
+    async executeCSP(command : UserInput) {
+        try {
+            const analysis = await this.dialogueHandler!.analyzeCommand(command);
+            const reply = await this.dialogueHandler!.getReply(analysis);
+            return reply;
+        } catch(error) {
+            console.log(`Note: there was an error while executing ${command}`);
+            console.log(error);
+            const reply = {
+                messages: ["I am sorry. I had trouble processing your commands. Please try again."],
+                expecting: null,
+                context: 'null',
+                agent_target: "agent_target: error",
+            };
+            return reply;
+        }
+    }
+
+    /**
      * Propose a query or action to user, and if accepted, return the query result to user.
      * 
      * The DlgStatus result can be either:
@@ -459,28 +512,7 @@ export class AgentDialog {
                    expectedType : string,
                    waitForAck = true) {
 
-        let queryExpressionStatement;
-
-        if (queryString.startsWith("\\t ")) {
-            // extract query from user-inputed ThingTalk command
-            queryString = queryString.substring(3);
-            const queryProgram = parse(queryString, SyntaxType.Normal, { timezone: undefined }) as Ast.Program;
-            queryExpressionStatement = queryProgram.statements[0];
-            if (!(queryExpressionStatement instanceof Ast.ExpressionStatement)) {
-                throw Error(`initiateQuery: developer-supplied queryString is not of type ExpressionStatement: ${queryString} \n
-                            parsed result: ${queryProgram} \n
-                            This suggests that the ThingTalk input is not correct. Consider changing it.`);
-            }
-        } else {
-            // consult the contextual semantic parser for the developer-inputted user utterances
-            const sendToNLU : NaturalLanguageUserInput = { type : 'command', utterance : queryString, platformData : {} };
-            const analyzed = await this.dialogueHandler!._parseCommand(sendToNLU);
-            assert(analyzed.parsed instanceof Ast.DialogueState);
-            assert(analyzed.parsed.history.length === 1);
-            
-            await handleIncomingDelta(this.dialogueHandler!._dialogueState, analyzed.parsed, undefined);
-            queryExpressionStatement = analyzed.parsed.history[0].stmt;
-        }
+        const queryExpressionStatement = await this.processNLCommand(queryString);
         
         // construct the new dialogue state and update in dialogue loop
         const newHistoryItem = new Ast.DialogueHistoryItem(null, queryExpressionStatement, null, "proposed", null);

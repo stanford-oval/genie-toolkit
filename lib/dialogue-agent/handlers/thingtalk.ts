@@ -468,9 +468,9 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     }
 
     async getReply(analyzed : ThingTalkCommandAnalysisType) : Promise<ReplyResult> {
-        // if user utterance is $yes and there is no proposed items on the stack
+        // if user utterance is Ack and there is no proposed items on the stack
         // because if there was a proposed item, it means that this could be right
-        // after a initiateQuery or initiateAction, and we'd like the semantic parser deal with it
+        // after a propose, and we'd like the semantic parser to deal with it
         // NOTE: this._loop.expecting retrieves the information from the dialogue loop
         //       which was set in last turn
         if (analyzed.parsed instanceof Ast.ControlCommand &&
@@ -624,42 +624,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     private async _doAgentReply(newResults : Array<[string, Record<string, unknown>]>) : Promise<ReplyResult> {
         const oldState = this._dialogueState;
 
-        if (oldState?.dialogueAct === "not_that") {
-            const newState : Ast.DialogueState = new Ast.DialogueState(null, oldState.policy, "execute", null, oldState.history, undefined);
-            if (oldState.history[oldState.history.length - 1].levenshtein === null) {
-                console.log("_doAgentReply: not_that, last-turn does not have delta, set to the statement itself");
-                oldState.history[oldState.history.length - 1].levenshtein = new Ast.Levenshtein(null, oldState.history[oldState.history.length - 1].stmt.expression, "$continue");
-            }
-            
-            const delta = oldState.history[oldState.history.length - 1].levenshtein;
-            let newStateItem : Ast.DialogueHistoryItem;
-            let response : string;
-            let agentTarget : string;
-            // for now, take an ad-hoc look at the last turn delta and take out the outmost AST node
-            if (delta!.expression.first instanceof Ast.ProjectionExpression) {
-                newStateItem = new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, delta!.expression.first.expression), null, "accepted", null, undefined);
-                response = "Ok, what would you like to know?";
-                agentTarget = "$dialogue @org.thingpedia.dialogue.transaction.sys_learn_more_what";
-            } else if (delta!.expression.first instanceof Ast.FilterExpression && delta!.expression.first.filter instanceof Ast.AtomBooleanExpression) {
-                newStateItem = new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, delta!.expression.first.expression), null, "accepted", null, undefined);
-                response = `Ok, what ${delta!.expression.first.filter.name} would like?`;
-                agentTarget = `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(${delta!.expression.first.filter.name})`;
-            } else {
-                throw Error("_doAgentReply: not_that delta expression currently not supported: " + delta!.prettyprint());
-            }
-
-            newState.history.push(newStateItem);
-            this._dialogueState = newState;
-
-            // TODO: figure out expecting
-            const expecting = ValueCategory.Generic;
-            return {
-                messages: [response],
-                context: newState.prettyprint(),
-                agent_target: agentTarget,
-                expecting: expecting,
-            };
-        }
+        if (oldState?.dialogueAct === "not_that")
+            return this.notThatHandler();
 
 
         const policyResult = await this._policy.chooseAction(this._dialogueState);
@@ -815,6 +781,44 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         const mappedError = await this._agent.executor.mapError(error);
         this._dialogueState = await this._policy.getAsyncErrorState(app.name, app.program, mappedError);
         return this._doAgentReply([]);
+    }
+
+    private notThatHandler() {
+        const oldState = this._dialogueState!;
+        const newState : Ast.DialogueState = new Ast.DialogueState(null, oldState.policy, "execute", null, oldState.history, undefined);
+        if (oldState.history[oldState.history.length - 1].levenshtein === null) {
+            console.log("_doAgentReply: not_that, last-turn does not have delta, set to the statement itself");
+            oldState.history[oldState.history.length - 1].levenshtein = new Ast.Levenshtein(null, oldState.history[oldState.history.length - 1].stmt.expression, "$continue");
+        }
+        
+        const delta = oldState.history[oldState.history.length - 1].levenshtein;
+        let newStateItem : Ast.DialogueHistoryItem;
+        let response : string;
+        let agentTarget : string;
+        // for now, take an ad-hoc look at the last turn delta and take out the outmost AST node
+        if (delta!.expression.first instanceof Ast.ProjectionExpression) {
+            newStateItem = new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, delta!.expression.first.expression), null, "accepted", null, undefined);
+            response = "Ok, what would you like to know?";
+            agentTarget = "$dialogue @org.thingpedia.dialogue.transaction.sys_learn_more_what";
+        } else if (delta!.expression.first instanceof Ast.FilterExpression && delta!.expression.first.filter instanceof Ast.AtomBooleanExpression) {
+            newStateItem = new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, delta!.expression.first.expression), null, "accepted", null, undefined);
+            response = `Ok, what ${delta!.expression.first.filter.name} would like?`;
+            agentTarget = `$dialogue @org.thingpedia.dialogue.transaction.sys_search_question(${delta!.expression.first.filter.name})`;
+        } else {
+            throw Error("_doAgentReply: not_that delta expression currently not supported: " + delta!.prettyprint());
+        }
+
+        newState.history.push(newStateItem);
+        this._dialogueState = newState;
+
+        // TODO: figure out expecting
+        const expecting = ValueCategory.Generic;
+        return {
+            messages: [response],
+            context: newState.prettyprint(),
+            agent_target: agentTarget,
+            expecting: expecting,
+        };
     }
 }
 

@@ -130,11 +130,12 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         const newPrograms : NewProgramRecord[] = [];
         const hints = this._collectDisambiguationHintsForState(state);
         const toRemove : number[] = [];
+        
         for (let i = clone.history.length - 1; i >= 0 ; i--) {
             if (clone.history[i].results !== null)
-                continue;
+                break;
             if (clone.history[i].confirm === 'proposed')
-                continue;
+                break;
 
             if (!cloned) {
                 clone = state.clone();
@@ -143,28 +144,17 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             // prepare for execution now, even if we don't execute yet
             // so we slot-fill eagerly
             const item = clone.history[i];
-            try {
-                await this._prepareForExecution(item.stmt, hints);
-            } catch(e) {
-                // FIXME: notify users that there is an error
-                console.log(`During execution preparation for ${item.prettyprint()}, an error occured.`);
-                console.log(e);
-                continue;
-            }
+            await this._prepareForExecution(item.stmt, hints);
 
-            // if we did not execute the previous item we're not executing this one either
-            // if (i > 0 && clone.history[i-1].results === null)
-            //     continue;
             if (item.confirm === 'accepted' &&
                 item.isExecutable() &&
                 shouldAutoConfirmStatement(item.stmt))
                 item.confirm = 'confirmed';
-            if (item.confirm === 'accepted')
+            else
                 break;
-            // if (item.confirm !== 'confirmed')
-            //     continue;
+            
             anyChange = true;
-            // assert(item.isExecutable());
+            assert(item.isExecutable());
 
             // if we have a stream, we'll trigger notifications
             // configure them if necessary
