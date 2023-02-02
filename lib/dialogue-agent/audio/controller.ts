@@ -373,7 +373,6 @@ export default class AudioController extends events.EventEmitter {
     }
 
     private _onDeviceRemoved(device : Tp.BaseDevice) {
-        console.log(`Audio device removed`);
         this.releaseAudio(device);
     }
 }

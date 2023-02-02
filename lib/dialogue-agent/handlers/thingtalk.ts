@@ -51,6 +51,8 @@ import {
 import { Button } from '../card-output/format_objects';
 import { Replaceable } from '../../utils/template-string';
 
+import { Logger, getLogger } from 'log4js';
+
 // TODO: load the policy.yaml file instead
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
 const TERMINAL_STATES = ['sys_end'];
@@ -118,6 +120,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     private _ifDynamic : boolean;
     private _bypassAnswerControlIntent : boolean;
 
+    logger : Logger;
+
     constructor(engine : Engine,
                 loop : DialogueLoop,
                 agent : ExecutionDialogueAgent,
@@ -134,7 +138,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         this._rng = options.rng;
         this._ifDynamic = options.ifDynamic;
         // FIXME: fix this
-        this._bypassAnswerControlIntent = true;
+        this._bypassAnswerControlIntent = false;
         this._engine = engine;
         this._loop = loop;
         this._prefs = engine.platform.getSharedPreferences();
@@ -157,6 +161,9 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         });
         this._dialogueState = null; // thingtalk dialogue state
         this._executorState = undefined; // private object managed by DialogueExecutor
+
+        this.logger = getLogger("thingtalk-dlghandler");
+        this.logger.level = "debug";
     }
 
     isGeniescript() : boolean {
@@ -239,14 +246,14 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         if (analysis.parsed instanceof Ast.DialogueState) {
             // do levenshtein apply, depending on whether to use dynamic resolution
             if (this._ifDynamic) {
-                await handleIncomingDelta(this._dialogueState, analysis.parsed,
+                await this.handleIncomingDelta(this._dialogueState, analysis.parsed,
                     async (x) => {
                         const res = await this._agent.executeExpr(x, this._dialogueState!, this._executorState);
                         return res;
                     }
                 );
             } else {
-                await handleIncomingDelta(this._dialogueState, analysis.parsed, undefined);
+                await this.handleIncomingDelta(this._dialogueState, analysis.parsed, undefined);
             }
 
             // record the natural language utterance
@@ -389,7 +396,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 }, true);
             } catch(e : any) {
                 // Likely, a type error in the ThingTalk code; not a big deal, but we still log it
-                console.log(`Failed to parse beam ${beamposition}: ${e.message}`);
+                this.logger.error(`Failed to parse beam ${beamposition}: ${e.message}`);
                 parsed = new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'failed'));
             }
             return { parsed, score: candidate.score };
@@ -500,14 +507,14 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                     // set the stage for execution of statement on behalf of user
                     this._dialogueState!.dialogueAct = "execute";
                 } else {
-                    console.log("WARNING: user says okay, decided that there is still accepted ones on the dialogue state. Yet, the last item is confirmed");
+                    this.logger.warn("user says okay, decided that there is still accepted ones on the dialogue state. Yet, the last item is confirmed");
                 }
                         
                 return this._executeCurrentState();
             } else {
                 // in certain edge cases, _dialogueState could yet be set
                 if (this._dialogueState) {
-                    console.log("ThingTalk dialogue handler getReply: triggered special $yes procedure, set user is Done on the dialogue state");
+                    this.logger.info("ThingTalk dialogue handler getReply: triggered special $yes procedure, set user is Done on the dialogue state");
                     this._dialogueState.userIsDone = true;
                 }
                 return {
@@ -564,7 +571,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             return null;
         }
 
-        console.log('followUp', followUp.prettyprint());
+        this.logger.info('followUp', followUp.prettyprint());
         this._dialogueState = followUp;
         return this._executeCurrentState();
     }
@@ -776,7 +783,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
     async showAsyncError(app : AppExecutor,
                          error : Error) {
-        console.log('Error from ' + app.uniqueId, error);
+        this.logger.error('Error from ' + app.uniqueId, error);
 
         const mappedError = await this._agent.executor.mapError(error);
         this._dialogueState = await this._policy.getAsyncErrorState(app.name, app.program, mappedError);
@@ -787,7 +794,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         const oldState = this._dialogueState!;
         const newState : Ast.DialogueState = new Ast.DialogueState(null, oldState.policy, "execute", null, oldState.history, undefined);
         if (oldState.history[oldState.history.length - 1].levenshtein === null) {
-            console.log("_doAgentReply: not_that, last-turn does not have delta, set to the statement itself");
+            this.logger.info("_doAgentReply: not_that, last-turn does not have delta, set to the statement itself");
             oldState.history[oldState.history.length - 1].levenshtein = new Ast.Levenshtein(null, oldState.history[oldState.history.length - 1].stmt.expression, "$continue");
         }
         
@@ -820,26 +827,64 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             expecting: expecting,
         };
     }
+    /**
+     * Given an incoming delta expression and the old dialogue state, compute the new dialogue state.
+     * This function modifies @param analysis in-place, which will be the new dialogueHistoryItem
+     * corresponding to this user target.
+     * 
+     * The algorithm works in the following way:
+     * When a new request comes in as a delta, take a look at all items on the stack.
+     * Use the top related item - regardless of its status - to do apply.
+     * Then, put the applied result on the top. 
+     * 
+     * The reason behind is that the semantic parser should have already picked up the
+     * correct item in generating delta
+     * 
+     * @param dialogueState old dialogue state
+     * @param analysis dialogue state returned by semantic parser
+     */
+
+    async handleIncomingDelta(dialogueState : Ast.DialogueState | null, analysis : Ast.DialogueState, resolutor : undefined | ((args0 : Ast.Expression) => Promise<boolean>)) {
+        if (!dialogueState)
+            return;
+        
+        for (const item of analysis.history) {
+            if (!item.levenshtein)
+                continue;
+            
+            const deltaInv = Ast.getAllInvocationExpression(item.levenshtein);
+
+            // if we can not find an overlapping item, directly use delta as the new expression
+            // if an overlapping item is found, `applied` will be updated in the loop
+            const applied = new Ast.ExpressionStatement(null, item.levenshtein.expression);
+
+            for (let i = dialogueState.history.length - 1; i >= 0; i --) {
+                const currInv = Ast.getAllInvocationExpression(dialogueState.history[i].stmt.expression.last);
+                if (Ast.ifOverlap(deltaInv, currInv)) {
+                    const lastTurn = dialogueState.history[i].stmt;
+
+                    // prepares for execution by resolving certain entities, etc.
+                    await this._agent.prepareExpr(item.levenshtein, dialogueState);
+
+                    if (resolutor)
+                        applied.expression = await Ast.applyLevenshtein(lastTurn.expression, item.levenshtein, dialogueState, resolutor);
+                    else
+                        applied.expression = Ast.applyLevenshteinSync(lastTurn.expression, item.levenshtein, dialogueState);
+                    break;
+                }
+            }
+
+            item.stmt = applied;
+            if (!item.stmt.expression.schema)
+                item.stmt.expression.schema = item.stmt.expression.last.schema;
+        }
+    }
 }
 
 /**
- * Given an incoming delta expression and the old dialogue state, compute the new dialogue state.
- * This function modifies @param analysis in-place, which will be the new dialogueHistoryItem
- * corresponding to this user target.
- * 
- * The algorithm works in the following way:
- * When a new request comes in as a delta, take a look at all items on the stack.
- * Use the top related item - regardless of its status - to do apply.
- * Then, put the applied result on the top. 
- * 
- * The reason behind is that the semantic parser should have already picked up the
- * correct item in generating delta
- * 
- * @param dialogueState old dialogue state
- * @param analysis dialogue state returned by semantic parser
+ * @deprecated A legacy method kept for multiwoz evaluation
  */
-
-export async function handleIncomingDelta(dialogueState : Ast.DialogueState | null, analysis : Ast.DialogueState, resolutor : undefined | ((args0 : Ast.Expression) => Promise<boolean>)) {
+export async function _handleIncomingDelta(dialogueState : Ast.DialogueState | null, analysis : Ast.DialogueState, resolutor : undefined | ((args0 : Ast.Expression) => Promise<boolean>)) {
     if (!dialogueState)
         return;
     

@@ -34,7 +34,7 @@ import { ParsedDialogue, DialogueTurn } from '../parsers';
 import * as ThingTalkUtils from '../../utils/thingtalk';
 import { SimulationDatabase } from '../../dialogue-agent/simulator/types';
 import SlotExtractor from './slot_extractor';
-import { handleIncomingDelta } from '../../dialogue-agent/handlers/thingtalk';
+import { _handleIncomingDelta } from '../../dialogue-agent/handlers/thingtalk';
 import { writeFileSync } from 'fs';
 
 interface DialogueEvaluatorOptions {
@@ -206,7 +206,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         }
 
         // do levenshtein apply
-        await handleIncomingDelta(context, predictedUserTarget, undefined);
+        await _handleIncomingDelta(context, predictedUserTarget, undefined);
 
         // let us get rid of all proposed ones when comparing slots
         const predictedUserState = ThingTalkUtils.computeNewState(context, predictedUserTarget, 'user', true);

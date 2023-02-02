@@ -484,8 +484,6 @@ export function isUserAskingResultQuestion(ctx : ContextInfo) : boolean {
         return false;
 
     const previous = ctx.state.history[ctx.currentIdx - 1];
-    // only complete (executed) programs make it to the history, so this must be true
-    assert(previous.results !== null);
     const previousResultInfo = new ResultInfo(ctx.state, previous);
     if (!previousResultInfo.projection)
         return true;

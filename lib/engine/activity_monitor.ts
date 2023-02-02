@@ -21,6 +21,7 @@
 import * as events from 'events';
 
 import AppDatabase from './apps/database';
+import { Logger, getLogger } from 'log4js';
 
 const DEFAULT_IDLE_TIMEOUT = 600000; // 10 minutes
 const DEFAULT_QUIESCE_TIMEOUT = 30000; // 30 seconds
@@ -52,6 +53,7 @@ export class ActivityMonitor extends events.EventEmitter {
     private _quiesceTimeoutMillis : number;
     private _appAddedListener : () => void;
     private _appRemovedListener : () => void;
+    logger : Logger;
 
     constructor(appdb : AppDatabase, options : {
         idleTimeoutMillis ?: number;
@@ -68,6 +70,9 @@ export class ActivityMonitor extends events.EventEmitter {
         this._quiesceTimeoutMillis = options.quiesceTimeoutMillis || DEFAULT_QUIESCE_TIMEOUT;
         this._appAddedListener = this.updateActivity.bind(this);
         this._appRemovedListener = this.updateActivity.bind(this);
+
+        this.logger = getLogger("activity-monitor");
+        this.logger.level = "debug";
     }
 
     set name(name : string) {
@@ -79,7 +84,7 @@ export class ActivityMonitor extends events.EventEmitter {
     }
 
     async start() {
-        console.log(`${this._name} started`);
+        this.logger.info(`${this._name} started`);
         this._appdb.on('app-added', this._appAddedListener);
         this._appdb.on('app-removed', this._appRemovedListener);
         this._status = ActivityMonitorStatus.Running;
@@ -103,7 +108,7 @@ export class ActivityMonitor extends events.EventEmitter {
         if (!this._appdb.isEmpty())
             return;
         const idleTimeout = Math.max(this._idleTimeoutMillis - (Date.now() - this._lastUpdate), 0);
-        console.log(`${this._name} started idle timer ${idleTimeout} ms`);
+        this.logger.info(`${this._name} started idle timer ${idleTimeout} ms`);
         this._idleTimeout = setTimeout(() => {
             this._idleTimeout = null;
             const msSinceLastUpdate = Date.now() - this._lastUpdate;
@@ -115,18 +120,18 @@ export class ActivityMonitor extends events.EventEmitter {
     }
 
     private _startQuiesce() {
-        console.log(`${this._name} started quiesce timer ${this._quiesceTimeoutMillis} ms`);
+        this.logger.info(`${this._name} started quiesce timer ${this._quiesceTimeoutMillis} ms`);
         this._quiesceTimeout = setTimeout(() => {
             this._quiesceTimeout = null;
             this._status = ActivityMonitorStatus.Idle;
             this.emit("idle");
-            console.log(`${this._name} emitted idle event`);
+            this.logger.info(`${this._name} emitted idle event`);
         }, this._quiesceTimeoutMillis);
         this.emit('ping');
     }
 
     async stop() {
-        console.log(`${this._name} stopped`);
+        this.logger.info(`${this._name} stopped`);
         this._status = ActivityMonitorStatus.Stopping;
         if (this._idleTimeout !== null)
             clearTimeout(this._idleTimeout);

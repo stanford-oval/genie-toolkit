@@ -3,11 +3,12 @@ import * as Tp from 'thingpedia';
 import assert from 'assert';
 import { Ast, Type } from "thingtalk";
 import { ReplyResult } from './dialogue-loop';
-import ThingTalkDialogueHandler, { handleIncomingDelta } from './handlers/thingtalk';
+import ThingTalkDialogueHandler from './handlers/thingtalk';
 import { NaturalLanguageUserInput, UserInput } from './user-input';
 import { ThingTalkUtils } from '..';
 import { parse, SyntaxType } from 'thingtalk/dist/syntax_api';
 import { isOutputType } from '../utils/thingtalk';
+import { Logger, getLogger } from 'log4js';
 
 type GeniescriptReplyResult = Tp.DialogueHandler.ReplyResult;
 type GenieScriptTypeChecker = (reply : ReplyResult) => boolean;
@@ -64,14 +65,17 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
     private _state : GeniescriptState<any> | null;
     private skill_name : string;
     public dlg : AgentDialog;
+    logger : Logger;
 
     protected constructor(public priority = Tp.DialogueHandler.Priority.PRIMARY, public icon : string | null = null, user_target : string, skill_name : string) {
-        console.log("AbstractGeniescriptHandler constructor");
         this._state = null;
         if (this.constructor === GeniescriptAgent)
             throw new Error("Abstract classes can't be instantiated.");
         this.skill_name = skill_name;
         this.dlg = new AgentDialog(user_target, skill_name);
+        this.logger = getLogger("geniescript-agent");
+        this.logger.level = "debug";
+        this.logger.debug("AbstractGeniescriptHandler constructor");
     }
 
     getState() : string {
@@ -91,10 +95,10 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
                     })]
                 ]));
             } catch(e) {
-                console.log("geniescript has an error:" + e);
+                this.logger.error("geniescript has an error:" + e);
             } finally {
                 const error_prompt = "Geniescript had an error or exited. Please restart genie.";
-                console.log(error_prompt);
+                this.logger.error(error_prompt);
                 yield* this.dlg._expect(new Map([]), null, null, null);
             }
         }
@@ -114,9 +118,9 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
 
     async analyzeCommand(command : string) : Promise<GeniescriptAnalysisResult> {
         const utterance = command;
-        console.log("AbstractGeniescriptHandler analyzeCommand");
+        this.logger.debug("AbstractGeniescriptHandler analyzeCommand");
         const result = await this._state!.next({ type: GenieQueryType.ANALYZE_COMMAND, content: utterance });
-        console.log(result.value);
+        this.logger.debug(result.value);
         return result.value;
     }
 
@@ -127,7 +131,7 @@ export abstract class GeniescriptAgent implements Tp.DialogueHandler<Geniescript
     }
 
     async getAgentInputFollowUp(return_value : ReplyResult) {
-        console.log("AbstractGeniescriptHandler getAgentInputFollowUp");
+        this.logger.debug("AbstractGeniescriptHandler getAgentInputFollowUp");
         const result0 = this._state!.next({ type: GenieQueryType.CALLBACK, content: return_value });
         const result = await result0;
         return result.value;
@@ -164,6 +168,7 @@ export class AgentDialog {
     // with other dialogue handlers. In particular, we would like it to share with the
     // Geniescript dialogue handler in order for it to access and modify the dialogue state, when necessary.
     public dialogueHandler ?: ThingTalkDialogueHandler;
+    logger : Logger;
 
     constructor(user_target : string, skill_name : string) {
         this._user_target = user_target;
@@ -176,6 +181,8 @@ export class AgentDialog {
         this._last_expecting = null;
         this._last_target = null;
         this._last_content = null;
+        this.logger = getLogger("geniescript-agent");
+        this.logger.level = "debug";
     }
 
     /* Exception handler for geniescript
@@ -363,7 +370,7 @@ export class AgentDialog {
         let new_result;
         while (!(this.dialogueHandler!._dialogueState) || !this.dialogueHandler!._dialogueState!.userIsDone) {
             new_result = last_result_before_ack;
-            console.log("GS: _waitForAckExpect: waitForAck set, user is still not done, hand back to ThingTalk handler");
+            this.logger.info("GS: _waitForAckExpect: waitForAck set, user is still not done, hand back to ThingTalk handler");
             last_result_before_ack = yield *this._expect(
                 action_map,
                 obj_predicate,
@@ -450,7 +457,7 @@ export class AgentDialog {
             assert(analyzed.parsed instanceof Ast.DialogueState);
             assert(analyzed.parsed.history.length === 1);
             
-            await handleIncomingDelta(this.dialogueHandler!._dialogueState, analyzed.parsed, undefined);
+            await this.dialogueHandler!.handleIncomingDelta(this.dialogueHandler!._dialogueState, analyzed.parsed, undefined);
             queryExpressionStatement = analyzed.parsed.history[0].stmt;
         }
 
@@ -463,8 +470,8 @@ export class AgentDialog {
             const reply = await this.dialogueHandler!.getReply(analysis);
             return reply;
         } catch(error) {
-            console.log(`Note: there was an error while executing ${command}`);
-            console.log(error);
+            this.logger.error(`Note: there was an error while executing ${command}`);
+            this.logger.error(error);
             const reply = {
                 messages: ["I am sorry. I had trouble processing your commands. Please try again."],
                 expecting: null,

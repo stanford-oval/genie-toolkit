@@ -261,7 +261,7 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
     }
 
     private async _notifyDeviceAdded(device : Tp.BaseDevice) {
-        console.log('Added device ' + device.uniqueId);
+        // console.log('Added device ' + device.uniqueId);
 
         // for compat, emit it first
         this.emit('device-added', device);

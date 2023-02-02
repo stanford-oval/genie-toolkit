@@ -21,6 +21,7 @@
 import assert from 'assert';
 import * as Tp from 'thingpedia';
 import { Ast, SchemaRetriever, Builtin } from 'thingtalk';
+import { Logger, getLogger } from 'log4js';
 
 import * as I18n from '../i18n';
 import { determineSameExceptSlotFill } from '../templates/ast_manip';
@@ -98,15 +99,18 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
     private _langPack : I18n.LanguagePack;
     locale : string;
     timezone : string;
+    logger : Logger;
 
     constructor(tpClient : Tp.BaseClient, schemas : SchemaRetriever, options : AbstractDialogueAgentOptions) {
         this._tpClient = tpClient;
         this._schemas = schemas;
         this._langPack = I18n.get(options.locale);
 
-        this._debug = options.debug;
+        this._debug = options.debug ? options.debug : false;
         this.locale = options.locale;
         this.timezone = options.timezone;
+        this.logger = getLogger("abstract-dialoge-agent");
+        this.logger.level = "debug";
     }
 
     /**
@@ -150,7 +154,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 item.isExecutable() &&
                 shouldAutoConfirmStatement(item.stmt))
                 item.confirm = 'confirmed';
-            else
+            else if (item.confirm === 'accepted')
                 break;
             
             anyChange = true;
@@ -588,13 +592,13 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @returns {boolean} whether @param expr results in a non-null query. True if result is non-null
      */
     async executeExpr(expr : Ast.Expression, state : Ast.DialogueState, privateState : PrivateStateType|undefined) : Promise<boolean> {
-        console.log(`Dynamic Resolution (DR) in place, executing expression : ${expr.prettyprint()}`);
+        this.logger.info(`Dynamic Resolution (DR) in place, executing expression : ${expr.prettyprint()}`);
         const hints = this._collectDisambiguationHintsForState(state);
 
         const invocations = Ast.getAllInvocationExpression(expr);
         for (const invocation of invocations) {
             if (invocation instanceof Ast.InvocationExpression && invocation.ifAction()) {
-                console.log(`DR determined result to be true due to action ${invocation.prettyprint()}`);
+                this.logger.info(`DR determined result to be true due to action ${invocation.prettyprint()}`);
                 return true;
             }
         }
@@ -608,7 +612,22 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         else
             res = false;
 
-        console.log(`DR determined result for above to be ${res}`);
+        this.logger.info(`DR determined result for above to be ${res}`);
         return res;
+    }
+
+    /**
+     * Prepares a Levenshtein for dynamic resolution of delta apply.
+     * This method modifies @param expr in-place
+     * 
+     * @param {Ast.Levenshtein} expr - expression to determine whether results is null
+     * @param {Ast.DialogueState} state - current dialog state (exclusive of expr)
+     */
+    async prepareExpr(expr : Ast.Levenshtein, state : Ast.DialogueState) {
+        const hints = this._collectDisambiguationHintsForState(state);
+        const stmt = new Ast.ExpressionStatement(null, expr.expression);
+        await this._prepareForExecution(stmt, hints);
+
+        expr.expression = stmt.expression;
     }
 }

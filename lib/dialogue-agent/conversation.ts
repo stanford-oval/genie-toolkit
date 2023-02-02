@@ -35,6 +35,7 @@ import AppExecutor from '../engine/apps/app_executor';
 import ConversationLogger from './logging';
 import { ConversationStateRow, LocalTable } from "../engine/db";
 import ConversationHistory from './conversation_history';
+import { Logger, getLogger } from 'log4js';
 
 const DummyStatistics = {
     hit() {
@@ -120,6 +121,7 @@ export default class Conversation extends events.EventEmitter {
 
     private _log : ConversationLogger;
     private readonly _conversationStateDB : LocalTable<ConversationStateRow>;
+    logger : Logger;
 
     constructor(engine : Engine,
                 conversationId : string,
@@ -166,6 +168,9 @@ export default class Conversation extends events.EventEmitter {
         this._contextResetTimeoutSec = options.contextResetTimeout || DEFAULT_CONVERSATION_TTL;
 
         this._log = new ConversationLogger(engine.db.getLocalTable('conversation'), this._conversationId);
+
+        this.logger = getLogger("conversation");
+        this.logger.level = "debug";
     }
 
     get isAnonymous() : boolean {
@@ -306,9 +311,9 @@ export default class Conversation extends events.EventEmitter {
 
         if (this._debug) {
             if (what !== null && what !== 'generic')
-                console.log('Genie sends a special request');
+                this.logger.info('Genie sends a special request');
             else if (what !== null)
-                console.log('Genie expects an answer');
+                this.logger.info('Genie expects an answer');
         }
 
         await this._callDelegates((out) => out.setExpected(what, this._context));
@@ -332,7 +337,7 @@ export default class Conversation extends events.EventEmitter {
 
     private async _saveState() {
         const serializedDialogueState = JSON.stringify(this._loop.getState());
-        console.log(`Saving conversation state for ${this._conversationId} (${serializedDialogueState.length} characters)`);
+        this.logger.trace(`Saving conversation state for ${this._conversationId} (${serializedDialogueState.length} characters)`);
         await this._conversationStateDB.insertOne(this._conversationId, {
             dialogueState: serializedDialogueState,
             lastMessageId: this._lastMessageId,
@@ -365,7 +370,7 @@ export default class Conversation extends events.EventEmitter {
         this._resetInactivityTimeout();
         await this.addMessage({ type: MessageType.COMMAND, command });
         if (this._debug)
-            console.log('Received assistant command ' + command);
+            this.logger.info('Received assistant command ' + command);
 
         await this._loop.handleCommand({ type: 'command', utterance: command, platformData });
     }
@@ -381,7 +386,7 @@ export default class Conversation extends events.EventEmitter {
         await this.addMessage({ type: MessageType.COMMAND, command: title || command, json: root });
 
         if (this._debug)
-            console.log('Received pre-parsed assistant command');
+            this.logger.info('Received pre-parsed assistant command');
         if (root.example_id) {
             this._engine.thingpedia.clickExample(root.example_id).catch((e) => {
                 console.error('Failed to record example click: ' + e.message);
@@ -418,7 +423,7 @@ export default class Conversation extends events.EventEmitter {
         this._resetInactivityTimeout();
         await this.addMessage({ type: MessageType.COMMAND, command });
         if (this._debug)
-            console.log('Received ThingTalk program');
+            this.logger.info('Received ThingTalk program');
 
         const parsed = await ThingTalkUtils.parse(program, {
             timezone: this._engine.platform.timezone,
@@ -431,45 +436,45 @@ export default class Conversation extends events.EventEmitter {
 
     sendReply(message : string, icon : string|null) {
         if (this._debug)
-            console.log('Genie says: ' + message);
+            this.logger.info('Genie says: ' + message);
         return this.addMessage({ type: MessageType.TEXT, text: message, icon });
     }
 
     sendMedia(mediaType : 'picture'|'audio'|'video', url : string, alt : string|undefined, icon : string|null) {
         if (this._debug)
-            console.log('Genie sends ' + mediaType + ': '+ url);
+            this.logger.info('Genie sends ' + mediaType + ': '+ url);
         return this.addMessage({ type: mediaType as MessageType.AUDIO|MessageType.VIDEO|MessageType.PICTURE, url, alt, icon });
     }
 
     sendRDL(rdl : RDL, icon : string|null) {
         if (this._debug)
-            console.log('Genie sends RDL: '+ rdl.callback);
+            this.logger.info('Genie sends RDL: '+ rdl.callback);
         return this.addMessage({ type: MessageType.RDL, rdl, icon });
     }
 
     sendSoundEffect(name : string, exclusive = false, icon : string|null) {
         if (this._debug)
-            console.log('Genie sends sound effect: '+ name);
+            this.logger.info('Genie sends sound effect: '+ name);
         return this.addMessage({ type: MessageType.SOUND_EFFECT, name, exclusive, icon });
     }
 
     sendChoice(idx : number, title : string) {
         if (this._expecting !== ValueCategory.MultipleChoice)
-            console.log('UNEXPECTED: sendChoice while not expecting a MultipleChoice');
+            this.logger.info('UNEXPECTED: sendChoice while not expecting a MultipleChoice');
         if (this._debug)
-            console.log('Genie sends multiple choice button: '+ title);
+            this.logger.info('Genie sends multiple choice button: '+ title);
         return this.addMessage({ type: MessageType.CHOICE, idx, title });
     }
 
     sendButton(title : string, json : string) {
         if (this._debug)
-            console.log('Genie sends generic button: '+ title);
+            this.logger.info('Genie sends generic button: '+ title);
         return this.addMessage({ type: MessageType.BUTTON, json, title });
     }
 
     sendLink(title : string, url : string, state : ConversationState) {
         if (this._debug)
-            console.log('Genie sends link: '+ url);
+            this.logger.info('Genie sends link: '+ url);
         return this.addMessage({ type: MessageType.LINK, url, title, state });
     }
 
@@ -482,7 +487,7 @@ export default class Conversation extends events.EventEmitter {
         icon : string|null;
     }) {
         if (this._debug)
-            console.log('Genie executed new program: '+ program.uniqueId);
+            this.logger.info('Genie executed new program: '+ program.uniqueId);
         return this.addMessage({ type: MessageType.NEW_PROGRAM, ...program });
     }
 

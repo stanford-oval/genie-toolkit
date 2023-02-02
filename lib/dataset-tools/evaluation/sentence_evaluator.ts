@@ -30,7 +30,7 @@ import * as ThingTalkUtils from '../../utils/thingtalk';
 import { ParserClient, PredictionResult } from '../../prediction/parserclient';
 import { SentenceExample } from '../parsers';
 import { Ast } from 'thingtalk';
-import { handleIncomingDelta } from '../../dialogue-agent/handlers/thingtalk';
+import { _handleIncomingDelta } from '../../dialogue-agent/handlers/thingtalk';
 import { parse, SyntaxType } from 'thingtalk/dist/syntax_api';
 import { writeFileSync } from 'fs';
 
@@ -354,7 +354,7 @@ class SentenceEvaluator {
                 if (parsed instanceof Ast.DialogueState && dialogueState instanceof Ast.DialogueState && dialogueState.history.length >= 1 && parsed.history.length >= 1) {
                     const delta    = parsed.history[parsed.history.length - 1].levenshtein;
                     if (delta)
-                        await handleIncomingDelta(dialogueState, parsed, undefined);
+                        await _handleIncomingDelta(dialogueState, parsed, undefined);
                 }
             }
 

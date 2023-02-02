@@ -116,7 +116,7 @@ export default class DialoguePolicy {
     }
 
     private async _initializeGenerator(forDevices : string[]) {
-        console.log('Initializing dialogue policy for devices: ' + forDevices.join(', '));
+        // console.log('Initializing dialogue policy for devices: ' + forDevices.join(', '));
 
         this._generatorOptions = {
             contextual: true,

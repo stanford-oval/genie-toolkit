@@ -83,8 +83,8 @@ export default class Platform extends Tp.BasePlatform {
     private _gettext : Gettext;
     private _timezone : string;
 
-    private _filesDir : string;
-    private _cacheDir : string;
+    filesDir : string;
+    cacheDir : string;
 
     private _prefs : Tp.Helpers.FilePreferences;
     private _tpClient : Tp.HttpClient;
@@ -101,19 +101,19 @@ export default class Platform extends Tp.BasePlatform {
         this._timezone = process.env.GENIE_TZ || Temporal.Now.timeZone().id;
 
         if (homedir) {
-            this._filesDir = path.resolve(homedir);
-            safeMkdirSync(this._filesDir);
-            this._cacheDir = path.resolve(homedir, 'cache');
-            safeMkdirSync(this._cacheDir);
+            this.filesDir = path.resolve(homedir);
+            safeMkdirSync(this.filesDir);
+            this.cacheDir = path.resolve(homedir, 'cache');
+            safeMkdirSync(this.cacheDir);
         } else {
-            this._filesDir = path.resolve(os.homedir(), '.config/genie-toolkit');
+            this.filesDir = path.resolve(os.homedir(), '.config/genie-toolkit');
             safeMkdirSync(path.resolve(os.homedir(), '.config'));
-            safeMkdirSync(this._filesDir);
-            this._cacheDir = path.resolve(os.homedir(), '.cache/genie-toolkit');
+            safeMkdirSync(this.filesDir);
+            this.cacheDir = path.resolve(os.homedir(), '.cache/genie-toolkit');
             safeMkdirSync(path.resolve(os.homedir(), '.cache'));
-            safeMkdirSync(this._cacheDir);
+            safeMkdirSync(this.cacheDir);
         }
-        this._prefs = new Tp.Helpers.FilePreferences(this._filesDir + '/prefs.db');
+        this._prefs = new Tp.Helpers.FilePreferences(this.filesDir + '/prefs.db');
 
         this._tpClient = new Tp.HttpClient(this, thingpediaUrl);
     }
@@ -191,7 +191,7 @@ export default class Platform extends Tp.BasePlatform {
     // Get a directory that is guaranteed to be writable
     // (in the private data space for Android)
     getWritableDir() {
-        return this._filesDir;
+        return this.filesDir;
     }
 
     // Get a temporary directory
@@ -205,12 +205,12 @@ export default class Platform extends Tp.BasePlatform {
     // Get a directory good for long term caching of code
     // and metadata
     getCacheDir() {
-        return this._cacheDir;
+        return this.cacheDir;
     }
 
     // Get the filename of the sqlite database
     getSqliteDB() {
-        return this._filesDir + '/sqlite.db';
+        return this.filesDir + '/sqlite.db';
     }
 
     getSqliteKey() {
@@ -218,7 +218,7 @@ export default class Platform extends Tp.BasePlatform {
     }
 
     getGraphDB() {
-        return this._filesDir + '/rdf.db';
+        return this.filesDir + '/rdf.db';
     }
 
     // Get the Thingpedia developer key, if one is configured

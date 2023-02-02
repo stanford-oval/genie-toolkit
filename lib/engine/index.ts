@@ -43,6 +43,8 @@ import NotificationFormatter from '../dialogue-agent/notifications/formatter';
 import * as Config from '../config';
 import  { ActivityMonitor, ActivityMonitorStatus } from './activity_monitor';
 
+import { Logger, getLogger } from 'log4js';
+
 export {
     DB,
     DeviceDatabase,
@@ -190,6 +192,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
     private _running : boolean;
     private _stopCallback : (() => void)|null;
 
+    logger : Logger;
+
     /**
      * Construct a new engine.
      *
@@ -244,6 +248,9 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._running = false;
         this._stopCallback = null;
+
+        this.logger = getLogger("engine");
+        this.logger.level = "debug";
     }
 
     get platform() : Tp.BasePlatform {
@@ -389,7 +396,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
     async open() : Promise<void> {
         await this._db.ensureSchema();
         await this._openSequential(this._modules);
-        console.log('Engine started');
+        this.logger.info('Engine started');
     }
 
     /**
@@ -404,7 +411,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      */
     close() : Promise<void> {
         return this._closeSequential(this._modules).then(() => {
-            console.log('Engine closed');
+            this.logger.info('Engine closed');
         });
     }
 
@@ -435,7 +442,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * It can also be called before {@link run}.
      */
     stop() : void {
-        console.log('Engine stopped');
+        this.logger.info('Engine stopped');
         this._running = false;
         if (this._stopCallback)
             this._stopCallback();

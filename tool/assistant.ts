@@ -22,6 +22,8 @@ import * as argparse from 'argparse';
 import * as readline from 'readline';
 import * as Tp from 'thingpedia';
 import * as fs from 'fs';
+import * as log4js from "log4js";
+import { Logger, getLogger } from 'log4js';
 
 import Engine from '../lib/engine';
 import Platform from './lib/cmdline-platform';
@@ -32,9 +34,12 @@ import { DEFAULT_THINGPEDIA_URL, DEFAULT_NLP_URL, getConfig } from './lib/arguti
 
 class CommandLineDelegate {
     private _rl : readline.Interface;
+    logger : Logger;
 
     constructor(rl : readline.Interface) {
         this._rl = rl;
+        this.logger = getLogger("assistant-cmd");
+        this.logger.level = "debug";
     }
 
     destroy() {}
@@ -48,7 +53,7 @@ class CommandLineDelegate {
         this._rl.write(hypothesis);
     }
     async setExpected(expect : string) {
-        console.log('>> expecting: ' + expect);
+        this.logger.debug('>> expecting: ' + expect);
     }
     async addDevice(uniqueId : string, state : Tp.BaseDevice.DeviceState) {
         // nothing to do
@@ -57,27 +62,27 @@ class CommandLineDelegate {
     async addMessage(msg : Message) {
         switch (msg.type) {
         case 'text':
-            console.log("\x1b[32m" + '>> ' + msg.text + '\x1b[0m');
+            console.log("\x1b[32m" + msg.text + '\x1b[0m');
             break;
 
         case 'picture':
-            console.log('>> picture: ' + msg.url);
+            this.logger.debug('>> picture: ' + msg.url);
             break;
 
         case 'rdl':
-            console.log('>> rdl: ' + msg.rdl.displayTitle + ' ' + (msg.rdl.callback || msg.rdl.webCallback));
+            this.logger.debug('>> rdl: ' + msg.rdl.displayTitle + ' ' + (msg.rdl.callback || msg.rdl.webCallback));
             break;
 
         case 'choice':
-            console.log('>> choice ' + msg.idx + ': ' + msg.title);
+            this.logger.debug('>> choice ' + msg.idx + ': ' + msg.title);
             break;
 
         case 'link':
-            console.log('>> link: ' + msg.title + ' ' + msg.url);
+            this.logger.debug('>> link: ' + msg.title + ' ' + msg.url);
             break;
 
         case 'button':
-            console.log('>> button: ' + msg.title + ' ' + JSON.stringify(msg.json));
+            this.logger.debug('>> button: ' + msg.title + ' ' + JSON.stringify(msg.json));
             break;
         }
     }
@@ -280,7 +285,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('--clean-start', {
         required: false,
-        default: false,
+        default: true,
         action: 'store_true',
         help: 'Starts GenieScript with a clean dialogue state'
     });
@@ -296,17 +301,20 @@ export function initArgparse(subparsers : argparse.SubParser) {
         action: 'store_true',
         help: 'Enable additional debugging.'
     });
+    parser.add_argument('--log-file-name', {
+        required: false,
+        default: Date.now().toFixed() + ".log",
+        help: "Direct all logging to this file, typically under ~/.cache/genie-toolkit"
+    });
 }
 
 function purgeDB(platform : Platform) {
-    console.log('Clean-start initiated');
     const dir = platform.getWritableDir();
     const regex = /sqlite.db.*/i;
     fs.readdirSync(dir)
         .filter((f) => regex.test(f))
         .forEach((f) => {
             fs.unlinkSync(dir + '/' + f);
-            console.log(`${dir + '/' + f} deleted`);
         });
 }
 
@@ -315,8 +323,24 @@ export async function execute(args : any) {
         args.thingpedia_url = await getConfig('thingpedia.url', process.env.THINGPEDIA_URL || DEFAULT_THINGPEDIA_URL);
     if (!args.nlu_server_url)
         args.nlu_server_url = await getConfig('thingpedia.nlp-url', DEFAULT_NLP_URL);
-
+    
     const platform = new Platform(args.workdir, args.locale, args.thingpedia_url);
+    const logPath : string = platform.cacheDir + '/' + args.log_file_name;
+    
+    console.log(`Genie 0.10.1-alpha | command line assistant demo`);
+    console.log(`[node ${process.versions.node}]`);
+    console.log(`Log file available at ${logPath}`);
+
+    // configure all loggers
+    log4js.configure({
+        appenders: {
+          everything: { type: "file", filename: logPath },
+        },
+        categories: {
+          default: { appenders: ["everything"], level: "debug" },
+        },
+    });
+
     const prefs = platform.getSharedPreferences();
     if (args.thingpedia_dir && args.thingpedia_dir.length)
         prefs.set('developer-dir', args.thingpedia_dir);
@@ -333,9 +357,8 @@ export async function execute(args : any) {
         purgeDB(platform);
 
     const engine = new Engine(platform);
-
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-    rl.setPrompt('$ ');
+    rl.setPrompt('>>> ');
 
     await engine.open();
     const conversation = await engine.assistant.getOrOpenConversation('main', {
