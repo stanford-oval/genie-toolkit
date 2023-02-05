@@ -489,6 +489,7 @@ export default class ParameterReplacer {
         else if (!(slot.tag.startsWith('computations.') ||
             slot.tag.startsWith('sort.') ||
             slot.tag.startsWith('compute_filter.') ||
+            slot.tag.startsWith('expression.index.') ||
             slot.tag === 'slice.limit')) // other slots should have the right number
             throw new Error(`Unrecognized slot tag ${slot.tag}`);
 
