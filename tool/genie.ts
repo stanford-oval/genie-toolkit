@@ -70,6 +70,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'server': require('./server'),
     'assistant': require('./assistant'),
     'lightweight': require('./lightweight'),
+    'contextual-genie': require('./contextual-genie'),
     'process-delta': require('./process-delta'),
 
     'subsample-thingpedia': require('./subsample-thingpedia'),

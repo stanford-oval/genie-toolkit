@@ -32,6 +32,8 @@ import Conversation from '../lib/dialogue-agent/conversation';
 import { Message } from '../lib/dialogue-agent/protocol';
 import { DEFAULT_THINGPEDIA_URL, DEFAULT_NLP_URL, getConfig } from './lib/argutils';
 
+import pjson from './../package.json';
+
 class CommandLineDelegate {
     private _rl : readline.Interface;
     logger : Logger;
@@ -308,7 +310,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
 }
 
-function purgeDB(platform : Platform) {
+export function purgeDB(platform : Platform) {
     const dir = platform.getWritableDir();
     const regex = /sqlite.db.*/i;
     fs.readdirSync(dir)
@@ -327,7 +329,8 @@ export async function execute(args : any) {
     const platform = new Platform(args.workdir, args.locale, args.thingpedia_url);
     const logPath : string = platform.cacheDir + '/' + args.log_file_name;
     
-    console.log(`Genie 0.10.1-alpha | command line assistant demo`);
+
+    console.log(`Genie ${pjson.version} | command line REPL assistant demo`);
     console.log(`[node ${process.versions.node}]`);
     console.log(`Log file available at ${logPath}`);
 

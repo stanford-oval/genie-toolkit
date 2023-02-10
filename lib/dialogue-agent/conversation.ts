@@ -104,7 +104,7 @@ export default class Conversation extends events.EventEmitter {
     private _dialogueFlags : Record<string, boolean>;
     rng : () => number;
 
-    private _loop : DialogueLoop;
+    _loop : DialogueLoop;
     private _expecting : ValueCategory|null;
     private _context : {
         code : string[];

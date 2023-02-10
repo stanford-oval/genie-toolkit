@@ -147,6 +147,9 @@ export class DialogueLoop {
 
     logger : Logger;
 
+    ttReply : ReplyResult | null;
+    gsReply : ReplyResult | null;
+
     constructor(conversation : Conversation,
                 engine : Engine,
                 options : {
@@ -196,6 +199,9 @@ export class DialogueLoop {
 
         this.logger = getLogger("dialogue-loop");
         this.logger.level = "debug";
+
+        this.ttReply = null;
+        this.gsReply = null;
     }
 
     get _() : (x : string) => string {
@@ -378,7 +384,8 @@ export class DialogueLoop {
             let reply : ReplyResult;
             try {
                 reply = await handler.getReply(analysis);
-                await this._sendAgentReply(reply);              
+                this.ttReply = reply;
+                await this._sendAgentReply(reply);           
             } catch(error) {
                 const handlerNickName = handler.isGeniescript() ? "GenieScript" : "ThingTalk";
                 this.logger.error(`Note: there was an error with ${handlerNickName} handler.`);
@@ -389,6 +396,7 @@ export class DialogueLoop {
                     context: this._thingtalkHandler._dialogueState ? this._thingtalkHandler._dialogueState.prettyprint() : 'null',
                     agent_target: "agent_target: error",
                 };
+                this.ttReply = reply;
                 await this._sendAgentReply(reply);
             }
 
@@ -417,6 +425,7 @@ export class DialogueLoop {
                         this._thingtalkHandler._dialogueState.userIsDone = false;
                     if (gsReply.messages.length) {
                         this.icon = this._prevGeniescriptAgent.icon;
+                        this.gsReply = gsReply;
                         await this._sendAgentReply(gsReply);
                     }
                     reply = gsReply;
@@ -459,6 +468,8 @@ export class DialogueLoop {
                 return;
             }
             command = await this.nextCommand();
+            this.ttReply = null;
+            this.gsReply = null;
         }
     }
 
