@@ -103,20 +103,24 @@ export default class DatasetAugmenter extends Stream.Transform {
     }
 
     private async _process(ex : SentenceExample) {
-        if (ex.flags.eval)
-            return [ex];
+        try {
+            if (ex.flags.eval)
+                return [ex];
 
-        const output = await this._paramReplacer.process(ex);
-        if (this._includeQuotedExample)
-            output.push(ex);
+            const output = await this._paramReplacer.process(ex);
+            if (this._includeQuotedExample)
+                output.push(ex);
 
-        const singledeviceexs = await this._singledevice.process(ex);
-        if (this._includeQuotedExample)
-            output.push(...singledeviceexs);
-        for (const singledeviceex of singledeviceexs)
-            output.push(...await this._paramReplacer.process(singledeviceex));
-
-        return output;
+            const singledeviceexs = await this._singledevice.process(ex);
+            if (this._includeQuotedExample)
+                output.push(...singledeviceexs);
+            for (const singledeviceex of singledeviceexs)
+                output.push(...await this._paramReplacer.process(singledeviceex));
+            return output;
+        } catch(error) {
+            console.log(error);
+            return undefined;
+        }
     }
 
     _flush(callback : () => void) {
@@ -125,8 +129,10 @@ export default class DatasetAugmenter extends Stream.Transform {
 
     _transform(inex : SentenceExample, encoding : BufferEncoding, callback : (err ?: Error|null) => void) {
         this._process(inex).then((output) => {
-            for (const ex of output)
-                this.push(ex);
+            if (output) {
+                for (const ex of output)
+                    this.push(ex);
+            }
             callback();
         }, (err) => {
             callback(err);
