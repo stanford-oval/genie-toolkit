@@ -118,7 +118,6 @@ export default class DatasetAugmenter extends Stream.Transform {
                 output.push(...await this._paramReplacer.process(singledeviceex));
             return output;
         } catch(error) {
-            console.log(error);
             return undefined;
         }
     }
