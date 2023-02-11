@@ -1060,59 +1060,39 @@ export default class ParameterReplacer {
         for (const target_code of example.target_code)
             programs.push(target_code.split(' '));
 
-        let parameters;
-        try {
-            parameters = await this._computeReplaceableParameters(example.context ? example.context.split(' '): [], sentence, programs[0]);
-        } catch(e) {
-            console.error(example);
-            console.error(e);
-            throw e;
-        }
+        const parameters = await this._computeReplaceableParameters(example.context ? example.context.split(' '): [], sentence, programs[0]);
 
         const promises : Array<Promise<SentenceExample>> = [];
         for (let i = 0; i < this._blowupFactor(example, parameters); i++) {
             promises.push((async () => {
                 const replacements = new Map();
-                try {
-                    const newSentence = (await this._replaceTokensInSentence(example.id, sentence, parameters, replacements)).join(' ');
-                    const newPrograms : string[] = [];
-                    for (const program of programs)
-                        newPrograms.push(this._replaceTokensInProgram(program, replacements).join(' '));
-                    let newFlags : SentenceFlags;
 
-                    if (this._addFlag) {
-                        newFlags = {};
-                        if (example.flags)
-                            Object.assign(newFlags, example.flags);
-                        newFlags.replaced = true;
-                    } else {
-                        newFlags = example.flags || {};
-                    }
+                const newSentence = (await this._replaceTokensInSentence(example.id, sentence, parameters, replacements)).join(' ');
+                const newPrograms : string[] = [];
+                for (const program of programs)
+                    newPrograms.push(this._replaceTokensInProgram(program, replacements).join(' '));
+                let newFlags : SentenceFlags;
 
-                    return {
-                        id: example.id + '-' + i,
-                        type: example.type,
-                        flags: newFlags,
-                        context: example.context,
-                        utterance: example.utterance,
-                        preprocessed: newSentence,
-                        target_code: newPrograms,
-                        replacements: replacements
-                    };
-                } catch(e) {
-                    console.error(example);
-                    console.error(e);
-                    throw e;
-                    // return {
-                    //     id: example.id,
-                    //     type: example.type,
-                    //     flags: example.flags || {},
-                    //     context: example.context,
-                    //     utterance: example.utterance,
-                    //     preprocessed: example.preprocessed,
-                    //     target_code: example.target_code
-                    // };
+                if (this._addFlag) {
+                    newFlags = {};
+                    if (example.flags)
+                        Object.assign(newFlags, example.flags);
+                    newFlags.replaced = true;
+                } else {
+                    newFlags = example.flags || {};
                 }
+
+                return {
+                    id: example.id + '-' + i,
+                    type: example.type,
+                    flags: newFlags,
+                    context: example.context,
+                    utterance: example.utterance,
+                    preprocessed: newSentence,
+                    target_code: newPrograms,
+                    replacements: replacements
+                };
+            
             })());
         }
         return Promise.all(promises);
