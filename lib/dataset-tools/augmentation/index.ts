@@ -134,7 +134,7 @@ export default class DatasetAugmenter extends Stream.Transform {
             }
             callback();
         }, (err) => {
-            callback(err);
+            callback();
         });
     }
 }
