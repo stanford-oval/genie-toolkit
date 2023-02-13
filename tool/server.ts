@@ -185,6 +185,12 @@ export function initArgparse(subparsers : argparse.SubParser) {
         dest: 'debug',
         help: 'Disable debugging.',
     });
+    parser.add_argument('--random-port', {
+        required: false,
+        default: false,
+        action: 'store_true',
+        help: 'Asks for a random port to be returned and used by genie server'
+    });
 }
 
 export async function execute(args : any) {
@@ -239,7 +245,18 @@ export async function execute(args : any) {
     });
     app.use(errorhandler());
 
-    const server = app.listen(app.get('port'));
+    let server;
+    if (args.random_port)
+        server = app.listen(0);
+    else
+        server = app.listen(app.get('port'));
+
+    const portNumber = server.address();
+
+    if (portNumber && !(typeof portNumber === 'string'))
+        console.log(`Server port number at: ${portNumber.address}, ${portNumber.family}, ${portNumber.port}`);
+    else
+        console.log(`Server port number at: ${portNumber}`);
 
     await new Promise((resolve, reject) => {
         process.on('SIGINT', resolve);
