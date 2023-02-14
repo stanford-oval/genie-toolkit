@@ -157,6 +157,24 @@ class serverController {
                 res.send({ "response": 404 });
             }
         });
+
+        // main entry point for python method .clean() for submitting queries to Genie
+        this.app.post('/clean', async (req, res) => {
+            try {
+                const state = this._conversation.getState();
+                const deviceIds = this._engine.getDeviceInfos().map((dev) => dev.uniqueId);
+                for (const id of deviceIds) {
+                    if (id.includes('builtin') || id.includes('thingengine'))
+                        continue;
+                    else
+                        await this._engine.upgradeDevice(id, true);
+                }
+                await this._conversation.restart(state, true);
+                res.send({ "response": 200 });
+            } catch{
+                res.send({ "response": 404 });
+            }
+        });
     }
 
     destroy() {}

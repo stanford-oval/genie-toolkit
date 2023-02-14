@@ -191,7 +191,6 @@ class CommandLineHandler {
                 clearState = true;
                 const deviceIds = this._engine.getDeviceInfos().map((dev) => dev.uniqueId);
                 for (const id of deviceIds) {
-                    console.log(id);
                     if (id.includes('builtin') || id.includes('thingengine'))
                         continue;
                     else
