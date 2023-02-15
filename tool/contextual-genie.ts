@@ -142,6 +142,10 @@ class serverController {
             const query = req.query.q;
             if (typeof query === 'string')
                 await this.handleNormalInput(query);
+            
+            if (this.message.length === 0)
+                this.message.push("I am sorry. I had trouble processing your commands. Please try again.");
+
             res.send({
                 "response": this.message,
                 "results": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.result_values : undefined,
