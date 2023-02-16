@@ -32,6 +32,8 @@ import * as Utils from '../lib/utils/misc-utils';
 import { EntityMap } from '../lib/utils/entity-utils';
 import LocalParserClient from '../lib/prediction/localparserclient';
 import * as I18n from '../lib/i18n';
+import { Linker, AzureEntityLinker, Falcon } from '../lib/entity-linker';
+import WikidataUtils from '../lib/entity-linker/wikidata';
 
 interface Backend {
     schemas : ThingTalk.SchemaRetriever;
@@ -212,12 +214,37 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: "Exclude entity display in thingtalk",
         default: false
     });
+    parser.add_argument('--ned', {
+        required: false,
+        choices: ['azure', 'falcon']
+    });
+    parser.add_argument('--ner-cache', {
+        required: false,
+        help: `the path to the cache db, default to the module name if absent`
+    });
+    parser.add_argument('--wikidata-cache', {
+        required: false,
+        default: 'wikidata_cache.sqlite'
+    });
+    parser.add_argument('--bootleg', {
+        required: false,
+        default: 'bootleg.sqlite'
+    });
 }
 
 export async function execute(args : any) {
     const tpClient = new Tp.FileClient(args);
     const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
     const app = express();
+    
+    let entityLinker : Linker;
+    if (args.ned) {
+        const wikidata = new WikidataUtils(args.wikidata_cache, args.bootleg);
+        if (args.ned === 'azure')
+            entityLinker = new AzureEntityLinker(wikidata, args);
+        else
+            entityLinker = new Falcon(wikidata, args);
+    }
 
     const i18n = I18n.get(args.locale);
     app.backend = {
@@ -249,7 +276,19 @@ export async function execute(args : any) {
         next();
     });
 
-    app.post('/:locale/query', qv.validatePOST(QUERY_PARAMS, { accept: 'application/json' }), (req, res, next) => {
+    app.post('/:locale/query', qv.validatePOST(QUERY_PARAMS, { accept: 'application/json' }), async (req, res, next) => {
+        if (args.ned) {
+            const entities = (await entityLinker.run((new Date()).toISOString(), req.body.q)).entities;
+            const entityInfo = ['<e>'];
+            for (const entity of entities) {
+                entityInfo.push(entity.label);
+                if (entity.domain)
+                    entityInfo.push('(', entity.domain, ')');
+                entityInfo.push('[', entity.id, ']', ';');
+            }
+            entityInfo.push('</e>');
+            req.body.q = req.body.q + ' ' + entityInfo.join(' ');
+        }
         queryNLU(req.params, req.body, res, args.contextual).catch(next);
     });
 
