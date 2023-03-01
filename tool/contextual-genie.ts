@@ -144,7 +144,7 @@ class serverController {
                 await this.handleNormalInput(query);
             
             if (this.message.length === 0)
-                this.message.push("I am sorry. I had trouble processing your commands. Please try again.");
+                this.message.push("Sorry, I had an error processing your command");
 
             
             res.send({
