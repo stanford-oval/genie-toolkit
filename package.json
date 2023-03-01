@@ -66,7 +66,7 @@
     "@types/jsonstream": "^0.8.30",
     "@types/mime": "^2.0.3",
     "@types/morgan": "^1.9.3",
-    "@types/node": "^14.18.3",
+    "@types/node": "^18.14.2",
     "@types/node-gettext": "^3.0.3",
     "@types/nodemailer": "^6.4.4",
     "@types/seedrandom": "^3.0.1",
