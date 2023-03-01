@@ -47,7 +47,7 @@
     "thingpedia": "^2.10.0",
     "thingtalk": "^2.1.1",
     "thingtalk-units": "^0.2.0",
-    "twilio": "^3.72.0",
+    "twilio": "^4.8.0",
     "typescript": "^4.6.3",
     "uuid": "^8.2.0",
     "ws": "^7.5.6"
