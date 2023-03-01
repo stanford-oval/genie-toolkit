@@ -91,6 +91,9 @@ export interface ReplyResult {
     messages : Array<string|Tp.FormatObjects.FormattedObject>;
     expecting : ValueCategory|null;
 
+    // user_target potentially used by other packages like pyGenieScript
+    user_target ?: string;
+
     // used in the conversation logs
     context : string;
     agent_target : string;
@@ -384,6 +387,7 @@ export class DialogueLoop {
             let reply : ReplyResult;
             try {
                 reply = await handler.getReply(analysis);
+                reply.user_target = analysis.user_target;
                 this.ttReply = reply;
                 await this._sendAgentReply(reply);           
             } catch(error) {
@@ -394,7 +398,8 @@ export class DialogueLoop {
                     messages: ["I am sorry. I had trouble processing your commands. Please try again."],
                     expecting: null,
                     context: this._thingtalkHandler._dialogueState ? this._thingtalkHandler._dialogueState.prettyprint() : 'null',
-                    agent_target: "agent_target: error",
+                    agent_target: "",
+                    user_target: ""
                 };
                 this.ttReply = reply;
                 await this._sendAgentReply(reply);

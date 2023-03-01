@@ -146,9 +146,11 @@ class serverController {
             if (this.message.length === 0)
                 this.message.push("I am sorry. I had trouble processing your commands. Please try again.");
 
+            
             res.send({
                 "response": this.message,
-                "results": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.result_values : undefined,
+                "results": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.result_values : [],
+                "user_target": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.user_target : "",
             });
         });
 
