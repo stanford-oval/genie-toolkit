@@ -58,6 +58,11 @@ bookkeeping : Ast.ControlCommand = {
     | 'okay'
     | 'yes yes'
     | 'yes . yes'
+    | 'yea that sounds good'
+    | 'yea that is it'
+    | 'yea this is it'
+    | 'yea that is what I am talking about'
+    | 'yea this is what I am talking about'
     ) => special('yes');
 
     ( 'no'
