@@ -9,6 +9,8 @@ import { ThingTalkUtils } from '..';
 import { parse, SyntaxType } from 'thingtalk/dist/syntax_api';
 import { isOutputType } from '../utils/thingtalk';
 import { Logger, getLogger } from 'log4js';
+import ValueCategory from './value-category';
+import { MessageType, NewProgramMessage } from './protocol';
 
 type GeniescriptReplyResult = Tp.DialogueHandler.ReplyResult;
 type GenieScriptTypeChecker = (reply : ReplyResult) => boolean;
@@ -706,6 +708,48 @@ export class AgentDialog {
         return false;
     }
 
+    async sendAgentReplyDirect(
+        messages : Array<string|Tp.FormatObjects.FormattedObject>,
+        result_values ?: Array<Record<string, unknown>>,
+        expecting ?: ValueCategory,
+        user_target ?: string,
+        context ?: string,
+        agent_target ?: string,
+        program ?: string,
+        result_type ?: string,
+    ) {
+        if (context)
+            this.dialogueHandler!._loop.conversation.updateLog('context', context);
+        
+        if (agent_target)
+            this.dialogueHandler!._loop.conversation.updateLog('agent_target', agent_target);
+
+        for (const msg of messages)
+            await this.dialogueHandler!._loop.replyGeneric(msg);
+
+        if (result_values) {
+            // construct a dummy program so front-end can receieve it
+            const dummyProgram : NewProgramMessage = {
+                type : MessageType.NEW_PROGRAM,
+                uniqueId : "(GS direct) no uniqueId available",
+                name : "(GS direct) no name available",
+                code : program ? program : "(GS direct) no code available",
+                results : result_values,
+                errors : [],
+                icon : null
+            };
+            if (result_type)
+                dummyProgram.result_type = result_type;
+            if (user_target)
+                dummyProgram.user_target = user_target;
+            
+            await this.dialogueHandler!._loop.conversation.sendNewProgram(dummyProgram);
+        }
+
+        if (expecting)
+            this.dialogueHandler!._loop.setExpected(expecting);
+
+    }
 }
 
 function determineQuerySuccess(state : Ast.DialogueState,

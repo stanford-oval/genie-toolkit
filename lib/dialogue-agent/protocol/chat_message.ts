@@ -103,6 +103,8 @@ export interface NewProgramMessage {
     name : string;
     code : string;
     results : Array<Record<string, unknown>>;
+    result_type ?: string;  // only used by sending results in GS
+    user_target ?: string;  // only used by sending results in GS
     errors : string[];
     icon : string|null;
 }
