@@ -135,7 +135,7 @@ export function serializeNormalized(program : Ast.Input|null, entities : Syntax.
     return [code, entities];
 }
 
-interface SerializeOptions {
+export interface SerializeOptions {
     locale : string;
     timezone : string|undefined;
     ignoreSentence ?: boolean;

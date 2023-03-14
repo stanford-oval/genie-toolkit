@@ -33,6 +33,7 @@ import { Ast } from 'thingtalk';
 import { _handleIncomingDelta } from '../../dialogue-agent/handlers/thingtalk';
 import { parse, SyntaxType } from 'thingtalk/dist/syntax_api';
 import { writeFileSync } from 'fs';
+import { SerializeOptions } from '../../utils/thingtalk';
 
 function iterEquals<T>(iterable1 : Iterable<T>, iterable2 : Iterable<T>) : boolean {
     const iter1 = iterable1[Symbol.iterator]();
@@ -243,10 +244,19 @@ class SentenceEvaluator {
         assert(Array.isArray(this._targetPrograms));
         assert(this._targetPrograms.length > 0);
 
+        let targetIsDelta = false;
         const normalizedTargetCode = [];
         const firstTargetCode = this._targetPrograms[0];
         try {
             const parsed = await ThingTalkUtils.parsePrediction(firstTargetCode, entities, this._options, true);
+            if (parsed instanceof Ast.DialogueState) {
+                for (const entry of parsed.history) {
+                    if (entry.levenshtein)
+                        targetIsDelta = true;
+                    if (targetIsDelta && !entry.levenshtein)
+                        throw Error(`dataset is ill-structrued. One part of the target contains delta while some don't.\n${parsed}`);
+                }
+            }
             normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                locale: this._locale,
                timezone: this._options.timezone,
@@ -348,7 +358,8 @@ class SentenceEvaluator {
             ok_syntax = true;
 
             // do levenshtein apply
-            if (this._context && this._context !== 'null') {
+            // but don't do if target code contains delta
+            if (this._context && this._context !== 'null' && !targetIsDelta) {
                 const dialogueState = parse(this._context, SyntaxType.Tokenized, entities, this._options);
 
                 if (parsed instanceof Ast.DialogueState && dialogueState instanceof Ast.DialogueState && dialogueState.history.length >= 1 && parsed.history.length >= 1) {
@@ -365,13 +376,16 @@ class SentenceEvaluator {
             // we pass "ignoreSentence: true", which means strings are tokenized and then put in the
             // program regardless of what the sentence contains (because the neural network might
             // get creative in copying, and we don't want to crash here)
-            const normalized = ThingTalkUtils.serializePrediction(parsed, tokens, entities, {
-               locale: this._locale,
-               timezone: this._options.timezone,
-               ignoreSentence: true,
-               includeEntityValue: this._includeEntityValue,
-               toSourceArgument: 'no-levenshtein',
-            });
+            const normalizedSerializeOptions : SerializeOptions = {
+                locale: this._locale,
+                timezone: this._options.timezone,
+                ignoreSentence: true,
+                includeEntityValue: this._includeEntityValue,
+            };
+            if (!targetIsDelta)
+                normalizedSerializeOptions.toSourceArgument = 'no-levenshtein';
+
+            const normalized = ThingTalkUtils.serializePrediction(parsed, tokens, entities, normalizedSerializeOptions);
             const normalizedCode = normalized.join(' ');
 
             // check that by normalizing we did not accidentally mark wrong a program that

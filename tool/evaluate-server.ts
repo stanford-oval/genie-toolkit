@@ -148,6 +148,12 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: "Ignore the exact entity type when evaluate",
         default: false
     });
+    parser.add_argument('--annotate-errors-directory', {
+        required: false,
+        type: String,
+        default: '',
+        help: 'Directory to store a break-down (correct, incorrect, syntax errors) of predictions',
+    });
 }
 
 export async function execute(args : any) {
@@ -167,7 +173,8 @@ export async function execute(args : any) {
             complexityMetric: args.complexity_metric,
             oracle: args.oracle,
             includeEntityValue: args.include_entity_value,
-            ignoreEntityType: args.ignore_entity_type
+            ignoreEntityType: args.ignore_entity_type,
+            annotateErrorsDirectory: args.annotate_errors_directory
         }))
         .pipe(new CollectSentenceStatistics({
             minComplexity: args.min_complexity,
