@@ -893,7 +893,7 @@ export default class SentenceGenerator extends events.EventEmitter {
      * @param nonTerm - the symbol to generate
      * @return {Derivation} - the sampled derivation
      */
-    generateOne(contexts : Iterable<ContextPhrase>, nonTerm : string) : Derivation<any>|undefined {
+    generateOne(contexts : Iterable<ContextPhrase>, nonTerm : string, numResults ?: number) : Derivation<any>|undefined {
         this.finalize();
         assert(this._contextual);
 
@@ -911,10 +911,21 @@ export default class SentenceGenerator extends events.EventEmitter {
 
         // find the one best derivation for this non-terminal, across all depths
         let best : Derivation<any>|undefined = undefined;
+        let usualBest : Derivation<any>|undefined = undefined;
+        
         for (const derivation of this._getAllDerivations(nonTermIndex)) {
-            if (best === undefined || derivation.priority > best.priority)
-                best = derivation;
+            // console.log(derivation.value.numResults);
+            if (numResults && numResults === derivation.value.numResults) {
+                if (best === undefined || derivation.priority > best.priority)
+                    best = derivation;
+            }
+            if (usualBest === undefined || derivation.priority > usualBest.priority)
+                usualBest = derivation;
         }
+
+        // no desired results found, use default response
+        if (best === undefined)
+            best = usualBest;
 
         this._removeTemporaryRules();
 

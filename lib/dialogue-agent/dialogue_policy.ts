@@ -178,7 +178,7 @@ export default class DialoguePolicy {
         return this._policyModule.interpretAnswer(state, value, this._sentenceGenerator!.tpLoader, this._sentenceGenerator!.contextTable);
     }
 
-    private _generateDerivation(state : Ast.DialogueState|null) {
+    private _generateDerivation(state : Ast.DialogueState|null, numResults ?: number) {
         let derivation : Derivation<AgentReplyRecord>|undefined;
 
         // try with a low pruning size first, because that's faster, and then increase
@@ -197,17 +197,17 @@ export default class DialoguePolicy {
             if (contextPhrases === null)
                 return undefined;
 
-            derivation = this._sentenceGenerator!.generateOne(contextPhrases, '$agent');
+            derivation = this._sentenceGenerator!.generateOne(contextPhrases, '$agent', numResults);
             if (derivation !== undefined)
                 break;
         }
         return derivation;
     }
 
-    async chooseAction(state : Ast.DialogueState|null) : Promise<PolicyResult|undefined> {
+    async chooseAction(state : Ast.DialogueState|null, maxResults ?: number) : Promise<PolicyResult|undefined> {
         await this._ensureGeneratorForState(state);
 
-        const derivation = this._generateDerivation(state);
+        const derivation = this._generateDerivation(state, maxResults);
         if (derivation === undefined)
             return derivation;
 

@@ -168,6 +168,7 @@ export class DialogueLoop {
                     }>;
                     cleanStart : boolean;
                     ifDynamic : boolean;
+                    numResults : number;
                 }) {
         this._commandInputQueue = new AsyncQueue();
         this._notifyQueue = new AsyncQueue();

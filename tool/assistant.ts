@@ -307,6 +307,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: Date.now().toFixed() + ".log",
         help: "Direct all logging to this file, typically under ~/.cache/genie-toolkit"
     });
+    parser.add_argument('--num-results', {
+        required: false,
+        type: Number,
+        help: "How many results should Genie return, typically 1, 2, 3, or 10. Default to 1."
+    });
 }
 
 export function purgeDB(platform : Platform) {
@@ -369,7 +374,8 @@ export async function execute(args : any) {
         debug: args.debug,
         cleanStart: args.clean_start,
         ifDynamic: args.use_dynamic,
-        showWelcome: false
+        showWelcome: false,
+        numResults : args.num_results
     });
     await conversation.addOutput(new CommandLineDelegate(rl));
 

@@ -122,6 +122,9 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
     logger : Logger;
 
+    // max results passed to template processing
+    numResults ?: number
+
     constructor(engine : Engine,
                 loop : DialogueLoop,
                 agent : ExecutionDialogueAgent,
@@ -130,13 +133,15 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 options : { debug : boolean,
                             useConfidence : boolean,
                             rng : () => number,
-                            ifDynamic : boolean}) {
+                            ifDynamic : boolean,
+                            numResults : number}) {
         this._ = engine._;
 
         this._debug = options.debug;
         this._useConfidence = options.useConfidence;
         this._rng = options.rng;
         this._ifDynamic = options.ifDynamic;
+        this.numResults = options.numResults;
         // FIXME: fix this
         this._bypassAnswerControlIntent = false;
         this._engine = engine;
@@ -635,7 +640,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             return this.notThatHandler();
 
 
-        const policyResult = await this._policy.chooseAction(this._dialogueState);
+        const policyResult = await this._policy.chooseAction(this._dialogueState, this.numResults);
         assert(policyResult, `Failed to compute a reply`);
         this._dialogueState = policyResult.state;
         let utterance = policyResult.utterance;
