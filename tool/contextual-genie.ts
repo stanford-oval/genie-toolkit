@@ -36,6 +36,7 @@ import { AddressInfo } from 'net';
 import * as qv from 'query-validation';
 
 import { Logger, getLogger } from 'log4js';
+import bodyParser from 'body-parser';
 
 
 export function initArgparse(subparsers : argparse.SubParser) {
@@ -121,6 +122,7 @@ class serverController {
         this.logger.level = "debug";
 
         this.app = express();
+        this.app.use(bodyParser.json());
         this.server = this.app.listen(0);
         this.portNumber = this.server.address();
 
@@ -176,6 +178,17 @@ class serverController {
                         await this._engine.upgradeDevice(id, true);
                 }
                 await this._conversation.restart(state, true);
+                res.send({ "response": 200 });
+            } catch{
+                res.send({ "response": 404 });
+            }
+        });
+
+        // main entry point for python method .set_num_results() for setting number of results
+        this.app.post('/setNumResults', qv.validatePOST({ numResults: 'integer' }, { accept: 'application/json' }), async (req, res) => {
+            try {
+                const numResults : number = +req.body.numResults;
+                this._conversation._loop._thingtalkHandler.numResults = numResults;
                 res.send({ "response": 200 });
             } catch{
                 res.send({ "response": 404 });

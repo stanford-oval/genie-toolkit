@@ -129,7 +129,7 @@ export class DialogueLoop {
     private _agent : ExecutionDialogueAgent;
     private _nlu : ParserClient.ParserClient;
     private _nlg : ParserClient.ParserClient;
-    private _thingtalkHandler : ThingTalkDialogueHandler;
+    _thingtalkHandler : ThingTalkDialogueHandler;
     private _faqHandlers : Record<string, FAQDialogueHandler>;
     private _dynamicHandlers : DeviceInterfaceMapper<DialogueHandler<CommandAnalysisResult, any>>;
     private _currentHandler : DialogueHandler<CommandAnalysisResult, any>|null;
