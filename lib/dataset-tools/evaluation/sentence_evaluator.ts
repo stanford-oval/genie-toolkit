@@ -83,6 +83,7 @@ type SentenceEvaluatorOptions = {
     includeEntityValue ?: boolean;
     excludeEntityDisplay ?: boolean;
     ignoreEntityType ?: boolean;
+    ned ?: boolean;
 } & ThingTalkUtils.ParseOptions;
 
 export interface ExampleEvaluationResult {
@@ -96,6 +97,7 @@ export interface ExampleEvaluationResult {
     ok_device : boolean[];
     ok_num_function : boolean[];
     ok_syntax : boolean[];
+    ok_ned : boolean[];
 
     is_primitive : boolean;
     complexity : number|undefined;
@@ -113,18 +115,21 @@ export type EvaluationResult = {
     ok_device : number[];
     ok_num_function : number[];
     ok_syntax : number[];
+    ok_ned : number[];
     'prim/ok' : number[];
     'prim/ok_without_param' : number[];
     'prim/ok_function' : number[];
     'prim/ok_device' : number[];
     'prim/ok_num_function' : number[];
     'prim/ok_syntax' : number[];
+    'prim/ok_ned' : number[];
     'comp/ok' : number[];
     'comp/ok_without_param' : number[];
     'comp/ok_function' : number[];
     'comp/ok_device' : number[];
     'comp/ok_num_function' : number[];
     'comp/ok_syntax' : number[];
+    'comp/ok_ned' : number[];
 
     // the rules of how this record is accessed are too messy to write down
     // so we allow free property accesses
@@ -141,6 +146,7 @@ class SentenceEvaluator {
     private _includeEntityValue : boolean;
     private _excludeEntityDisplay : boolean;
     private _ignoreEntityType : boolean;
+    private _ned : boolean;
     private _tokenizer : I18n.BaseTokenizer;
     private _computeComplexity : ((id : string, code : string) => number)|undefined;
 
@@ -164,6 +170,7 @@ class SentenceEvaluator {
         this._includeEntityValue = !!options.includeEntityValue;
         this._excludeEntityDisplay = !!options.excludeEntityDisplay;
         this._ignoreEntityType = !!options.ignoreEntityType;
+        this._ned = !!options.ned;
         this._tokenizer = tokenizer;
 
         if (options.complexityMetric)
@@ -212,6 +219,7 @@ class SentenceEvaluator {
             ok_device: [],
             ok_num_function: [],
             ok_syntax: [],
+            ok_ned : [],
 
             is_primitive: false,
             complexity: undefined,
@@ -287,7 +295,17 @@ class SentenceEvaluator {
 
         let first = true;
         let ok = false, ok_without_param = false, ok_function = false,
-            ok_device = false, ok_num_function = false, ok_syntax = false;
+            ok_device = false, ok_num_function = false, ok_syntax = false, ok_ned = true;
+
+        if (this._ned) {
+            const goldEntities = normalizedTargetCode[0].match(/Q[0-9]+/g);
+            for (const entity of goldEntities ?? []) {
+                if (!tokens.includes(entity)) {
+                    ok_ned = false;
+                    break;
+                }
+            }
+        }
 
         let predictions;
         if (this._predictions) {
@@ -331,6 +349,7 @@ class SentenceEvaluator {
                 result.ok_device.push(ok_device);
                 result.ok_num_function.push(ok_num_function);
                 result.ok_syntax.push(ok_syntax);
+                result.ok_ned.push(ok_ned);
                 if (first && this._debug)
                     console.log(`${this._id}\twrong_syntax\t${this._preprocessed}\t${target}\t${beam.join(' ')}`);
                 first = false;
@@ -420,6 +439,7 @@ class SentenceEvaluator {
             result.ok_device.push(ok_device);
             result.ok_num_function.push(ok_num_function);
             result.ok_syntax.push(ok_syntax);
+            result.ok_ned.push(ok_ned);
         }
 
         return result;
@@ -478,7 +498,7 @@ interface CollectSentenceStatisticsOptions {
     splitByDevice ?: boolean;
 }
 
-const KEYS : Array<'ok' | 'ok_without_param' | 'ok_function' | 'ok_device' | 'ok_num_function' | 'ok_syntax'> = ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax'];
+const KEYS : Array<'ok' | 'ok_without_param' | 'ok_function' | 'ok_device' | 'ok_num_function' | 'ok_syntax' | 'ok_ned' > = ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax', 'ok_ned'];
 
 export class CollectSentenceStatistics extends Stream.Writable {
     private _minComplexity : number;
@@ -520,18 +540,21 @@ export class CollectSentenceStatistics extends Stream.Writable {
                     ok_device: [],
                     ok_num_function: [],
                     ok_syntax: [],
+                    ok_ned: [],
                     'prim/ok': [],
                     'prim/ok_without_param': [],
                     'prim/ok_function': [],
                     'prim/ok_device': [],
                     'prim/ok_num_function': [],
                     'prim/ok_syntax': [],
+                    'prim/ok_ned': [],
                     'comp/ok': [],
                     'comp/ok_without_param': [],
                     'comp/ok_function': [],
                     'comp/ok_device': [],
                     'comp/ok_num_function': [],
                     'comp/ok_syntax': [],
+                    'comp/ok_ned': []
                 };
             }
             this._buffer[device].total ++;
@@ -598,7 +621,7 @@ export class CollectSentenceStatistics extends Stream.Writable {
     _final(callback : () => void) {
         for (const device in this._buffer) {
             // convert to percentages
-            for (const key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
+            for (const key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax', 'ok_ned']) {
                 for (let beampos = 0; beampos < this._buffer[device][key].length; beampos++) {
                     //this._buffer[device][key][beampos] = (this._buffer[device][key][beampos] * 100 / this._buffer[device].total).toFixed(2);
                     //this._buffer[device]['prim/' + key][beampos] = (this._buffer[device]['prim/' + key][beampos] * 100 / this._buffer[device].primitives).toFixed(2);

@@ -153,6 +153,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: "Ignore the exact entity type when evaluate",
         default: false
     });
+    parser.add_argument('--ned', {
+        action: 'store_true',
+        help: 'Evaluate NED performance as well',
+        default: false
+    });
 }
 
 export async function execute(args : any) {
@@ -173,7 +178,8 @@ export async function execute(args : any) {
             oracle: args.oracle,
             includeEntityValue: args.include_entity_value,
             excludeEntityDisplay: args.exclude_entity_display,
-            ignoreEntityType: args.ignore_entity_type
+            ignoreEntityType: args.ignore_entity_type, 
+            ned : args.ned
         }))
         .pipe(new CollectSentenceStatistics({
             minComplexity: args.min_complexity,

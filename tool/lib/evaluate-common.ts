@@ -56,7 +56,7 @@ function csvDisplay(args : any,
 
         buffer += String(complexity) + ',' + String(result[`${prefix}total`]);
     }
-    for (const key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
+    for (const key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax', 'ok_ned']) {
         const fullkey = `${prefix}${key}`;
         result[fullkey].length = parseInt(process.env.CSV_LENGTH || '1');
         buffer += ',';
