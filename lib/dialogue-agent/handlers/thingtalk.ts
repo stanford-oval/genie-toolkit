@@ -680,6 +680,22 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             }
         }
 
+        // to add support for `other`, we need to mark which result has been reported to the user
+        // this right now is supported by marking the results in the *last* dialogue history item
+        if (policyResult.numResults > 0) {
+            for (let i = this._dialogueState.history.length - 1; i >= 0 ; i --) {
+                const item = this._dialogueState.history[i];
+                if (item.results !== null &&
+                    item.confirm === 'confirmed' &&
+                    item.results.results.length >= policyResult.numResults ) {
+                    // let's change this item
+                    for (let j = 0; j < policyResult.numResults; j ++)
+                        item.results.results[j].reported = true;
+                    break;
+                }
+            }
+        }
+
         let expecting : ValueCategory|null;
         if (policyResult.end) {
             expecting = null;

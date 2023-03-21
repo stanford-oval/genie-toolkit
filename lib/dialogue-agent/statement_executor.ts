@@ -136,7 +136,8 @@ export default class InferenceStatementExecutor {
     private async _iterateResults(app : AppExecutor,
                                   schema : Ast.FunctionDef,
                                   into : Ast.DialogueHistoryResultItem[],
-                                  intoRaw : RawExecutionResult) : Promise<[boolean, ErrorWithCode|undefined]> {
+                                  intoRaw : RawExecutionResult,
+                                  state ?: Ast.DialogueState) : Promise<[boolean, ErrorWithCode|undefined]> {
         let count = 0;
         if (app === null)
             return [false, undefined];
@@ -150,6 +151,15 @@ export default class InferenceStatementExecutor {
                 error = value;
             } else {
                 const mapped = await this.mapResult(schema, value.outputValue);
+
+                // if state is passed in, then we only append resuls that have not been reported to users
+                if (state) {
+                    const visitor = new Ast.IfResultReported(mapped);
+                    state.visit(visitor);
+                    if (visitor.found)
+                        continue;
+                }
+
                 into.push(mapped);
                 intoRaw.push([value.outputType, value.outputValue]);
                 count ++;
@@ -160,14 +170,20 @@ export default class InferenceStatementExecutor {
         return [false, error];
     }
 
-    async executeStatement(stmt : Ast.ExpressionStatement, privateState : undefined, notifications : NotificationConfig|undefined) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord, undefined, Ast.AnnotationSpec]> {
+    // this function corresponds to `executeStatement` in `abstract_dialogue_angent`
+    async executeStatement(
+        stmt : Ast.ExpressionStatement,
+        privateState : undefined,
+        notifications : NotificationConfig|undefined,
+        state ?: Ast.DialogueState) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord, undefined, Ast.AnnotationSpec]> {
         const program = new Ast.Program(null, [], [], [stmt]);
         const app = await this._engine.createApp(program, { notifications, conversation: this._conversationId });
         // by now the statement must have been typechecked
         assert(stmt.expression.schema);
         const results : Ast.DialogueHistoryResultItem[] = [];
         const rawResults : RawExecutionResult = [];
-        const [more, error] = await this._iterateResults(app, stmt.expression.schema, results, rawResults);
+
+        const [more, error] = await this._iterateResults(app, stmt.expression.schema, results, rawResults, stmt.expression.other ? state : undefined);
 
         const annotations : Ast.AnnotationMap = {};
         let errorValue;

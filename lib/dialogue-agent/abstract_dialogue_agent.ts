@@ -55,7 +55,11 @@ export interface NotificationConfig {
 
 export type RawExecutionResult = Array<[string, Record<string, unknown>]>;
 interface AbstractStatementExecutor<PrivateStateType> {
-    executeStatement(stmt : Ast.ExpressionStatement, privateState : PrivateStateType|undefined, notificationConfig : NotificationConfig|undefined) :
+    executeStatement(
+        stmt : Ast.ExpressionStatement,
+        privateState : PrivateStateType|undefined,
+        notificationConfig : NotificationConfig|undefined,
+        dialogueState ?: Ast.DialogueState) :
         Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord|undefined, PrivateStateType, Ast.AnnotationSpec]>;
 }
 
@@ -168,7 +172,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             if (item.stmt.stream)
                 notificationConfig = await this.configureNotifications();
 
-            const [newResultList, newRawResult, newProgram, newPrivateState, annotations] = await this.executor.executeStatement(item.stmt, privateState, notificationConfig);
+            const [newResultList, newRawResult, newProgram, newPrivateState, annotations] = await this.executor.executeStatement(item.stmt, privateState, notificationConfig, state);
             item.results = newResultList;
             Object.assign(item.nl_annotations, annotations.nl ?? {});
             Object.assign(item.impl_annotations, annotations.impl ?? {});
@@ -605,7 +609,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
 
         const stmt = new Ast.ExpressionStatement(null, expr);
         await this._prepareForExecution(stmt, hints);
-        const [newResultList, _newRawResult, _newProgram, _newPrivateState, _annotations] = await this.executor.executeStatement(stmt, privateState, undefined);
+        const [newResultList, _newRawResult, _newProgram, _newPrivateState, _annotations] = await this.executor.executeStatement(stmt, privateState, undefined, state);
         let res;
         if (newResultList.results.length > 0)
             res = true;
