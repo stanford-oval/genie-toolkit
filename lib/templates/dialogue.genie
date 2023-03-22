@@ -445,6 +445,10 @@ $user : Ast.DialogueState = {
     ?multiwoz ctx:ctx_sys_recommend_many action:list_proposal_accept_phrase_with_action_by_name [weight=10 * 0.7]
         => D.positiveListProposalReplyActionByName($loader, ctx, action);
 
+    // "show me another one"
+    ctx:ctx_sys_recommend_many "{show me {another one|other ones}.|what about {another one|other ones}?|what else?}" 
+        => D.showOtherRequests(ctx);
+
     // accepting list proposal to learn more
     ctx:ctx_sys_recommend_many name:list_proposal_tell_me_more
         => D.listProposalLearnMoreReply(ctx, name);
