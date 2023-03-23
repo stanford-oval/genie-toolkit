@@ -446,7 +446,7 @@ $user : Ast.DialogueState = {
         => D.positiveListProposalReplyActionByName($loader, ctx, action);
 
     // "show me another one"
-    ctx:ctx_sys_recommend_many "{show me {another one|other ones}.|what about {another one|other ones}?|what else?}" 
+    ctx:ctx_sys_recommend_many ("show me another one" | "show me other ones" | "what about another one ?" | "what about other ones ?" | "what else ?")
         => D.showOtherRequests(ctx);
 
     // accepting list proposal to learn more
