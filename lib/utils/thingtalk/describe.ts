@@ -613,13 +613,13 @@ export class Describer {
             op_key = 'contains';
             break;
         case '>=':
-            if (ptype.isTime || ptype.isDate)
+            if (ptype && (ptype.isTime || ptype.isDate))
                 op_key = 'after';
             else
                 op_key = 'geq';
             break;
         case '<=':
-            if (ptype.isTime || ptype.isDate)
+            if (ptype && (ptype.isTime || ptype.isDate))
                 op_key = 'before';
             else
                 op_key = 'leq';
