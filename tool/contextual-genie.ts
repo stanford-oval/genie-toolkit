@@ -37,6 +37,8 @@ import * as qv from 'query-validation';
 
 import { Logger, getLogger } from 'log4js';
 import bodyParser from 'body-parser';
+import { parse } from '../lib/utils/thingtalk';
+import { Ast } from 'thingtalk';
 
 
 export function initArgparse(subparsers : argparse.SubParser) {
@@ -103,6 +105,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: Date.now().toFixed() + ".log",
         help: "Direct all logging to this file, typically under ~/.cache/genie-toolkit"
     });
+    parser.add_argument('--server-address', {
+        required: false,
+        default: 0,
+        help: "Where to initialize the server, default to a random port"
+    });
 }
 
 
@@ -117,13 +124,13 @@ class serverController {
 
     logger : Logger;
 
-    constructor(engine : Engine, conversation : Conversation) {
+    constructor(engine : Engine, conversation : Conversation, port : number) {
         this.logger = getLogger("serverController");
         this.logger.level = "debug";
 
         this.app = express();
         this.app.use(bodyParser.json());
-        this.server = this.app.listen(0);
+        this.server = this.app.listen(port);
         this.portNumber = this.server.address();
 
         if (this.portNumber && !(typeof this.portNumber === 'string')) {
@@ -153,6 +160,38 @@ class serverController {
                 "response": this.message,
                 "results": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.result_values : [],
                 "user_target": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.user_target : "",
+                "ds": this._conversation._loop._thingtalkHandler._dialogueState!.prettyprint(),
+            });
+        });
+
+        // main entry point for python method .query_context()
+        // for submitting queries to Genie *with* context
+        // NOTE: currently, there is a bug in this method: In first invocation it would not work.
+        // Instead, one must first call this method without ds parameter to "initialize" it
+        this.app.post('/queryContext', qv.validatePOST({ q : 'string', ds : '?string' }), async (req, res) => {
+            const query = req.body.q;
+            const ds = req.body.ds;
+
+            if (ds && typeof ds === 'string' && ds !== 'null') {
+                const parsedDS = await parse(ds, this._engine.schemas);
+                if (parsedDS instanceof Ast.DialogueState) {
+                    this._conversation._loop._thingtalkHandler._dialogueState = parsedDS;
+                    this._conversation._loop._thingtalkHandler._dialogueState.updateCurrent();
+                }
+            }
+            if (typeof query === 'string') {
+                this.message = [];
+                await this._conversation._loop.handleSingleCommand(query);
+            }
+            
+            if (this.message.length === 0)
+                this.message.push("Sorry, I had an error processing your command");
+            
+            res.send({
+                "response": this.message,
+                "results": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.result_values : [],
+                "user_target": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.user_target : "",
+                "ds": this._conversation._loop._thingtalkHandler._dialogueState!.prettyprint(),
             });
         });
 
@@ -263,7 +302,7 @@ export async function execute(args : any) {
         showWelcome: false
     });
 
-    const exposurer = new serverController(engine, conversation);
+    const exposurer = new serverController(engine, conversation, +args.server_address);
     await conversation.addOutput(exposurer);
 
     await engine.run();

@@ -866,6 +866,13 @@ export class DialogueLoop {
 
         return promise;
     }
+
+    async handleSingleCommand(command : string) {
+        // await this._initialize(false, null);
+        const userCommand : UserInput = { type: 'command', utterance: command, platformData : {} };
+        await this._handleCommandInput(userCommand);
+    }
+
 }
 
 export function pickHandler(currentHandler : DialogueHandler<CommandAnalysisResult, any> | null,
