@@ -869,8 +869,12 @@ export class DialogueLoop {
 
     async handleSingleCommand(command : string) {
         // await this._initialize(false, null);
-        const userCommand : UserInput = { type: 'command', utterance: command, platformData : {} };
-        await this._handleCommandInput(userCommand);
+        try {
+            const userCommand : UserInput = { type: 'command', utterance: command, platformData : {} };
+            await this._handleCommandInput(userCommand);
+        } catch(e : any) {
+            this.logger.error(e);
+        }
     }
 
 }
