@@ -171,7 +171,7 @@ class serverController {
                 "response": this.message,
                 "results": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.result_values : [],
                 "user_target": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.user_target : "",
-                "ds": this._conversation._loop._thingtalkHandler._dialogueState!.prettyprint(),
+                "ds": this._conversation._loop._thingtalkHandler._dialogueState ? this._conversation._loop._thingtalkHandler._dialogueState.prettyprint() : "null"
             });
         });
 
@@ -210,7 +210,7 @@ class serverController {
                 "response": this.message,
                 "results": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.result_values : [],
                 "user_target": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.user_target : "",
-                "ds": this._conversation._loop._thingtalkHandler._dialogueState!.prettyprint(),
+                "ds": this._conversation._loop._thingtalkHandler._dialogueState ? this._conversation._loop._thingtalkHandler._dialogueState.prettyprint() : "null"
             });
         });
 
