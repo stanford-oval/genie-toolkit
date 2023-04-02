@@ -40,6 +40,8 @@ import bodyParser from 'body-parser';
 import { parse } from '../lib/utils/thingtalk';
 import { Ast } from 'thingtalk';
 
+import { Mutex } from 'async-mutex';
+
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('contextual-genie', {
@@ -146,11 +148,20 @@ class serverController {
 
         this.message = [];
 
+        // we use a mutex to guard query and queryContext, so as to not possibly cross-contaminate
+        const mutex = new Mutex();
+
         // main entry point for python method .query() for submitting queries to Genie
         this.app.get('/query', qv.validateGET({ q : 'string' }), async (req, res) => {
-            const query = req.query.q;
-            if (typeof query === 'string')
-                await this.handleNormalInput(query);
+            const release = await mutex.acquire();
+            
+            try {
+                const query = req.query.q;
+                if (typeof query === 'string')
+                    await this.handleNormalInput(query);
+            } finally {
+                release();
+            }
             
             if (this.message.length === 0)
                 this.message.push("Sorry, I had an error processing your command");
@@ -169,19 +180,27 @@ class serverController {
         // NOTE: currently, there is a bug in this method: In first invocation it would not work.
         // Instead, one must first call this method without ds parameter to "initialize" it
         this.app.post('/queryContext', qv.validatePOST({ q : 'string', ds : '?string' }), async (req, res) => {
-            const query = req.body.q;
-            const ds = req.body.ds;
+            const release = await mutex.acquire();
+            
+            try {
+                const query = req.body.q;
+                const ds = req.body.ds;
 
-            if (ds && typeof ds === 'string' && ds !== 'null') {
-                const parsedDS = await parse(ds, this._engine.schemas);
-                if (parsedDS instanceof Ast.DialogueState) {
-                    this._conversation._loop._thingtalkHandler._dialogueState = parsedDS;
-                    this._conversation._loop._thingtalkHandler._dialogueState.updateCurrent();
+                if (ds && typeof ds === 'string' && ds !== 'null') {
+                    const parsedDS = await parse(ds, this._engine.schemas);
+                    if (parsedDS instanceof Ast.DialogueState) {
+                        this._conversation._loop._thingtalkHandler._dialogueState = parsedDS;
+                        this._conversation._loop._thingtalkHandler._dialogueState.updateCurrent();
+                    }
+                } else if (ds === 'null') {
+                    this._conversation._loop._thingtalkHandler._dialogueState = null;
                 }
-            }
-            if (typeof query === 'string') {
-                this.message = [];
-                await this._conversation._loop.handleSingleCommand(query);
+                if (typeof query === 'string') {
+                    this.message = [];
+                    await this._conversation._loop.handleSingleCommand(query);
+                }
+            } finally {
+                release();
             }
             
             if (this.message.length === 0)
