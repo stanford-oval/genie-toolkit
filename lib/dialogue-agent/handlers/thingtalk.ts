@@ -121,6 +121,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     private _bypassAnswerControlIntent : boolean;
 
     logger : Logger;
+    annotationLogger : Logger;
 
     // max results passed to template processing
     numResults ?: number
@@ -169,6 +170,9 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         this.logger = getLogger("thingtalk-dlghandler");
         this.logger.level = "debug";
+        
+        this.annotationLogger = getLogger("annotation");
+        this.annotationLogger.level = "info";
     }
 
     isGeniescript() : boolean {
@@ -449,6 +453,12 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             this._loop.conversation.stats.hit('sabrina-command-maybe');
         } else {
             this._loop.debug('Confidently analyzed message into ' + choice.parsed.prettyprint());
+            this.annotationLogger.info(`U: ${command.utterance}`);
+            
+            const eachLine = choice.parsed.prettyprint().split('\n');
+            eachLine.forEach((line) => {
+                this.annotationLogger.info(`UT: ${line}`);
+            });
             this._loop.conversation.stats.hit('sabrina-command-good');
         }
 
@@ -620,8 +630,16 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         // that somehow becomes undefined
         // filter them out before they cause further problems
         this._dialogueState.history = this._dialogueState.history.filter((x) => !!x);
-        this._loop.debug(`Execution state:`);
-        this._loop.debug(this._dialogueState.prettyprint());
+        this.logger.debug(`Execution state:`);
+
+        const clone = this._dialogueState.clone();
+        for (let i = 0; i < clone.history.length; i ++)
+            clone.history[i].levenshtein = null;
+        
+        const eachLine = clone.prettyprint().split('\n');
+        eachLine.forEach((line) => {
+            this.annotationLogger.info(`C: ${line}`);
+        });
 
         for (const newProgram of newPrograms)
             await this._loop.conversation.sendNewProgram(newProgram);
@@ -647,9 +665,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         const policyPrediction = ThingTalkUtils.computePrediction(oldState, this._dialogueState, 'agent');
         const agentTarget = policyPrediction.prettyprint();
 
-        this._loop.debug(`Agent act:`);
-        this._loop.debug(agentTarget);
-
         if (this._useNeuralNLG()) {
             const [contextCode, contextEntities] = this._prepareContextForPrediction(this._dialogueState, 'agent');
 
@@ -658,6 +673,10 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             utterance = result[0].answer;
         }
         utterance = this._langPack.postprocessNLG(utterance, policyResult.entities, this._agent);
+
+        this.logger.info(`Agent act:`);
+        this.annotationLogger.info(`A: ${utterance}`);
+        this.annotationLogger.info(`AT: ${agentTarget}`);
 
         this.icon = getProgramIcon(this._dialogueState!);
 
