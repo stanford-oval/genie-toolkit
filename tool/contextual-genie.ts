@@ -171,7 +171,8 @@ class serverController {
                 "response": this.message,
                 "results": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.result_values : [],
                 "user_target": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.user_target : "",
-                "ds": this._conversation._loop._thingtalkHandler._dialogueState ? this._conversation._loop._thingtalkHandler._dialogueState.prettyprint() : "null"
+                "ds": this._conversation._loop._thingtalkHandler._dialogueState ? this._conversation._loop._thingtalkHandler._dialogueState.prettyprint() : "null",
+                "aux": this.getAllReported()
             });
         });
 
@@ -179,12 +180,13 @@ class serverController {
         // for submitting queries to Genie *with* context
         // NOTE: currently, there is a bug in this method: In first invocation it would not work.
         // Instead, one must first call this method without ds parameter to "initialize" it
-        this.app.post('/queryContext', qv.validatePOST({ q : 'string', ds : '?string' }), async (req, res) => {
+        this.app.post('/queryContext', qv.validatePOST({ q : 'string', ds : '?string', aux : '?array' }), async (req, res) => {
             const release = await mutex.acquire();
             
             try {
                 const query = req.body.q;
                 const ds = req.body.ds;
+                const aux = req.body.aux;
 
                 if (ds && typeof ds === 'string' && ds !== 'null') {
                     const parsedDS = await parse(ds, this._engine.schemas);
@@ -195,6 +197,10 @@ class serverController {
                 } else if (ds === 'null') {
                     this._conversation._loop._thingtalkHandler._dialogueState = null;
                 }
+
+                if (aux)
+                    this.updateAllReported(aux);
+
                 if (typeof query === 'string') {
                     this.message = [];
                     await this._conversation._loop.handleSingleCommand(query);
@@ -210,7 +216,8 @@ class serverController {
                 "response": this.message,
                 "results": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.result_values : [],
                 "user_target": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.user_target : "",
-                "ds": this._conversation._loop._thingtalkHandler._dialogueState ? this._conversation._loop._thingtalkHandler._dialogueState.prettyprint() : "null"
+                "ds": this._conversation._loop._thingtalkHandler._dialogueState ? this._conversation._loop._thingtalkHandler._dialogueState.prettyprint() : "null",
+                "aux": this.getAllReported()
             });
         });
 
@@ -271,6 +278,38 @@ class serverController {
         // every time we first get rid of all previous msgs
         this.message = [];
         await this._conversation.handleCommand(msg);
+    }
+
+    getAllReported() {
+        const ds = this._conversation._loop._thingtalkHandler._dialogueState;
+        const res = new Set();
+        if (ds) {
+            for (const item of ds.history) {
+                if (item.results) {
+                    for (const eachResult of item.results.results) {
+                        if (eachResult.reported && eachResult.value.id && (eachResult.value.id as any).value)
+                            res.add((eachResult.value.id as any).value);
+                    }
+                }
+            }
+        }
+        return Array.from(res);
+    }
+
+    updateAllReported(reported : string[]) {
+        const ds = this._conversation._loop._thingtalkHandler._dialogueState;
+        if (ds) {
+            for (const eachReported of reported) {
+                for (const item of ds.history) {
+                    if (item.results) {
+                        for (const eachResult of item.results.results) {
+                            if (eachResult.value.id && (eachResult.value.id as any).value && eachReported === (eachResult.value.id as any).value)
+                                eachResult.reported = true;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
