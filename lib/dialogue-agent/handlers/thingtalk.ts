@@ -253,11 +253,12 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         // defensive programming
         if (analysis.parsed instanceof Ast.DialogueState) {
+            this.neutralizeIDFilter(analysis.parsed);
             // do levenshtein apply, depending on whether to use dynamic resolution
             if (this._ifDynamic) {
                 await this.handleIncomingDelta(this._dialogueState, analysis.parsed,
-                    async (x) => {
-                        const res = await this._agent.executeExpr(x, this._dialogueState!, this._executorState);
+                    async (x, other) => {
+                        const res = await this._agent.executeExpr(x, this._dialogueState!, this._executorState, !!other);
                         return res;
                     }
                 );
@@ -884,7 +885,11 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
      * @param analysis dialogue state returned by semantic parser
      */
 
-    async handleIncomingDelta(dialogueState : Ast.DialogueState | null, analysis : Ast.DialogueState, resolutor : undefined | ((args0 : Ast.Expression) => Promise<boolean>)) {
+    async handleIncomingDelta(
+        dialogueState : Ast.DialogueState | null,
+        analysis : Ast.DialogueState,
+        resolutor : undefined | ((args0 : Ast.Expression, other ?: boolean) => Promise<boolean>)
+    ) {
         if (!dialogueState)
             return;
         
@@ -919,12 +924,34 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 item.stmt.expression.schema = item.stmt.expression.last.schema;
         }
     }
+
+    // this function takes a look at a statement and see if it contains a filter by ID
+    // and if it does, deletes it
+    neutralizeIDFilter(expr : Ast.DialogueState) {
+        let anyChange = false;
+        const visitor = new NeutralizeIDFilter();
+        for (const item of expr.history) {
+            if (item.levenshtein && item.levenshtein.expression.other) {
+                item.visit(visitor);
+                anyChange = true;
+            }
+        }
+        if (anyChange) {
+            this.logger.info("neutrailized the ID filter");
+            this.annotationLogger.info(`UT: ${expr.prettyprint()}`);
+        }
+    }
+
 }
 
 /**
  * @deprecated A legacy method kept for multiwoz evaluation
  */
-export async function _handleIncomingDelta(dialogueState : Ast.DialogueState | null, analysis : Ast.DialogueState, resolutor : undefined | ((args0 : Ast.Expression) => Promise<boolean>)) {
+export async function _handleIncomingDelta(
+    dialogueState : Ast.DialogueState | null,
+    analysis : Ast.DialogueState,
+    resolutor : undefined | ((args0 : Ast.Expression, other ?: boolean) => Promise<boolean>)
+) {
     if (!dialogueState)
         return;
     
@@ -955,3 +982,28 @@ export async function _handleIncomingDelta(dialogueState : Ast.DialogueState | n
             item.stmt.expression.schema = item.stmt.expression.last.schema;
     }
 }
+
+class NeutralizeIDFilter extends Ast.NodeVisitor {
+
+    visitFilterExpression(node : Ast.FilterExpression) : boolean {
+        if (node.filter instanceof Ast.AtomBooleanExpression) {
+            if ((node.filter.operator === "=~" || node.filter.operator === "==") && node.filter.name === "id")
+                node.filter = new Ast.TrueBooleanExpression();
+        }
+        return true;
+    }
+
+    visitAndBooleanExpression(node : Ast.AndBooleanExpression) : boolean {
+        const res = [];
+        for (const filter of node.operands) {
+            if (filter instanceof Ast.AtomBooleanExpression && (filter.operator === "=~" || filter.operator === "==") && filter.name === "id")
+                continue;
+            else
+                res.push(filter);
+        }
+        node.operands = res;
+        return true;
+    }
+
+}
+

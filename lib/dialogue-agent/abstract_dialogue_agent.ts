@@ -595,10 +595,14 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * 
      * @returns {boolean} whether @param expr results in a non-null query. True if result is non-null
      */
-    async executeExpr(expr : Ast.Expression, state : Ast.DialogueState, privateState : PrivateStateType|undefined) : Promise<boolean> {
-        this.logger.info(`Dynamic Resolution (DR) in place, executing expression : ${expr.prettyprint()}`);
+    async executeExpr(
+        expr : Ast.Expression,
+        state : Ast.DialogueState,
+        privateState : PrivateStateType|undefined,
+        other : boolean
+    ) : Promise<boolean> {
         const hints = this._collectDisambiguationHintsForState(state);
-
+        
         const invocations = Ast.getAllInvocationExpression(expr);
         for (const invocation of invocations) {
             if (invocation instanceof Ast.InvocationExpression && invocation.ifAction()) {
@@ -606,8 +610,9 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 return true;
             }
         }
-
-        const stmt = new Ast.ExpressionStatement(null, expr);
+        
+        const stmt = new Ast.ExpressionStatement(null, expr, other);
+        this.logger.info(`Dynamic Resolution (DR) in place, executing expression : ${stmt.prettyprint()}`);
         await this._prepareForExecution(stmt, hints);
         const [newResultList, _newRawResult, _newProgram, _newPrivateState, _annotations] = await this.executor.executeStatement(stmt, privateState, undefined, state);
         let res;
