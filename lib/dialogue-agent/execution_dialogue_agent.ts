@@ -381,7 +381,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             const candidates = await this._tpClient.lookupLocation(searchKey, around);
 
             // ignore locations larger than a city
-            const mapped = candidates.filter((c) => c.rank >= 16).map((c) => {
+            const mapped = candidates.map((c) => {
                 return new Ast.Location.Absolute(c.latitude, c.longitude, c.display);
             });
 
