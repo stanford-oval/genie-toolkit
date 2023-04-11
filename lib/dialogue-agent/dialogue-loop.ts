@@ -352,7 +352,7 @@ export class DialogueLoop {
         await this.setExpected(reply.expecting);
     }
 
-    private async _handleCommandInput(command : UserInput|AgentInput) {
+    private async _handleCommandInput(command : UserInput|AgentInput, wrapped = false) {
         for (;;) {
             const [handler, analysis] = await this._analyzeCommand(command);
             // save the utterance and complete the turn
@@ -452,7 +452,7 @@ export class DialogueLoop {
             // (requiring a wakeword again to continue) and start
             // processing notifications again
 
-            if (this.expecting === null) {
+            if (this.expecting === null || wrapped) {
                 if (reply.program) {
                     const opt : ParseOptions = {
                         timezone: this.engine.platform.timezone,
@@ -871,7 +871,7 @@ export class DialogueLoop {
         // await this._initialize(false, null);
         try {
             const userCommand : UserInput = { type: 'command', utterance: command, platformData : {} };
-            await this._handleCommandInput(userCommand);
+            await this._handleCommandInput(userCommand, true);
         } catch(e : any) {
             this.logger.error(e);
         }
