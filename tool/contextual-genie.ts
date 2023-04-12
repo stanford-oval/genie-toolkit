@@ -202,7 +202,7 @@ class serverController {
                     this.updateAllReported(aux);
 
                 if (typeof query === 'string') {
-                    this.message = [];
+                    this.resetForNextTurn();
                     await this._conversation._loop.handleSingleCommand(query);
                 }
             } finally {
@@ -276,8 +276,13 @@ class serverController {
 
     async handleNormalInput(msg : string) {
         // every time we first get rid of all previous msgs
-        this.message = [];
+        this.resetForNextTurn();
         await this._conversation.handleCommand(msg);
+    }
+
+    resetForNextTurn() {
+        this.message = [];
+        this._conversation._loop.ttReply = null;
     }
 
     getAllReported() {
