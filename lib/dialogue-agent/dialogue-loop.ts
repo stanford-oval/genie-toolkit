@@ -400,7 +400,8 @@ export class DialogueLoop {
                     expecting: null,
                     context: this._thingtalkHandler._dialogueState ? this._thingtalkHandler._dialogueState.prettyprint() : 'null',
                     agent_target: "",
-                    user_target: ""
+                    user_target: "",
+                    result_values: []
                 };
                 this.ttReply = reply;
                 await this._sendAgentReply(reply);
