@@ -126,6 +126,11 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     // max results passed to template processing
     numResults ?: number
 
+    // delta verbalization
+    deltaVerbal ?: string[];
+    // full verbalization
+    fullVerbal ?: string[];
+
     constructor(engine : Engine,
                 loop : DialogueLoop,
                 agent : ExecutionDialogueAgent,
@@ -271,6 +276,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 for (const i of analysis.parsed.history)
                     i.utterance = command.utterance;
             }
+
+            [this.deltaVerbal, this.fullVerbal] = await this.verbalizeDS(analysis.parsed);
         }
 
         // convert to dialogue state, if not already
@@ -940,6 +947,43 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             this.logger.info("neutrailized the ID filter");
             this.annotationLogger.info(`UT: ${expr.prettyprint()}`);
         }
+    }
+
+    async describeStmt(program : Ast.ExpressionStatement) : Promise<string|undefined> {
+        const allocator = new Syntax.SequentialEntityAllocator({}, { timezone: this._engine.platform.timezone, explicitStrings : true });
+        const describer = new ThingTalkUtils.Describer(this._engine.platform.locale,
+            this._engine.platform.timezone,
+            allocator);
+        // retrieve the relevant primitive templates
+        const kinds = new Set<string>();
+        for (const [, prim] of program.iteratePrimitives(false))
+            kinds.add(prim.selector.kind);
+        for (const kind of kinds)
+            describer.setDataset(kind, await this._engine.schemas.getExamplesByKind(kind));
+
+        describer.useDisplaySyntax = true;
+        const description = describer.describeExpressionStatement(program);
+        describer.useDisplaySyntax = false;
+        const res = description?.chooseBest();
+        return res;
+    }
+
+    async verbalizeDS(ds : Ast.DialogueState) : Promise<[string[], string[]]> {
+        const resDelta = [];
+        const resFull = [];
+        for (const item of ds.history) {
+            if (item.levenshtein) {
+                const tmp = await this.describeStmt(new Ast.ExpressionStatement(null, item.levenshtein.expression));
+                if (tmp)
+                    resDelta.push(tmp);
+            }
+            if (item.stmt) {
+                const tmp = await this.describeStmt(item.stmt);
+                if (tmp)
+                    resFull.push(tmp);
+            }
+        }
+        return [resDelta, resFull];
     }
 
 }

@@ -43,6 +43,7 @@ export class Describer {
     private _ : (x : string) => string;
     locale : string;
     timezone : string|undefined;
+    useDisplaySyntax : boolean|undefined;
 
     private _langPack : I18n.LanguagePack;
     private _entityAllocator : Syntax.SequentialEntityAllocator;
@@ -151,9 +152,21 @@ export class Describer {
     }
 
     private _getEntity(entityType : string, entity : AnyEntity) : ReplacedResult {
+        // simply display entities when required by this.useDisplaySyntax
+        let pos;
+        if ((entityType.startsWith('GENERIC_ENTITY_') || entityType === 'LOCATION') && this.useDisplaySyntax) {
+            const generic = entity;
+            if ((generic as any).display)
+                pos = (generic as any).display;
+            if ((generic as any).value)
+                pos = (generic as any).value;
+        } else {
+            pos = this._entityAllocator.findEntity(entityType, entity).flatten().join(' ');
+        }
+
         // note: we don't use this._const here because we don't want to preprocess
         // the string, because that would mess up with the entities
-        return new ReplacedConcatenation([this._entityAllocator.findEntity(entityType, entity).flatten().join(' ')], {}, {});
+        return new ReplacedConcatenation([pos], {}, {});
     }
 
     private _describeTime(time : Ast.Time) : ReplacedResult|null {
@@ -1621,13 +1634,13 @@ export class Describer {
             throw new TypeError(`Unexpected action ${action.prettyprint()}`);
     }
 
-    private _describeExpression(exp : Ast.Expression, scope : ScopeMap = {}) {
+    private _describeExpression(exp : Ast.Expression, scope : ScopeMap = {}, other = false) {
         if (exp.schema!.functionType === 'query') {
             if (exp.schema!.is_list) {
                 // try both plural forms, but prefer the plural if available
-                return this._interp(this._("get {${query[plural=other]} [plural=other]|${query[plural=one]} [plural=one]} [plural=1[plural]]"), { query: this.describeQuery(exp) });
+                return this._interp(this._("get {${other}}{${query[plural=other]} [plural=other]|${query[plural=one]} [plural=one]} [plural=1[plural]]"), { query: this.describeQuery(exp) , other: other ? "another": "" });
             } else {
-                return this._interp(this._("get the ${query[plural=one]} [plural=1[plural]]"), { query: this.describeQuery(exp) });
+                return this._interp(this._("get {${other}}${query[plural=one]} [plural=1[plural]]"), { query: this.describeQuery(exp), other: other ? "another": "" });
             }
         } else {
             return this.describeAction(exp, scope);
@@ -1688,7 +1701,7 @@ export class Describer {
                 action: this._describeExpression(expressions[1])
             });
         } else {
-            return this._describeExpression(expressions[0]);
+            return this._describeExpression(expressions[0], {}, r.expression.other);
         }
     }
 

@@ -166,14 +166,7 @@ class serverController {
             if (this.message.length === 0)
                 this.message.push("Sorry, I had an error processing your command");
 
-            
-            res.send({
-                "response": this.message,
-                "results": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.result_values : [],
-                "user_target": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.user_target : "",
-                "ds": this._conversation._loop._thingtalkHandler._dialogueState ? this._conversation._loop._thingtalkHandler._dialogueState.prettyprint() : "null",
-                "aux": this.getAllReported()
-            });
+            res.send(this.getResult());
         });
 
         // main entry point for python method .query_context()
@@ -212,13 +205,7 @@ class serverController {
             if (this.message.length === 0)
                 this.message.push("Sorry, I had an error processing your command");
             
-            res.send({
-                "response": this.message,
-                "results": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.result_values : [],
-                "user_target": this._conversation._loop.ttReply ? this._conversation._loop.ttReply.user_target : "",
-                "ds": this._conversation._loop._thingtalkHandler._dialogueState ? this._conversation._loop._thingtalkHandler._dialogueState.prettyprint() : "null",
-                "aux": this.getAllReported()
-            });
+            res.send(this.getResult());
         });
 
         // main entry point for python method .quit() for submitting queries to Genie
@@ -283,6 +270,8 @@ class serverController {
     resetForNextTurn() {
         this.message = [];
         this._conversation._loop.ttReply = null;
+        this._conversation._loop._thingtalkHandler.deltaVerbal = [];
+        this._conversation._loop._thingtalkHandler.fullVerbal = [];
     }
 
     getAllReported() {
@@ -315,6 +304,30 @@ class serverController {
                 }
             }
         }
+    }
+
+    // get result and do some defensive programming for query and queryContext
+    getResult() {
+        let results : any[] = [];
+        let user_target = "";
+        
+        if (this._conversation._loop.ttReply) {
+            if (this._conversation._loop.ttReply.result_values)
+                results = this._conversation._loop.ttReply.result_values;
+            if (this._conversation._loop.ttReply.user_target)
+                user_target = this._conversation._loop.ttReply.user_target;
+        }
+
+        return {
+            "response": this.message,
+            "results": results,
+            "user_target": user_target,
+            "ds": this._conversation._loop._thingtalkHandler._dialogueState ? this._conversation._loop._thingtalkHandler._dialogueState.prettyprint() : "null",
+            "aux": this.getAllReported(),
+            "delta_verbal": this._conversation._loop._thingtalkHandler.deltaVerbal ? this._conversation._loop._thingtalkHandler.deltaVerbal : [],
+            "full_verbal": this._conversation._loop._thingtalkHandler.fullVerbal ? this._conversation._loop._thingtalkHandler.fullVerbal : [],
+        };
+
     }
 }
 
