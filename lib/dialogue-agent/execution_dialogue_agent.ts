@@ -35,6 +35,11 @@ import { Contact } from './entity-linking/contact_search';
 import { PlatformData } from './protocol';
 import { ConversationState } from './conversation';
 
+// To use the Azure implementation of maps
+import * as dotenv from "dotenv";
+import fetch from "node-fetch";
+dotenv.config(); // To read the Azure location key
+
 import AbstractDialogueAgent, {
     DisambiguationHints,
 } from './abstract_dialogue_agent';
@@ -367,6 +372,22 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         }
     }
 
+
+    protected async resolveLocationAzure(searchKey: string, around?: { latitude: number, longitude: number }) {
+        const subscriptionKey = process.env.AZURE_MAPS_KEY;
+        searchKey = searchKey.replace(/\b(in|at)\b/ig, '');
+        const url = `https://atlas.microsoft.com/search/address/json?&subscription-key=${subscriptionKey}&api-version=1.0&language=en-US&query=${searchKey}`;
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            console.log(data);
+            return data;
+        } catch (error) {
+            console.log(error);
+            throw new Error(error);
+        }
+    }
+
     protected async lookupLocation(searchKey : string, previousLocations : Ast.AbsoluteLocation[]) : Promise<Ast.LocationValue> {
         const currentLocation = await this._tryGetCurrentLocation();
         const lastLocation = previousLocations.length ? previousLocations[previousLocations.length - 1] : undefined;
@@ -378,6 +399,8 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             around = { latitude: currentLocation.lat, longitude: currentLocation.lon };
 
         try {
+            const results = await this.resolveLocationAzure(searchKey, around);
+            console.log(results)
             const candidates = await this._tpClient.lookupLocation(searchKey, around);
 
             // ignore locations larger than a city
