@@ -43,6 +43,7 @@
     "q": "^1.5.0",
     "qs": "^6.10.2",
     "query-validation": "^0.2.1",
+    "redis": "^4.6.5",
     "seedrandom": "^3.0.0",
     "sockaddr": "^1.0.1",
     "sqlite3": "^5.1.4",
