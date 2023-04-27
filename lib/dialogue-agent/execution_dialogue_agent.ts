@@ -35,11 +35,9 @@ import { Contact } from './entity-linking/contact_search';
 import { PlatformData } from './protocol';
 import { ConversationState } from './conversation';
 
-// To use the Azure implementation of maps
-import * as dotenv from "dotenv";
-import fetch from "node-fetch";
-dotenv.config(); // To read the Azure location key
+import axios from 'axios'; // For location
 
+// To use the Azure implementation of maps
 import AbstractDialogueAgent, {
     DisambiguationHints,
 } from './abstract_dialogue_agent';
@@ -374,12 +372,13 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
 
 
     protected async resolveLocationAzure(searchKey: string, around?: { latitude: number, longitude: number }) {
+        console.log("hihihihi \n\n");
         const subscriptionKey = process.env.AZURE_MAPS_KEY;
         searchKey = searchKey.replace(/\b(in|at)\b/ig, '');
         const url = `https://atlas.microsoft.com/search/address/json?&subscription-key=${subscriptionKey}&api-version=1.0&language=en-US&query=${searchKey}`;
         try {
-            const response = await fetch(url);
-            const data = await response.json();
+            const response = await axios.get(url);
+            const data = response.data;
             console.log(data);
             return data;
         } catch (error) {
