@@ -28,8 +28,8 @@ for (const qualifier of $loader.qualifiers) {
     if (qualifier.pslot.type === Type.Date) {
         time_qualifier : C.FilterSlot = {
             'in' range:constant_date_range => C.makeWikidataTimeFilter(qualifier, '==', range);
-            ('before'|'earlier than') date:constant_Date => C.makeWikidataTimeFilter(qualifier, '<=', [date]); 
-            ('after'|'later than') date:constant_Date => C.makeWikidataTimeFilter(qualifier, '>=', [date]);    
+            ('before'|'earlier than') date:constant_date_edge => C.makeWikidataTimeFilter(qualifier, '<=', [date]); 
+            ('after'|'later than') date:constant_date_edge => C.makeWikidataTimeFilter(qualifier, '>=', [date]);    
         } 
     }
 }

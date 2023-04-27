@@ -89,8 +89,8 @@ if_filter : C.FilterSlot|C.DomainIndependentFilterSlot = {
     p:out_param_Any with { type = (new Type.Measure('mps')) } 'is' ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter($loader, p, '<=', x);
 
     !turking {
-        p:out_param_Any with { type = (Type.Date) } 'is' ('after' | 'later than') x:constant_Date => C.makeFilter($loader, p, '>=', x);
-        p:out_param_Any with { type = (Type.Date) } 'is' ('before' | 'earlier than' | 'sooner than') x:constant_Date => C.makeFilter($loader, p, '<=', x);
+        p:out_param_Any with { type = (Type.Date) } 'is' ('after' | 'later than') x:constant_date_edge => C.makeFilter($loader, p, '>=', x);
+        p:out_param_Any with { type = (Type.Date) } 'is' ('before' | 'earlier than' | 'sooner than') x:constant_date_edge => C.makeFilter($loader, p, '<=', x);
         p:out_param_Any with { type = (Type.Time) } 'is' ('after' | 'later than') x:constant_Time => C.makeFilter($loader, p, '>=', x);
         p:out_param_Any with { type = (Type.Time) } 'is' ('before' | 'earlier than' | 'sooner than') x:constant_Time => C.makeFilter($loader, p, '<=', x);
     }
@@ -154,8 +154,8 @@ edge_filter : C.FilterSlot = {
     p:out_param_Any with { type = (new Type.Measure('mps')) } ('is now' | 'becomes' | 'goes') ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter($loader, p, '>=', x);
     p:out_param_Any with { type = (new Type.Measure('mps')) } ('is now' | 'becomes' | 'goes') ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter($loader, p, '<=', x);
 
-    p:out_param_Any with { type = (Type.Date) } ('is now' | 'becomes' | 'goes') ('after' | 'later than') x:constant_Date => C.makeFilter($loader, p, '>=', x);
-    p:out_param_Any with { type = (Type.Date) } ('is now' | 'becomes' | 'goes') ('before' | 'earlier than' | 'sooner than') x:constant_Date => C.makeFilter($loader, p, '<=', x);
+    p:out_param_Any with { type = (Type.Date) } ('is now' | 'becomes' | 'goes') ('after' | 'later than') x:constant_date_edge => C.makeFilter($loader, p, '>=', x);
+    p:out_param_Any with { type = (Type.Date) } ('is now' | 'becomes' | 'goes') ('before' | 'earlier than' | 'sooner than') x:constant_date_edge => C.makeFilter($loader, p, '<=', x);
     p:out_param_Any with { type = (Type.Time) } ('is now' | 'becomes' | 'goes') ('after' | 'later than') x:constant_Time => C.makeFilter($loader, p, '>=', x);
     p:out_param_Any with { type = (Type.Time) } ('is now' | 'becomes' | 'goes') ('before' | 'earlier than' | 'sooner than') x:constant_Time => C.makeFilter($loader, p, '<=', x);
 }
@@ -286,8 +286,8 @@ with_filter : C.FilterSlot = {
     p:out_param_Any with { type = (new Type.Measure('mps')) } ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps [weight = 0.1] => C.makeFilter($loader, p, '>=', x);
     p:out_param_Any with { type = (new Type.Measure('mps')) } ('slower' | 'more slowly') 'than' x:constant_Measure_mps [weight = 0.1]  => C.makeFilter($loader, p, '<=', x);
 
-    p:out_param_Any with { type = (Type.Date) } ('after' | 'later than') x:constant_Date [weight = 0.1] => C.makeFilter($loader, p, '>=', x);
-    p:out_param_Any with { type = (Type.Date) } ('before' | 'earlier than' | 'sooner than') x:constant_Date [weight = 0.1] => C.makeFilter($loader, p, '<=', x);
+    p:out_param_Any with { type = (Type.Date) } ('after' | 'later than') x:constant_date_edge [weight = 0.1] => C.makeFilter($loader, p, '>=', x);
+    p:out_param_Any with { type = (Type.Date) } ('before' | 'earlier than' | 'sooner than') x:constant_date_edge [weight = 0.1] => C.makeFilter($loader, p, '<=', x);
     p:out_param_Any with { type = (Type.Time) } ('after' | 'later than') x:constant_Time [weight = 0.1] => C.makeFilter($loader, p, '>=', x);
     p:out_param_Any with { type = (Type.Time) } ('before' | 'earlier than' | 'sooner than') x:constant_Time [weight = 0.1] => C.makeFilter($loader, p, '<=', x);
 
@@ -323,8 +323,8 @@ with_filter : C.FilterSlot = {
     ('faster' | 'quicker' | 'speedier') p:out_param_Any with { type = (new Type.Measure('mps')) } 'than' x:constant_Measure_mps [weight = 0.1] => C.makeFilter($loader, p, '>=', x);
     ('slower' | 'more slowly') p:out_param_Any with { type = (new Type.Measure('mps')) } 'than' x:constant_Measure_mps  [weight = 0.1] => C.makeFilter($loader, p, '<=', x);
 
-    'later' p:out_param_Any with { type = (Type.Date) } 'than' x:constant_Date [weight = 0.1] => C.makeFilter($loader, p, '>=', x);
-    ('earlier' | 'sooner') p:out_param_Any with { type = (Type.Date) } 'than' x:constant_Date [weight = 0.1] => C.makeFilter($loader, p, '<=', x);
+    'later' p:out_param_Any with { type = (Type.Date) } 'than' x:constant_date_edge [weight = 0.1] => C.makeFilter($loader, p, '>=', x);
+    ('earlier' | 'sooner') p:out_param_Any with { type = (Type.Date) } 'than' x:constant_date_edge [weight = 0.1] => C.makeFilter($loader, p, '<=', x);
     'later' p:out_param_Any with { type = (Type.Time) } 'than' x:constant_Time [weight = 0.1] => C.makeFilter($loader, p, '>=', x);
     ('earlier' | 'sooner') p:out_param_Any with { type = (Type.Time) } 'than' x:constant_Time [weight = 0.1] => C.makeFilter($loader, p, '<=', x);
 
