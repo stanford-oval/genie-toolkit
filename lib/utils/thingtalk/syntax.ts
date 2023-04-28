@@ -94,7 +94,11 @@ export async function parsePrediction(code : string|string[], entities : Syntax.
             } catch(e2) {
                 if (e2.name !== 'SyntaxError')
                     throw e2;
-                throw e1; // use the first error not the second in case both fail
+                try {
+                    parsed = Syntax.parse(code[0], Syntax.SyntaxType.Normal, options);
+                } catch(e3) {
+                    throw e1; // use the first error not the second in case both fail
+                }
             }
         }
         await parsed.typecheck(schemas, options.loadMetadata);
