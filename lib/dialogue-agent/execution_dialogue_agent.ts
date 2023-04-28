@@ -378,26 +378,18 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             'language': 'en-US',
             'query': searchKey.replace(/\b(in|at)\b/ig, ''),
         };
-        if (around) {
+        if (around && (around.latitude != -1 && around.longitude != -1)) {
             params['lat'] = around.latitude.toString();
             params['lon'] = around.longitude.toString();
-            params['radius'] = '1000'; // Default radius
+            params['radius'] = '10000'; // Default radius in meters, set to 10km
         }
         let queryString = AZURE_MAPS_URL;
         for (const key in params) {
             queryString += `&${key}=${encodeURIComponent(params[key])}`;
         }
-        try {
-            const response = await axios.get(queryString);
-            const candidates: any[] = response.data.results;
-            const mapped = candidates.map((c) => {
-                return new Ast.Location.Absolute(c.position.lat, c.position.lon, c.address.freeformAddress);
-            });
-            return mapped;
-        } catch (error) {
-            console.log(error);
-            throw new Error(error);
-        }
+        const response = await axios.get(queryString);
+        const candidates = response.data.results; // Azure API
+        return candidates;
     }
 
     protected async lookupLocation(searchKey : string, previousLocations : Ast.AbsoluteLocation[]) : Promise<Ast.LocationValue> {
@@ -411,14 +403,11 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             around = { latitude: currentLocation.lat, longitude: currentLocation.lon };
 
         try {
-            const candidates = await this.resolveLocationAzure(searchKey, around);
-
-
-            // const candidates = await this._tpClient.lookupLocation(searchKey, around);
-
+            const candidates : any[] = await this.resolveLocationAzure(searchKey, around);
+            // const candidates = await this._tpClient.lookupLocation(searchKey, around); // legacy
             // ignore locations larger than a city
             const mapped = candidates.map((c) => {
-                return new Ast.Location.Absolute(c.latitude, c.longitude, c.display);
+                return new Ast.Location.Absolute(c.position.lat, c.position.lon, c.address.freeformAddress);
             });
 
             if (mapped.length === 0) {
