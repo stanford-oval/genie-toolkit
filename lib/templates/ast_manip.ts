@@ -2141,12 +2141,10 @@ export function whenDoRule(table : Ast.Expression, action : ExpressionWithCorefe
 }
 
 function makeWikidataTimeFilter(qualifier : { pname : string, pslot : ParamSlot } , op : string, constants : Ast.Value[]) : FilterSlot|null {
-    assert(constants.length === 1 || constants.length === 2);
     // pname : parameter name
     // pslot.schema : schema for the function with pname 
     // pslot.name : name for qualifier
     // pslot.type : type for qualifier
-
     const ptype = qualifier.pslot.schema.getArgType(qualifier.pname);
     if (!(ptype instanceof Type.Array) || !(ptype.elem instanceof Type.Compound))
         return null;
