@@ -37,7 +37,6 @@ import { ConversationState } from './conversation';
 
 import axios from 'axios'; // For location
 
-// To use the Azure implementation of maps
 import AbstractDialogueAgent, {
     DisambiguationHints,
 } from './abstract_dialogue_agent';
@@ -372,15 +371,29 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
 
 
     protected async resolveLocationAzure(searchKey: string, around?: { latitude: number, longitude: number }) {
-        console.log("hihihihi \n\n");
-        const subscriptionKey = process.env.AZURE_MAPS_KEY;
-        searchKey = searchKey.replace(/\b(in|at)\b/ig, '');
-        const url = `https://atlas.microsoft.com/search/address/json?&subscription-key=${subscriptionKey}&api-version=1.0&language=en-US&query=${searchKey}`;
+        const AZURE_MAPS_URL = "https://atlas.microsoft.com/search/address/json?" // Azure Endpoint
+        const params: {[key: string]: string} = {
+            'subscription-key': process.env.AZURE_MAPS_KEY!,
+            'api-version': '1.0',
+            'language': 'en-US',
+            'query': searchKey.replace(/\b(in|at)\b/ig, ''),
+        };
+        if (around) {
+            params['lat'] = around.latitude.toString();
+            params['lon'] = around.longitude.toString();
+            params['radius'] = '1000'; // Default radius
+        }
+        let queryString = AZURE_MAPS_URL;
+        for (const key in params) {
+            queryString += `&${key}=${encodeURIComponent(params[key])}`;
+        }
         try {
-            const response = await axios.get(url);
-            const data = response.data;
-            console.log(data);
-            return data;
+            const response = await axios.get(queryString);
+            const candidates: any[] = response.data.results;
+            const mapped = candidates.map((c) => {
+                return new Ast.Location.Absolute(c.position.lat, c.position.lon, c.address.freeformAddress);
+            });
+            return mapped;
         } catch (error) {
             console.log(error);
             throw new Error(error);
@@ -398,9 +411,10 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             around = { latitude: currentLocation.lat, longitude: currentLocation.lon };
 
         try {
-            const results = await this.resolveLocationAzure(searchKey, around);
-            console.log(results)
-            const candidates = await this._tpClient.lookupLocation(searchKey, around);
+            const candidates = await this.resolveLocationAzure(searchKey, around);
+
+
+            // const candidates = await this._tpClient.lookupLocation(searchKey, around);
 
             // ignore locations larger than a city
             const mapped = candidates.map((c) => {
