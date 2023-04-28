@@ -124,8 +124,7 @@ export function dateOrDatePiece(year : number|null, month : number|null, loader 
 }
 
 function makeMonthDateRange(year : number|null, month : number|null, loader : ThingpediaLoader) : [Ast.Value, Ast.Value] {
-    return [
-        makeDate(dateOrDatePiece(year, month, loader), '+', null),
+    return [makeDate(dateOrDatePiece(year, month, loader), '+', null),
         makeDate(dateOrDatePiece(year, month, loader), '+', new Ast.Value.Measure(1, 'mon'))!
     ];
 }
@@ -2143,35 +2142,37 @@ export function whenDoRule(table : Ast.Expression, action : ExpressionWithCorefe
 
 function makeWikidataTimeFilter(qualifier : { pname : string, pslot : ParamSlot } , op : string, constants : Ast.Value[]) : FilterSlot|null {
     assert(constants.length === 1 || constants.length === 2);
+    // pname : parameter name
+    // pslot.schema : schema for the function with pname 
+    // pslot.name : name for qualifier
+    // pslot.type : type for qualifier
+
     const ptype = qualifier.pslot.schema.getArgType(qualifier.pname);
     if (!(ptype instanceof Type.Array) || !(ptype.elem instanceof Type.Compound))
         return null;
-    if (constants.length === 1) {
-        // date point
-        const filter = new Ast.BooleanExpression.Atom(null, qualifier.pslot.name, op, constants[0]);
+    
+    if (op === '>=' || op === '<=') {
+        assert(constants.length === 1);
+        const filter = new Ast.BooleanExpression.Atom(null, 'point_in_time', op, constants[0]);
         return {
             schema: qualifier.pslot.schema,
             ptype,
             ast: filter
         };
-    } else if (op === '==' && (qualifier.pslot.name === 'start_time' || qualifier.pslot.name === 'end_time')) {
-        // date range with start_time & end_time
-        if (!('start_time' in ptype.elem.fields && 'end_time' in ptype.elem.fields))
-            return null;
-        const filter = new Ast.BooleanExpression.Or(null, [
-            new Ast.BooleanExpression.Atom(null, 'start_time', '>=', constants[1]),
-            new Ast.BooleanExpression.Atom(null, 'end_time', '<=', constants[0])
-        ]);
-        return { schema: qualifier.pslot.schema, ptype, ast: filter };
-    } else if (op === '==' && qualifier.pslot.name === 'point_in_time') {
-        // date range with point_in_time
-        const filter = new Ast.BooleanExpression.And(null, [
-            new Ast.BooleanExpression.Atom(null, 'point_in_time', '>=', constants[0]),
-            new Ast.BooleanExpression.Atom(null, 'point_in_time', '<=', constants[1])
-        ]);
-        return { schema: qualifier.pslot.schema, ptype, ast: filter };
+    } else {
+        assert(op === '==' && (constants.length === 1 || constants.length === 2));
+        // year 
+        let filter;
+        if (constants.length === 1) {
+            filter = new Ast.BooleanExpression.Atom(null, 'point_in_time', '==', constants[0]);
+        } else {
+            filter = new Ast.BooleanExpression.And(null, [
+                new Ast.BooleanExpression.Atom(null, 'point_in_time', '>=', constants[0]),
+                new Ast.BooleanExpression.Atom(null, 'point_in_time', '<=', constants[1])
+            ]);
+        }
+        return { schema: qualifier.pslot.schema, ptype, ast : filter };
     }
-    return null;
 }
 
 function makeQualifiedFilter(filter : FilterSlot, qualifier : FilterSlot) : FilterSlot|null {
