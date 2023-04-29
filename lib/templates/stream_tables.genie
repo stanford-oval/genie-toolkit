@@ -72,6 +72,20 @@ two_if_filter_table : Ast.Expression = {
     }
 }
 
+sized_table : Ast.Expression = {
+    size:constant_Number table:with_filtered_table => C.makeSizedTable(table, size);
+        
+    ( count:constant_Number t:complete_table ('with' | 'which has' | 'which have') 'the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | count:constant_Number t:complete_table ('with' | 'which has' | 'which have') 'the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | count:constant_Number t:complete_table ('that' | 'which') argminmax:avp_argminmax with { functionName = t.functionName }
+    | count:constant_Number t:complete_table ('that' | 'which') ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | count:constant_Number t:complete_table ('that' | 'which') ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | argminmax:apv_argminmax count:constant_Number t:with_filtered_table with { functionName = argminmax.functionName }
+    | count:constant_Number argminmax:apv_argminmax t:with_filtered_table with { functionName = argminmax.functionName }
+    | count:constant_Number t:complete_table ('that' | 'which') ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+    ) => C.makeArgMaxMinTable(t, argminmax[0].name, argminmax[1], count);
+}
+
 // non-verb filter:
 // (1) with filtered: restaurants with name bla
 // (2) which filtered: restaurants which have name bla
@@ -490,12 +504,6 @@ with_arg_min_max_table : Ast.Expression = {
     | argminmax:apv_argminmax t:two_which_filter_table with { functionName = argminmax.functionName }
     | t:two_which_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
     ) => C.makeArgMaxMinTable(t, argminmax[0].name, argminmax[1]);
-
-    ( argminmax:apv_argminmax count:constant_Number t:with_filtered_table with { functionName = argminmax.functionName }
-    | count:constant_Number argminmax:apv_argminmax t:with_filtered_table with { functionName = argminmax.functionName }
-    )
-        => C.makeArgMaxMinTable(t, argminmax[0].name, argminmax[1], count);
-
     }
 }
 

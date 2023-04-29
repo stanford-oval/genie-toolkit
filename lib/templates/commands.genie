@@ -234,8 +234,13 @@ search_command : Ast.Expression = {
         | generic_preamble_for_answer generic_article table:with_filtered_table
         | generic_verb_for_search generic_article table:with_filtered_table
         | generic_preamble_for_action generic_verb_for_search generic_article table:with_filtered_table
+        | 'get' generic_article table:sized_table [weight=0.01]
+        | generic_preamble_for_answer generic_article table:sized_table [weight=0.01]
+        | generic_verb_for_search generic_article table:sized_table [weight=0.01]
+        | generic_preamble_for_action generic_verb_for_search generic_article table:sized_table [weight=0.01]
     ) => table;
     ( 'please' | '') ('list' | 'enumerate') table:with_filtered_table with { is_list = true } => table;
+    ( 'please' | '') ('list' | 'enumerate') table:sized_table with { is_list = true } [weight=0.1] => table; 
 
     // now => get join get => notify
     ( generic_preamble_for_answer generic_article table:with_filtered_table
@@ -277,6 +282,7 @@ complete_question : Ast.Expression = {
         | ('what' | 'which') ('are' | 'is') ('the' | '') table:two_with_filter_table '?'
         | ('what' | 'which') ('are' | 'is') ('the' | '') table:two_which_filter_table '?'
         | ('what' | 'which') ('are' | 'is') ('the' | '') table:two_clean_filter_table '?'
+        | ('what' | 'which') 'are' ('the' | '') table:sized_table '?' [weight=0.1]
     ) => table;
 
 

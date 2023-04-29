@@ -2223,6 +2223,10 @@ function makeExistentialVerificationTable(table : Ast.Expression) {
     );
 }
 
+function makeSizedTable(table : Ast.Expression, size : Ast.Value) {
+    return new Ast.SliceExpression(null, table, new Ast.Value.Number(1), size, table.schema);
+}
+
 
 export {
     // helpers
@@ -2312,4 +2316,6 @@ export {
 
     iterateFilters,
     iterateFields,
+
+    makeSizedTable
 };
