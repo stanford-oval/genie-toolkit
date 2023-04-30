@@ -134,7 +134,7 @@ export default class ThingpediaLoader {
     private _options : GrammarOptions;
     private _describer : ThingTalkUtils.Describer;
 
-    private _entities : Record<string, Tp.BaseClient.EntityTypeRecord>
+    private _entities : Record<string, Tp.BaseClient.EntityTypeRecord>;
     // cached annotations extracted from Thingpedia, for use at inference time
     private _errorMessages : Map<string, Record<string, ParsedPlaceholderPhrase[]>>;
     private _resultPhrases : Map<string, NormalizedResultPhraseList>;
@@ -171,6 +171,7 @@ export default class ThingpediaLoader {
         get_gps : Ast.FunctionDef|null;
         get_time : Ast.FunctionDef|null;
     };
+    wikidataSchemas : Record<string, Ast.FunctionDef>;
     entitySubTypeMap : Record<string, string[]>;
     private _subEntityMap : Map<string, string[]>;
 
@@ -219,6 +220,7 @@ export default class ThingpediaLoader {
             get_gps: null,
             get_time: null
         };
+        this.wikidataSchemas = {};
     }
 
     async init() {
@@ -1501,6 +1503,9 @@ export default class ThingpediaLoader {
         // do another pass to add primitive templates for each canonical form
         await Promise.all(queries.map((name) => classDef.queries[name]).map(this._loadFunction.bind(this)));
         await Promise.all(actions.map((name) => classDef.actions[name]).map(this._loadFunction.bind(this)));
+
+        if (this._options.flags.wikidata) 
+            this.wikidataSchemas = classDef.queries;
     }
 
     private _loadEntityType(entityType : string, typeRecord : Tp.BaseClient.EntityTypeRecord) {

@@ -2227,6 +2227,70 @@ function makeSizedTable(table : Ast.Expression, size : Ast.Value) {
     return new Ast.SliceExpression(null, table, new Ast.Value.Number(1), size, table.schema);
 }
 
+function getElementType(type : Type) : Type {
+    if (type instanceof Type.Compound && 'value' in type.fields)
+        return getElementType(type.fields.value.type);
+    if (type instanceof Type.Array)
+        return getElementType(type.elem as Type);
+    return type;
+}
+
+function makePropertyPathProjection(loader : ThingpediaLoader,
+                                    ftype : 'table'|'stream',
+                                    ptype : Type|null,
+                                    table : Ast.Expression,
+                                    param : ParamSlot|'geo',
+                                    type ?: Type) : Ast.Expression|null {
+    assert(table);
+    assert(ftype === 'table' && param !== 'geo');
+
+    let arg1;
+    if (table instanceof Ast.ProjectionExpression2) {
+        if (table.projections.length !== 1)
+            return null;
+        if (!(typeof table.projections[0].value === 'string'))
+            return null;
+        if (table.projections[0].types.length > 0)
+            return null;
+        if (table.projections[0].alias)
+            return null;
+        arg1 = table.schema!.getArgument(table.projections[0].value);
+    } else if (table instanceof Ast.ProjectionExpression) {
+        if (table.args.length !== 1)
+            return null;
+        arg1 = table.schema!.getArgument(table.args[0]);
+    } else {
+        return null;
+    }
+        
+    if (!arg1)
+        return null;
+    const arg1Type = getElementType(arg1.type);
+    if (!(arg1Type instanceof Type.Entity))
+        return null;
+    const domains = loader.entitySubTypeMap[arg1Type.type].filter((d) => d !== 'wd:entity').map((d) => d.slice('wd:'.length));
+    
+    const pname = param.name;
+    if (!domains.some((d) => loader.wikidataSchemas[d].hasArgument(pname)))
+        return null;
+    const arg2 = loader.wikidataSchemas['entity'].getArgument(pname);
+    if (!arg2)
+        return null;
+    if (arg2.getImplementationAnnotation<boolean>('projectable') === false)
+        return null;
+    if (ptype && !Type.isAssignable(arg2.type, ptype, {}, loader.entitySubTypeMap))
+        return null;
+    const propertyPath = [
+        new Ast.PropertyPathElement(arg1.name),
+        new Ast.PropertyPathElement(arg2.name)
+    ];
+    return new Ast.ProjectionExpression2(
+        null,
+        table.expression,
+        [new Ast.ProjectionElement(propertyPath, null, [])],
+        resolveProjection(loader.wikidataSchemas['entity'], [pname])
+    );
+}
 
 export {
     // helpers
@@ -2292,6 +2356,7 @@ export {
     makeMultiFieldProjection,
     sayProjection,
     makeVerificationQuestion,
+    makePropertyPathProjection,
 
     // joins
     makeSelfJoin,
