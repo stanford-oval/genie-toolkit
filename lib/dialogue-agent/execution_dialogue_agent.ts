@@ -403,8 +403,14 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             around = { latitude: currentLocation.lat, longitude: currentLocation.lon };
 
         try {
-            const candidates : any[] = await this.resolveLocationAzure(searchKey, around);
-            // const candidates = await this._tpClient.lookupLocation(searchKey, around); // legacy
+            let candidates : any[];
+            const azure_key = process.env.AZURE_MAPS_KEY;
+            if (azure_key == undefined) {
+                candidates = await this._tpClient.lookupLocation(searchKey, around);
+            } else {
+                // Azure key found, use Azure Maps API
+                candidates = await this.resolveLocationAzure(searchKey, around);
+            }
             // ignore locations larger than a city
             const mapped = candidates.map((c) => {
                 return new Ast.Location.Absolute(c.position.lat, c.position.lon, c.address.freeformAddress);
