@@ -2268,8 +2268,11 @@ function makePropertyPathProjection(loader : ThingpediaLoader,
     const arg1Type = getElementType(arg1.type);
     if (!(arg1Type instanceof Type.Entity))
         return null;
-    const domains = loader.entitySubTypeMap[arg1Type.type].filter((d) => d !== 'wd:entity').map((d) => d.slice('wd:'.length));
-    
+
+    const subtypes = loader.entitySubTypeMap[arg1Type.type];
+    if (!subtypes)
+        return null;
+    const domains = subtypes.filter((d) => d !== 'wd:entity').map((d) => d.slice('wd:'.length));
     const pname = param.name;
     if (!domains.some((d) => loader.wikidataSchemas[d].hasArgument(pname)))
         return null;
