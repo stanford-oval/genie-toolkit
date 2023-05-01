@@ -112,8 +112,10 @@ function findSpanType(program, begin_index, end_index, string_number) {
         program[begin_index-3] === 'Location') { // new Location ( " ..., in new syntax
         spanType = 'LOCATION';
     } else if ((program[end_index+1] || '').startsWith('^^')) {
-        spanType = getEntityType(program[end_index+1]);
+        spanType = null; // skip entity value, use display
     } else if ((program[begin_index-3] || '').startsWith('^^') && program[begin_index-4] === 'null') { // null ^^com.foo ( " ..., in new syntax
+        spanType = getEntityType(program[begin_index-3]);
+    } else if ((program[begin_index-3] || '').startsWith('^^') && program[begin_index-4] === '"') { // " xxx " ^^com.foo ( " ..., in new syntax
         spanType = getEntityType(program[begin_index-3]);
     } else if (doReplaceNumbers(program[begin_index])
         && !((program[end_index+1] || '').startsWith('^^'))) {
@@ -130,7 +132,7 @@ function findSpanType(program, begin_index, end_index, string_number) {
 
 
 function createProgram(program, spansByProgramPos, entityRemap, ignoredProgramSpans) {
-    let in_string = false, in_location = false, in_entity = false;
+    let in_string = false, in_location = false, in_entity = false, in_entity_with_value_and_display = false;
     let newProgram = [];
     let programSpanIndex = 0;
 
@@ -140,6 +142,15 @@ function createProgram(program, spansByProgramPos, entityRemap, ignoredProgramSp
             in_string = !in_string;
             if (in_string)
                 continue;
+            if (program[i + 1].startsWith('^^')) {
+                if (program[i+2] === '(' && program[i+3] === '"') {
+                    in_entity_with_value_and_display = true;
+                    continue;
+                } else {
+                    newProgram.push('"', program[i-1], '"');
+                    continue;
+                }
+            }
             const currentSpan = spansByProgramPos[programSpanIndex];
             if (!currentSpan.sentenceSpan || !currentSpan.sentenceSpan.mapTo)
                 console.log(spansByProgramPos);
@@ -151,6 +162,16 @@ function createProgram(program, spansByProgramPos, entityRemap, ignoredProgramSp
         }
         if (in_string)
             continue;
+
+        if (in_entity_with_value_and_display) {
+            if (token.startsWith('^^') || token === '(')
+                continue;
+            if (token === ')') {
+                in_entity_with_value_and_display = false;
+                continue;
+            }
+        }
+           
         // handle "new Location ( ... )" in new syntax
         if ((token === 'new' && program[i+1] === 'Location' &&
              program[i+3] === '"') ||
@@ -172,7 +193,7 @@ function createProgram(program, spansByProgramPos, entityRemap, ignoredProgramSp
             in_entity = false;
             continue;
         }
-        if (token === 'location:' || token.startsWith('^^'))
+        if (token === 'location:')
             continue;
 
         if (ENTITY_MATCH_REGEX.test(token)) {
@@ -295,6 +316,8 @@ function getProgSpans(program, mode) {
             } else {
                 end_index = i;
                 span_type = findSpanType(program, begin_index, end_index, true);
+                if (span_type === null) 
+                    continue;
                 let prog_span = { begin: begin_index, end: end_index, span_type:span_type };
                 allProgSpans.push(prog_span);
             }
@@ -303,6 +326,8 @@ function getProgSpans(program, mode) {
             begin_index = i;
             end_index = begin_index + 1;
             span_type = findSpanType(program, begin_index, end_index, false);
+            if (span_type === null)
+                continue;
             let prog_span = { begin: begin_index, end: end_index, span_type:span_type };
             allProgSpans.push(prog_span);
         }
