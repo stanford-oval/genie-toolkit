@@ -131,6 +131,11 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     // full verbalization
     fullVerbal ?: string[];
 
+    // keep track of user targets, so even if it fails, it can still get recorded for interested parties
+    // e.g. `contextual-genie`
+    // interested parties should clean this in next turn
+    userTarget ?: string;
+
     constructor(engine : Engine,
                 loop : DialogueLoop,
                 agent : ExecutionDialogueAgent,
@@ -450,10 +455,12 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         if (type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND) {
             type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
             this._loop.debug('Failed to analyze message as ThingTalk');
-            if (nluResult.candidates.length === 0)
+            if (nluResult.candidates.length === 0) {
                 this._loop.debug('No candidates produced');
-            else
+            } else {
                 this._loop.debug(`Top candidate was ${nluResult.candidates[0].code.join(' ')}`);
+                this.userTarget = nluResult.candidates[0].code.join(' ');
+            }
             this._loop.conversation.stats.hit('sabrina-failure');
         } else if (this._useConfidence && choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
             type = CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;

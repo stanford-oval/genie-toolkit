@@ -272,6 +272,7 @@ class serverController {
         this._conversation._loop.ttReply = null;
         this._conversation._loop._thingtalkHandler.deltaVerbal = [];
         this._conversation._loop._thingtalkHandler.fullVerbal = [];
+        this._conversation._loop._thingtalkHandler.userTarget = undefined;
     }
 
     getAllReported() {
@@ -314,9 +315,13 @@ class serverController {
         if (this._conversation._loop.ttReply) {
             if (this._conversation._loop.ttReply.result_values)
                 results = this._conversation._loop.ttReply.result_values;
+            
             if (this._conversation._loop.ttReply.user_target)
                 user_target = this._conversation._loop.ttReply.user_target;
         }
+
+        if (user_target === "" && this._conversation._loop._thingtalkHandler.userTarget !== undefined)
+            user_target = this._conversation._loop._thingtalkHandler.userTarget;
 
         return {
             "response": this.message,
