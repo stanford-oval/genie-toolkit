@@ -1482,6 +1482,8 @@ export class Describer {
             }
         } else if (table instanceof Ast.ChainExpression) {
             return this._makeList(table.expressions.map((t) => this.describeQuery(t)), 'conjunction');
+        } else if (table instanceof Ast.BooleanQuestionExpression) {
+            return this.describeQuery(table.expression);
         } else {
             throw new TypeError(`Unexpected query ${table.prettyprint()}`);
         }

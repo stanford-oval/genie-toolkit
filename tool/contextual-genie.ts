@@ -41,6 +41,7 @@ import { parse } from '../lib/utils/thingtalk';
 import { Ast } from 'thingtalk';
 
 import { Mutex } from 'async-mutex';
+import assert from 'assert';
 
 
 export function initArgparse(subparsers : argparse.SubParser) {
@@ -114,6 +115,14 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
 }
 
+
+class GetAllAtomBooleanExpressions extends Ast.NodeVisitor {
+    atomBooleanExpressions : Ast.AtomBooleanExpression[] = [];
+    visitAtomBooleanExpression(node : Ast.AtomBooleanExpression) : boolean {
+        this.atomBooleanExpressions.push(node);
+        return true;
+    }
+}
 
 class serverController {
     private _engine : Engine;
@@ -246,6 +255,15 @@ class serverController {
                 res.send({ "response": 404 });
             }
         });
+
+        this.app.post('/negelectFilters', qv.validatePOST({ name: 'string' }, { accept: 'application/json' }), async (req, res) => {
+            try {
+                this._conversation._loop._thingtalkHandler.preProcessFunctions = (x) => neglectFilterInStmt(x, req.body.name);
+                res.send({ "response": 200 });
+            } catch{
+                res.send({ "response": 404 });
+            }
+        });
     }
 
     destroy() {}
@@ -323,6 +341,10 @@ class serverController {
         if (user_target === "" && this._conversation._loop._thingtalkHandler.userTarget !== undefined)
             user_target = this._conversation._loop._thingtalkHandler.userTarget;
 
+        let filters : any[] = [];
+        if (this._conversation._loop._thingtalkHandler._dialogueState && this._conversation._loop._thingtalkHandler._dialogueState.history)
+            filters = this.getFilters(this._conversation._loop._thingtalkHandler._dialogueState.history[this._conversation._loop._thingtalkHandler._dialogueState.history.length - 1]);
+
         return {
             "response": this.message,
             "results": results,
@@ -331,9 +353,69 @@ class serverController {
             "aux": this.getAllReported(),
             "delta_verbal": this._conversation._loop._thingtalkHandler.deltaVerbal ? this._conversation._loop._thingtalkHandler.deltaVerbal : [],
             "full_verbal": this._conversation._loop._thingtalkHandler.fullVerbal ? this._conversation._loop._thingtalkHandler.fullVerbal : [],
+            "filters": filters
         };
 
     }
+
+    getFilters(item : Ast.DialogueHistoryItem) {
+        const atomVisitor = new GetAllAtomBooleanExpressions();
+        item.visit(atomVisitor);
+
+        return atomVisitor.atomBooleanExpressions.map((x) => {
+            return {
+                "name": x.name,
+                "operator": x.operator,
+                "value": x.value.prettyprint()
+            };
+        });
+    }
+}
+
+function neglectFilterByName(ast : Ast.BooleanExpression, name : string) : Ast.BooleanExpression {
+    // clone a filter and replace "id == ..." atoms with "true"
+
+    if (ast instanceof Ast.NotBooleanExpression)
+        return new Ast.BooleanExpression.Not(null, neglectFilterByName(ast.expr, name));
+    if (ast instanceof Ast.OrBooleanExpression) {
+        return new Ast.BooleanExpression.Or(null, ast.operands.map((x) => {
+            return neglectFilterByName(x, name);
+        }));
+    }
+    if (ast instanceof Ast.AndBooleanExpression) {
+        return new Ast.BooleanExpression.And(null, ast.operands.map((x) => {
+            return neglectFilterByName(x, name);
+        }));
+    }
+    if (ast.isTrue || ast.isDontCare || ast.isFalse || ast.isCompute || ast.isExternal)
+        return ast;
+
+    assert(ast instanceof Ast.AtomBooleanExpression);
+    if (ast.name === name && (ast.operator === '==' || ast.operator === '~='))
+        return Ast.BooleanExpression.True;
+    return ast;
+}
+
+class NeglectFilterByNameVisitor extends Ast.NodeVisitor {
+    name : string;
+
+    constructor(name : string) {
+        super();
+        this.name = name;
+    }
+
+    visitFilterExpression(node : Ast.FilterExpression) : boolean {
+        node.filter = neglectFilterByName(node.filter, this.name);
+        return true;
+    }
+}
+
+
+function neglectFilterInStmt(dialogState : Ast.DialogueState, name : string) {
+    const visitor = new NeglectFilterByNameVisitor(name);
+
+    for (const item of dialogState.history)
+        item.stmt.expression.visit(visitor);
 }
 
 

@@ -136,6 +136,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     // interested parties should clean this in next turn
     userTarget ?: string;
 
+    preProcessFunctions ?: (dialogState : Ast.DialogueState) => void;
+
     constructor(engine : Engine,
                 loop : DialogueLoop,
                 agent : ExecutionDialogueAgent,
@@ -275,6 +277,11 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             } else {
                 await this.handleIncomingDelta(this._dialogueState, analysis.parsed, undefined);
             }
+
+            // do some custom preprocessing
+            this.replaceBooleanQuestionExpression(analysis.parsed);
+            if (this.preProcessFunctions)
+                this.preProcessFunctions(analysis.parsed);
 
             // record the natural language utterance
             if (command.type === 'command' && command.utterance) {
@@ -991,6 +998,16 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             }
         }
         return [resDelta, resFull];
+    }
+
+    // FIXME: This should be ported to be part of "preProcessFunctions"
+    // The purpose of this function is to get rid of certain un-executable constructs, like BooleanQuestionExpression
+    // but ideally this should be specified by outside agents
+    replaceBooleanQuestionExpression(ds : Ast.DialogueState) {
+        for (const item of ds.history) {
+            if (item.stmt.expression.expressions[0] instanceof Ast.BooleanQuestionExpression)
+                item.stmt.expression.expressions[0] = item.stmt.expression.expressions[0].expression;
+        }
     }
 
 }

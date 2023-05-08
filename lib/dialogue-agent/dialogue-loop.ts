@@ -33,7 +33,7 @@ import ValueCategory from './value-category';
 import QueueItem from './dialogue_queue';
 import { UserInput, } from './user-input';
 import { AgentInput, } from './agent-input';
-import { PlatformData } from './protocol';
+import { MessageType, PlatformData } from './protocol';
 import { CancellationError } from './errors';
 
 import type Conversation from './conversation';
@@ -871,7 +871,22 @@ export class DialogueLoop {
     async handleSingleCommand(command : string) {
         // await this._initialize(false, null);
         try {
-            const userCommand : UserInput = { type: 'command', utterance: command, platformData : {} };
+            let userCommand : UserInput;
+            if (command.startsWith('\t')) {
+                command = command.replace(/^\s+/, '');
+                this.engine.updateActivity();
+                await this.conversation.addMessage({ type: MessageType.COMMAND, command });
+        
+                const parsed = await ThingTalkUtils.parse(command, {
+                    timezone: this.engine.platform.timezone,
+                    thingpediaClient: this.engine.thingpedia,
+                    schemaRetriever: this.engine.schemas,
+                    loadMetadata: true
+                });
+                userCommand = { type: 'userThingtalk', parsed, platformData : {} };
+            } else {
+                userCommand = { type: 'command', utterance: command, platformData : {} };
+            }
             await this._handleCommandInput(userCommand, true);
         } catch(e : any) {
             this.logger.error(e);
