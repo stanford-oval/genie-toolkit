@@ -256,7 +256,7 @@ class serverController {
             }
         });
 
-        this.app.post('/negelectFilters', qv.validatePOST({ name: 'string' }, { accept: 'application/json' }), async (req, res) => {
+        this.app.post('/neglectFilters', qv.validatePOST({ name: 'string' }, { accept: 'application/json' }), async (req, res) => {
             try {
                 this._conversation._loop._thingtalkHandler.preProcessFunctions = (x) => neglectFilterInStmt(x, req.body.name);
                 res.send({ "response": 200 });
