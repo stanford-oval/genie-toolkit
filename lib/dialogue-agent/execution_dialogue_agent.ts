@@ -370,23 +370,23 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     }
 
 
-    protected async resolveLocationAzure(searchKey: string, around?: { latitude: number, longitude: number }) {
-        const AZURE_MAPS_URL = "https://atlas.microsoft.com/search/address/json?" // Azure Endpoint
-        const params: {[key: string]: string} = {
+    protected async resolveLocationAzure(searchKey : string, around ?: { latitude : number, longitude : number }) {
+        const AZURE_MAPS_URL = "https://atlas.microsoft.com/search/address/json?"; // Azure Endpoint
+        const params : {[key : string] : string} = {
             'subscription-key': process.env.AZURE_MAPS_KEY!,
             'api-version': '1.0',
             'language': 'en-US',
             'query': searchKey.replace(/\b(in|at)\b/ig, ''),
         };
-        if (around && (around.latitude != -1 && around.longitude != -1)) {
+        if (around && (around.latitude !== -1 && around.longitude !== -1)) {
             params['lat'] = around.latitude.toString();
             params['lon'] = around.longitude.toString();
             // params['radius'] = '10000'; // Default radius in meters, set to 10km
         }
         let queryString = AZURE_MAPS_URL;
-        for (const key in params) {
+        for (const key in params)
             queryString += `&${key}=${encodeURIComponent(params[key])}`;
-        }
+        
         const response = await axios.get(queryString);
         const candidates = response.data.results; // Azure API
         return candidates;
@@ -405,7 +405,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         try {
             let candidates : any[];
             const azure_key = process.env.AZURE_MAPS_KEY;
-            if (azure_key == undefined) {
+            if (azure_key === undefined) {
                 candidates = await this._tpClient.lookupLocation(searchKey, around);
             } else {
                 // Azure key found, use Azure Maps API
