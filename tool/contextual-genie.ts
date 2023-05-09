@@ -258,7 +258,16 @@ class serverController {
 
         this.app.post('/neglectFilters', qv.validatePOST({ name: 'string' }, { accept: 'application/json' }), async (req, res) => {
             try {
-                this._conversation._loop._thingtalkHandler.preProcessFunctions = (x) => neglectFilterInStmt(x, req.body.name);
+                this._conversation._loop._thingtalkHandler.preProcessFunctions.push((x) => neglectFilterInStmt(x, req.body.name));
+                res.send({ "response": 200 });
+            } catch{
+                res.send({ "response": 404 });
+            }
+        });
+
+        this.app.post('/neglectProjections', qv.validatePOST({ name: 'string' }, { accept: 'application/json' }), async (req, res) => {
+            try {
+                this._conversation._loop._thingtalkHandler.preProcessFunctions.push((x) => neglectProjectionInStmt(x, req.body.name));
                 res.send({ "response": 200 });
             } catch{
                 res.send({ "response": 404 });
@@ -416,6 +425,67 @@ function neglectFilterInStmt(dialogState : Ast.DialogueState, name : string) {
 
     for (const item of dialogState.history)
         item.stmt.expression.visit(visitor);
+}
+
+
+function neglectProjectionByName(ast : Ast.ProjectionExpression, name : string) : string[] {
+    const res = [];
+
+    for (const i of ast.args) {
+        if (i !== name)
+            res.push(i);
+    }
+
+    return res;
+}
+
+function isSchema(expr : Ast.Expression) : boolean {
+    return expr instanceof Ast.FunctionCallExpression || expr instanceof Ast.InvocationExpression || expr instanceof Ast.JoinExpression;
+}
+
+function neglectProjectionInStmt(dialogState : Ast.DialogueState, name : string) {
+
+    function replaceExpression(expr : Ast.Expression) {
+        let res = expr.clone();
+        if (res instanceof Ast.ProjectionExpression) {
+            const new_fields = neglectProjectionByName(res, name);
+            if (new_fields.length === 0)
+                res = res.expression;
+            else
+                res.args = new_fields;
+        }
+
+        expr = res;
+        while (!isSchema(expr)) {
+            if (expr instanceof Ast.FilterExpression ||
+                expr instanceof Ast.BooleanQuestionExpression ||
+                expr instanceof Ast.SortExpression ||
+                expr instanceof Ast.IndexExpression ||
+                expr instanceof Ast.SliceExpression) {
+
+                if (expr.expression instanceof Ast.ProjectionExpression) {
+                    const new_fields = neglectProjectionByName(expr.expression, name);
+                    if (new_fields.length === 0)
+                        expr.expression = expr.expression.expression;
+                    else
+                        expr.expression.args = new_fields;
+                } else {
+                    expr = expr.expression;
+                }
+            } else {
+                break;
+            }
+        }
+
+        return res;
+    }
+
+    for (const item of dialogState.history) {
+        for (let i = 0; i < item.stmt.expression.expressions.length; i ++) {
+            item.stmt.expression.expressions[i] = replaceExpression(item.stmt.expression.expressions[i]);
+            item.stmt.expression.schema = item.stmt.expression.last.schema;
+        }
+    }
 }
 
 

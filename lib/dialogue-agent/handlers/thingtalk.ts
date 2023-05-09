@@ -136,7 +136,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     // interested parties should clean this in next turn
     userTarget ?: string;
 
-    preProcessFunctions ?: (dialogState : Ast.DialogueState) => void;
+    preProcessFunctions : Array<(dialogState : Ast.DialogueState) => void>;
 
     constructor(engine : Engine,
                 loop : DialogueLoop,
@@ -185,6 +185,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         
         this.annotationLogger = getLogger("annotation");
         this.annotationLogger.level = "info";
+
+        this.preProcessFunctions = [];
     }
 
     isGeniescript() : boolean {
@@ -280,8 +282,10 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
             // do some custom preprocessing
             this.replaceBooleanQuestionExpression(analysis.parsed);
-            if (this.preProcessFunctions)
-                this.preProcessFunctions(analysis.parsed);
+            if (this.preProcessFunctions.length > 0) {
+                for (const fcn of this.preProcessFunctions)
+                    fcn(analysis.parsed);
+            }
 
             // record the natural language utterance
             if (command.type === 'command' && command.utterance) {
