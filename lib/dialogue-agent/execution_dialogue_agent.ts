@@ -381,7 +381,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         if (around && (around.latitude != -1 && around.longitude != -1)) {
             params['lat'] = around.latitude.toString();
             params['lon'] = around.longitude.toString();
-            params['radius'] = '10000'; // Default radius in meters, set to 10km
+            // params['radius'] = '10000'; // Default radius in meters, set to 10km
         }
         let queryString = AZURE_MAPS_URL;
         for (const key in params) {
