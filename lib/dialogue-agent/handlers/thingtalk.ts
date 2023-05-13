@@ -711,7 +711,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         let result_type : string|null = "";
         const result_values : Array<Record<string, unknown>> = [];
-        for (const [outputType, outputValue] of newResults.slice(0, policyResult.numResults)) {
+        for (const [outputType, outputValue] of newResults) {
             if (result_type === "")
                 result_type = outputType;
             result_values.push(outputValue);
