@@ -144,6 +144,9 @@ class serverController {
         this.server = this.app.listen(port);
         this.portNumber = this.server.address();
 
+        this.app.use(express.json( { limit: '50mb' } ));
+        this.app.use(express.urlencoded( { limit: '50mb' } ));
+
         if (this.portNumber && !(typeof this.portNumber === 'string')) {
             this.logger.info(`Server port number at: ${this.portNumber.address}, ${this.portNumber.family}, ${this.portNumber.port}`);
             console.log(`Server port number at: ${this.portNumber.address}, ${this.portNumber.family}, ${this.portNumber.port}`);
