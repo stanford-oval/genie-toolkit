@@ -118,6 +118,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     private _useConfidence : boolean;
     private _rng : () => number;
     private _ifDynamic : boolean;
+    directSentenceState : boolean; // this controls whether we directly use the semantic parser output as "full state"
     private _bypassAnswerControlIntent : boolean;
 
     logger : Logger;
@@ -154,6 +155,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         this._useConfidence = options.useConfidence;
         this._rng = options.rng;
         this._ifDynamic = options.ifDynamic;
+        this.directSentenceState = false;
         this.numResults = options.numResults;
         // FIXME: fix this
         this._bypassAnswerControlIntent = false;
@@ -268,16 +270,22 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         // defensive programming
         if (analysis.parsed instanceof Ast.DialogueState) {
             this.neutralizeIDFilter(analysis.parsed);
-            // do levenshtein apply, depending on whether to use dynamic resolution
-            if (this._ifDynamic) {
-                await this.handleIncomingDelta(this._dialogueState, analysis.parsed,
-                    async (x, other) => {
-                        const res = await this._agent.executeExpr(x, this._dialogueState!, this._executorState, !!other);
-                        return res;
-                    }
-                );
-            } else {
-                await this.handleIncomingDelta(this._dialogueState, analysis.parsed, undefined);
+
+            // if directly use full generation, bypass all delta-related processing
+            // analysis.parsed should already have full state implemented
+            if (!this.directSentenceState) {
+            
+                // do levenshtein apply, depending on whether to use dynamic resolution
+                if (this._ifDynamic) {
+                    await this.handleIncomingDelta(this._dialogueState, analysis.parsed,
+                        async (x, other) => {
+                            const res = await this._agent.executeExpr(x, this._dialogueState!, this._executorState, !!other);
+                            return res;
+                        }
+                    );
+                } else {
+                    await this.handleIncomingDelta(this._dialogueState, analysis.parsed, undefined);
+                }
             }
 
             // do some custom preprocessing

@@ -274,6 +274,15 @@ class serverController {
                 res.send({ "response": 404 });
             }
         });
+
+        this.app.post('/toggleDirectSentenceState', qv.validatePOST({ directSentenceState: 'bool' }, { accept: 'application/json' }), async (req, res) => {
+            try {
+                this._conversation._loop._thingtalkHandler.directSentenceState = req.body.directSentenceState;
+                res.send({ "response": 200 });
+            } catch{
+                res.send({ "response": 404 });
+            }
+        });
     }
 
     destroy() {}
