@@ -275,7 +275,7 @@ class serverController {
             }
         });
 
-        this.app.post('/toggleDirectSentenceState', qv.validatePOST({ directSentenceState: 'bool' }, { accept: 'application/json' }), async (req, res) => {
+        this.app.post('/toggleDirectSentenceState', qv.validatePOST({ directSentenceState: 'boolean' }, { accept: 'application/json' }), async (req, res) => {
             try {
                 this._conversation._loop._thingtalkHandler.directSentenceState = req.body.directSentenceState;
                 res.send({ "response": 200 });
