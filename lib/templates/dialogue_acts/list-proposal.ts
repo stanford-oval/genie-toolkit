@@ -19,14 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-import assert from 'assert';
-
 import { Ast, } from 'thingtalk';
 
-import * as ThingTalkUtils from '../../utils/thingtalk';
-
 import * as C from '../ast_manip';
-import ThingpediaLoader from '../load-thingpedia';
 
 import {
     AgentReplyOptions,
@@ -34,20 +29,10 @@ import {
     NameList,
     makeAgentReply,
     makeSimpleState,
-    addActionParam,
-    addAction,
-    addQuery,
 } from '../state_manip';
 import {
     isInfoPhraseCompatibleWithResult,
-    findChainParam
 } from './common';
-import {
-    queryRefinement,
-    refineFilterToAnswerQuestionOrChangeFilter,
-    combinePreambleAndRequest,
-    proposalReply,
-} from './refinement-helpers';
 import {
     SlotBag
 } from '../slot_bag';
@@ -58,22 +43,14 @@ import {
 export interface ListProposal {
     results : Ast.DialogueHistoryResultItem[];
     info : SlotBag|null;
-    action : Ast.Invocation|null;
-    hasLearnMore : boolean;
 }
 
-export function listProposalKeyFn({ results, info, action, hasLearnMore } : ListProposal) {
+export function listProposalKeyFn({ results, info } : ListProposal) {
     return {
         idType: results[0].value.id ? results[0].value.id.getType() : null,
         queryName: info ? info.schema!.qualifiedName : null,
-        actionName: action ? action.schema!.qualifiedName : null,
         length: results.length
     };
-}
-
-function checkInvocationCast(x : Ast.Invocation|Ast.FunctionCallExpression) : Ast.Invocation {
-    assert(x instanceof Ast.Invocation);
-    return x;
 }
 
 function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMore : boolean) : ListProposal|null {
@@ -114,8 +91,7 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
     }
 
 
-    const action = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null;
-    return { results, info, action, hasLearnMore };
+    return { results, info };
 }
 
 export type ThingpediaListProposal = [ContextInfo, SlotBag];
@@ -145,33 +121,7 @@ export function checkThingpediaListProposal(proposal : ThingpediaListProposal, a
     if (!mergedInfo)
         return null;
 
-    const action = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null;
-    return { results: ctx.results!, info: mergedInfo, action, hasLearnMore: false };
-}
-
-export function addActionToListProposal(nameList : NameList, action : Ast.Invocation) : ListProposal|null {
-    const { ctx, results } = nameList;
-    if (ctx.resultInfo!.projection !== null)
-        return null;
-
-    const currentStmt = ctx.current!.stmt;
-    const currentTable = currentStmt.expression;
-    const last = currentTable.last;
-    if (last instanceof Ast.SliceExpression &&
-        results.length !== ctx.results!.length)
-        return null;
-
-    if (!results[0].value.id)
-        return null;
-
-    const resultType = results[0].value.id.getType();
-    if (!C.hasArgumentOfType(action, resultType))
-        return null;
-    const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null;
-    if (ctxAction && !C.isSameFunction(ctxAction.schema!, action.schema!))
-        return null;
-
-    return { results, info: null, action, hasLearnMore: false };
+    return { results: ctx.results!, info: mergedInfo };
 }
 
 export function makeListProposalFromDirectAnswers(...phrases : DirectAnswerPhrase[]) : ListProposal|null {
@@ -218,16 +168,14 @@ export function makeListProposalFromDirectAnswers(...phrases : DirectAnswerPhras
 
     const results = ctx.results!.slice(0, phrases.length);
 
-    return { results, info: null, action: null, hasLearnMore: false };
+    return { results, info: null };
 }
 
 function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
-    const { results, action, hasLearnMore } = proposal;
+    const { results } = proposal;
     const options : AgentReplyOptions = {
         numResults: results.length
     };
-    if (action || hasLearnMore)
-        options.end = false;
     let dialogueAct;
     switch (results.length) {
     case 2:
@@ -242,154 +190,10 @@ function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
     default:
         dialogueAct = 'sys_recommend_many';
     }
-    if (action === null)
-        return makeAgentReply(ctx, makeSimpleState(ctx, dialogueAct, null), proposal, null, options);
-    else
-        return makeAgentReply(ctx, addAction(ctx, dialogueAct, action, 'proposed'), proposal, null, options);
-}
-
-function positiveListProposalReply(loader : ThingpediaLoader,
-                                   ctx : ContextInfo,
-                                   [name, acceptedAction, mustHaveAction] : [Ast.Value, Ast.Invocation|null, boolean]) {
-    // if actionProposal === null the flow is roughly
-    //
-    // U: hello i am looking for a restaurant
-    // A: how about the ... or the ... ?
-    // U: I like the ... bla
-    //
-    // in this case, the agent should hit the "... is a ... restaurant in the ..."
-    // we treat it as "execute" dialogue act and add a filter that causes the program to return a single result
-
-    const proposal = ctx.aux as ListProposal;
-    const { results, action: actionProposal } = proposal;
-    if (!results[0].value.id)
-        return null;
-
-    let good = false;
-    for (const result of results) {
-        if (result.value.id.equals(name)) {
-            good = true;
-            break;
-        }
-    }
-    if (!good)
-        return null;
-
-    if (acceptedAction === null)
-        acceptedAction = actionProposal;
-
-    if (acceptedAction === null) {
-        if (mustHaveAction)
-            return null;
-
-        const currentStmt = ctx.current!.stmt;
-        const currentTable = currentStmt.expression;
-        const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
-        const newTable = queryRefinement(currentTable, namefilter, (one, two) => new Ast.BooleanExpression.And(null, [one, two]), null);
-        if (newTable === null)
-            return null;
-
-        return addQuery(ctx, 'execute', newTable, 'accepted');
-    } else {
-        if (actionProposal !== null && !C.isSameFunction(actionProposal.schema!, acceptedAction.schema!))
-            return null;
-
-        // do not consider a phrase of the form "play X" to be "accepting the action by name"
-        // if the action auto-confirms, because the user is likely playing something else
-        if (acceptedAction && name) {
-            const confirm = ThingTalkUtils.normalizeConfirmAnnotation(acceptedAction.schema as Ast.FunctionDef);
-            if (confirm === 'auto')
-                return null;
-        }
-
-        const chainParam = findChainParam(results[0], acceptedAction);
-        if (!chainParam)
-            return null;
-        return addActionParam(ctx, 'execute', acceptedAction, chainParam, name, 'accepted');
-    }
-}
-
-function positiveListProposalReplyActionByName(loader : ThingpediaLoader,
-                                               ctx : ContextInfo,
-                                               action : Ast.Invocation) {
-    const proposal = ctx.aux as ListProposal;
-    const { results } = proposal;
-    if (!results[0].value.id)
-        return null;
-
-    let name = null;
-    const acceptedAction = action.clone();
-    const idType = results[0].value.id.getType();
-    // find the chain parameter for the action, extract the name, and set the param to undefined
-    // as the rest of the code expects
-    for (const in_param of acceptedAction.in_params) {
-        const arg = action.schema!.getArgument(in_param.name);
-        assert(arg);
-        if (arg.type.equals(idType)) {
-            name = in_param.value;
-            in_param.value = new Ast.Value.Undefined(true);
-            break;
-        }
-    }
-    if (!name)
-        return null;
-    return positiveListProposalReply(loader, ctx, [name, acceptedAction, false]);
-}
-
-function negativeListProposalReply(ctx : ContextInfo, [preamble, request] : [Ast.Expression|null, Ast.Expression|null]) {
-    if (!((preamble === null || preamble instanceof Ast.FilterExpression) &&
-          (request === null || request instanceof Ast.FilterExpression)))
-        return null;
-
-    const proposal = ctx.aux as ListProposal;
-    const { results, info } = proposal;
-    if (!results[0].value.id)
-        return null;
-
-    const proposalType = results[0].value.id.getType();
-    request = combinePreambleAndRequest(preamble, request, info, proposalType);
-    if (request === null)
-        return null;
-    return proposalReply(ctx, request, refineFilterToAnswerQuestionOrChangeFilter);
-}
-
-function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.Value) {
-    // note: a learn more from a list proposal is different than a learn_more from a recommendation
-    // in a recommendation, there is no change to the program, and the agent replies "what would
-    // you like to know"
-    // in a list proposal, we add a filter "id == "
-
-    const proposal = ctx.aux as ListProposal;
-    const { results } = proposal;
-    if (!results[0].value.id)
-        return null;
-
-    let good = false;
-    for (const result of results) {
-        if (result.value.id.equals(name)) {
-            good = true;
-            break;
-        }
-    }
-    if (!good)
-        return null;
-
-    const currentStmt = ctx.current!.stmt;
-    const currentTable = currentStmt.expression;
-    const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
-    const newTable = queryRefinement(currentTable, namefilter, (one, two) => new Ast.BooleanExpression.And(null, [one, two]), null);
-    if (newTable === null)
-        return null;
-
-    return addQuery(ctx, 'execute', newTable, 'accepted');
+    return makeAgentReply(ctx, makeSimpleState(ctx, dialogueAct, null), proposal, null, options);
 }
 
 export {
     checkListProposal,
     makeListProposalReply,
-
-    positiveListProposalReply,
-    positiveListProposalReplyActionByName,
-    listProposalLearnMoreReply,
-    negativeListProposalReply
 };

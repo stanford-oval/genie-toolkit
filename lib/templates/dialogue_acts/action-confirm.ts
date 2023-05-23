@@ -21,16 +21,12 @@
 
 import assert from 'assert';
 
-import { Ast, Type } from 'thingtalk';
-
-import * as C from '../ast_manip';
+import { Type } from 'thingtalk';
 
 import {
     ContextInfo,
     makeAgentReply,
     makeSimpleState,
-    setOrAddInvocationParam,
-    addNewItem,
 } from '../state_manip';
 
 
@@ -53,29 +49,8 @@ function actionConfirmRejectPhrase(ctx : ContextInfo) {
     return makeSimpleState(clone, 'cancel', null);
 }
 
-function actionConfirmChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputParamSlot) {
-    if (!ctx.next)
-        return null;
-
-    if (answer instanceof Ast.Value)
-        return null;
-
-    // don't accept in params that don't apply to this specific action
-    const arg = ctx.nextFunction!.getArgument(answer.ast.name);
-    if (!arg || !arg.is_input || !arg.type.equals(answer.ast.value.getType()))
-        return null;
-
-    const clone = ctx.next.clone();
-    const action = C.getInvocation(clone);
-    if (!action || !(action instanceof Ast.Invocation)) return null;
-
-    setOrAddInvocationParam(action, answer.ast.name, answer.ast.value);
-    return addNewItem(ctx, 'execute', null, 'confirmed', clone);
-}
-
 export {
     makeActionConfirmationPhrase,
     actionConfirmAcceptPhrase,
     actionConfirmRejectPhrase,
-    actionConfirmChangeParam
 };

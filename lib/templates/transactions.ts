@@ -206,8 +206,6 @@ export function interpretAnswer(state : Ast.DialogueState,
 
     case 'sys_slot_fill':
         return D.impreciseSlotFillAnswer(ctx, answer);
-    case 'sys_search_question':
-        return D.impreciseSearchQuestionAnswer(ctx, answer);
     case 'sys_confirm_action':
         if (answer instanceof Ast.BooleanValue) {
             if (answer.value)

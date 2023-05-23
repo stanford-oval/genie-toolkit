@@ -940,83 +940,6 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.spotify.playable() filter id =~ "Nice For What";
-UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify.playable() filter id =~ "Nice For What";
-C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).playable() filter id =~ "Nice For What"
-C: #[results=[
-C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79 }
-C: ]];
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Nice For What is a music by Drake released in June 28, 2018. Would you like to play it on Spotify?
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play(playable="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"))
-AT: #[confirm=enum proposed];
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: \t $yes;
-UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify(id="com.spotify-7"^^tt:device_id).play(playable="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"));
-C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).playable() filter id =~ "Nice For What"
-C: #[results=[
-C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79 }
-C: ]];
-C: @com.spotify(id="com.spotify-7"^^tt:device_id).play(playable="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"))
-C: #[results=[
-C:   { playable="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Unknown device") }
-C: ]];
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I played Nice For What on Spotify.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: \t $stop;
-UT: $stop;
-====
-# test
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.spotify.playable() filter id =~ "Nice For What";
-UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify.playable() filter id =~ "Nice For What";
-C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).playable() filter id =~ "Nice For What"
-C: #[results=[
-C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79 }
-C: ]];
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Nice For What is a music by Drake released in June 28, 2018. Would you like to play it on Spotify?
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play(playable="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"))
-AT: #[confirm=enum proposed];
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: \t $no;
-UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
-C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).playable() filter id =~ "Nice For What"
-C: #[results=[
-C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79 }
-C: ]];
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Alright, let me know if I can help you with anything else!
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
-====
-# test
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: \t $stop;
-UT: $stop;
-====
-# test
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.spotify.play(playable="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:playable("Hello"));
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.spotify.play(playable="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:playable("Hello"));
@@ -1211,43 +1134,6 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.spotify.playable() filter id =~ "Nice For What";
-UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify.playable() filter id =~ "Nice For What";
-C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).playable() filter id =~ "Nice For What"
-C: #[results=[
-C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79 }
-C: ]];
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Nice For What is a music by Drake released in June 28, 2018. Would you like to play it on Spotify?
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play(playable="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"))
-AT: #[confirm=enum proposed];
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: \t $no;
-UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
-C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).playable() filter id =~ "Nice For What"
-C: #[results=[
-C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79 }
-C: ]];
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Alright, let me know if I can help you with anything else!
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
-====
-# test
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: \t $stop;
-UT: $stop;
-====
-# test
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: sort(popularity desc of @com.spotify.song())[1];
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: sort(popularity desc of @com.spotify.song())[1];
@@ -1259,7 +1145,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I see ROCKSTAR (feat. Roddy Ricch). It is a song in the album BLAME IT ON BABY by DaBaby.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1281,7 +1167,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I see Love Yourself. It is a song in the album Romantic Pop Songs by Justin Bieber.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1303,7 +1189,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: The restaurant with the highest review count is NOLA Restaurant & Bar. It is an expensive restaurant rated 3.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1325,7 +1211,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: The restaurant with the lowest review count is The Ivy Cambridge Brasserie. It is a restaurant rated 4.5 star with British food.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1347,7 +1233,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Here is your cat picture.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1380,7 +1266,7 @@ C: #[more=true];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I see 20 and 451. 20 is released on January 20, 2018, while 451 is released on March 20, 2020.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1402,7 +1288,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: The latest xkcd comic is 371. It is an xkcd comic from August 31, 2020 titled str:QUOTED_STRING::3:.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1447,7 +1333,7 @@ C: #[more=true];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I tweeted something.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1469,7 +1355,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Str:QUOTED_STRING::42:.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1485,7 +1371,7 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.light-bulb.set_power(power=enum off);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: You do not have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1503,7 +1389,7 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.door.state();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: You need to enable Home Assistant before you can use that command.
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1549,7 +1435,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alright, let me know if I can help you with anything else!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1574,7 +1460,7 @@ C: #[error_stack="Error: unexpected weather error"];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1596,7 +1482,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: The current weather in Palo Alto, California is sunny. The temperature is 60 degrees Fahrenheit.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1629,7 +1515,7 @@ C: #[more=true];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I see Ramen Nagi. It is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1651,7 +1537,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Ramen Nagi is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1667,7 +1553,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alright, let me know if I can help you with anything else!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1708,7 +1594,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Today is January 20, 2018.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1798,7 +1684,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: The answers for 3 items of size 5 bytes are AAAAA, BBBBB, and CCCCC.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1819,7 +1705,7 @@ C: #[results=[]];
 A: What is your phone number?
 A: Alright, I will get the cat picture every 60 minutes.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1847,7 +1733,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Notification from CatAPI: here is your cat picture.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1875,7 +1761,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Notification from Yelp: I see Ramen Nagi. It is a moderate restaurant rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1903,7 +1789,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Notification from Yelp: the restaurant with the highest rating is Ramen Nagi. It is a moderate restaurant rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1931,7 +1817,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Notification from Lightbulb: I turned off your Living Room light bulb.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1974,7 +1860,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Ramen Nagi has 1,625 reviews, Evvia Estiatorio has 2,393 reviews, and Oren's Hummus has 2,248 reviews.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -1990,7 +1876,7 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: timer(base=$now, interval=1h) => @com.thecatapi.get();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: What is your phone number?
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2003,7 +1889,7 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.twitter.post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: To use this command you must first create a personal Genie account.
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2033,7 +1919,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Notification from some app: the answer is !!!!!!!!!!!!!!!!!!!!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2130,7 +2016,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: The Simulated Device org.thingpedia.iot.switch 0 switch is on. The Simulated Device org.thingpedia.iot.switch 1 switch is on. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is off.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2188,7 +2074,7 @@ C: #[count=38];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I see Crouching Tiger Restaurant & Bar and I Dumpling. Both are restaurants rated 4 star with Chinese food.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2204,7 +2090,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.greet;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Hello! How can I help you?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_greet;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2223,7 +2109,7 @@ C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alright, I will notify you when the current weather in [Latitude: 37.428 deg, Longitude: -122.170 deg] changes and it becomes true that the temperature is greater than or equal to 70 degrees Fahrenheit.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2238,7 +2124,7 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(name="invalid").state();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I cannot find any invalid switch device. Which device do you want to use?
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2256,7 +2142,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Nice For What is a song in the album Scorpion by Drake.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2314,7 +2200,7 @@ C: #[count=50];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I see Yellow and The Real Slim Shady. Yellow is by Coldplay, while The Real Slim Shady is by Eminem.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2351,7 +2237,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I turned off your Büro Decke switch for you.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2373,7 +2259,7 @@ C: ]];
 A: I cannot find any invalid switch device. Which device do you want to use?
 A: I turned off your Kitchen Switches switch.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2389,7 +2275,7 @@ C: $dialogue @com.bing.search;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Here is something I found on the web.
 AT: $dialogue @com.bing.sys_search_result;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2432,7 +2318,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Both Adrien Silva and M. Shabani are player stats with the dribble equal to 0.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2460,7 +2346,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Your request was completed successfully.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2476,7 +2362,7 @@ UT: @org.thingpedia.iot.light-bulb.set_power(power=enum on);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Did you mean set on the lights?
 A: You do not have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2496,7 +2382,7 @@ C: null
 A: Did you mean set on the lights?
 A: Sorry I couldn't help on that.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_clarify;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2524,7 +2410,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Reminder: my reminder.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2552,7 +2438,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Reminder: my reminder.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2574,7 +2460,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: It is 5:50 PM.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2602,7 +2488,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alert: it is 5:50 PM.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2639,7 +2525,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: The artist is Adele.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2660,7 +2546,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Currently playing Hello. The artist is Adele.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2681,7 +2567,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Oren's Hummus opens from 11:00 AM to 2:30 PM every day.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2702,7 +2588,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Str:QUOTED_STRING::42:.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2721,7 +2607,7 @@ C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alright, I will notify you when the power state of your Kitchen Switches switch changes and it becomes true that the state is equal to on.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines

@@ -32,9 +32,6 @@ import {
     ContextInfo,
     addNewItem,
 } from '../state_manip';
-import {
-    findOrMakeFilterExpression
-} from './refinement-helpers';
 
 function adjustStatementsForInitialRequest(loader : ThingpediaLoader,
                                            expr : Ast.ChainExpression) {
@@ -198,34 +195,4 @@ export function startNewRequest(loader : ThingpediaLoader, ctx : ContextInfo, ex
 
     const newItems = newStatements.map((stmt) => new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
     return addNewItem(ctx, 'execute', null, 'accepted', ...newItems);
-}
-
-export function addInitialDontCare(expr : Ast.Expression, dontcare : C.FilterSlot) : Ast.Expression|null {
-    const chain = C.toChainExpression(expr);
-    const table = chain.lastQuery;
-    if (!table)
-        return null;
-    if (!C.isSameFunction(table.schema!, dontcare.schema))
-        return null;
-
-    assert(dontcare.ast instanceof Ast.DontCareBooleanExpression);
-    const arg = table.schema!.getArgument(dontcare.ast.name);
-    if (!arg || arg.is_input)
-        return null;
-    if (arg.getAnnotation<boolean>('filterable') === false)
-        return null;
-    if (!table.schema!.is_list)
-        return null;
-
-    const clone = chain.clone();
-    const filterExpression = findOrMakeFilterExpression(clone);
-    assert(filterExpression);
-    if (!(filterExpression.expression instanceof Ast.InvocationExpression))
-        return null;
-
-    if (C.filterUsesParam(filterExpression.filter, dontcare.ast.name))
-        return null;
-
-    filterExpression.filter = new Ast.BooleanExpression.And(null, [filterExpression.filter, dontcare.ast]).optimize();
-    return clone;
 }
