@@ -410,6 +410,12 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             skip_typechecking: true
         });
 
+        try {
+            this.userTarget = nluResult.candidates[0].code.join(' ');
+        } catch{
+            // Disregard any errors and continue execution
+        }
+
         if (this._useConfidence &&
             (nluResult.intent.command < nluResult.intent.ignore ||
              nluResult.intent.command < nluResult.intent.other)) {
