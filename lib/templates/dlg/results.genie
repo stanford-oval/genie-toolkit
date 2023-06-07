@@ -94,6 +94,18 @@ one_param_direct_result_info_phrase : D.ResultPhrase = {
         bag.set('distance', v);
         return D.makeResultPhrase(ctx, bag);
     },
+
+    ["the answer is ${v}"] : (ctx:ctx_with_result, v:constant_String) => {
+        const bag = new SlotBag(null);
+        bag.set('answer', v);
+        return D.makeResultPhrase(ctx, bag);
+    },
+
+    ["the result is ${v}"] : (ctx:ctx_with_result, v:constant_Any) => {
+        const bag = new SlotBag(null);
+        bag.set('result', v);
+        return D.makeResultPhrase(ctx, bag);
+    },
 }
 
 two_param_direct_result_info_phrase : D.ResultPhrase = {

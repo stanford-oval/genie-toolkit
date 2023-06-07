@@ -357,6 +357,8 @@ export class Describer {
 
                 return this._interp(this._("${time} on ${date}"), { date : operands[0], time: operands[1] });
             }
+            case 'answer':
+                return this._interp(this._("answer question ${question} based on text ${text}"), { question : operands[0], text : operands[1] });
             default:
                 throw new TypeError(`Unexpected computation operator ${arg.op}`);
             }
